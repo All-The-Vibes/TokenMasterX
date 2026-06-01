@@ -1,0 +1,19 @@
+{
+  "name": "token-master",
+  "owner": {
+    "name": "Shyam Sridhar"
+  },
+  "metadata": {
+    "description": "Token-efficient code-understanding harness for Claude Code.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "token-master",
+      "description": "Routes structural code questions (callers, callees, impact, inheritors) to a prebuilt code graph instead of repeated grep and file-reads, cutting cumulative context tokens. Type /token-master in a repo to build the index and turn on routing.",
+      "source": "./token-master-plugin",
+      "strict": false,
+      "skills": ["./skills/token-master"]
+    }
+  ]
+}
