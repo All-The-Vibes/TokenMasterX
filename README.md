@@ -20,6 +20,8 @@ A naive harness saves nothing by being short-per-turn if it takes 40 turns of gr
 
 On Django (992 `.py` files, hard multi-hop tasks) the routed harness measured **−72% cumulative input tokens overall (3.5×), up to −80% (5.0×)** on blast-radius tasks, with no correctness regression — and a negative-control task that correctly came out a wash (grep already answers it in ~3 turns).
 
+This replicated on independent SWE-bench Lite repositories. Across **scikit-learn and sympy** (36 live Copilot runs, three navigation tasks × two repos × two reps × three arms), graphify-routed navigation pooled **−73.1% cumulative input tokens (3.71×)** versus the grep baseline — the multi-repo average landing slightly below the Django-only figure, which is the more honest number to quote. The win concentrates exactly where the thesis predicts: blast-radius impact analysis pooled **~7.8× (−87%)**, because grep balloons to 200k+ tokens tracing change impact while the graph answers in ~27k. Routing held at **12/12** on every graphify cell — the grep-fallback failure mode did not occur once.
+
 ## How it works
 
 TokenMaster installs a **routing agent** that prefers graph queries over grep, backed by two interchangeable graph suppliers and the host CLI's own session memory:
@@ -27,7 +29,7 @@ TokenMaster installs a **routing agent** that prefers graph queries over grep, b
 | Layer | Supplier | Role |
 |-------|----------|------|
 | **Semantic-spatial** (default) | [`graphify`](https://github.com/safishamsi/graphify) | Fast, no-LLM structural index. Answers callers / callees / impact / inheritors from inferred edges. The cheap default. |
-| **Precise-spatial** (escalation) | [`@colbymchenry/codegraph`](https://www.npmjs.com/package/@colbymchenry/codegraph) | AST-resolved call edges. A targeted escalation for precision-critical cases or sparse call graphs (common in JS/TS). |
+| **Precise-spatial** (last-mile) | [`@colbymchenry/codegraph`](https://www.npmjs.com/package/@colbymchenry/codegraph) | AST-resolved call edges. The precision escalation: when an inferred edge isn't trustworthy enough — precision-critical impact analysis, or sparse call graphs (common in JS/TS) where name-inference under-connects. Costs more tokens to buy exact edges. |
 | **Temporal** | host CLI session memory | Native cross-session recall — no extra server. |
 
 The routing layer is the product; the indexes are interchangeable suppliers. A graph the model never queries saves nothing, so the harness makes the efficient path the *default* one rather than merely offering it.
@@ -83,7 +85,7 @@ Re-run `/token-master` whenever the code has changed enough that the graph is st
 ## Honest limitations
 
 - **Not a universal speedup.** TokenMaster wins on hard, multi-hop traversal. On short structural questions that grep answers in ~3 turns, it is correctly *neutral*. A harness that "wins everywhere" is measuring an artifact.
-- **graphify edges are inferred.** The default backend infers call edges by name (~0.8 confidence). For precision-critical work, the agent escalates to AST-resolved `codegraph` edges.
+- **graphify edges are inferred; codegraph is the last mile.** The default backend infers call edges by name (~0.8 confidence) — fast and cheap, and on well-named Python it answers correctly the large majority of the time. `codegraph` exists to buy the *last mile* of precision: AST-resolved edges for the cases inference can't be trusted on. That precision is not free. On the SWE-bench Lite pilot, codegraph cost **~3–4× more tokens than graphify** and on the simpler caller/inheritor tasks frequently ran *below* the grep baseline; its resolved edge set **diverged from graphify's inferred set on every compared cell** — different, and exact, but not a free upgrade. The takeaway the data supports: **graphify is the default; codegraph is the deliberate escalation when an exact edge is worth paying for**, not an always-on replacement.
 - **Sparse call graphs.** On some languages (notably JavaScript/TypeScript) graphify's call graph is sparse; setup detects this and prints a warning pointing you at the `codegraph` backend.
 - **Cumulative tokens, not dollars.** TokenMaster optimizes the integral of context size over a task. Billing proxies (premium requests, total token counts) are explicitly *not* the metric.
 
