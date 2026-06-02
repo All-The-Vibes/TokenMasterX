@@ -90,6 +90,8 @@ def _git_root(start: Path) -> Path:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         root = out.stdout.strip()
         return Path(root).resolve() if root else start
@@ -167,6 +169,8 @@ def _ensure_codegraph(home: Path):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=60,
             )
         subprocess.run(
@@ -176,6 +180,8 @@ def _ensure_codegraph(home: Path):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=300,
         )
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
@@ -351,6 +357,8 @@ def main() -> int:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
     except subprocess.CalledProcessError as exc:
         return _fail(f"`graphify update` failed:\n{exc.output}")
@@ -388,15 +396,26 @@ def main() -> int:
 
     # Index with codegraph if the shim is available.
     if node_path and shim_path:
-        print(f"[token-master] codegraph: indexing {repo} ...")
+        # codegraph requires `init` (which builds the initial index and creates
+        # .codegraph/codegraph.db) before `index`/`sync` will run — calling `index`
+        # on an uninitialized repo errors with "CodeGraph not initialized". So pick
+        # the subcommand by whether the repo has been initialized already.
+        cg_db = repo / ".codegraph" / "codegraph.db"
+        if cg_db.is_file():
+            cg_cmd, cg_action = [node_path, shim_path, "sync", "."], "syncing"
+        else:
+            cg_cmd, cg_action = [node_path, shim_path, "init", "."], "initializing"
+        print(f"[token-master] codegraph: {cg_action} {repo} ...")
         try:
             subprocess.run(
-                [node_path, shim_path, "index", "."],
+                cg_cmd,
                 cwd=str(repo),
                 check=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=300,
             )
             print("[token-master] codegraph: index complete.")
