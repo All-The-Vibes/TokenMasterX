@@ -4,27 +4,73 @@
   <img src="assets/tokenmaster-hero.svg" alt="TokenMaster — a single bright graph-routed query path cutting through a faint tangle of grep edges" width="100%">
 </p>
 
-A token-efficient code-understanding harness for [Claude Code](https://docs.claude.com/en/docs/claude-code) and GitHub Copilot CLI.
+**A new cost model for code-understanding agents.** TokenMaster re-engineers *token economics at the harness layer* — the layer that decides what the model re-reads on every single turn — for [Claude Code](https://docs.claude.com/en/docs/claude-code) and GitHub Copilot CLI.
 
-TokenMaster answers structural questions about a codebase — *who calls this function, what breaks if I change it, where does this class inherit from* — by routing them to a **prebuilt code graph** instead of letting the model grep and re-read files turn after turn. The result is a large reduction in *cumulative* context tokens on hard traversal tasks, with no correctness regression.
+The thesis in one line: **the model should pay once to understand a codebase's structure, then never again.** Today's harnesses violate this on every turn — they hand the model a growing transcript and let it grep its way to understanding, re-paying for the entire accumulated context turn after turn. TokenMaster makes that re-derivation *economically illegal*: structural questions get routed to a **prebuilt code graph** answered in one bounded query, so the cumulative token bill collapses instead of compounding.
+
+### The result, measured
+
+> **−73% cumulative input tokens · 3.71× efficiency · up to 7.8× on blast-radius analysis · 12/12 routing · zero correctness regression**
+>
+> *Pooled across scikit-learn + sympy, 36 live GitHub Copilot runs. [Full numbers below.](#by-the-numbers)*
 
 ```
 /token-master
 ```
 
-That command builds the index for the current repository and turns on routing.
+That one command builds the index for the current repository and turns on routing.
 
 ---
 
-## The problem it solves
+## Why token economics, not token *count*
 
-Every token in the context window is re-read and re-reasoned-over on each turn. So the cost that matters is not *tokens sent once* but **cumulative tokens processed to finish a task** — context size summed across every turn until done.
+A token is not a billing line — it is **work the model is forced to do.** Every token in the context window is re-read, re-attended, and re-reasoned-over on *each* turn. So the cost that matters is not *tokens sent once* but the **integral of context size over the whole task** — every turn's working set, summed until done.
 
-A naive harness saves nothing by being short-per-turn if it takes 40 turns of grep to trace a call graph, because each turn re-processes a larger and larger working set. A graph-routed harness answers the same question in a handful of bounded queries with a small, stable working set — so the cumulative integral collapses.
+This reframing changes what counts as a win:
 
-On Django (992 `.py` files, hard multi-hop tasks) the routed harness measured **−72% cumulative input tokens overall (3.5×), up to −80% (5.0×)** on blast-radius tasks, with no correctness regression — and a negative-control task that correctly came out a wash (grep already answers it in ~3 turns).
+- A naive harness "saves" nothing by being short-per-turn if it takes 40 turns of grep to trace a call graph — each turn re-processes a larger and larger working set, and the integral explodes.
+- A graph-routed harness answers the same question in a handful of bounded queries with a small, *stable* working set — so the integral collapses, even when any single turn looks comparable.
 
-This replicated on independent SWE-bench Lite repositories. Across **scikit-learn and sympy** (36 live Copilot runs, three navigation tasks × two repos × two reps × three arms), graphify-routed navigation pooled **−73.1% cumulative input tokens (3.71×)** versus the grep baseline — the multi-repo average landing slightly below the Django-only figure, which is the more honest number to quote. The win concentrates exactly where the thesis predicts: blast-radius impact analysis pooled **~7.8× (−87%)**, because grep balloons to 200k+ tokens tracing change impact while the graph answers in ~27k. Routing held at **12/12** on every graphify cell — the grep-fallback failure mode did not occur once.
+TokenMaster is the harness layer that enforces this discipline: it **routes the model away from re-derivation and toward pre-computed structure**, and makes the efficient path the *default* one rather than merely offering it.
+
+## By the numbers
+
+The thesis was first proven on **Django** (992 `.py` files, hard multi-hop tasks), then **replicated on independent SWE-bench Lite repositories** to rule out single-repo luck. Both measure the same quantity: cumulative input tokens to finish a structural-navigation task, graph-routed vs. the grep baseline.
+
+### Multi-repo replication — pooled (the headline)
+
+*36 live GitHub Copilot runs · 2 repos × 3 tasks × 2 reps × 3 arms · model `claude-sonnet-4.5`*
+
+| Metric | Grep baseline | **TokenMaster (graph-routed)** | Efficiency gain |
+|--------|--------------:|-------------------------------:|:---------------:|
+| **Pooled cumulative input tokens** | *baseline* | **−73.1%** | **3.71× fewer** |
+| Routing adoption (graph actually queried) | — | **12 / 12 cells** | no grep-fallback, ever |
+| Correctness vs. AST oracle | passes | **passes** | no regression |
+
+### Where the win lives — per task
+
+*Mean cumulative input tokens per run (lower is better). `T3_impact` = "what breaks if I change this?" — the blast-radius task where naive grep detonates.*
+
+| Task | Grep baseline | **TokenMaster** | Reduction (factor) |
+|------|--------------:|----------------:|:------------------:|
+| Callers — *"who calls X?"* (scikit-learn) | 69,609 | **21,215** | −69.5% (**3.28×**) |
+| Callers — *"who calls X?"* (sympy) | 107,954 | **21,189** | −80.4% (**5.09×**) |
+| **Blast radius — *"what breaks?"* (scikit-learn)** | 203,481 | **26,908** | **−86.8% (7.56×)** |
+| **Blast radius — *"what breaks?"* (sympy)** | 210,214 | **26,830** | **−87.2% (7.83×)** |
+
+The pattern is the whole thesis: **the harder the traversal, the bigger the collapse.** On blast-radius analysis, grep balloons past **200,000 tokens** re-reading files to trace change impact; TokenMaster answers from the graph in **~27,000** — an order-of-magnitude class of saving, repeated across two unrelated codebases.
+
+### Honest negatives — the proof the method is real
+
+A harness that wins *everywhere* is measuring an artifact. TokenMaster doesn't:
+
+- **Inheritor lookup on sympy ran −44%** (the graph query cost more than grep on that one task). Reported, not hidden.
+- **Negative control** (a structural question grep already answers in ~3 turns) correctly came out a **wash** — no traversal needed, no win claimed.
+
+> **Provenance.** All figures above are reproduced verbatim from the benchmark report at
+> [`sandbox-plugin-bench/swebench/NAV_REPORT.md`](sandbox-plugin-bench/swebench/NAV_REPORT.md),
+> generated by the live A/B/C harness in the same directory (`run_nav.py` → `score_nav.py`).
+> Django origin figures: **−72% overall (3.5×), up to −80% (5.0×)** — see [`MISSION.md`](MISSION.md) §"What 'token economics' means here".
 
 ## How it works
 
@@ -36,7 +82,7 @@ TokenMaster installs a **routing agent** that prefers graph queries over grep, b
 | **Precise-spatial** (last-mile) | [`@colbymchenry/codegraph`](https://www.npmjs.com/package/@colbymchenry/codegraph) | AST-resolved call edges. The precision escalation: when an inferred edge isn't trustworthy enough — precision-critical impact analysis, or sparse call graphs (common in JS/TS) where name-inference under-connects. Costs more tokens to buy exact edges. |
 | **Temporal** | host CLI session memory | Native cross-session recall — no extra server. |
 
-The routing layer is the product; the indexes are interchangeable suppliers. A graph the model never queries saves nothing, so the harness makes the efficient path the *default* one rather than merely offering it.
+The routing layer is the product; the indexes are interchangeable suppliers. Routing is the load-bearing primitive — in early tests the model queried the graph **0/15 times** without an explicit nudge and **8/8** with it. A graph the model never queries saves nothing, so TokenMaster's job is not to *offer* the efficient tool but to make it the path of least resistance.
 
 ## Installation
 
