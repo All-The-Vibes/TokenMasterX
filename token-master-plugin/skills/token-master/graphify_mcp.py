@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """TokenMaster graph-navigation MCP server.
 
-Exposes a prebuilt code graph behind routing-friendly tool names so Copilot will
-call them for structural ("who calls X", "what breaks if I change Y") questions
+Exposes a prebuilt code graph behind routing-friendly tool names so the host CLI
+will call them for structural ("who calls X", "what breaks if I change Y") questions
 instead of repeatedly grepping and re-reading files. That substitution is what
 cuts cumulative context tokens.
 
@@ -29,8 +29,8 @@ from mcp.server.fastmcp import FastMCP
 
 # GRAPH_PATH may be absolute or relative. When relative (the default), the graph
 # is located by walking UP from the current working directory looking for that
-# path — so it resolves whether Copilot launches the MCP server at the repo root
-# or in a subdirectory.
+# path — so it resolves whether the host CLI launches the MCP server at the repo
+# root or in a subdirectory.
 GRAPH_PATH = os.environ.get("GRAPH_PATH", os.path.join(".token-master", "graph.json"))
 # Optional: set MCP_CALL_LOG to record each tool call (used by the observability
 # meter). Off by default so the server never litters the repo.

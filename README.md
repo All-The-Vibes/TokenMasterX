@@ -1,5 +1,9 @@
 # TokenMaster
 
+<p align="center">
+  <img src="assets/tokenmaster-hero.svg" alt="TokenMaster — a single bright graph-routed query path cutting through a faint tangle of grep edges" width="100%">
+</p>
+
 A token-efficient code-understanding harness for [Claude Code](https://docs.claude.com/en/docs/claude-code) and GitHub Copilot CLI.
 
 TokenMaster answers structural questions about a codebase — *who calls this function, what breaks if I change it, where does this class inherit from* — by routing them to a **prebuilt code graph** instead of letting the model grep and re-read files turn after turn. The result is a large reduction in *cumulative* context tokens on hard traversal tasks, with no correctness regression.
@@ -36,7 +40,13 @@ The routing layer is the product; the indexes are interchangeable suppliers. A g
 
 ## Installation
 
-TokenMaster is a Claude Code plugin distributed through a plugin marketplace.
+TokenMaster supports two host CLIs — **Claude Code** and **GitHub Copilot CLI**. Install the
+routing agent for whichever you use (the prerequisites below are shared). `/token-master` builds
+the per-repo graph and installs the host-appropriate routing agent into your user-scope CLI home.
+
+### Claude Code
+
+TokenMaster is distributed as a Claude Code plugin through a plugin marketplace:
 
 ```
 /plugin marketplace add shyamsridhar123/TokenMasterX
@@ -48,6 +58,27 @@ Then, inside any repository you want to index:
 ```
 /token-master
 ```
+
+The installer writes the routing agent to `~/.claude/agents/token-master.md` and registers the
+graph MCP server in `~/.claude.json`. After the first install, **restart Claude Code** (or start it
+with `claude --agent token-master`) for routing to take effect.
+
+### GitHub Copilot CLI
+
+For Copilot, run the installer directly against the skill, selecting the Copilot host:
+
+```
+python <skill-dir>/setup.py <repo-root> --host=copilot
+```
+
+(`<skill-dir>` is `token-master-plugin/skills/token-master/` from this repo; clone it or vendor the
+skill into your tooling.) This writes the routing agent — with its MCP servers declared inline — to
+`~/.copilot/agents/token-master.agent.md`. **Restart Copilot** (or start it with `copilot --agent
+token-master`) for routing to take effect.
+
+> The installer auto-detects the host when `--host` is omitted (it also honors a `TOKEN_MASTER_HOST`
+> environment variable), defaulting to Claude Code. Pass `--host` explicitly on a machine that has
+> both CLIs.
 
 ### Prerequisites
 
@@ -72,7 +103,9 @@ The agent answers them from the graph. To confirm routing is active, ask a known
 
 Re-run `/token-master` whenever the code has changed enough that the graph is stale.
 
-> **Note:** The routing agent loads at CLI startup. After the first install, restart Claude Code (or start it with `--agent token-master`) for routing to take effect.
+> **Note:** The routing agent loads at CLI startup. After the first install, restart your host CLI
+> (or start it with `--agent token-master`) for routing to take effect. The setup summary prints the
+> exact restart command for your host.
 
 ## What gets written
 
@@ -97,12 +130,25 @@ token-master-plugin/          The plugin (this is the deliverable)
 │   └── plugin.json            Plugin manifest
 └── skills/token-master/
     ├── SKILL.md               The /token-master command
-    ├── setup.py               Installer: builds the graph, installs the agent
+    ├── setup.py               Installer: builds the graph, installs the host agent
     ├── graphify_mcp.py        Graph-query MCP server
-    └── agent.template.md      The routing agent template
+    ├── agent.template.claude.md    Routing agent template (Claude Code format)
+    └── agent.template.copilot.md   Routing agent template (Copilot CLI format)
 
 .claude-plugin/
 └── marketplace.json           Plugin marketplace manifest (the packager)
+
+assets/
+├── generate_art.py            Deterministic, dependency-free SVG generator
+└── tokenmaster-hero.svg       The hero image above (reproducible from a seed)
+```
+
+The hero image is generative: it *is* the thesis. The faint tangle is grep
+sprawl — context re-read turn after turn — and the single bright path is one
+bounded graph-routed query. Regenerate or remix it with:
+
+```
+python assets/generate_art.py --seed 42
 ```
 
 ## License

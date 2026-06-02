@@ -1,24 +1,33 @@
 #!/usr/bin/env python
 """TokenMaster installer.
 
-Turns on token-efficient graph routing for a repository:
+Turns on token-efficient graph routing for a repository, targeting either Claude Code
+or GitHub Copilot CLI (the "host"):
 
   1. Verifies `graphify` is installed.
   2. Builds the code graph (`graphify update`) and relocates it to
      ``<repo>/.token-master/graph.json``.
   3. Adds ``.token-master/`` and ``.codegraph/`` to the repo's ``.gitignore``.
   4. Copies the graph MCP server to a stable home
-     (``$COPILOT_HOME/token-master/graphify_mcp.py``).
+     (``<host-home>/token-master/graphify_mcp.py``).
   5. Locates or installs the codegraph shim (optional, best-effort).
   6. Indexes the repo with codegraph if the shim is available.
   7. Checks for sparse call-graph coverage and warns if detected.
-  8. Writes the routing agent to ``$COPILOT_HOME/agents/token-master.agent.md``
-     with absolute ``uv``/script paths and a relative graph path (so the one
-     agent serves every repo).
+  8. Writes the routing agent in the host's format:
+       - Copilot: ``~/.copilot/agents/token-master.agent.md`` (MCP servers declared
+         inline in the agent frontmatter).
+       - Claude:  ``~/.claude/agents/token-master.md`` (Claude frontmatter, no inline
+         MCP) plus the graph MCP server merged into ``~/.claude.json`` ``mcpServers``.
+     Paths are resolved absolute (``uv``/script) with a relative graph path, so the one
+     agent serves every repo.
+
+The host is chosen by: ``--host=claude|copilot`` arg > ``TOKEN_MASTER_HOST`` env >
+autodetect > default ``claude``.
 
 Idempotent: safe to re-run to refresh the index or repair the install.
 
-Usage: python setup.py [REPO_ROOT]   (REPO_ROOT defaults to the current dir)
+Usage: python setup.py [REPO_ROOT] [--host=claude|copilot]
+       (REPO_ROOT defaults to the current dir)
 """
 import json
 import os
@@ -32,11 +41,40 @@ GITIGNORE_LINE = ".token-master/"
 GITIGNORE_CG_LINE = ".codegraph/"
 
 
-def _copilot_home() -> Path:
-    raw = os.environ.get("COPILOT_HOME")
+def _resolve_host(argv_host: str = "") -> str:
+    """Pick the target host CLI: 'claude' or 'copilot'.
+
+    Priority: explicit --host arg > TOKEN_MASTER_HOST env > autodetect > default 'claude'.
+    Autodetect prefers Copilot only when its signals are present and Claude's are not, so a
+    machine with both falls through to the 'claude' default.
+    """
+    explicit = (argv_host or os.environ.get("TOKEN_MASTER_HOST", "")).strip().lower()
+    if explicit in ("claude", "copilot"):
+        return explicit
+
+    claude_signal = bool(os.environ.get("CLAUDE_PLUGIN_ROOT")) or (Path.home() / ".claude").is_dir()
+    copilot_signal = bool(os.environ.get("COPILOT_HOME")) or (Path.home() / ".copilot").is_dir()
+    if copilot_signal and not claude_signal:
+        return "copilot"
+    return "claude"
+
+
+def _host_home(host: str) -> Path:
+    """User-scope home for the target host CLI, honoring the host's env override."""
+    if host == "copilot":
+        raw = os.environ.get("COPILOT_HOME")
+        default = Path.home() / ".copilot"
+    else:
+        raw = os.environ.get("CLAUDE_HOME")
+        default = Path.home() / ".claude"
     if raw:
         return Path(os.path.expandvars(os.path.expanduser(raw))).resolve()
-    return (Path.home() / ".copilot").resolve()
+    return default.resolve()
+
+
+def _claude_mcp_config_path() -> Path:
+    """User-scope file where Claude Code stores its `mcpServers` map (`~/.claude.json`)."""
+    return (Path.home() / ".claude.json").resolve()
 
 
 def _git_root(start: Path) -> Path:
@@ -180,6 +218,12 @@ def _calls_edge_count(graph_path: Path):
 def _strip_codegraph_from_template(template: str) -> str:
     """Remove the codegraph mcp-server block and tool reference from the agent template.
 
+    Handles both host formats:
+      - Copilot: a quoted ``'codegraph/*'`` entry in the tools list plus an inline
+        ``  codegraph:`` mcp-server block.
+      - Claude: a bare ``codegraph`` token in a comma-separated tools string and no
+        inline mcp-server block (the codegraph block detection is simply a no-op there).
+
     Operates line-by-line so it is robust to any surrounding whitespace changes.
     """
     lines = template.splitlines(keepends=True)
@@ -189,13 +233,18 @@ def _strip_codegraph_from_template(template: str) -> str:
         line = lines[i]
         stripped = line.rstrip("\r\n")
 
-        # Remove 'codegraph/*' from the top-level tools list.
-        if stripped.lstrip().startswith("tools:") and "'codegraph/*'" in stripped:
+        # Remove the codegraph entry from the top-level tools list (either format).
+        if stripped.lstrip().startswith("tools:") and "codegraph" in stripped:
             new_stripped = (
                 stripped
+                # Copilot quoted-glob form.
                 .replace("'codegraph/*', ", "")
                 .replace(", 'codegraph/*'", "")
                 .replace("'codegraph/*'", "")
+                # Claude bare-token comma-string form.
+                .replace("codegraph, ", "")
+                .replace(", codegraph", "")
+                .replace("codegraph", "")
             )
             eol = "\r\n" if line.endswith("\r\n") else "\n" if line.endswith("\n") else ""
             out.append(new_stripped + eol)
@@ -220,13 +269,66 @@ def _strip_codegraph_from_template(template: str) -> str:
     return "".join(out)
 
 
+def _write_claude_mcp_servers(uv: str, mcp_script: str, node_path, shim_path) -> Path:
+    """Merge TokenMaster's graph MCP server(s) into Claude Code's ``~/.claude.json``.
+
+    Claude Code reads user-scope MCP servers from the top-level ``mcpServers`` map in
+    ``~/.claude.json`` (not the agent frontmatter). This is a read-modify-write that
+    overwrites only the ``graphify-nav`` / ``codegraph`` keys, so it is idempotent and
+    leaves the user's other servers untouched. Returns the config path written.
+    """
+    cfg_path = _claude_mcp_config_path()
+    try:
+        data = json.loads(cfg_path.read_text(encoding="utf-8")) if cfg_path.is_file() else {}
+    except (OSError, ValueError):
+        data = {}
+    if not isinstance(data, dict):
+        data = {}
+
+    servers = data.get("mcpServers")
+    if not isinstance(servers, dict):
+        servers = {}
+
+    servers["graphify-nav"] = {
+        "command": uv,
+        "args": ["run", "--with", "mcp", "python", mcp_script],
+        "env": {"GRAPH_PATH": ".token-master/graph.json"},
+    }
+    if node_path and shim_path:
+        servers["codegraph"] = {
+            "command": node_path,
+            "args": [shim_path, "serve", "--mcp", "-p", "."],
+        }
+    else:
+        # Remove a stale codegraph entry from a prior install so we don't point Claude
+        # at a server that is no longer available.
+        servers.pop("codegraph", None)
+
+    data["mcpServers"] = servers
+    cfg_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return cfg_path
+
+
 def main() -> int:
-    passed = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path.cwd()
+    # Parse args: an optional REPO_ROOT positional plus an optional --host=claude|copilot.
+    argv_host = ""
+    positionals = []
+    for arg in sys.argv[1:]:
+        if arg.startswith("--host="):
+            argv_host = arg.split("=", 1)[1]
+        elif arg in ("--host", "-H"):
+            continue  # value-less form ignored; require --host=VALUE
+        else:
+            positionals.append(arg)
+
+    host = _resolve_host(argv_host)
+    passed = Path(positionals[0]).resolve() if positionals else Path.cwd()
     if not passed.is_dir():
         return _fail(f"repository path is not a directory: {passed}")
     repo = _git_root(passed)
     if repo != passed:
         print(f"[token-master] using git root: {repo}")
+    print(f"[token-master] host: {host}")
 
     graphify = shutil.which("graphify")
     if not graphify:
@@ -275,7 +377,7 @@ def main() -> int:
     _ensure_gitignore_lines(repo / ".gitignore", [GITIGNORE_LINE, GITIGNORE_CG_LINE])
 
     # Install the MCP server to a stable, install-independent location.
-    home = _copilot_home()
+    home = _host_home(host)
     install_dir = home / "token-master"
     install_dir.mkdir(parents=True, exist_ok=True)
     mcp_target = install_dir / "graphify_mcp.py"
@@ -333,8 +435,16 @@ def main() -> int:
             )
 
     # Write the routing agent (user scope), resolving paths for this machine.
+    # The agent template and its install location/format are host-specific; the MCP
+    # server, its launch command, and the path substitutions are shared.
     uv = shutil.which("uv") or "uv"
-    template = (SKILL_DIR / "agent.template.md").read_text(encoding="utf-8")
+    if host == "copilot":
+        template_name = "agent.template.copilot.md"
+        agent_filename = "token-master.agent.md"
+    else:
+        template_name = "agent.template.claude.md"
+        agent_filename = "token-master.md"
+    template = (SKILL_DIR / template_name).read_text(encoding="utf-8")
 
     if node_path and shim_path:
         agent = (
@@ -345,7 +455,7 @@ def main() -> int:
             .replace("__CG_SHIM__", shim_path.replace("\\", "/"))
         )
     else:
-        # Strip the codegraph block so Copilot doesn't try to launch a broken server.
+        # Strip the codegraph references so the host doesn't try to launch a broken server.
         if not shutil.which("node"):
             skip_reason = "node not found"
         else:
@@ -362,8 +472,19 @@ def main() -> int:
 
     agents_dir = home / "agents"
     agents_dir.mkdir(parents=True, exist_ok=True)
-    agent_path = agents_dir / "token-master.agent.md"
+    agent_path = agents_dir / agent_filename
     agent_path.write_text(agent, encoding="utf-8")
+
+    # Claude Code wires MCP servers via ~/.claude.json, not the agent frontmatter, so
+    # register the graph server(s) there. (Copilot's servers live inline in the agent.)
+    mcp_config_path = None
+    if host == "claude":
+        mcp_config_path = _write_claude_mcp_servers(
+            uv.replace("\\", "/"),
+            str(mcp_target).replace("\\", "/"),
+            node_path.replace("\\", "/") if node_path else None,
+            shim_path.replace("\\", "/") if shim_path else None,
+        )
 
     node_count = _node_count(graph_json)
 
@@ -380,6 +501,8 @@ def main() -> int:
         summary.append(ce_line)
     summary.append(f"  agent:  {agent_path}")
     summary.append(f"  server: {mcp_target}")
+    if mcp_config_path is not None:
+        summary.append(f"  mcp config: {mcp_config_path}")
     if node_path and shim_path:
         summary.append(f"  codegraph: {shim_path}")
     else:
@@ -387,10 +510,16 @@ def main() -> int:
             summary.append("  codegraph: skipped (node not found)")
         else:
             summary.append("  codegraph: skipped (npm install failed or shim missing)")
-    summary.append(
-        "Restart Copilot (or start it with `copilot --agent token-master`) to activate routing, "
-        "then ask structural questions normally."
-    )
+    if host == "copilot":
+        summary.append(
+            "Restart Copilot (or start it with `copilot --agent token-master`) to activate "
+            "routing, then ask structural questions normally."
+        )
+    else:
+        summary.append(
+            "Restart Claude Code (or start it with `claude --agent token-master`) to activate "
+            "routing, then ask structural questions normally."
+        )
     print("\n".join(summary))
     return 0
 

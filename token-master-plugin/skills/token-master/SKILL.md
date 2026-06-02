@@ -1,6 +1,6 @@
 ---
 name: token-master
-description: Turn on token-efficient code-graph routing for the current repository. Builds a structural code index and installs the routing agent so Copilot answers "who calls X / what breaks if I change Y" from a prebuilt graph instead of repeated grep, cutting cumulative context tokens. Use when the user types /token-master or asks to enable token-efficient routing.
+description: Turn on token-efficient code-graph routing for the current repository. Builds a structural code index and installs the routing agent so the host CLI answers "who calls X / what breaks if I change Y" from a prebuilt graph instead of repeated grep, cutting cumulative context tokens. Use when the user types /token-master or asks to enable token-efficient routing.
 ---
 
 # /token-master
@@ -40,9 +40,9 @@ Then relay the script's summary output to the user verbatim.
 - If the script reports that `graphify` (or `uv`) is not installed, tell the user to install the
   missing tool — `uv tool install graphify` (see https://github.com/safishamsi/graphify) or `uv`
   itself (https://docs.astral.sh/uv/) — then run `/token-master` again.
-- The routing agent is loaded at CLI startup, so tell the user to **restart Copilot** (or start it
-  with `copilot --agent token-master`) before the routing takes effect, unless it is already
-  active.
+- The routing agent is loaded at CLI startup, so the user must **restart their CLI** before routing
+  takes effect (unless it is already active). The setup script prints the exact host-specific
+  restart command in its summary — relay that line as-is rather than guessing the host.
 
 ## After setup
 
@@ -55,8 +55,8 @@ resolved) only when it matters: graphify returned nothing for a symbol that exis
 where text matching over-reaches, or when exact `file:line` call sites are load-bearing. On a repo
 where setup warned the call graph is sparse, expect that escalation to fire more often.
 
-For **cross-session** continuity, the agent uses Copilot's **native** session memory (no extra
-server): keyword recall over past turns and `copilot --resume`/`--continue`. This is lexical and
+For **cross-session** continuity, the agent uses the host CLI's **native** session memory (no extra
+server): keyword recall over past turns and the host's `--resume`/`--continue`. This is lexical and
 opt-in, not automatic semantic memory — resume replays the full prior transcript (re-billed as
 input), so it is only worth it after a large investigation, not for short sessions.
 
