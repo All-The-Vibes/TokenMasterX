@@ -202,6 +202,30 @@ def _ensure_codegraph(home: Path):
     return None, None
 
 
+def _codegraph_node_count(node_path: str, shim_path: str, repo: Path):
+    """Return codegraph's indexed node count via ``status --json``, or None on failure.
+
+    Used as a post-index sanity check: a codegraph DB that built but holds zero nodes
+    cannot answer structural queries, so we should not advertise it as a backend.
+    """
+    try:
+        out = subprocess.run(
+            [node_path, shim_path, "status", "--json", "."],
+            cwd=str(repo),
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=60,
+        )
+        data = json.loads(out.stdout)
+        return int(data.get("nodeCount", 0))
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError, ValueError, TypeError):
+        return None
+
+
 def _calls_edge_count(graph_path: Path):
     """Return the count of 'calls' edges in a networkx node-link graph JSON.
 
@@ -426,6 +450,25 @@ def main() -> int:
                 "continuing graphify-only."
             )
             node_path, shim_path = None, None
+
+    # Post-index sanity check: a codegraph DB that built but indexed zero nodes
+    # cannot answer structural queries, so don't advertise it as a backend.
+    if node_path and shim_path:
+        cg_nodes = _codegraph_node_count(node_path, shim_path, repo)
+        if cg_nodes is None:
+            print(
+                "[token-master] warning: could not read codegraph status — "
+                "continuing graphify-only."
+            )
+            node_path, shim_path = None, None
+        elif cg_nodes == 0:
+            print(
+                "[token-master] warning: codegraph indexed 0 nodes for this repo — "
+                "continuing graphify-only."
+            )
+            node_path, shim_path = None, None
+        else:
+            print(f"[token-master] codegraph: {cg_nodes} nodes indexed.")
 
     # Sparse call-graph gate.
     graph_json = tm_dir / "graph.json"
