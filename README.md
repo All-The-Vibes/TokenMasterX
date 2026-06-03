@@ -1,7 +1,7 @@
 # TokenMaster
 
 <p align="center">
-  <img src="assets/tokenmaster-hero.svg" alt="TokenMaster — a single bright graph-routed query path cutting through a faint tangle of grep edges" width="100%">
+  <img src="assets/tokenmaster-hero.svg" alt="TokenMaster — a single bright graph-routed query path cutting through a faint tangle of brute-force search edges" width="100%">
 </p>
 
 **A new cost model for code-understanding agents.** TokenMaster re-engineers *token economics at the harness layer* — the layer that decides what the model re-reads on every single turn — for [Claude Code](https://docs.claude.com/en/docs/claude-code) and GitHub Copilot CLI.
@@ -253,8 +253,8 @@ assets/
 └── tokenmaster-hero.svg       The hero image above (reproducible from a seed)
 ```
 
-The hero image is generative: it *is* the thesis. The faint tangle is grep
-sprawl — context re-read turn after turn — and the single bright path is one
+The hero image is generative: it *is* the thesis. The faint tangle is brute-force
+search sprawl — context re-read turn after turn — and the single bright path is one
 bounded graph-routed query. Regenerate or remix it with:
 
 ```bash

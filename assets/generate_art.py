@@ -4,12 +4,12 @@ TokenMaster — generative hero art.
 
 Deterministic, dependency-free SVG generator. The composition *is* the thesis:
 a layered code graph (columns of functions, left to right) where the dim,
-out-of-focus web is grep sprawl and one bright, blooming path is a single
-bounded graph-routed query — threading cleanly from question to answer.
+out-of-focus web is brute-force search sprawl and one bright, blooming path is
+a single bounded graph-routed query — threading cleanly from question to answer.
 
 Design language (bolder pass): near-black navy field lit by two off-axis
 blooms (indigo + cyan), a genuine Gaussian-blur glow on the routed path,
-depth-of-field that pushes the grep tangle back, a CLI prompt cue, and a
+depth-of-field that pushes the dim tangle back, a CLI prompt cue, and a
 tight, heavy type scale. Everything is seed-driven, so the SVG is
 reproducible and remixable:
 
@@ -30,7 +30,7 @@ BG_TOP = "#04060e"         # near-black navy
 BG_BOT = "#0a1430"
 BLOOM_I = "#4f46e5"        # indigo bloom (graphify)
 BLOOM_C = "#0891b2"        # cyan bloom (answer)
-DIM_EDGE = "#1b2547"       # grep sprawl, pushed back
+DIM_EDGE = "#1b2547"       # brute-force sprawl, pushed back
 DIM_NODE = "#33406e"
 ROUTE_A = "#818cf8"        # indigo
 ROUTE_B = "#a78bfa"        # violet (midpoint warmth)
@@ -75,7 +75,7 @@ def _columns(rng: random.Random, geom) -> list[list[Node]]:
 def _edges(rng: random.Random, cols: list[list[Node]]):
     """Each node links forward to its 1–3 nearest in the next column. Forward-
     only keeps the weave legible — no backward crossings — but a denser fan-out
-    dramatizes grep sprawl."""
+    dramatizes brute-force sprawl."""
     es = []
     for c in range(len(cols) - 1):
         nxt = cols[c + 1]
@@ -165,7 +165,7 @@ def generate(seed: int = 42, w: int = 1200, h: int = 420) -> str:
             P.append(f'<circle cx="{gx2}" cy="{gy2}" r="1"/>')
     P.append("</g>")
 
-    # ── grep sprawl: dim edges + nodes, softened and pushed back (depth of field) ──
+    # ── brute-force sprawl: dim edges + nodes, softened and pushed back (depth of field) ──
     P.append('<g filter="url(#soften)" opacity="0.62">')
     P.append(f'<g stroke="{DIM_EDGE}" stroke-width="1" fill="none">')
     for a, b in edges:
@@ -233,11 +233,11 @@ def generate(seed: int = 42, w: int = 1200, h: int = 420) -> str:
     )
     P.append(
         f'<text x="{tx+2}" y="184" font-family="ui-monospace,Menlo,monospace" '
-        f'font-size="15" fill="{TEXT_DIM}">route the question to the graph,</text>'
+        f'font-size="15" fill="{TEXT_DIM}">understand your codebase once,</text>'
     )
     P.append(
         f'<text x="{tx+2}" y="206" font-family="ui-monospace,Menlo,monospace" '
-        f'font-size="15" fill="{TEXT_DIM}">not the grep.</text>'
+        f'font-size="15" fill="{TEXT_DIM}">and remember it.</text>'
     )
     # CLI prompt cue — reads instantly as a command-line tool
     py = 240
@@ -258,11 +258,13 @@ def generate(seed: int = 42, w: int = 1200, h: int = 420) -> str:
     by = 286
     P.append(
         f'<g transform="translate({tx},{by})">'
-        f'<text x="0" y="40" font-family="ui-monospace,Menlo,monospace" font-size="48" '
-        f'font-weight="800" fill="url(#route)" letter-spacing="-1">3.7×</text>'
-        f'<text x="126" y="26" font-family="ui-monospace,Menlo,monospace" font-size="13.5" '
+        f'<text x="0" y="40" font-family="ui-monospace,Menlo,monospace" '
+        f'fill="url(#route)" letter-spacing="-1">'
+        f'<tspan font-size="20" font-weight="700" fill="{TEXT_DIM}">up to </tspan>'
+        f'<tspan font-size="48" font-weight="800">7.8×</tspan></text>'
+        f'<text x="205" y="26" font-family="ui-monospace,Menlo,monospace" font-size="13.5" '
         f'fill="{TEXT}">fewer cumulative</text>'
-        f'<text x="126" y="45" font-family="ui-monospace,Menlo,monospace" font-size="13.5" '
+        f'<text x="205" y="45" font-family="ui-monospace,Menlo,monospace" font-size="13.5" '
         f'fill="{TEXT_DIM}">context tokens</text>'
         f"</g>"
     )
