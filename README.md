@@ -17,7 +17,7 @@ Same CLI. Same model. Same task. The only variable is whether TokenMaster's rout
 > >
 > *Pooled across scikit-learn + sympy. 36 live GitHub Copilot runs.* [*Full breakdown below.*](#by-the-numbers)
 
-```javascript
+```text
 /token-master
 ```
 
@@ -27,14 +27,47 @@ That one command builds the index for the current repository and turns on routin
 
 ## Why token economics, not token *count*
 
-A token is not a billing line — it is **work the model is forced to do.** Every token in the context window is re-read, re-attended, and re-reasoned-over on *each* turn. So the cost that matters is not *tokens sent once* but the **integral of context size over the whole task** — every turn's working set, summed until done.
+Start with the one fact everything else follows from: **the model has no memory between turns.** To continue a task, the harness re-sends the *entire* transcript every turn — every file read, every tool result, every message so far — and the model re-reads and re-reasons over all of it before doing anything new.
 
-This reframing changes what counts as a win:
+So a token is not paid for once. It is paid for **every turn it stays in the context window.** The cost that matters is not *tokens sent* but the **total tokens processed, summed across every turn** until the task is done.
 
-- A naive harness "saves" nothing by being short-per-turn if it takes 40 turns of grep to trace a call graph — each turn re-processes a larger and larger working set, and the integral explodes.
-- A graph-routed harness answers the same question in a handful of bounded queries with a small, *stable* working set — so the integral collapses, even when any single turn looks comparable.
+### Same answer, two bills
 
-TokenMaster is the harness layer that enforces this discipline: it **routes the model away from re-derivation and toward pre-computed structure**, and makes the efficient path the *default* one rather than merely offering it.
+The task: *"who calls `load_config`?"* The context carried forward grows each turn, so every turn re-pays for the ones before it.
+
+```text
+GREP its way there                       GRAPH lookup
+turn 1  grep            2,000            turn 1  query graph   2,500
+turn 2  read auth.py    6,000            turn 2  answer        3,000
+turn 3  read server    11,000            ──────────────────────────
+turn 4  read handlers  17,000            TOTAL PROCESSED       5,500
+turn 5  grep narrower  19,000
+turn 6  read config    24,000
+turn 7  answer         26,000
+──────────────────────────
+TOTAL PROCESSED       105,000
+```
+
+Same answer. **105,000 vs 5,500 tokens processed.** The grep total is not 26,000 — it is the *sum of all seven turns*, because turn 7 re-read what turn 1 saw, six times over.
+
+### It is the area under the curve
+
+Plot context size per turn and measure the area. A turn that looks cheap on its own is a trap; what costs you is the whole shaded region.
+
+```text
+context
+  │              ___________   grep: climbs AND runs long
+  │           __/              -> big area, expensive
+  │        __/
+  │     __/
+  │  __/
+  │ /__________   graph: stays low AND ends fast -> tiny area
+  └──────────────────────────► turns
+```
+
+### Offering the graph is not enough — you have to enforce it
+
+Left alone, the model defaults to grep out of habit: in TokenMaster's own runs it reached for the graph **0 / 15 times** until it was actively routed there. So TokenMaster does not merely *offer* the cheap path — it makes the prebuilt graph the **default** for structural questions ("who calls X," "what breaks if I change Y"). Offering saves nothing; enforcing is what collapses the area under the curve — and that collapse is exactly the `-73%` headline above.
 
 ## By the numbers
 
@@ -56,7 +89,7 @@ First proven on **Django** (992 `.py` files, hard multi-hop tasks), then **repli
 
 The harder the traversal, the bigger the collapse. Caller lookups save 3-5x; blast-radius analysis ("what breaks if I change this?") is where the baseline agent detonates, re-reading files across the whole repo to trace impact, and where one bounded graph query wins biggest:
 
-```javascript
+```text
 Cumulative input tokens to finish the task   (lower is better)
 
 "Who calls X?"  -  reverse dependency lookup
