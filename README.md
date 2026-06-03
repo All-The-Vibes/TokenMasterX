@@ -8,11 +8,14 @@
 
 The thesis in one line: **the model should pay once to understand a codebase's structure, then never again.** Today's harnesses violate this on every turn — they hand the model a growing transcript and let it grep its way to understanding, re-paying for the entire accumulated context turn after turn. TokenMaster makes that re-derivation *economically illegal*: structural questions get routed to a **prebuilt code graph** answered in one bounded query, so the cumulative token bill collapses instead of compounding.
 
-### The result, measured
+### Vanilla vs TokenMaster, measured
 
-> **−73% cumulative input tokens · 3.71× efficiency · up to 7.8× on blast-radius analysis · 12/12 routing · zero correctness regression**
+Same CLI. Same model. Same task. The only variable is whether TokenMaster's routing agent is on.
+
+> **-73% input tokens. 3.71x more efficient overall. Up to 7.8x on blast-radius analysis.**
+> **12 / 12 tasks answered from the graph. Zero correctness regressions.**
 >
-> *Pooled across scikit-learn + sympy, 36 live GitHub Copilot runs. [Full numbers below.](#by-the-numbers)*
+> *Pooled across scikit-learn + sympy. 36 live GitHub Copilot runs. [Full breakdown below.](#by-the-numbers)*
 
 ```
 /token-master
@@ -35,42 +38,53 @@ TokenMaster is the harness layer that enforces this discipline: it **routes the 
 
 ## By the numbers
 
-The thesis was first proven on **Django** (992 `.py` files, hard multi-hop tasks), then **replicated on independent SWE-bench Lite repositories** to rule out single-repo luck. Both measure the same quantity: cumulative input tokens to finish a structural-navigation task, graph-routed vs. the grep baseline.
+First proven on **Django** (992 `.py` files, hard multi-hop tasks), then **replicated on independent SWE-bench Lite repos** to rule out single-repo luck. One measurement throughout: cumulative input tokens to finish a structural task, **vanilla vs the same setup with TokenMaster on**.
 
-### Multi-repo replication — pooled (the headline)
+> **Vanilla** = the stock agent, no routing layer. It answers structural questions by reading and re-reading files, turn after turn. **TokenMaster** routes those same questions to a prebuilt graph. Identical model (`claude-sonnet-4.5`), identical prompts, identical correctness oracle. The routing agent is the only thing that changes.
 
-*36 live GitHub Copilot runs · 2 repos × 3 tasks × 2 reps × 3 arms · model `claude-sonnet-4.5`*
+### Pooled headline
 
-| Metric | Grep baseline | **TokenMaster (graph-routed)** | Efficiency gain |
-|--------|--------------:|-------------------------------:|:---------------:|
-| **Pooled cumulative input tokens** | *baseline* | **−73.1%** | **3.71× fewer** |
-| Routing adoption (graph actually queried) | — | **12 / 12 cells** | no grep-fallback, ever |
-| Correctness vs. AST oracle | passes | **passes** | no regression |
+*36 live GitHub Copilot runs. 2 repos x 3 tasks x 2 reps x 3 arms.*
 
-### Where the win lives — per task
+|  | Vanilla | **TokenMaster** | Delta |
+|---|:---:|:---:|:---:|
+| Cumulative input tokens | baseline | **-73.1%** | **3.71x fewer** |
+| Tasks answered from the graph | n/a | **12 / 12** | never fell back |
+| Correctness vs AST oracle | pass | **pass** | no regression |
 
-*Mean cumulative input tokens per run (lower is better). `T3_impact` = "what breaks if I change this?" — the blast-radius task where naive grep detonates.*
+### Where the win lives
 
-| Task | Grep baseline | **TokenMaster** | Reduction (factor) |
-|------|--------------:|----------------:|:------------------:|
-| Callers — *"who calls X?"* (scikit-learn) | 69,609 | **21,215** | −69.5% (**3.28×**) |
-| Callers — *"who calls X?"* (sympy) | 107,954 | **21,189** | −80.4% (**5.09×**) |
-| **Blast radius — *"what breaks?"* (scikit-learn)** | 203,481 | **26,908** | **−86.8% (7.56×)** |
-| **Blast radius — *"what breaks?"* (sympy)** | 210,214 | **26,830** | **−87.2% (7.83×)** |
+The harder the traversal, the bigger the collapse. Caller lookups save 3-5x; blast-radius analysis ("what breaks if I change this?") is where a vanilla agent detonates, re-reading files across the whole repo to trace impact, and where one bounded graph query wins biggest:
 
-The pattern is the whole thesis: **the harder the traversal, the bigger the collapse.** On blast-radius analysis, grep balloons past **200,000 tokens** re-reading files to trace change impact; TokenMaster answers from the graph in **~27,000** — an order-of-magnitude class of saving, repeated across two unrelated codebases.
+```
+Cumulative input tokens to finish the task   (lower is better)
+
+"Who calls X?"  -  reverse dependency lookup
+  scikit-learn  vanilla     █████████                      69,609
+  scikit-learn  TokenMaster ███                            21,215   3.3x fewer
+  sympy         vanilla     ██████████████                107,954
+  sympy         TokenMaster ███                            21,189   5.1x fewer
+
+"What breaks if I change this?"  -  blast radius
+  scikit-learn  vanilla     ███████████████████████████   203,481
+  scikit-learn  TokenMaster ████                           26,908   7.6x fewer
+  sympy         vanilla     ████████████████████████████  210,214
+  sympy         TokenMaster ████                           26,830   7.8x fewer
+```
+
+On blast radius, vanilla balloons past **200,000 tokens** tracing impact by hand; TokenMaster answers from the graph in **~27,000** - an order-of-magnitude saving, repeated across two unrelated codebases.
 
 ### Honest negatives — the proof the method is real
 
 A harness that wins *everywhere* is measuring an artifact. TokenMaster doesn't:
 
-- **Inheritor lookup on sympy ran −44%** (the graph query cost more than grep on that one task). Reported, not hidden.
-- **Negative control** (a structural question grep already answers in ~3 turns) correctly came out a **wash** — no traversal needed, no win claimed.
+- **Inheritor lookup on sympy ran -44%** - the graph query cost more than vanilla on that one task. Reported, not hidden.
+- **Negative control** (a question vanilla already nails in ~3 turns) correctly came out a **wash** - no traversal needed, no win claimed.
 
 > **Provenance.** All figures above are reproduced verbatim from the benchmark report at
 > [`sandbox-plugin-bench/swebench/NAV_REPORT.md`](sandbox-plugin-bench/swebench/NAV_REPORT.md),
-> generated by the live A/B/C harness in the same directory (`run_nav.py` → `score_nav.py`).
-> Django origin figures: **−72% overall (3.5×), up to −80% (5.0×)** — see [`MISSION.md`](MISSION.md) §"What 'token economics' means here".
+> generated by the live A/B/C harness in the same directory (`run_nav.py` -> `score_nav.py`).
+> Django origin figures: **-72% overall (3.5x), up to -80% (5.0x)** - see [`MISSION.md`](MISSION.md), "What 'token economics' means here".
 
 ## How it works
 
@@ -179,7 +193,7 @@ Re-run `/token-master` whenever the code has changed enough that the graph is st
 ## Honest limitations
 
 - **Not a universal speedup.** TokenMaster wins on hard, multi-hop traversal. On short structural questions that grep answers in ~3 turns, it is correctly *neutral*. A harness that "wins everywhere" is measuring an artifact.
-- **graphify edges are inferred; codegraph is the last mile.** The default backend infers call edges by name (~0.8 confidence) — fast and cheap, and on well-named Python it answers correctly the large majority of the time. `codegraph` exists to buy the *last mile* of precision: AST-resolved edges for the cases inference can't be trusted on. That precision is not free. On the SWE-bench Lite pilot, codegraph cost **~3–4× more tokens than graphify** and on the simpler caller/inheritor tasks frequently ran *below* the grep baseline; its resolved edge set **diverged from graphify's inferred set on every compared cell** — different, and exact, but not a free upgrade. The takeaway the data supports: **graphify is the default; codegraph is the deliberate escalation when an exact edge is worth paying for**, not an always-on replacement.
+- **graphify edges are inferred; codegraph is the last mile.** The default backend infers call edges by name (~0.8 confidence) — fast and cheap, and on well-named Python it answers correctly the large majority of the time. `codegraph` exists to buy the *last mile* of precision: AST-resolved edges for the cases inference can't be trusted on. That precision is not free. On the SWE-bench Lite pilot, codegraph cost **~3-4x more tokens than graphify** and on the simpler caller/inheritor tasks frequently ran *below* the vanilla baseline; its resolved edge set **diverged from graphify's inferred set on every compared cell** — different, and exact, but not a free upgrade. The takeaway the data supports: **graphify is the default; codegraph is the deliberate escalation when an exact edge is worth paying for**, not an always-on replacement.
 - **Sparse call graphs.** On some languages (notably JavaScript/TypeScript) graphify's call graph is sparse; setup detects this and prints a warning pointing you at the `codegraph` backend.
 - **Cumulative tokens, not dollars.** TokenMaster optimizes the integral of context size over a task. Billing proxies (premium requests, total token counts) are explicitly *not* the metric.
 
