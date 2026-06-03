@@ -111,20 +111,35 @@ with `claude --agent token-master`) for routing to take effect.
 
 ### GitHub Copilot CLI
 
-For Copilot, run the installer directly against the skill, selecting the Copilot host:
+Copilot CLI reads the **same plugin marketplace** as Claude Code, so installation is the same two
+commands. In an interactive `copilot` session:
 
 ```
-python <skill-dir>/setup.py <repo-root> --host=copilot
+/plugin marketplace add shyamsridhar123/TokenMasterX
+/plugin install token-master@token-master
 ```
 
-(`<skill-dir>` is `token-master-plugin/skills/token-master/` from this repo; clone it or vendor the
-skill into your tooling.) This writes the routing agent — with its MCP servers declared inline — to
-`~/.copilot/agents/token-master.agent.md`. **Restart Copilot** (or start it with `copilot --agent
-token-master`) for routing to take effect.
+(Equivalently, from your shell: `copilot plugin marketplace add shyamsridhar123/TokenMasterX`
+followed by `copilot plugin install token-master@token-master`.)
 
-> The installer auto-detects the host when `--host` is omitted (it also honors a `TOKEN_MASTER_HOST`
-> environment variable), defaulting to Claude Code. Pass `--host` explicitly on a machine that has
-> both CLIs.
+Then, inside any repository you want to index:
+
+```
+/token-master
+```
+
+This builds the per-repo graph and writes the routing agent — with its MCP servers declared inline —
+to `~/.copilot/agents/token-master.agent.md`. After the first install, **restart Copilot** (or start
+it with `copilot --agent token-master`) for routing to take effect.
+
+> **If you have _both_ Claude Code and Copilot CLI installed**, the `/token-master` installer can't
+> tell which CLI launched it and defaults to Claude Code. Force the Copilot target by setting
+> `TOKEN_MASTER_HOST=copilot` in your environment before running `/token-master`. As a manual
+> alternative you can run the installer directly and pass the host explicitly:
+>
+> ```
+> python token-master-plugin/skills/token-master/setup.py <repo-root> --host=copilot
+> ```
 
 ### Prerequisites
 
