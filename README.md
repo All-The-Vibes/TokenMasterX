@@ -193,7 +193,7 @@ it with `copilot --agent token-master`) for routing to take effect.
 - [**`graphify`**](https://github.com/safishamsi/graphify) — the default graph backend. Install with [`uv`](https://docs.astral.sh/uv/):
 
 ```javascript
-  uv tool install graphify
+  uv tool install graphifyy
 ```
 
 - **`uv`** — the routing agent launches the graph server through it.
