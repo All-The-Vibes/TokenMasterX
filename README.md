@@ -250,7 +250,9 @@ token-master-plugin/          The plugin (this is the deliverable)
 
 assets/
 ├── generate_art.py            Deterministic, dependency-free SVG generator
-└── tokenmaster-hero.svg       The hero image above (reproducible from a seed)
+├── tokenmaster-hero.svg       The hero image above (reproducible from a seed)
+├── generate_meme.py           The developer bell curve meme generator
+└── tokenmaster-meme.svg       The meme image itself (glowing SVG)
 ```
 
 The hero image is generative: it *is* the thesis. The faint tangle is brute-force
@@ -259,6 +261,20 @@ bounded graph-routed query. Regenerate or remix it with:
 
 ```bash
 python assets/generate_art.py --seed 42
+```
+
+### The Developer Bell Curve (Meme)
+
+To capture this thesis in the wild, we've also rendered the ultimate developer bell curve (midwit) meme for the agentic age. It depicts the convergence of beginners and gurus on the simplest, most elegant paths (grep vs. graph routing) while the midwit struggles with over-engineered, compounding contexts.
+
+<p align="center">
+  <img src="assets/tokenmaster-meme.svg" alt="TokenMaster — The Agentic Code-Understanding Bell Curve Meme" width="100%">
+</p>
+
+Regenerate or remix it with:
+
+```bash
+python assets/generate_meme.py
 ```
 
 ## License
