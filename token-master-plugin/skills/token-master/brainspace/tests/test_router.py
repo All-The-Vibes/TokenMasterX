@@ -8,12 +8,12 @@ to PROSE, not CODE.
 import sys
 from pathlib import Path
 
-# Make the headroom package importable when tests run from the repo.
+# Make the brainspace package importable when tests run from the repo.
 _SKILL = Path(__file__).resolve().parents[2]
 if str(_SKILL) not in sys.path:
     sys.path.insert(0, str(_SKILL))
 
-from headroom.router import ContentType, detect, route_typed  # noqa: E402
+from brainspace.router import ContentType, detect, route_typed  # noqa: E402
 
 
 # --- hint-based detection (cheapest, highest-precision signal) -----------------
@@ -77,7 +77,7 @@ def test_route_typed_never_expands_in_tokens_even_when_char_smaller():
     would wave that through and silently cost tokens. We assert the guard holds in
     tokens — the unit that actually costs — by constructing exactly that case.
     """
-    from headroom.tokens import estimate
+    from brainspace.tokens import estimate
 
     # Many tiny functions: short bodies, long descriptive names -> placeholder
     # metadata that is char-cheap but token-expensive.

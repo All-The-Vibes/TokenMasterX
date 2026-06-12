@@ -4,7 +4,7 @@ This is the escape hatch that makes lossy *display* compression *safe*: a
 compressor may drop detail from what the model sees, but only after handing the
 original to :meth:`CCR.stash`, which stores it verbatim and returns a stable
 placeholder. If the model later needs the dropped detail, it calls
-``headroom_retrieve`` with the placeholder and gets the exact original bytes back.
+``brainspace_retrieve`` with the placeholder and gets the exact original bytes back.
 
 Why content-addressed?
     The store key is ``sha256(content)``. Identical content — the same file read
@@ -20,9 +20,9 @@ Why content-addressed?
 
 Placeholder format (the one contract every compressor shares)::
 
-    [[HR:<12-hex-hash>|<type>; <source>; <size>]]
+    [[BR:<12-hex-hash>|<type>; <source>; <size>]]
 
-    e.g.  [[HR:9f3a2b1c4d5e|code; validation.py:check_array; 142L]]
+    e.g.  [[BR:9f3a2b1c4d5e|code; validation.py:check_array; 142L]]
 
 The 12-hex hash is the retrieval key; everything after ``|`` is human/model-facing
 metadata so the model can decide whether it even *needs* to expand (usually it
@@ -53,15 +53,15 @@ from typing import Optional
 
 _HASH_LEN = 12  # hex chars of the sha256 used as the short key (48 bits)
 
-# Matches [[HR:<hash>|<meta>]] and [[HR:<hash>]]. Only the hash group is load-bearing.
-PLACEHOLDER_RE = re.compile(r"\[\[HR:([0-9a-f]{6,64})(?:\|[^\]]*)?\]\]")
+# Matches [[BR:<hash>|<meta>]] and [[BR:<hash>]]. Only the hash group is load-bearing.
+PLACEHOLDER_RE = re.compile(r"\[\[BR:([0-9a-f]{6,64})(?:\|[^\]]*)?\]\]")
 
 
 def make_placeholder(short_hash: str, ctype: str = "", source: str = "", size: str = "") -> str:
     """Build the canonical placeholder token. Meta is derived only from content."""
     meta_parts = [p for p in (ctype, source, size) if p]
     meta = "; ".join(meta_parts)
-    return f"[[HR:{short_hash}|{meta}]]" if meta else f"[[HR:{short_hash}]]"
+    return f"[[BR:{short_hash}|{meta}]]" if meta else f"[[BR:{short_hash}]]"
 
 
 def parse_placeholders(text: str) -> list[str]:
@@ -73,13 +73,13 @@ def _resolve_db_path() -> Path:
     """Locate the CCR sqlite file.
 
     Priority:
-      1. ``HEADROOM_CCR`` env (absolute path) — used to point several host CLIs at
+      1. ``BRAINSPACE_CCR`` env (absolute path) — used to point several host CLIs at
          ONE shared store for cross-agent dedup.
       2. repo-relative ``.token-master/ccr.sqlite``, searched from cwd upward (same
          resolution graphify_mcp.py uses for the graph), so one install serves
          every repo and the store sits beside the graph it complements.
     """
-    env = os.environ.get("HEADROOM_CCR")
+    env = os.environ.get("BRAINSPACE_CCR")
     if env:
         return Path(os.path.expandvars(os.path.expanduser(env))).resolve()
     rel = Path(".token-master") / "ccr.sqlite"
@@ -172,7 +172,7 @@ class CCR:
     def retrieve(self, ref: str) -> Optional[str]:
         """Return the original content for a placeholder or bare hash.
 
-        Accepts a full ``[[HR:...]]`` placeholder, or just the hash. Bumps the
+        Accepts a full ``[[BR:...]]`` placeholder, or just the hash. Bumps the
         access stats (for LRU + failure-mining). Returns ``None`` if not found.
         """
         try:

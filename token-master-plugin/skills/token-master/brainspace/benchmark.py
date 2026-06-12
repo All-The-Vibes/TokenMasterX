@@ -1,7 +1,7 @@
-"""Headroom self-serve benchmark — measure compression on *your own* content.
+"""Brainspace self-serve benchmark — measure compression on *your own* content.
 
 This is the shippable counterpart to TokenMaster's graph benchmark: a tool anyone
-can point at their own files, logs, or piped output to see exactly what Headroom
+can point at their own files, logs, or piped output to see exactly what Brainspace
 would save — measured in real ``tiktoken`` tokens, with the lossless-recovery
 invariant checked on every placeholder.
 
@@ -9,27 +9,27 @@ It is honest by construction:
   * Every row is a real ``compress()`` run over real bytes you supplied.
   * Recovery is verified only on placeholders THIS run actually stashed (a
     recording stash wrapper records each minted placeholder), so a literal
-    ``[[HR:...]]`` example surviving in a docstring is never miscounted as loss.
+    ``[[BR:...]]`` example surviving in a docstring is never miscounted as loss.
   * The never-expand guard means a row can show 0% (or near it) — and that is
     reported, not hidden. Prose barely compresses; that is the truth, not a bug.
 
 Usage (installed location: ``<host-home>/token-master/``)::
 
     # Benchmark your own files (type auto-detected by extension):
-    uv run --with mcp --with tiktoken python headroom_benchmark.py path/to/file.json server.log
+    uv run --with mcp --with tiktoken python brainspace_benchmark.py path/to/file.json server.log
 
     # Walk a directory (capped; the cap is reported):
-    uv run --with mcp --with tiktoken python headroom_benchmark.py ./logs
+    uv run --with mcp --with tiktoken python brainspace_benchmark.py ./logs
 
     # Benchmark piped output (give a hint so the type is detected):
-    pytest -v | uv run --with mcp --with tiktoken python headroom_benchmark.py --stdin --hint=pytest
+    pytest -v | uv run --with mcp --with tiktoken python brainspace_benchmark.py --stdin --hint=pytest
 
-    # No arguments → a demo over Headroom's own installed files, so you can see
+    # No arguments → a demo over Brainspace's own installed files, so you can see
     # it work instantly before pointing it at your data:
-    uv run --with mcp --with tiktoken python headroom_benchmark.py
+    uv run --with mcp --with tiktoken python brainspace_benchmark.py
 
     # Machine-readable, and a custom area-under-curve horizon:
-    uv run ... python headroom_benchmark.py ./logs --json --turns 10
+    uv run ... python brainspace_benchmark.py ./logs --json --turns 10
 
 Optional deps: ``tiktoken`` (accurate token counts; falls back to a 4-chars/token
 heuristic if absent), ``tree-sitter`` + ``tree-sitter-python`` (code compressor;
@@ -43,15 +43,15 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Make ``import headroom`` resolve whether this module is imported as part of the
+# Make ``import brainspace`` resolve whether this module is imported as part of the
 # package or run from an arbitrary cwd via the top-level launcher.
 _PKG_PARENT = str(Path(__file__).resolve().parent.parent)
 if _PKG_PARENT not in sys.path:
     sys.path.insert(0, _PKG_PARENT)
 
-from headroom.ccr import CCR, PLACEHOLDER_RE  # noqa: E402
-from headroom.router import route_typed  # noqa: E402
-from headroom.tokens import estimate  # noqa: E402
+from brainspace.ccr import CCR, PLACEHOLDER_RE  # noqa: E402
+from brainspace.router import route_typed  # noqa: E402
+from brainspace.tokens import estimate  # noqa: E402
 
 # Files larger than this are truncated before benchmarking (a benchmark, not a
 # memory test); the truncation is reported in the row note.
@@ -74,7 +74,7 @@ class _RecordingStash:
     """Wrap a CCR.stash callable and remember every placeholder it mints.
 
     This is what makes the lossless check honest: we verify recovery on exactly
-    the placeholders this benchmark created, never on ``[[HR:...]]`` literals that
+    the placeholders this benchmark created, never on ``[[BR:...]]`` literals that
     legitimately survive inside a preserved docstring or test fixture.
     """
 
@@ -180,7 +180,7 @@ def collect_inputs(paths: list[str], *, max_files: int) -> tuple[list[tuple[str,
 
 
 def demo_inputs() -> list[tuple[str, str, str]]:
-    """A real, always-present corpus: Headroom's own installed package files.
+    """A real, always-present corpus: Brainspace's own installed package files.
 
     These ship next to this script, so the demo benchmarks real code, a real JSON
     directory listing, and real module prose — zero external dependency, nothing
@@ -194,7 +194,7 @@ def demo_inputs() -> list[tuple[str, str, str]]:
         f = pkg / rel
         txt = _read_text(f)
         if txt:
-            items.append((f"headroom/{rel}", txt, rel))
+            items.append((f"brainspace/{rel}", txt, rel))
 
     # json: a real listing of the package, serialized
     listing = []
@@ -224,11 +224,11 @@ def _backend() -> str:
 def format_report(rows: list[Row], *, turns: int, skipped: int, demo: bool) -> str:
     out: list[str] = []
     out.append("=" * 82)
-    out.append("HEADROOM COMPRESSION BENCHMARK")
+    out.append("BRAINSPACE COMPRESSION BENCHMARK")
     out.append("=" * 82)
     out.append(f"tokenizer: {_backend()}")
     if demo:
-        out.append("corpus:    DEMO (Headroom's own installed files) — pass paths to benchmark your data")
+        out.append("corpus:    DEMO (Brainspace's own installed files) — pass paths to benchmark your data")
     if skipped:
         out.append(f"note:      {skipped} file(s) skipped by the directory cap (pass --max-files to widen)")
     out.append("")
@@ -358,7 +358,7 @@ def main(argv: list[str] | None = None) -> int:
             paths.append(a)
         i += 1
 
-    sandbox = tempfile.mkdtemp(prefix="headroom_bench_")
+    sandbox = tempfile.mkdtemp(prefix="brainspace_bench_")
     ccr = CCR(Path(sandbox) / "ccr.sqlite")
 
     skipped = 0

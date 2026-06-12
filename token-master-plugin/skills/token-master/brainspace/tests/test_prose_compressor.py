@@ -1,4 +1,4 @@
-"""Tests for headroom/compressors/prose_compressor.py
+"""Tests for brainspace/compressors/prose_compressor.py
 
 Covers:
   (a) Near-losslessness of the default path: the set of word tokens is identical
@@ -19,18 +19,18 @@ from typing import Optional
 
 import pytest
 
-from headroom.compressors.prose_compressor import compress_prose
-from headroom import tokens as tok_mod
+from brainspace.compressors.prose_compressor import compress_prose
+from brainspace import tokens as tok_mod
 
 # ---------------------------------------------------------------------------
 # Fake in-memory stash (dict-backed, stable SHA1-12 placeholder)
 # ---------------------------------------------------------------------------
 
-_PLACEHOLDER_RE = re.compile(r"\[\[HR:[0-9a-f]{6,64}(?:\|[^\]]*)?\]\]")
+_PLACEHOLDER_RE = re.compile(r"\[\[BR:[0-9a-f]{6,64}(?:\|[^\]]*)?\]\]")
 
 
 def make_fake_stash():
-    """Return (stash_fn, store_dict).  stash returns [[HR:<sha1-12>|<meta>]]."""
+    """Return (stash_fn, store_dict).  stash returns [[BR:<sha1-12>|<meta>]]."""
     store: dict[str, str] = {}
 
     def _stash(content: str, *, ctype: str = "", source: str = "", summary: str = "") -> Optional[str]:
@@ -40,7 +40,7 @@ def make_fake_stash():
         store[short] = content
         meta_parts = [p for p in (ctype, source) if p]
         meta = "; ".join(meta_parts)
-        return f"[[HR:{short}|{meta}]]" if meta else f"[[HR:{short}]]"
+        return f"[[BR:{short}|{meta}]]" if meta else f"[[BR:{short}]]"
 
     return _stash, store
 
@@ -129,7 +129,7 @@ class TestDefaultPath:
         missing = before_words - after_words
         assert not missing, f"Words removed: {missing}"
         # No placeholder should have been injected for small content.
-        assert "[[HR:" not in result
+        assert "[[BR:" not in result
 
     def test_stash_placeholder_injected_for_large_content(self):
         """For large content (>2000 chars), a placeholder is appended."""
@@ -138,10 +138,10 @@ class TestDefaultPath:
         large = MESSY_PROSE * 3
         assert len(large) > 2_000
         result = compress_prose(large, stash=stash_fn)
-        assert "[[HR:" in result, "Expected a placeholder in the output for large content"
-        # The placeholder must be a validly shaped HR token.
+        assert "[[BR:" in result, "Expected a placeholder in the output for large content"
+        # The placeholder must be a validly shaped BR token.
         placeholders = _PLACEHOLDER_RE.findall(result)
-        assert placeholders, "No well-formed [[HR:...]] placeholder found"
+        assert placeholders, "No well-formed [[BR:...]] placeholder found"
 
     def test_stash_roundtrip_recovers_original(self):
         """Extracting the placeholder hash and looking up the store returns original."""
@@ -150,9 +150,9 @@ class TestDefaultPath:
         result = compress_prose(large, stash=stash_fn)
         m = _PLACEHOLDER_RE.search(result)
         assert m, "No placeholder found"
-        # Extract the short hash from the placeholder [[HR:<hash>|...]]
-        inner = m.group(0)  # e.g. "[[HR:abc123def456|prose]]"
-        short = re.search(r"\[\[HR:([0-9a-f]+)", inner).group(1)
+        # Extract the short hash from the placeholder [[BR:<hash>|...]]
+        inner = m.group(0)  # e.g. "[[BR:abc123def456|prose]]"
+        short = re.search(r"\[\[BR:([0-9a-f]+)", inner).group(1)
         assert short in store, f"Hash {short!r} not found in fake stash store"
         recovered = store[short]
         assert recovered == large, "Recovered content does not match original"
@@ -213,7 +213,7 @@ class TestNeverRaises:
         large = MESSY_PROSE * 3
         result = compress_prose(large, stash=none_stash)
         assert isinstance(result, str)
-        assert "[[HR:" not in result, "Placeholder injected even though stash returned None"
+        assert "[[BR:" not in result, "Placeholder injected even though stash returned None"
 
     def test_no_raise_use_ml_false(self):
         """use_ml=False must never raise even on weird input."""

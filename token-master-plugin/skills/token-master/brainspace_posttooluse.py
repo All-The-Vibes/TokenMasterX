@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Headroom PostToolUse hook — the auto-compress half, at the append boundary.
+"""Brainspace PostToolUse hook — the auto-compress half, at the append boundary.
 
 This is the piece an MCP server structurally cannot be: blanket, automatic
 compression of tool output *before* it is appended to the transcript and cached.
@@ -32,25 +32,25 @@ Contract (Claude Code PostToolUse hooks — verified against code.claude.com/doc
     when it cannot help.
 
 Configurable via env:
-  * HEADROOM_HOOK_MIN_CHARS — only compress outputs larger than this (default 800).
-  * HEADROOM_HOOK_TOOLS — comma-separated allowlist of tool names to compress
+  * BRAINSPACE_HOOK_MIN_CHARS — only compress outputs larger than this (default 800).
+  * BRAINSPACE_HOOK_TOOLS — comma-separated allowlist of tool names to compress
     (default: a sensible set of read/exec tools). "*" means all.
 
-Run by the host as: uv run --with mcp python headroom_posttooluse.py
+Run by the host as: uv run --with mcp python brainspace_posttooluse.py
 """
 import json
 import os
 import sys
 from pathlib import Path
 
-# Resolve `import headroom` regardless of the host's working directory.
+# Resolve `import brainspace` regardless of the host's working directory.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-MIN_CHARS = int(os.environ.get("HEADROOM_HOOK_MIN_CHARS", "800"))
+MIN_CHARS = int(os.environ.get("BRAINSPACE_HOOK_MIN_CHARS", "800"))
 # Host caps hook stdout at 10k chars; stay safely under so our replacement (and its
 # recoverable footer) is never re-truncated by the host.
-STDOUT_CAP = int(os.environ.get("HEADROOM_HOOK_STDOUT_CAP", "9000"))
-_TOOLS_ENV = os.environ.get("HEADROOM_HOOK_TOOLS", "Bash,Read,Grep,Glob,WebFetch,view,read,execute,search")
+STDOUT_CAP = int(os.environ.get("BRAINSPACE_HOOK_STDOUT_CAP", "9000"))
+_TOOLS_ENV = os.environ.get("BRAINSPACE_HOOK_TOOLS", "Bash,Read,Grep,Glob,WebFetch,view,read,execute,search")
 _TOOL_ALLOW = {t.strip() for t in _TOOLS_ENV.split(",") if t.strip()}
 
 
@@ -96,10 +96,10 @@ def main() -> None:
             _noop_exit()
 
         # Compress with the CCR stash wired in, so the original is recoverable via
-        # headroom_retrieve. Lazy imports: a missing dep => no-op, never a crash.
-        from headroom.ccr import CCR
-        from headroom.router import route_typed
-        from headroom import tokens
+        # brainspace_retrieve. Lazy imports: a missing dep => no-op, never a crash.
+        from brainspace.ccr import CCR
+        from brainspace.router import route_typed
+        from brainspace import tokens
 
         ccr = CCR()
         compressed, ctype = route_typed(text, tool_name or None, stash=ccr.stash)
@@ -108,9 +108,9 @@ def main() -> None:
 
         rep = tokens.reduction(text, compressed)
         note = (
-            f"{compressed}\n\n— headroom[{ctype.value}] auto-compressed "
+            f"{compressed}\n\n— brainspace[{ctype.value}] auto-compressed "
             f"{rep['tokens_before']}→{rep['tokens_after']} tok ({rep['pct_reduction']}%); "
-            f"headroom_retrieve to expand —"
+            f"brainspace_retrieve to expand —"
         )
 
         # Enforce the host's 10k stdout cap. If our replacement is still too big,
@@ -121,8 +121,8 @@ def main() -> None:
             ref = ccr.stash(text, ctype=ctype.value, source=tool_name or "tool output")
             if ref:
                 note = (
-                    f"— headroom[{ctype.value}]: output too large to inline "
-                    f"({len(text):,} chars); stashed. Expand with headroom_retrieve {ref} —"
+                    f"— brainspace[{ctype.value}]: output too large to inline "
+                    f"({len(text):,} chars); stashed. Expand with brainspace_retrieve {ref} —"
                 )
             else:
                 _noop_exit()  # could not stash → must not lose data; keep original

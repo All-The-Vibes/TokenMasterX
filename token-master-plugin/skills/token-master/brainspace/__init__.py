@@ -1,7 +1,7 @@
-"""Headroom — the context-compression layer that complements TokenMaster routing.
+"""Brainspace — the context-compression layer that complements TokenMaster routing.
 
 TokenMaster *eliminates* re-reads by routing structural questions to a prebuilt
-code graph. Headroom *shrinks* the content that still enters the context window —
+code graph. Brainspace *shrinks* the content that still enters the context window —
 tool outputs, file reads, logs, RAG chunks — so the tokens TokenMaster does not
 remove are at least cheap.
 

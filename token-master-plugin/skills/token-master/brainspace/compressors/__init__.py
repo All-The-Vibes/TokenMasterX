@@ -14,7 +14,7 @@ Hard rules (enforced by the test suite, relied on by the router and MCP server):
 3.  **Lossy display, lossless recovery.** A compressor may drop detail from what
     the model *sees*, but only if it first hands the original to ``stash`` and
     embeds the returned placeholder. ``stash(original, ...)`` returns a stable
-    ``<<hr:HASH|meta>>`` token the model can pass to ``headroom_retrieve`` to get
+    ``<<hr:HASH|meta>>`` token the model can pass to ``brainspace_retrieve`` to get
     the full content back. If ``stash`` is ``None`` the compressor must stay
     lossless (used in measurement / no-CCR contexts).
 4.  **Deterministic.** Same input + same options + same stash ⇒ same output,
