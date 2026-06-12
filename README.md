@@ -8,6 +8,8 @@
 
 The thesis in one line: **the model should pay once to understand a codebase's structure, then never again.** Today's harnesses violate this on every turn — they hand the model a growing transcript and let it grep its way to understanding, re-paying for the entire accumulated context turn after turn. TokenMaster makes that re-derivation *economically illegal*: structural questions get routed to a **prebuilt code graph** answered in one bounded query, so the cumulative token bill collapses instead of compounding.
 
+It attacks the bill on **two complementary fronts**: a **routing layer** (below) that collapses the cost of re-deriving structure, and **[Headroom](#headroom--the-compression-layer)**, a compression layer that shrinks the raw tool outputs sitting in the transcript. Different token populations, so the wins compound. Routing is the headline; Headroom is the multiplier.
+
 ### Baseline vs TokenMaster, measured
 
 Same CLI. Same model. Same task. The only variable is whether TokenMaster's routing agent is on.
@@ -131,6 +133,81 @@ TokenMaster installs a **routing agent** that prefers graph queries over grep, b
 
 The routing layer is the product; the indexes are interchangeable suppliers. Routing is the load-bearing primitive — in early tests the model queried the graph **0/15 times** without an explicit nudge and **8/8** with it. A graph the model never queries saves nothing, so TokenMaster's job is not to *offer* the efficient tool but to make it the path of least resistance.
 
+## Headroom — the compression layer
+
+Routing collapses the cost of *re-deriving structure*. But there is a second token population it never touches: the **raw tool outputs** — directory listings, test logs, file dumps — that land in the transcript and then get re-sent on every subsequent turn. Headroom is the layer that attacks *those*.
+
+It is deliberately a **complement, not a competitor**: routing shrinks what the model re-reads to *understand the codebase*; Headroom shrinks what the model re-reads from its *own tool results*. Disjoint populations, so the savings **compound** rather than overlap. The same "area under the curve" logic from above applies — a tool output that is 6x smaller is 6x smaller *every turn it lingers in context*, not just once.
+
+### How it stays lossless
+
+The risk with compressing tool output is obvious: throw away the one line that mattered. Headroom's escape hatch is the **CCR** (Content-addressed, Cached, Reversible store). A compressor may drop detail from what the model *sees*, but only after handing the original to CCR, which stores it verbatim under `sha256(content)` and returns a stable placeholder:
+
+```text
+[[HR:9f3a2b1c4d5e|log; pytest run; 412L]]
+```
+
+If the model ever needs the dropped detail, it calls `headroom_retrieve` with that placeholder and gets the **exact original bytes** back. Content-addressing buys two things at once: identical content stashes once (free dedup), and the placeholder is byte-identical across turns — so it never perturbs the provider's prompt-cache prefix. (That last point is the whole reason compression and caching don't collide: a placeholder carrying a timestamp or hit-counter would silently evict the cache every turn. Headroom's are derived only from content.)
+
+### By the numbers, measured
+
+Every figure below is the real compressor run over a **real artifact** — actual repo source, a live `pytest -v` capture, a real serialized directory listing, the real README — measured in `tiktoken cl100k_base` tokens (the same proxy the engine ships). Reproduce with `python sandbox_headroom/measure_impact.py`.
+
+```text
+Tokens in -> out, per content type   (lower out is better)
+
+JSON   dir listing, 200 files   769  ->   92      88.0%   8.36x
+log    live pytest -v run     2,838  ->  475      83.3%   5.97x
+code   real ccr/router/mcp    5,172  -> 3,345     35.3%   1.55x
+prose  README + research doc 20,169  -> 20,067     0.5%   1.01x   <- honest negative
+```
+
+The shape is the point. **Structured, repetitive output (JSON, logs) compresses 6-8x** because its redundancy is mechanical and safe to elide. **Code compresses ~1.5x** — signatures and docstrings kept, bodies stashed. **Prose barely moves** (0.5%): natural language has little safe-to-drop redundancy, so Headroom defaults to near-lossless whitespace normalization and leaves the lossy ML path off. A layer that claimed to squeeze prose like it squeezes a directory listing would be lying; this one reports the 0.5% and moves on.
+
+**Benchmark it on your own code** — these numbers are not a brochure, they're a command. The same harness that produced the table ships with the plugin; point it at *your* files, logs, or piped output:
+
+```bash
+# your own files (type auto-detected per file):
+uv run --with mcp --with tiktoken python headroom_benchmark.py path/to/big.json server.log ./src
+
+# or pipe a real command's output straight in:
+pytest -v | uv run --with mcp --with tiktoken python headroom_benchmark.py --stdin --hint=pytest
+```
+
+It measures in real `tiktoken` tokens, verifies lossless recovery on every placeholder it stashes, and prints the per-type table plus the area-under-curve projection below. Run with no arguments for an instant demo over Headroom's own files. `--json` emits machine-readable output for your own dashboards.
+
+### Where the win actually lives: per-turn, not per-output
+
+A single compressed output is re-sent every turn it stays in context, so its saving is **multiplied by the turns it survives**. The live pytest log above, left in a 10-turn task:
+
+```text
+turns in context     raw cumulative    compressed     tokens saved
+        1                  2,838             475           2,363
+        3                  8,514           1,425           7,089
+        5                 14,190           2,375          11,815
+       10                 28,380           4,750          23,630
+```
+
+One log. 23,630 tokens saved across ten turns — and it round-trips losslessly the moment the model asks for it.
+
+### Two delivery paths, both verified on the real host
+
+| Host | Mode | What's verified |
+| --- | --- | --- |
+| **Claude Code** | Full — auto-compress **hook** + model-invoked tools | PostToolUse hook rewrote a real `3,226 -> 98` token output (**97.0%**) with the buried `ValueError` **preserved**, via the verified `updatedToolOutput` field |
+| **GitHub Copilot CLI** | MCP-only — model-invoked `compress` / `retrieve` | The **real `copilot` binary** spawned the server via `uv` and invoked `headroom_compress` end-to-end: `8,299 chars -> 303`, tool footer `2,075 -> 55` tokens (**97.3%**) |
+
+### Honest limitations — Headroom edition
+
+- **Copilot is MCP-only.** GitHub Copilot CLI has no documented output-rewriting hook, so it gets the model-invoked `headroom_compress` / `headroom_retrieve` tools but **not** transparent auto-compression. Claude Code gets the full layer. This is a real capability gap, surfaced in the installer summary rather than hidden.
+- **Prose is the weakest lever.** As the table shows, ~0%. The optional LLMLingua-style ML path exists but is off by default because it trades lossless-ness for a marginal prose gain — the wrong trade for tool output.
+- **Tiny inputs can't be compressed profitably.** Placeholder + footer overhead would dominate, so a centralized *never-expand* guard returns the original unchanged whenever compression wouldn't strictly shrink it. Compression must never *cost* tokens.
+- **Token proxy, not the host tokenizer.** Numbers are `tiktoken cl100k_base`; the host model's exact tokenizer differs in absolute counts, but compression *ratios* are stable across tokenizers, and ratios are what's reported.
+
+> **Provenance.** Compression figures come from `headroom_benchmark.py` (the same self-serve tool shipped with the plugin — real artifacts, real tokenizer); the dual-host figures from `sandbox_headroom/verify_dual_host.py` plus a live `copilot -p` run against a sandboxed `COPILOT_HOME` (the real `~/.copilot` is never touched). 104 unit tests cover the four compressors, the router, and the never-expand invariant (enforced in tokens, not characters — a distinction the benchmark itself surfaced).
+
+
+
 ## Installation
 
 TokenMaster supports two host CLIs — **Claude Code** and **GitHub Copilot CLI**. Install the
@@ -243,7 +320,24 @@ token-master-plugin/          The plugin (this is the deliverable)
     ├── setup.py               Installer: builds the graph, installs the host agent
     ├── graphify_mcp.py        Graph-query MCP server
     ├── agent.template.claude.md    Routing agent template (Claude Code format)
-    └── agent.template.copilot.md   Routing agent template (Copilot CLI format)
+    ├── agent.template.copilot.md   Routing agent template (Copilot CLI format)
+    │
+    ├── headroom_setup.py      Headroom installer (dual-host: hook+MCP / MCP-only)
+    ├── headroom_mcp.py        Compression MCP server (compress/retrieve/stats)
+    ├── headroom_posttooluse.py    Claude Code auto-compress hook
+    ├── headroom_benchmark.py  Self-serve benchmark — measure on your own files
+    └── headroom/              The compression engine
+        ├── ccr.py             Content-addressed reversible store (the escape hatch)
+        ├── router.py          ContentRouter — type detection + never-expand guard
+        ├── tokens.py          tiktoken-or-heuristic token meter
+        ├── benchmark.py       Benchmark core (file/dir/stdin, JSON, area-under-curve)
+        ├── compressors/       json / code / logs / prose compressors
+        └── tests/             104 unit tests
+
+sandbox_headroom/             Isolated verification harnesses (never touch real config)
+├── measure_impact.py         Real-artifact compression measurement (README numbers)
+├── mcp_stdio_smoke.py        MCP protocol conformance via the official client
+└── verify_dual_host.py       Dual-host install + end-to-end checks
 
 .claude-plugin/
 └── marketplace.json           Plugin marketplace manifest (the packager)
