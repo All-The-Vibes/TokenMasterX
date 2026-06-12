@@ -17,7 +17,7 @@ When the content is large enough that downstream might want aggressive trimming,
 the compressor stashes the full original (ctype='prose') and appends a recovery
 footer::
 
-    --- full text: [[HR:<hash>|prose; ...; NL]] ---
+    --- full text: [[BR:<hash>|prose; ...; NL]] ---
 
 This keeps the model's view compact while making the original retrievable.
 

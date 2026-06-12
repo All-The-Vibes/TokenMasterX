@@ -121,7 +121,7 @@ def route_typed(content: str, hint: Optional[str] = None, *, stash=None, **opts)
 
     The invariant is measured in *tokens*, not characters, because tokens are the
     real cost. The distinction is not academic: a content-addressed placeholder
-    like ``[[HR:0fd4e3ad3d2b|code; some_long_function_name body; 3L]]`` can be
+    like ``[[BR:0fd4e3ad3d2b|code; some_long_function_name body; 3L]]`` can be
     fewer characters than the body it replaces while tokenizing to *more* tokens
     (random hex hashes and long identifiers do not BPE-merge). A char-based guard
     would wave that through and silently cost tokens — the exact thing this guard

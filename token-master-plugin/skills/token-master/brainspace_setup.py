@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Headroom installer — wires the compression layer into Claude Code or Copilot CLI.
+"""Brainspace installer — wires the compression layer into Claude Code or Copilot CLI.
 
 This complements TokenMaster's setup.py (graph routing) with the compression layer.
 It is intentionally a separate entry point so the compression feature is additive:
@@ -11,26 +11,26 @@ suite install into a throwaway sandbox home instead of the user's real ~/.claude
 What it does, per host:
 
   Claude Code  (full layer — auto-compress + model-invoked tools):
-    * Copies headroom_mcp.py, headroom_posttooluse.py, and the headroom/ package to
+    * Copies brainspace_mcp.py, brainspace_posttooluse.py, and the brainspace/ package to
       ``<CLAUDE_HOME>/token-master/``.
-    * Registers the ``headroom`` MCP server in ``~/.claude.json`` mcpServers
-      (idempotent read-modify-write touching only the ``headroom`` key).
+    * Registers the ``brainspace`` MCP server in ``~/.claude.json`` mcpServers
+      (idempotent read-modify-write touching only the ``brainspace`` key).
     * Registers the PostToolUse hook in ``<CLAUDE_HOME>/settings.json`` so tool
       outputs are auto-compressed at the append boundary (verified field:
       hookSpecificOutput.updatedToolOutput).
 
   Copilot CLI  (MCP-only — model-invoked compress + retrieve):
     * Copies the same files to ``<COPILOT_HOME>/token-master/``.
-    * Registers the ``headroom`` MCP server in ``<COPILOT_HOME>/mcp-config.json``.
+    * Registers the ``brainspace`` MCP server in ``<COPILOT_HOME>/mcp-config.json``.
     * Does NOT install an auto-compress hook: Copilot CLI does not document a
       PostToolUse output-rewriting hook, so on Copilot the layer is honestly
-      opt-in (the model calls headroom_compress / headroom_retrieve). This
+      opt-in (the model calls brainspace_compress / brainspace_retrieve). This
       limitation is printed in the summary, not hidden.
 
 Idempotent and reversible-by-key: re-running refreshes; uninstall removes only the
-``headroom`` keys it added.
+``brainspace`` keys it added.
 
-Usage: python headroom_setup.py [REPO_ROOT] [--host=claude|copilot] [--uninstall]
+Usage: python brainspace_setup.py [REPO_ROOT] [--host=claude|copilot] [--uninstall]
 """
 import json
 import os
@@ -83,25 +83,25 @@ def _claude_json_path() -> Path:
 
 
 def _fail(msg: str) -> int:
-    print(f"[headroom] ERROR: {msg}")
+    print(f"[brainspace] ERROR: {msg}")
     return 1
 
 
 # -- file install --------------------------------------------------------------
 
 def _install_files(home: Path) -> Path:
-    """Copy the server, hook, benchmark, and headroom/ package to <home>/token-master/."""
+    """Copy the server, hook, benchmark, and brainspace/ package to <home>/token-master/."""
     install_dir = home / "token-master"
     install_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(SKILL_DIR / "headroom_mcp.py", install_dir / "headroom_mcp.py")
-    shutil.copy2(SKILL_DIR / "headroom_posttooluse.py", install_dir / "headroom_posttooluse.py")
-    shutil.copy2(SKILL_DIR / "headroom_benchmark.py", install_dir / "headroom_benchmark.py")
+    shutil.copy2(SKILL_DIR / "brainspace_mcp.py", install_dir / "brainspace_mcp.py")
+    shutil.copy2(SKILL_DIR / "brainspace_posttooluse.py", install_dir / "brainspace_posttooluse.py")
+    shutil.copy2(SKILL_DIR / "brainspace_benchmark.py", install_dir / "brainspace_benchmark.py")
     # Copy the package (clean any stale copy first so removed files don't linger).
-    pkg_dst = install_dir / "headroom"
+    pkg_dst = install_dir / "brainspace"
     if pkg_dst.exists():
         shutil.rmtree(pkg_dst, ignore_errors=True)
     shutil.copytree(
-        SKILL_DIR / "headroom",
+        SKILL_DIR / "brainspace",
         pkg_dst,
         ignore=shutil.ignore_patterns("__pycache__", "tests", "*.pyc"),
     )
@@ -122,9 +122,9 @@ def _wire_claude_mcp(uv: str, mcp_script: str, *, remove: bool = False) -> Path:
     if not isinstance(servers, dict):
         servers = {}
     if remove:
-        servers.pop("headroom", None)
+        servers.pop("brainspace", None)
     else:
-        servers["headroom"] = {
+        servers["brainspace"] = {
             "command": uv,
             "args": ["run", "--with", "mcp", "python", mcp_script],
         }
@@ -138,7 +138,7 @@ def _wire_claude_hook(home: Path, uv: str, hook_script: str, *, remove: bool = F
     """Register (or remove) the PostToolUse hook in <CLAUDE_HOME>/settings.json.
 
     Uses the documented matcher/hooks shape. Idempotent: identifies our hook by the
-    headroom_posttooluse.py path in its command and replaces/removes only that entry.
+    brainspace_posttooluse.py path in its command and replaces/removes only that entry.
     """
     settings_path = home / "settings.json"
     try:
@@ -153,10 +153,10 @@ def _wire_claude_hook(home: Path, uv: str, hook_script: str, *, remove: bool = F
 
     cmd = f'{uv} run --with mcp python "{hook_script}"'
 
-    # Drop any prior headroom hook entries (match by script name) for idempotency.
+    # Drop any prior brainspace hook entries (match by script name) for idempotency.
     def _is_ours(entry):
         for h in entry.get("hooks", []):
-            if "headroom_posttooluse" in (h.get("command") or ""):
+            if "brainspace_posttooluse" in (h.get("command") or ""):
                 return True
         return False
 
@@ -164,7 +164,7 @@ def _wire_claude_hook(home: Path, uv: str, hook_script: str, *, remove: bool = F
 
     if not remove:
         post.append({
-            "matcher": "*",  # all tools; the hook self-filters by HEADROOM_HOOK_TOOLS + size
+            "matcher": "*",  # all tools; the hook self-filters by BRAINSPACE_HOOK_TOOLS + size
             "hooks": [{"type": "command", "command": cmd}],
         })
 
@@ -178,10 +178,10 @@ def _wire_claude_hook(home: Path, uv: str, hook_script: str, *, remove: bool = F
 # -- copilot wiring ------------------------------------------------------------
 
 def _wire_copilot_mcp(home: Path, uv: str, mcp_script: str, *, remove: bool = False) -> Path:
-    """Register the headroom MCP server in <COPILOT_HOME>/mcp-config.json.
+    """Register the brainspace MCP server in <COPILOT_HOME>/mcp-config.json.
 
     Copilot's mcp-config.json uses the same ``mcpServers`` map shape as Claude. We
-    write the stdio server entry; idempotent on the ``headroom`` key.
+    write the stdio server entry; idempotent on the ``brainspace`` key.
     """
     cfg_path = home / "mcp-config.json"
     try:
@@ -194,9 +194,9 @@ def _wire_copilot_mcp(home: Path, uv: str, mcp_script: str, *, remove: bool = Fa
     if not isinstance(servers, dict):
         servers = {}
     if remove:
-        servers.pop("headroom", None)
+        servers.pop("brainspace", None)
     else:
-        servers["headroom"] = {
+        servers["brainspace"] = {
             "type": "stdio",
             "command": uv,
             "args": ["run", "--with", "mcp", "python", mcp_script],
@@ -225,36 +225,36 @@ def main() -> int:
     host = _resolve_host(argv_host)
     uv = shutil.which("uv") or "uv"
     if not shutil.which("uv"):
-        return _fail("`uv` not found on PATH — the headroom server launches via uv. "
+        return _fail("`uv` not found on PATH — the brainspace server launches via uv. "
                      "Install uv (https://docs.astral.sh/uv/) and re-run.")
 
     home = _host_home(host)
-    print(f"[headroom] host: {host}")
-    print(f"[headroom] home: {home}")
+    print(f"[brainspace] host: {host}")
+    print(f"[brainspace] home: {home}")
 
     install_dir = _install_files(home)
-    mcp_script = str((install_dir / "headroom_mcp.py")).replace("\\", "/")
-    hook_script = str((install_dir / "headroom_posttooluse.py")).replace("\\", "/")
+    mcp_script = str((install_dir / "brainspace_mcp.py")).replace("\\", "/")
+    hook_script = str((install_dir / "brainspace_posttooluse.py")).replace("\\", "/")
     uv_fwd = uv.replace("\\", "/")
 
-    summary = ["[headroom] done." if not uninstall else "[headroom] uninstalled."]
+    summary = ["[brainspace] done." if not uninstall else "[brainspace] uninstalled."]
     summary.append(f"  files:  {install_dir}")
 
     if host == "claude":
         cfg = _wire_claude_mcp(uv_fwd, mcp_script, remove=uninstall)
         settings = _wire_claude_hook(home, uv_fwd, hook_script, remove=uninstall)
-        summary.append(f"  mcp:    {cfg} (server 'headroom')")
+        summary.append(f"  mcp:    {cfg} (server 'brainspace')")
         summary.append(f"  hook:   {settings} (PostToolUse auto-compress)")
         summary.append("  mode:   FULL — auto-compress hook + model-invoked tools.")
         summary.append("Restart Claude Code to activate. Tool outputs are auto-compressed; "
-                       "the model can also call headroom_compress / headroom_retrieve.")
+                       "the model can also call brainspace_compress / brainspace_retrieve.")
     else:
         cfg = _wire_copilot_mcp(home, uv_fwd, mcp_script, remove=uninstall)
-        summary.append(f"  mcp:    {cfg} (server 'headroom')")
+        summary.append(f"  mcp:    {cfg} (server 'brainspace')")
         summary.append("  mode:   MCP-ONLY — Copilot CLI has no documented PostToolUse "
                        "output-rewriting hook, so compression is model-invoked (opt-in).")
         summary.append("Restart Copilot. Ask it to compress large outputs, or it calls "
-                       "headroom_compress / headroom_retrieve as MCP tools.")
+                       "brainspace_compress / brainspace_retrieve as MCP tools.")
 
     print("\n".join(summary))
     return 0

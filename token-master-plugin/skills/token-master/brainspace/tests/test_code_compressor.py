@@ -1,10 +1,10 @@
-"""Tests for headroom.compressors.code_compressor.
+"""Tests for brainspace.compressors.code_compressor.
 
-Run from the skill dir so 'import headroom' resolves:
+Run from the skill dir so 'import brainspace' resolves:
 
     cd "C:/Users/shyamsridhar/code/TokenMaster/token-master-plugin/skills/token-master"
     uv run --with mcp --with pytest --with tree-sitter --with tree-sitter-python \
-        python -m pytest headroom/tests/test_code_compressor.py -q
+        python -m pytest brainspace/tests/test_code_compressor.py -q
 
 The test suite verifies:
   (a) lossless recovery via a fake in-memory stash
@@ -45,7 +45,7 @@ def make_fake_stash():
         n_lines = content.count("\n") + 1
         meta_parts.append(f"{n_lines}L")
         meta = "; ".join(meta_parts)
-        placeholder = f"[[HR:{short}|{meta}]]"
+        placeholder = f"[[BR:{short}|{meta}]]"
         store[placeholder] = content
         return placeholder
 
@@ -208,7 +208,7 @@ SAMPLE_PY = textwrap.dedent("""\
 def import_compressor():
     """Import the function under test (avoids module-level import errors if
     tree-sitter is absent during collection)."""
-    from headroom.compressors.code_compressor import compress_code
+    from brainspace.compressors.code_compressor import compress_code
     return compress_code
 
 
@@ -288,7 +288,7 @@ class TestLosslessRecovery:
         assert isinstance(skeleton, str)
         # Every placeholder in the skeleton must resolve to its original body
         import re
-        placeholders = re.findall(r"\[\[HR:[0-9a-f]{12}\|[^\]]*\]\]", skeleton)
+        placeholders = re.findall(r"\[\[BR:[0-9a-f]{12}\|[^\]]*\]\]", skeleton)
         assert placeholders, "Skeleton should contain at least one placeholder for a body"
         for ph in placeholders:
             assert ph in store, f"Placeholder {ph!r} not found in stash store"
@@ -359,7 +359,7 @@ class TestNoopDegradeWithoutTreeSitter:
         # builtins.__import__ is sufficient.
         monkeypatch.setattr(builtins, "__import__", patched_import)
 
-        from headroom.compressors.code_compressor import compress_code
+        from brainspace.compressors.code_compressor import compress_code
         result = compress_code(SAMPLE_PY)
         assert result == SAMPLE_PY, "Must return input unchanged when tree-sitter absent"
 
@@ -369,7 +369,7 @@ class TestMeasuredReduction:
 
     def test_reduction_at_least_25_pct(self):
         compress_code = import_compressor()
-        from headroom import tokens
+        from brainspace import tokens
 
         stash_fn, _ = make_fake_stash()
         skeleton = compress_code(SAMPLE_PY, stash=stash_fn)

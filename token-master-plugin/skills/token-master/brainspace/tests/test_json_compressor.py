@@ -1,9 +1,9 @@
-"""Tests for headroom.compressors.json_compressor.
+"""Tests for brainspace.compressors.json_compressor.
 
-Run from the skill dir so 'import headroom' resolves:
+Run from the skill dir so 'import brainspace' resolves:
 
     cd "C:/Users/shyamsridhar/code/TokenMaster/token-master-plugin/skills/token-master"
-    uv run --with mcp --with pytest python -m pytest headroom/tests/test_json_compressor.py -q
+    uv run --with mcp --with pytest python -m pytest brainspace/tests/test_json_compressor.py -q
 
 The test suite verifies:
   (a) lossless recovery -- for any placeholder emitted, the stash round-trip
@@ -42,7 +42,7 @@ def make_fake_stash():
         n_lines = content.count("\n") + 1
         meta_parts.append(f"{n_lines}L")
         meta = "; ".join(meta_parts)
-        placeholder = f"[[HR:{short}|{meta}]]"
+        placeholder = f"[[BR:{short}|{meta}]]"
         store[placeholder] = content
         return placeholder
 
@@ -97,7 +97,7 @@ def make_nested_api_response() -> str:
 # ---------------------------------------------------------------------------
 
 def import_compressor():
-    from headroom.compressors.json_compressor import compress_json
+    from brainspace.compressors.json_compressor import compress_json
     return compress_json
 
 
@@ -358,7 +358,7 @@ class TestMeasuredReduction:
 
     def test_dir_listing_reduction(self):
         compress_json = import_compressor()
-        from headroom import tokens
+        from brainspace import tokens
 
         data = make_dir_listing(200)
         stash_fn, _ = make_fake_stash()
@@ -378,7 +378,7 @@ class TestMeasuredReduction:
 
     def test_nested_api_response_reduction(self):
         compress_json = import_compressor()
-        from headroom import tokens
+        from brainspace import tokens
 
         data = make_nested_api_response()
         stash_fn, _ = make_fake_stash()

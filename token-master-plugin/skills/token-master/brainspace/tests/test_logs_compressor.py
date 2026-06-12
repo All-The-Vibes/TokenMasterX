@@ -1,9 +1,9 @@
-"""Tests for headroom.compressors.logs_compressor.
+"""Tests for brainspace.compressors.logs_compressor.
 
-Run from the skill dir so 'import headroom' resolves:
+Run from the skill dir so 'import brainspace' resolves:
 
     cd "C:/Users/shyamsridhar/code/TokenMaster/token-master-plugin/skills/token-master"
-    uv run --with mcp --with pytest python -m pytest headroom/tests/test_logs_compressor.py -q
+    uv run --with mcp --with pytest python -m pytest brainspace/tests/test_logs_compressor.py -q
 
 The test suite verifies:
   (a) lossless recovery -- the stash stores the exact original; the placeholder
@@ -41,7 +41,7 @@ def make_fake_stash():
         n_lines = content.count("\n") + 1
         meta_parts.append(f"{n_lines}L")
         meta = "; ".join(meta_parts)
-        placeholder = f"[[HR:{short}|{meta}]]"
+        placeholder = f"[[BR:{short}|{meta}]]"
         store[placeholder] = content
         return placeholder
 
@@ -127,7 +127,7 @@ def make_repeated_log() -> str:
 # ---------------------------------------------------------------------------
 
 def import_compressor():
-    from headroom.compressors.logs_compressor import compress_logs
+    from brainspace.compressors.logs_compressor import compress_logs
     return compress_logs
 
 
@@ -368,7 +368,7 @@ class TestMeasuredReduction:
 
     def test_build_log_reduction(self):
         compress_logs = import_compressor()
-        from headroom import tokens
+        from brainspace import tokens
 
         original = make_build_log(n_info=450)
         stash_fn, _ = make_fake_stash()
