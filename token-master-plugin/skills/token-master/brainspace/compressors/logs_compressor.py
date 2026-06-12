@@ -87,18 +87,26 @@ def _compress(content: str, *, stash, context: int) -> str:
     # --- Pass 2: severity-aware elision ---
     kept = _elide_unimportant(deduped, context=context)
 
-    # Stash the full original and append a recovery line.
-    if stash is not None:
+    # Lossless-recovery contract: the elided view drops noise runs, so it is only
+    # safe to return when the full original is recoverable. Stash the original and
+    # append a recovery line. If there is no stash, or the stash FAILED (store
+    # unwritable), we must NOT hand back an irrecoverable summary — return the
+    # original content unchanged. This matters most under PostToolUse auto-compress,
+    # where a failed stash would otherwise replace the user's tool output with a
+    # lossy summary exactly when recovery is impossible.
+    if stash is None:
+        return content
+    placeholder = None
+    try:
+        placeholder = stash(content, ctype="log")
+    except Exception:
         placeholder = None
-        try:
-            placeholder = stash(content, ctype="log")
-        except Exception:
-            placeholder = None
-        if placeholder is not None:
-            # Ensure we do not double up a trailing newline before the footer.
-            if kept and not kept.endswith("\n"):
-                kept += "\n"
-            kept += f"full log: {placeholder}\n"
+    if placeholder is None:
+        return content  # stash failed -> stay lossless
+    # Ensure we do not double up a trailing newline before the footer.
+    if kept and not kept.endswith("\n"):
+        kept += "\n"
+    kept += f"full log: {placeholder}\n"
 
     return kept
 

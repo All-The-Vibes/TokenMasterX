@@ -245,6 +245,49 @@ class TestLosslessRecovery:
         ph = ph_matches[0]
         assert store[ph] == original_value
 
+    def test_elided_list_middle_is_recoverable(self):
+        """Regression (P1): the elided middle slice of a long list must be stashed
+        so brainspace_retrieve can recover the dropped records. Otherwise large
+        arrays (API responses, dir listings) silently lose load-bearing data."""
+        compress_json = import_compressor()
+        stash_fn, store = make_fake_stash()
+        items = [{"id": i, "name": f"item{i}"} for i in range(20)]
+        payload = json.dumps(items)
+
+        result = compress_json(payload, stash=stash_fn, sample=2, tail=1)
+        result_obj = json.loads(result)
+
+        # Find the elision marker and the placeholder embedded in it.
+        marker = next(v for v in result_obj if isinstance(v, str) and "more items" in v)
+        ph_matches = [k for k in store if k in marker]
+        assert ph_matches, (
+            f"Elision marker {marker!r} carries no recovery placeholder — the "
+            f"omitted records are unrecoverable. Store keys: {list(store)}"
+        )
+        # The placeholder must recover the EXACT omitted middle slice.
+        recovered = json.loads(store[ph_matches[0]])
+        assert recovered == items[2:19], (
+            "Recovered middle slice does not match the omitted records."
+        )
+
+    def test_elided_list_lossless_roundtrip_full_reconstruction(self):
+        """The head + recovered-middle + tail must reconstruct the entire list."""
+        compress_json = import_compressor()
+        stash_fn, store = make_fake_stash()
+        items = list(range(50))
+        result = compress_json(json.dumps(items), stash=stash_fn, sample=3, tail=2)
+        result_obj = json.loads(result)
+
+        marker_idx = next(i for i, v in enumerate(result_obj)
+                          if isinstance(v, str) and "more items" in v)
+        head = result_obj[:marker_idx]
+        tail = result_obj[marker_idx + 1:]
+        marker = result_obj[marker_idx]
+        ph = next(k for k in store if k in marker)
+        middle = json.loads(store[ph])
+
+        assert head + middle + tail == items, "Full list must reconstruct losslessly"
+
     def test_keys_always_preserved(self):
         compress_json = import_compressor()
         payload = json.dumps({"alpha": 1, "beta": 2, "gamma": 3, "delta": 4})

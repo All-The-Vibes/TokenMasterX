@@ -280,24 +280,27 @@ class TestLosslessRecovery:
         assert ph in store, f"Placeholder {ph!r} not found in stash store"
         assert store[ph] == original
 
-    def test_no_recovery_line_without_stash(self):
-        """Without stash, no 'full log:' line is appended."""
+    def test_no_lossy_output_without_stash(self):
+        """Without a stash there is no recovery path, so the compressor must stay
+        lossless: it returns the original content unchanged rather than an elided
+        (irrecoverable) summary."""
         compress_logs = import_compressor()
         original = make_build_log()
 
         result = compress_logs(original, stash=None)
 
-        lines = result.splitlines()
-        assert not any(l.startswith("full log: ") for l in lines), (
-            "Without stash, no recovery line should be appended"
+        assert result == original, (
+            "Without a stash the log compressor must return content unchanged "
+            "(no irrecoverable elision)."
         )
 
     def test_error_lines_survive_verbatim(self):
         """ERROR/Traceback/FATAL lines must appear unchanged in output."""
         compress_logs = import_compressor()
         original = make_build_log()
+        stash_fn, _ = make_fake_stash()
 
-        result = compress_logs(original, stash=None, context=2)
+        result = compress_logs(original, stash=stash_fn, context=2)
 
         assert "[ERROR] Test failed: test_validate_array" in result
         assert "Traceback (most recent call last):" in result
@@ -308,17 +311,18 @@ class TestLosslessRecovery:
     def test_context_lines_kept(self):
         """Lines within 'context' positions of an important line are kept."""
         compress_logs = import_compressor()
+        stash_fn, _ = make_fake_stash()
+        # Pad with enough noise lines that the file clears the min-log-lines bar
+        # and the elision path actually runs.
         log = (
             "[INFO] before-2\n"
             "[INFO] before-1\n"
             "[ERROR] the error\n"
             "[INFO] after-1\n"
             "[INFO] after-2\n"
-            "[INFO] noise-A\n"
-            "[INFO] noise-B\n"
-            "[INFO] noise-C\n"
+            + "".join(f"[INFO] noise-{i}\n" for i in range(20))
         )
-        result = compress_logs(log, stash=None, context=2)
+        result = compress_logs(log, stash=stash_fn, context=2)
 
         assert "before-2" in result
         assert "before-1" in result
@@ -330,7 +334,8 @@ class TestLosslessRecovery:
         """Long runs of unimportant lines produce an elision marker."""
         compress_logs = import_compressor()
         original = make_build_log()
-        result = compress_logs(original, stash=None, context=2)
+        stash_fn, _ = make_fake_stash()
+        result = compress_logs(original, stash=stash_fn, context=2)
         assert "lines elided" in result, (
             "Expected at least one '... K lines elided ...' marker in output"
         )
@@ -339,14 +344,17 @@ class TestLosslessRecovery:
         """Consecutive identical lines must be collapsed to 'line (xN)'."""
         compress_logs = import_compressor()
         log = make_repeated_log()
-        result = compress_logs(log, stash=None)
+        stash_fn, _ = make_fake_stash()
+        result = compress_logs(log, stash=stash_fn)
         # 50 repetitions of the poll line should appear as (x50).
         assert "(x50)" in result or any(
             f"(x{n})" in result for n in range(40, 55)
         ), f"Expected collapsed repetition marker in:\n{result[:500]}"
 
     def test_no_data_loss_when_stash_returns_none(self):
-        """If stash returns None, the compressor must not drop original content."""
+        """If stash returns None (store unwritable), the compressor must not drop
+        any content — it returns the full original verbatim, since there is no
+        placeholder to recover the elided lines from."""
         compress_logs = import_compressor()
 
         def null_stash(content, **kwargs):
@@ -355,8 +363,10 @@ class TestLosslessRecovery:
         original = make_build_log()
         result = compress_logs(original, stash=null_stash)
 
-        # The result must contain the error lines (even without stash recovery).
-        assert "[ERROR] Test failed: test_validate_array" in result
+        # A failed stash must yield the exact original — fully lossless.
+        assert result == original, (
+            "When stash returns None the compressor must return content unchanged."
+        )
 
 
 # ---------------------------------------------------------------------------
