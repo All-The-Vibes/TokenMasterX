@@ -103,8 +103,26 @@ def _walk(obj, *, stash, sample: int, tail: int, max_str: int):
                 _walk(item, stash=stash, sample=sample, tail=tail, max_str=max_str)
                 for item in obj[:sample]
             ]
-            middle_count = n - sample - tail
-            marker = f"...{middle_count} more items (same shape)..."
+            middle = obj[sample:n - tail]
+            middle_count = len(middle)
+            # Lossless recovery: stash the omitted slice so brainspace_retrieve can
+            # recover the dropped records. Without a stash we stay honest by saying
+            # the records are elided (the count is exact); with one we embed the
+            # placeholder so the model can ask for the exact middle back.
+            placeholder = None
+            if stash is not None:
+                try:
+                    placeholder = stash(
+                        json.dumps(middle, separators=(",", ":"), ensure_ascii=False),
+                        ctype="json",
+                        source=f"{middle_count} list items",
+                    )
+                except Exception:
+                    placeholder = None
+            if placeholder:
+                marker = f"...{middle_count} more items (same shape) {placeholder}..."
+            else:
+                marker = f"...{middle_count} more items (same shape)..."
             tail_items = [
                 _walk(item, stash=stash, sample=sample, tail=tail, max_str=max_str)
                 for item in obj[n - tail:]
