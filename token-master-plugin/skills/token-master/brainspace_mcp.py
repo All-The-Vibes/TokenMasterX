@@ -71,6 +71,13 @@ def brainspace_compress(content: str, hint: str = "") -> str:
     try:
         ccr = _ccr()
         compressed, ctype = route_typed(content, hint or None, stash=ccr.stash)
+        # No-op when nothing was gained: route_typed returns the input unchanged for
+        # small/non-compressible content or when optional compressors are missing.
+        # Appending a savings footer there would grow the transcript and falsely
+        # imply a [[BR:]] placeholder exists to expand. Mirror the PostToolUse hook
+        # and return the content untouched.
+        if compressed == content:
+            return content
         rep = tokens.reduction(content, compressed)
         footer = (
             f"\n\n— brainspace[{ctype.value}]: {rep['tokens_before']}→{rep['tokens_after']} tok "
