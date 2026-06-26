@@ -36,8 +36,12 @@ Configurable via env:
   * BRAINSPACE_HOOK_TOOLS — comma-separated allowlist of tool names to compress
     (default: a sensible set of read/exec tools). "*" means all.
 
-Run by the host as: uv run --with mcp python brainspace_posttooluse.py
+Run by the host as: uv run --with mcp --with tree-sitter --with tree-sitter-python
+                        --with tree-sitter-rust --with tiktoken python brainspace_posttooluse.py
+                    (grammars enable code skeletonization; brainspace_setup.py wires them in.)
 """
+from __future__ import annotations
+
 import json
 import os
 import sys
@@ -79,6 +83,22 @@ def _extract(payload: dict):
     return tool_name, None, (None, None)
 
 
+def _file_hint(payload: dict) -> str | None:
+    """Return the file path from the tool *input*, when the tool acts on a file.
+
+    The router's hint is its strongest signal: a path's extension drives both
+    content-type detection and code-language resolution (``.rs`` → Rust). For a
+    Read of ``foo.rs`` the tool name alone (``"Read"``) carries neither, so we
+    prefer the input path and fall back to the tool name when there is none."""
+    ti = payload.get("tool_input") or payload.get("toolInput") or payload.get("input")
+    if isinstance(ti, dict):
+        for k in ("file_path", "filePath", "path", "notebook_path"):
+            v = ti.get(k)
+            if isinstance(v, str) and v:
+                return v
+    return None
+
+
 def main() -> None:
     try:
         raw = sys.stdin.read()
@@ -102,7 +122,10 @@ def main() -> None:
         from brainspace import tokens
 
         ccr = CCR()
-        compressed, ctype = route_typed(text, tool_name or None, stash=ccr.stash)
+        # Prefer the input file path as the routing hint (its extension resolves
+        # both content type and code language); fall back to the tool name.
+        hint = _file_hint(payload) or (tool_name or None)
+        compressed, ctype = route_typed(text, hint, stash=ccr.stash)
         if compressed == text or len(compressed) >= len(text):
             _noop_exit()  # nothing gained — leave the output untouched
 

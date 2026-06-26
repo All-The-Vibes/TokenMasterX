@@ -7,6 +7,41 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Added — Rust as a first-class language
+
+Both token-economics layers now treat Rust the way they treat Python.
+
+- **Brainspace code compressor skeletonizes Rust** (`brainspace/compressors/code_compressor.py`).
+  The compressor is now spec-driven: a small per-language table names the grammar
+  to load and the node roles that drive the walk, so Python and Rust share one
+  engine. For Rust it elides `function_item` bodies (including trait *default*
+  methods), recurses into `impl` / `trait` / `mod` blocks, and keeps the
+  structural signal verbatim — `struct` / `enum` fields, bodiless trait method
+  signatures, `use`, `const`, `///` doc comments and `#[attributes]`. Lossless
+  recovery and determinism hold exactly as for Python.
+- **Language is resolved from the file extension** (`brainspace/router.py`). The
+  router now threads a `lang` (`.rs` → `rust`, `.py`/`.pyi` → `python`) into the
+  code compressor; without it every code output was parsed as the Python default,
+  so Rust silently passed through. The `PostToolUse` hook now uses the tool's
+  input file path as its routing hint (`brainspace_posttooluse.py`) so a `Read`
+  of `foo.rs` actually resolves to Rust.
+- **Graph routing surfaces Rust trait implementors** (`graphify_mcp.py`).
+  `inheritors` now reads `implements` edges (Rust `impl Trait for Type`) in
+  addition to class `inherits`, so "what implements / overrides X" works in
+  trait-based languages. graphify already indexes Rust natively via tree-sitter
+  with a dense call graph (measured 0.21 `calls`/symbol on a real 4.1k-LOC crate —
+  well clear of the sparse-warning floor), so `find` / `callers` / `callees` /
+  `impact` / `explain` needed no change.
+- **Install wires the grammars so code compression actually runs**
+  (`brainspace_setup.py`). The MCP server and hook previously launched with
+  `--with mcp` only, which made the code compressor lazy-import-degrade to a no-op
+  in every real install (Python included). They now launch with `tree-sitter`,
+  `tree-sitter-python`, `tree-sitter-rust`, and `tiktoken`, declared once in a
+  shared `RUN_WITH`.
+
+Measured on a real Rust crate (korg, ~4.1k LOC): **66.2% pooled token reduction**
+on code outputs across 22 files (`tiktoken cl100k_base`).
+
 ### Added — Brainspace, the compression layer
 
 A second token-economics layer that complements graph routing. Routing collapses
@@ -72,9 +107,12 @@ Real artifacts, real `tiktoken cl100k_base` tokens (reproduce with
 
 ### Tests
 
-- 104 unit tests across the four compressors, the router (including the
-  never-expand-in-tokens regression), and the never-expand invariant — green on
-  both the `tiktoken` and heuristic token backends.
+- 120 unit tests across the four compressors, the router (including the
+  never-expand-in-tokens regression and code-language resolution), and the
+  never-expand invariant — green on both the `tiktoken` and heuristic token
+  backends. Rust coverage: skeletonization, lossless recovery, struct/signature
+  preservation, determinism, reduction, and graceful no-op when the grammar is
+  absent.
 - Isolated sandbox harnesses (`sandbox_brainspace/`, kept out of the shipped plugin):
   MCP stdio protocol conformance via the official client, and an 18/18 dual-host
   install + end-to-end verification that never touches the real CLI config.

@@ -24,7 +24,10 @@ Design mirrors graphify_mcp.py:
   * Tools return clear diagnostic strings on failure instead of raising.
   * Output is capped so the server never blows the token budget it exists to protect.
 
-Run: uv run --with mcp python brainspace_mcp.py
+Run: uv run --with mcp --with tree-sitter --with tree-sitter-python \
+         --with tree-sitter-rust --with tiktoken python brainspace_mcp.py
+     (the tree-sitter grammars enable code skeletonization; without them the
+     code compressor degrades to a no-op. brainspace_setup.py wires these in.)
 """
 import os
 from pathlib import Path

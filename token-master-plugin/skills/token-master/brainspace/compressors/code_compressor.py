@@ -1,8 +1,24 @@
-"""Code / AST compressor — Python-first tree-sitter skeletonization.
+"""Code / AST compressor — tree-sitter skeletonization (Python + Rust).
 
-Walks top-level and nested function_definition / class_definition nodes,
-keeps headers and leading docstrings, and replaces bodies with a single
-stub line that optionally stashes the full body for lossless recovery.
+Walks top-level and nested definitions, keeps headers (and, for Python, leading
+docstrings), and replaces function/method bodies with a single stub line that
+optionally stashes the full body for lossless recovery. Type declarations whose
+shape *is* the signal — Python class members, Rust struct/enum fields, trait
+method signatures — are kept verbatim; only executable bodies are elided.
+
+Languages are described by a small per-language spec (``_LANG_SPECS``) naming the
+grammar module to lazy-import and the node types that drive the walk:
+
+  * ``elide``   — definitions whose body block is replaced with a stub
+                  (Python ``function_definition``; Rust ``function_item``).
+  * ``recurse`` — containers kept verbatim in the header but walked for nested
+                  defs (Python ``class_definition``; Rust ``impl_item`` /
+                  ``trait_item`` / ``mod_item``).
+  * ``wrapper`` — nodes that wrap a def behind leading syntax that must be kept
+                  (Python ``decorated_definition``; Rust has none).
+  * ``docstring`` — whether a leading string statement inside a body is a
+                  docstring to preserve (Python only; Rust doc comments are
+                  ``///`` sibling line-comments, kept for free as gap bytes).
 
 Contract rules observed:
   1. Never raise — any parse or import failure returns content unchanged.
@@ -15,11 +31,36 @@ Contract rules observed:
 Optional deps (lazy-imported inside the function):
   tree-sitter          https://pypi.org/project/tree-sitter/
   tree-sitter-python   https://pypi.org/project/tree-sitter-python/
-When either is absent the module still imports cleanly and the function
-degrades to a no-op (returns content unchanged).
+  tree-sitter-rust     https://pypi.org/project/tree-sitter-rust/
+When tree-sitter or the language grammar is absent the module still imports
+cleanly and the function degrades to a no-op (returns content unchanged).
 """
 
 from __future__ import annotations
+
+import importlib
+
+# Per-language skeletonization spec. Adding a language is a matter of naming its
+# grammar module and the node types that play each structural role — the walk
+# itself is language-agnostic.
+_LANG_SPECS: dict[str, dict] = {
+    "python": {
+        "module": "tree_sitter_python",
+        "elide": ("function_definition",),
+        "recurse": ("class_definition",),
+        "wrapper": ("decorated_definition",),
+        "docstring": True,
+    },
+    "rust": {
+        "module": "tree_sitter_rust",
+        # function_item also covers trait *default* methods (they have a body);
+        # function_signature_item (no body) is not listed, so it stays verbatim.
+        "elide": ("function_item",),
+        "recurse": ("impl_item", "trait_item", "mod_item"),
+        "wrapper": (),
+        "docstring": False,
+    },
+}
 
 
 def compress_code(
@@ -40,7 +81,7 @@ def compress_code(
         compressor behaves losslessly — bodies are replaced with inline
         ``<N lines elided>`` markers rather than placeholders.
     lang:
-        Source language.  Currently only ``'python'`` is wired; any other
+        Source language.  ``'python'`` and ``'rust'`` are wired; any other
         value triggers a graceful noop.
     **opts:
         Ignored — callers pass a shared bag; unknown keys must not raise.
@@ -50,22 +91,23 @@ def compress_code(
         return content  # type: ignore[return-value]
     if not content.strip():
         return content
-    if lang.lower() != "python":
-        # Only Python is wired; other langs degrade to noop transparently.
+    spec = _LANG_SPECS.get(lang.lower())
+    if spec is None:
+        # Only wired languages are skeletonized; others degrade to noop.
         return content
 
     # -------------------------------------------------- lazy optional imports
     try:
         from tree_sitter import Language, Parser  # type: ignore[import]
-        import tree_sitter_python as tspy  # type: ignore[import]
+        grammar = importlib.import_module(spec["module"])
     except Exception:
-        # tree-sitter or tree-sitter-python absent — noop degrade.
+        # tree-sitter or the language grammar absent — noop degrade.
         return content
 
     # --------------------------------------------------------- build language
     try:
-        PY_LANG = Language(tspy.language())
-        parser = Parser(PY_LANG)
+        TS_LANG = Language(grammar.language())
+        parser = Parser(TS_LANG)
     except Exception:
         return content
 
@@ -78,8 +120,10 @@ def compress_code(
 
     # -------------------------------------------------------- walk + rewrite
     try:
-        out = _skeletonize(src_bytes, tree.root_node, stash=stash)
-        return out
+        return _walk(
+            src_bytes, tree.root_node, spec,
+            stash=stash, indent=0, start=0, end=len(src_bytes),
+        )
     except Exception:
         return content
 
@@ -88,198 +132,140 @@ def compress_code(
 # Internal helpers
 # ---------------------------------------------------------------------------
 
-def _skeletonize(src_bytes: bytes, root_node, *, stash) -> str:
-    """Walk *root_node* top-down and rebuild a skeletonized source string."""
-    out_parts: list[str] = []
-    cursor = 0  # byte offset of how far we've consumed src_bytes
-
-    for child in root_node.children:
-        node_type = child.type
-
-        if node_type in ("function_definition", "decorated_definition",
-                         "class_definition"):
-            # Emit any source bytes between cursor and this node verbatim
-            # (module-level imports, assignments, blank lines, comments).
-            if child.start_byte > cursor:
-                out_parts.append(
-                    src_bytes[cursor: child.start_byte].decode("utf-8", errors="replace")
-                )
-            cursor = child.end_byte
-
-            # Rewrite the node
-            out_parts.append(
-                _rewrite_top_node(src_bytes, child, stash=stash, indent=0)
-            )
-        else:
-            # Keep verbatim (imports, assignments, module docstring, etc.)
-            pass  # defer — we'll flush after the loop
-
-    # Flush any remaining source after the last matched node
-    if cursor < len(src_bytes):
-        out_parts.append(
-            src_bytes[cursor:].decode("utf-8", errors="replace")
-        )
-
-    # Rebuild: all non-matched children were NOT consumed by the cursor-skip
-    # approach above; rebuild them properly.
-    return _rebuild(src_bytes, root_node, stash=stash)
+def _decode(src_bytes: bytes, start: int, end: int) -> str:
+    return src_bytes[start:end].decode("utf-8", errors="replace")
 
 
-def _rebuild(src_bytes: bytes, root_node, *, stash) -> str:
-    """Walk root_node children in source order, rewriting func/class bodies."""
+def _walk(src_bytes: bytes, container, spec, *, stash, indent: int,
+          start: int, end: int) -> str:
+    """Walk ``container``'s children in source order, rewriting definition bodies
+    and keeping everything else verbatim.
+
+    The gap bytes between consecutive nodes (imports, assignments, blank lines,
+    comments, attributes, Rust ``///`` doc comments) are emitted unchanged, so
+    they survive without per-language handling. ``start`` is the initial cursor
+    (used to skip a body's already-consumed leading docstring); ``end`` is the
+    flush boundary (``len(src)`` at the top level, the container's end byte when
+    recursing into a body)."""
     parts: list[str] = []
-    cursor = 0
+    cursor = start
+    interesting = set(spec["elide"]) | set(spec["recurse"]) | set(spec["wrapper"])
 
-    for child in root_node.children:
+    for child in container.children:
+        if child.end_byte <= cursor:
+            continue  # already consumed (e.g. a leading docstring)
         if child.start_byte > cursor:
-            parts.append(
-                src_bytes[cursor: child.start_byte].decode("utf-8", errors="replace")
-            )
-
-        if child.type in ("function_definition",):
-            parts.append(_rewrite_func(src_bytes, child, stash=stash, indent=0))
-            cursor = child.end_byte
-
-        elif child.type in ("class_definition",):
-            parts.append(_rewrite_class(src_bytes, child, stash=stash, indent=0))
-            cursor = child.end_byte
-
-        elif child.type == "decorated_definition":
-            # The actual def/class is a child of this node; rewrite as unit.
-            parts.append(_rewrite_decorated(src_bytes, child, stash=stash, indent=0))
-            cursor = child.end_byte
-
+            parts.append(_decode(src_bytes, cursor, child.start_byte))
+        if child.type in interesting:
+            parts.append(_rewrite_node(src_bytes, child, spec, stash=stash, indent=indent))
         else:
-            parts.append(
-                src_bytes[child.start_byte: child.end_byte].decode("utf-8", errors="replace")
-            )
-            cursor = child.end_byte
+            parts.append(_decode(src_bytes, child.start_byte, child.end_byte))
+        cursor = child.end_byte
 
-    if cursor < len(src_bytes):
-        parts.append(src_bytes[cursor:].decode("utf-8", errors="replace"))
-
+    if cursor < end:
+        parts.append(_decode(src_bytes, cursor, end))
     return "".join(parts)
 
 
-def _rewrite_top_node(src_bytes: bytes, node, *, stash, indent: int) -> str:
-    """Dispatch to the correct rewriter for a top-level node."""
-    if node.type == "function_definition":
-        return _rewrite_func(src_bytes, node, stash=stash, indent=indent)
-    if node.type == "class_definition":
-        return _rewrite_class(src_bytes, node, stash=stash, indent=indent)
-    if node.type == "decorated_definition":
-        return _rewrite_decorated(src_bytes, node, stash=stash, indent=indent)
-    # Fallback: keep verbatim
-    return src_bytes[node.start_byte: node.end_byte].decode("utf-8", errors="replace")
+def _rewrite_node(src_bytes: bytes, node, spec, *, stash, indent: int) -> str:
+    """Dispatch a single node to the rewriter for its structural role."""
+    t = node.type
+    if t in spec["elide"]:
+        return _rewrite_func(src_bytes, node, spec, stash=stash, indent=indent)
+    if t in spec["recurse"]:
+        return _rewrite_container(src_bytes, node, spec, stash=stash, indent=indent)
+    if t in spec["wrapper"]:
+        return _rewrite_wrapper(src_bytes, node, spec, stash=stash, indent=indent)
+    # Fallback: keep verbatim.
+    return _decode(src_bytes, node.start_byte, node.end_byte)
 
 
-def _rewrite_decorated(src_bytes: bytes, node, *, stash, indent: int) -> str:
-    """Keep decorator lines; rewrite the inner def/class."""
+def _rewrite_wrapper(src_bytes: bytes, node, spec, *, stash, indent: int) -> str:
+    """Keep leading wrapper syntax (e.g. Python decorator lines); rewrite the
+    inner def/class as a unit."""
     parts: list[str] = []
     inner = None
+    inner_types = set(spec["elide"]) | set(spec["recurse"])
     for child in node.children:
-        if child.type in ("function_definition", "class_definition"):
+        if child.type in inner_types:
             inner = child
         else:
-            parts.append(
-                src_bytes[child.start_byte: child.end_byte].decode("utf-8", errors="replace")
-            )
+            parts.append(_decode(src_bytes, child.start_byte, child.end_byte))
 
     if inner is None:
-        return src_bytes[node.start_byte: node.end_byte].decode("utf-8", errors="replace")
+        return _decode(src_bytes, node.start_byte, node.end_byte)
 
-    parts.append(_rewrite_top_node(src_bytes, inner, stash=stash, indent=indent))
+    parts.append(_rewrite_node(src_bytes, inner, spec, stash=stash, indent=indent))
     return "".join(parts)
 
 
-def _rewrite_func(src_bytes: bytes, node, *, stash, indent: int) -> str:
-    """Return a skeletonized function: keep header + docstring, stub body."""
+def _rewrite_func(src_bytes: bytes, node, spec, *, stash, indent: int) -> str:
+    """Return a skeletonized function: keep header (+ docstring), stub the body."""
     body_node = node.child_by_field_name("body")
     if body_node is None:
-        return src_bytes[node.start_byte: node.end_byte].decode("utf-8", errors="replace")
+        # No body to elide (e.g. an abstract signature) — keep verbatim.
+        return _decode(src_bytes, node.start_byte, node.end_byte)
 
-    # Header: everything from node start up to body start
-    header = src_bytes[node.start_byte: body_node.start_byte].decode("utf-8", errors="replace")
+    # Header: everything from node start up to body start (signature, and for
+    # Rust the leading visibility / attributes that are children of the node).
+    header = _decode(src_bytes, node.start_byte, body_node.start_byte)
 
-    # Extract function name for stash metadata
+    # Extract function name for stash metadata.
     name_node = node.child_by_field_name("name")
     func_name = (
-        src_bytes[name_node.start_byte: name_node.end_byte].decode("utf-8", errors="replace")
+        _decode(src_bytes, name_node.start_byte, name_node.end_byte)
         if name_node
         else "<anon>"
     )
 
-    # Leading docstring (first statement if it is an expression_statement
-    # whose sole child is a string node)
-    docstring_text, body_start_byte = _extract_docstring(src_bytes, body_node)
+    # Leading docstring (Python only): the first statement if it is a string
+    # expression. Rust documentation lives in sibling ``///`` line comments,
+    # which are preserved as gap bytes, so no in-body extraction is needed.
+    if spec["docstring"]:
+        docstring_text, body_start_byte = _extract_docstring(src_bytes, body_node)
+    else:
+        docstring_text, body_start_byte = "", body_node.start_byte
 
-    # Body bytes (everything after optional docstring, up to body end)
-    body_text = src_bytes[body_start_byte: body_node.end_byte].decode(
-        "utf-8", errors="replace"
-    )
+    # Body bytes (everything after optional docstring, up to body end).
+    body_text = _decode(src_bytes, body_start_byte, body_node.end_byte)
 
     stub_line = _make_stub(body_text, func_name, stash=stash, indent=indent)
 
-    # Assemble: header + optional docstring + stub
     pieces = [header]
     if docstring_text:
         pieces.append(docstring_text)
     pieces.append(stub_line)
-    # Ensure trailing newline
     result = "".join(pieces)
     if not result.endswith("\n"):
         result += "\n"
     return result
 
 
-def _rewrite_class(src_bytes: bytes, node, *, stash, indent: int) -> str:
-    """Return a skeletonized class: keep header + docstring, recurse into methods."""
+def _rewrite_container(src_bytes: bytes, node, spec, *, stash, indent: int) -> str:
+    """Return a skeletonized container (Python class, Rust impl/trait/mod): keep
+    the header (+ docstring), recurse into the body rewriting each method."""
     body_node = node.child_by_field_name("body")
     if body_node is None:
-        return src_bytes[node.start_byte: node.end_byte].decode("utf-8", errors="replace")
+        return _decode(src_bytes, node.start_byte, node.end_byte)
 
-    # Header: class X(...):
-    header = src_bytes[node.start_byte: body_node.start_byte].decode("utf-8", errors="replace")
+    # Header: up to the body opener (``class X:`` / ``impl T for X {``).
+    header = _decode(src_bytes, node.start_byte, body_node.start_byte)
 
-    # Class docstring
-    docstring_text, body_start_byte = _extract_docstring(src_bytes, body_node)
+    if spec["docstring"]:
+        docstring_text, body_start_byte = _extract_docstring(src_bytes, body_node)
+    else:
+        docstring_text, body_start_byte = "", body_node.start_byte
 
-    # Recurse: rebuild body, rewriting each method but keeping class-level assigns
-    body_parts: list[str] = []
-    cursor = body_start_byte
-    for child in body_node.children:
-        if child.start_byte < body_start_byte:
-            continue  # already consumed by docstring extraction
-
-        if child.start_byte > cursor:
-            body_parts.append(
-                src_bytes[cursor: child.start_byte].decode("utf-8", errors="replace")
-            )
-
-        if child.type == "function_definition":
-            body_parts.append(_rewrite_func(src_bytes, child, stash=stash, indent=indent + 4))
-            cursor = child.end_byte
-        elif child.type == "decorated_definition":
-            body_parts.append(_rewrite_decorated(src_bytes, child, stash=stash, indent=indent + 4))
-            cursor = child.end_byte
-        elif child.type == "class_definition":
-            body_parts.append(_rewrite_class(src_bytes, child, stash=stash, indent=indent + 4))
-            cursor = child.end_byte
-        else:
-            body_parts.append(
-                src_bytes[child.start_byte: child.end_byte].decode("utf-8", errors="replace")
-            )
-            cursor = child.end_byte
-
-    if cursor < body_node.end_byte:
-        body_parts.append(
-            src_bytes[cursor: body_node.end_byte].decode("utf-8", errors="replace")
-        )
+    body = _walk(
+        src_bytes, body_node, spec,
+        stash=stash, indent=indent + 4,
+        start=body_start_byte, end=body_node.end_byte,
+    )
 
     pieces = [header]
     if docstring_text:
         pieces.append(docstring_text)
-    pieces.extend(body_parts)
+    pieces.append(body)
     return "".join(pieces)
 
 
@@ -295,9 +281,7 @@ def _extract_docstring(src_bytes: bytes, body_node) -> tuple[str, int]:
             # Check if sole meaningful child is a string
             string_child = _first_string_child(child)
             if string_child is not None:
-                text = src_bytes[child.start_byte: child.end_byte].decode(
-                    "utf-8", errors="replace"
-                )
+                text = _decode(src_bytes, child.start_byte, child.end_byte)
                 return text, child.end_byte
         # First non-docstring child: stop
         break
