@@ -40,6 +40,30 @@ from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parent
 
+# Packages the server/hook need at launch beyond `mcp`. Without the tree-sitter
+# grammars the code compressor silently degrades to a no-op (it lazy-imports them
+# and returns content unchanged when absent), so code outputs would never be
+# skeletonized in a real install; tiktoken gives the never-expand guard an exact
+# token count instead of the chars/4 heuristic. These are declared here, in one
+# place, so the MCP server (both hosts) and the PostToolUse hook stay in sync.
+RUN_WITH = ("mcp", "tree-sitter", "tree-sitter-python", "tree-sitter-rust", "tiktoken")
+
+
+def _uv_run_args(script: str) -> list:
+    """`uv run --with <each dep> python <script>` as an argv list (for JSON
+    mcpServers entries)."""
+    args = ["run"]
+    for dep in RUN_WITH:
+        args += ["--with", dep]
+    args += ["python", script]
+    return args
+
+
+def _uv_run_cmd(uv: str, script: str) -> str:
+    """The same invocation as a shell command string (for the hook entry)."""
+    withs = " ".join(f"--with {dep}" for dep in RUN_WITH)
+    return f'{uv} run {withs} python "{script}"'
+
 
 # -- host / home resolution (mirrors setup.py exactly) -------------------------
 
@@ -126,7 +150,7 @@ def _wire_claude_mcp(uv: str, mcp_script: str, *, remove: bool = False) -> Path:
     else:
         servers["brainspace"] = {
             "command": uv,
-            "args": ["run", "--with", "mcp", "python", mcp_script],
+            "args": _uv_run_args(mcp_script),
         }
     data["mcpServers"] = servers
     cfg_path.parent.mkdir(parents=True, exist_ok=True)
@@ -151,7 +175,7 @@ def _wire_claude_hook(home: Path, uv: str, hook_script: str, *, remove: bool = F
     hooks = data.get("hooks") if isinstance(data.get("hooks"), dict) else {}
     post = hooks.get("PostToolUse") if isinstance(hooks.get("PostToolUse"), list) else []
 
-    cmd = f'{uv} run --with mcp python "{hook_script}"'
+    cmd = _uv_run_cmd(uv, hook_script)
 
     # Drop any prior brainspace hook entries (match by script name) for idempotency.
     def _is_ours(entry):
@@ -199,7 +223,7 @@ def _wire_copilot_mcp(home: Path, uv: str, mcp_script: str, *, remove: bool = Fa
         servers["brainspace"] = {
             "type": "stdio",
             "command": uv,
-            "args": ["run", "--with", "mcp", "python", mcp_script],
+            "args": _uv_run_args(mcp_script),
             "tools": ["*"],
         }
     data["mcpServers"] = servers

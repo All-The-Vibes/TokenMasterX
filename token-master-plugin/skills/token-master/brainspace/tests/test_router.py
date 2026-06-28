@@ -13,7 +13,7 @@ _SKILL = Path(__file__).resolve().parents[2]
 if str(_SKILL) not in sys.path:
     sys.path.insert(0, str(_SKILL))
 
-from brainspace.router import ContentType, detect, route_typed  # noqa: E402
+from brainspace.router import ContentType, detect, lang_from_hint, route_typed  # noqa: E402
 
 
 # --- hint-based detection (cheapest, highest-precision signal) -----------------
@@ -89,4 +89,50 @@ def test_route_typed_never_expands_in_tokens_even_when_char_smaller():
     out, _ = route_typed(src, "many_small_funcs.py")
     # Whatever the compressor produced, the guard must guarantee no token growth.
     assert estimate(out) <= estimate(src)
+
+
+# --- code language resolution (hint extension -> compressor lang) ---------------
+
+def test_lang_from_hint_resolves_known_extensions():
+    assert lang_from_hint("src/main.rs") == "rust"
+    assert lang_from_hint("module.py") == "python"
+    assert lang_from_hint("stubs.pyi") == "python"
+
+
+def test_lang_from_hint_unknown_or_missing_is_none():
+    assert lang_from_hint(None) is None
+    assert lang_from_hint("Read") is None          # a tool name, not a filename
+    assert lang_from_hint("service.go") is None     # code, but no grammar wired yet
+
+
+def test_route_typed_skeletonizes_rust_via_hint():
+    """End-to-end: a .rs hint must reach the code compressor as lang='rust' and
+    actually skeletonize. Without lang threading the Rust source would be parsed
+    as Python and pass through unchanged."""
+    rs = (
+        "/// Adds two numbers.\n"
+        "pub fn add(a: i64, b: i64) -> i64 {\n"
+        "    let sum = a + b;\n"
+        "    let doubled = sum * 2;\n"
+        "    let result = doubled / 2;\n"
+        "    result\n"
+        "}\n"
+    ) * 4
+    out, ctype = route_typed(rs, "lib.rs")
+    assert ctype is ContentType.CODE
+    # The doc comment and signature survive; the executable body is elided.
+    assert "pub fn add(a: i64, b: i64) -> i64" in out
+    assert "/// Adds two numbers." in out
+    assert "let doubled = sum * 2;" not in out
+    assert len(out) < len(rs)
+
+
+def test_route_typed_rust_without_hint_does_not_corrupt():
+    """No hint => the compressor cannot know the language and defaults to Python.
+    Parsing Rust as Python must still honor the contract: never raise, never
+    expand (the worst case is a harmless no-op)."""
+    rs = "pub fn f() {\n    let x = 1;\n    let y = 2;\n}\n" * 6
+    out, _ = route_typed(rs, None)
+    assert isinstance(out, str)
+    assert len(out) <= len(rs)
 

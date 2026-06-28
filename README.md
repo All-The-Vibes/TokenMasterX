@@ -200,11 +200,12 @@ One log. 23,630 tokens saved across ten turns — and it round-trips losslessly 
 ### Honest limitations — Brainspace edition
 
 - **Copilot is MCP-only.** GitHub Copilot CLI has no documented output-rewriting hook, so it gets the model-invoked `brainspace_compress` / `brainspace_retrieve` tools but **not** transparent auto-compression. Claude Code gets the full layer. This is a real capability gap, surfaced in the installer summary rather than hidden.
+- **Code skeletonization covers Python and Rust today.** The AST compressor ships tree-sitter grammars for both and resolves the language from the file extension (`.py`, `.rs`). Other code files still *route* as code, but the body-eliding path is a no-op until their grammar is wired in — a single entry in `_LANG_SPECS`. (The graph **routing** layer is language-agnostic and works for every language `graphify` indexes, Rust included — a real 4.1k-LOC Rust crate measured a dense `0.21 calls/symbol` call graph and `66.2%` code-output compression.)
 - **Prose is the weakest lever.** As the table shows, ~0%. The optional LLMLingua-style ML path exists but is off by default because it trades lossless-ness for a marginal prose gain — the wrong trade for tool output.
 - **Tiny inputs can't be compressed profitably.** Placeholder + footer overhead would dominate, so a centralized *never-expand* guard returns the original unchanged whenever compression wouldn't strictly shrink it. Compression must never *cost* tokens.
 - **Token proxy, not the host tokenizer.** Numbers are `tiktoken cl100k_base`; the host model's exact tokenizer differs in absolute counts, but compression *ratios* are stable across tokenizers, and ratios are what's reported.
 
-> **Provenance.** Compression figures come from `brainspace_benchmark.py` (the same self-serve tool shipped with the plugin — real artifacts, real tokenizer); the dual-host figures from `sandbox_brainspace/verify_dual_host.py` plus a live `copilot -p` run against a sandboxed `COPILOT_HOME` (the real `~/.copilot` is never touched). 104 unit tests cover the four compressors, the router, and the never-expand invariant (enforced in tokens, not characters — a distinction the benchmark itself surfaced).
+> **Provenance.** Compression figures come from `brainspace_benchmark.py` (the same self-serve tool shipped with the plugin — real artifacts, real tokenizer); the dual-host figures from `sandbox_brainspace/verify_dual_host.py` plus a live `copilot -p` run against a sandboxed `COPILOT_HOME` (the real `~/.copilot` is never touched). 120 unit tests cover the four compressors (Python + Rust skeletonization), the router, and the never-expand invariant (enforced in tokens, not characters — a distinction the benchmark itself surfaced).
 
 
 
@@ -331,8 +332,8 @@ token-master-plugin/          The plugin (this is the deliverable)
         ├── router.py          ContentRouter — type detection + never-expand guard
         ├── tokens.py          tiktoken-or-heuristic token meter
         ├── benchmark.py       Benchmark core (file/dir/stdin, JSON, area-under-curve)
-        ├── compressors/       json / code / logs / prose compressors
-        └── tests/             104 unit tests
+        ├── compressors/       json / code (Python + Rust) / logs / prose compressors
+        └── tests/             120 unit tests
 
 sandbox_brainspace/             Isolated verification harnesses (never touch real config)
 ├── measure_impact.py         Real-artifact compression measurement (README numbers)

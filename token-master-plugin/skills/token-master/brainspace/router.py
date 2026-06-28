@@ -32,6 +32,16 @@ class ContentType(str, Enum):
 
 _CODE_EXTS = (".py", ".js", ".ts", ".tsx", ".jsx", ".go", ".rs", ".java", ".c",
               ".cpp", ".h", ".hpp", ".rb", ".php", ".cs", ".kt", ".swift")
+# File extensions whose source the code compressor can skeletonize today. The
+# extension is the reliable language signal (same philosophy as hint-first
+# content detection), so language is resolved from it rather than sniffed from
+# content. Extensions outside this map route to CODE but compress as a no-op
+# until their grammar is wired into code_compressor._LANG_SPECS.
+_LANG_BY_EXT = {
+    ".py": "python",
+    ".pyi": "python",
+    ".rs": "rust",
+}
 _LOG_LINE_RE = re.compile(
     r"^\s*(\d{4}-\d\d-\d\d|\d\d:\d\d:\d\d|\[?(?:INFO|WARN|WARNING|ERROR|DEBUG|TRACE|FATAL|CRITICAL))",
     re.IGNORECASE | re.MULTILINE,
@@ -74,6 +84,22 @@ def detect(content: str, hint: Optional[str] = None) -> ContentType:
         return ContentType.CODE
 
     return ContentType.PROSE
+
+
+def lang_from_hint(hint: Optional[str]) -> Optional[str]:
+    """Resolve a source language from a filename/tool-name ``hint`` (its
+    extension), or ``None`` when the hint carries no recognized code extension.
+
+    This is what lets the code compressor skeletonize the right grammar: without
+    it every CODE output would be parsed as the ``compress_code`` default
+    (Python), so a ``.rs`` read would silently no-op."""
+    if not hint:
+        return None
+    h = hint.lower()
+    for ext, lang in _LANG_BY_EXT.items():
+        if h.endswith(ext):
+            return lang
+    return None
 
 
 # --- dispatch (lazy, fail-safe) -----------------------------------------------
@@ -133,6 +159,14 @@ def route_typed(content: str, hint: Optional[str] = None, *, stash=None, **opts)
         return content, ContentType.PROSE
     try:
         ctype = detect(content, hint)
+        # For code, resolve the language from the hint's extension and pass it to
+        # the compressor (which otherwise defaults to Python). An explicit caller
+        # ``lang`` wins; an unrecognized extension leaves it unset (compressor
+        # default), so behavior is unchanged for already-supported inputs.
+        if ctype is ContentType.CODE and "lang" not in opts:
+            lang = lang_from_hint(hint)
+            if lang:
+                opts = {**opts, "lang": lang}
         out = _load(ctype)(content, stash=stash, **opts)
         if not isinstance(out, str) or len(out) >= len(content):
             return content, ctype  # cheap reject: not even char-smaller

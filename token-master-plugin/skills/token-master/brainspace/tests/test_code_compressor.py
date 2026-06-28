@@ -17,6 +17,7 @@ The test suite verifies:
 from __future__ import annotations
 
 import hashlib
+import re
 import sys
 import textwrap
 import types
@@ -397,4 +398,229 @@ class TestMeasuredReduction:
         skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
         assert len(skeleton) < len(SAMPLE_PY), (
             f"Skeleton ({len(skeleton)} chars) should be shorter than original ({len(SAMPLE_PY)} chars)"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Rust support (lang="rust")
+# ---------------------------------------------------------------------------
+
+SAMPLE_RS = textwrap.dedent("""\
+    //! A realistic sample crate module for compression testing.
+    use std::collections::HashMap;
+    use std::fmt;
+
+    const MAX_RETRIES: u32 = 3;
+
+    /// Kinds of shape we know how to measure.
+    #[derive(Debug, Clone, PartialEq)]
+    pub enum ShapeKind {
+        Circle,
+        Square,
+        Rectangle,
+    }
+
+    /// A point in 2D space.
+    #[derive(Debug, Clone, Copy)]
+    pub struct Point {
+        pub x: f64,
+        pub y: f64,
+    }
+
+    /// Behavior shared by all shapes.
+    pub trait Shape {
+        /// Area of the shape in square units.
+        fn area(&self) -> f64;
+
+        /// Human-readable name; defaulted so impls need not override it.
+        fn name(&self) -> String {
+            let kind = self.kind();
+            format!("shape:{:?}", kind)
+        }
+
+        fn kind(&self) -> ShapeKind;
+    }
+
+    impl Point {
+        /// Construct a new point, retrying validation a few times.
+        pub fn new(x: f64, y: f64) -> Self {
+            let mut attempt = 0;
+            loop {
+                attempt += 1;
+                if x.is_finite() && y.is_finite() {
+                    return Point { x, y };
+                }
+                if attempt >= MAX_RETRIES {
+                    return Point { x: 0.0, y: 0.0 };
+                }
+            }
+        }
+
+        pub fn distance(&self, other: &Point) -> f64 {
+            let dx = self.x - other.x;
+            let dy = self.y - other.y;
+            let sum_sq = dx * dx + dy * dy;
+            let dist = sum_sq.sqrt();
+            if dist.is_nan() {
+                0.0
+            } else {
+                dist
+            }
+        }
+    }
+
+    impl Shape for Point {
+        fn area(&self) -> f64 {
+            let radius = self.distance(&Point { x: 0.0, y: 0.0 });
+            let area = std::f64::consts::PI * radius * radius;
+            let rounded = (area * 1000.0).round() / 1000.0;
+            rounded
+        }
+
+        fn kind(&self) -> ShapeKind {
+            if self.x == self.y {
+                ShapeKind::Square
+            } else {
+                ShapeKind::Circle
+            }
+        }
+    }
+
+    /// Parse a simple KEY=VALUE config from `text`.
+    pub fn parse_config(text: &str) -> HashMap<String, String> {
+        let mut result = HashMap::new();
+        for line in text.lines() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            if let Some((key, value)) = line.split_once('=') {
+                let key = key.trim().to_string();
+                let value = value.trim().to_string();
+                if !key.is_empty() {
+                    result.insert(key, value);
+                }
+            }
+        }
+        result
+    }
+
+    mod util {
+        /// Normalize a list of weights so they sum to 1.0 (nested module fn).
+        pub fn normalize(weights: &[f64]) -> Vec<f64> {
+            let total: f64 = weights.iter().sum();
+            if total <= 0.0 {
+                return weights.to_vec();
+            }
+            let mut out = Vec::with_capacity(weights.len());
+            for w in weights {
+                out.push(w / total);
+            }
+            out
+        }
+    }
+""")
+
+
+def import_compressor_rust():
+    from brainspace.compressors.code_compressor import compress_code
+    return compress_code
+
+
+class TestRustCodeCompressor:
+    """lang='rust' skeletonizes Rust the way lang='python' skeletonizes Python:
+    elide executable bodies, keep the structural signal verbatim."""
+
+    def test_struct_and_enum_kept_verbatim(self):
+        compress_code = import_compressor_rust()
+        skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        # Type declarations are the signal, not the noise — keep fields/variants.
+        assert "pub struct Point {" in skeleton
+        assert "pub x: f64," in skeleton
+        assert "pub enum ShapeKind {" in skeleton
+        assert "Rectangle," in skeleton
+
+    def test_doc_comments_and_attributes_preserved(self):
+        compress_code = import_compressor_rust()
+        skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        assert "//! A realistic sample crate module" in skeleton
+        assert "/// A point in 2D space." in skeleton
+        assert "#[derive(Debug, Clone, Copy)]" in skeleton
+        assert "use std::collections::HashMap;" in skeleton
+
+    def test_signatures_preserved(self):
+        compress_code = import_compressor_rust()
+        skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        assert "pub fn new(x: f64, y: f64) -> Self" in skeleton
+        assert "pub fn parse_config(text: &str) -> HashMap<String, String>" in skeleton
+        assert "fn area(&self) -> f64" in skeleton
+
+    def test_trait_signature_kept_default_body_elided(self):
+        compress_code = import_compressor_rust()
+        skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        # function_signature_item (no body) stays verbatim, including the `;`.
+        assert "fn kind(&self) -> ShapeKind;" in skeleton
+        # The trait's default method body is executable, so it is elided.
+        assert 'format!("shape:{:?}", kind)' not in skeleton
+
+    def test_function_bodies_stashed_and_recoverable(self):
+        compress_code = import_compressor_rust()
+        stash_fn, store = make_fake_stash()
+        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust")
+        placeholders = re.findall(r"\[\[BR:[0-9a-f]{12}\|[^\]]*\]\]", skeleton)
+        assert placeholders, "expected at least one stashed Rust body"
+        for ph in placeholders:
+            assert ph in store, f"placeholder {ph!r} not recoverable"
+        # A concrete body must have been moved out of the visible skeleton.
+        assert "let sum_sq = dx * dx + dy * dy;" not in skeleton
+        assert any("let sum_sq = dx * dx + dy * dy;" in body for body in store.values())
+
+    def test_lossless_without_stash(self):
+        compress_code = import_compressor_rust()
+        skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        assert "lines elided" in skeleton
+        # Header still present even though the body is gone.
+        assert "pub fn distance(&self, other: &Point) -> f64" in skeleton
+
+    def test_deterministic(self):
+        compress_code = import_compressor_rust()
+        r1 = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        r2 = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        assert r1 == r2
+
+    def test_never_raises_on_broken_rust(self):
+        compress_code = import_compressor_rust()
+        bad = "pub fn oops( {\n  let x =\n"
+        result = compress_code(bad, lang="rust")
+        assert isinstance(result, str)
+
+    def test_noop_when_rust_grammar_absent(self, monkeypatch):
+        """tree-sitter present but tree_sitter_rust missing must degrade to a
+        no-op, not crash — the same contract the Python path honors."""
+        import brainspace.compressors.code_compressor as cc
+
+        real_import_module = cc.importlib.import_module
+
+        def fake_import_module(name, *args, **kwargs):
+            if name == "tree_sitter_rust":
+                raise ImportError("simulated absence of tree_sitter_rust")
+            return real_import_module(name, *args, **kwargs)
+
+        monkeypatch.setattr(cc.importlib, "import_module", fake_import_module)
+        result = cc.compress_code(SAMPLE_RS, lang="rust")
+        assert result == SAMPLE_RS
+
+    def test_reduction_at_least_25_pct(self):
+        compress_code = import_compressor_rust()
+        from brainspace import tokens
+
+        stash_fn, _ = make_fake_stash()
+        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust")
+        report = tokens.reduction(SAMPLE_RS, skeleton)
+        print(
+            f"\n[rust reduction] {report['tokens_before']} -> {report['tokens_after']} tokens "
+            f"({report['pct_reduction']}% reduction, backend={report['backend']})"
+        )
+        assert report["pct_reduction"] >= 25.0, (
+            f"Expected >= 25% token reduction, got {report['pct_reduction']}%\n{skeleton}"
         )
