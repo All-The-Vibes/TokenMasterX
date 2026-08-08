@@ -160,10 +160,9 @@ def _compress_string(value: str, *, stash, max_str: int) -> str:
             placeholder = None
         if placeholder is not None:
             return f"{prefix}… {placeholder}"
-        # stash returned None — fall through to lossless truncation marker
-        extra = len(value) - max_str
-        return f"{prefix}...({extra:+d} chars)"
+        # stash returned None — fall back to the truncation marker below.
 
-    # No stash available: lossless-enough truncation with a byte count.
+    # No stash available (or it declined): lossless-enough truncation
+    # with a byte count.
     extra = len(value) - max_str
     return f"{prefix}...({extra:+d} chars)"
