@@ -1,360 +1,256 @@
 # TokenMaster
 
+> **Working snapshot — October 16, 2026 (America/Chicago).**
+> Branch: `codex/working-handoff-2026-10-16`. Start with the
+> [handoff and next steps](token-master-plugin/docs/HANDOFF-2026-10-16.md).
+> The latest real-model comparison completed **2/2 tasks with optimization off
+> versus 1/2 with the candidate**; it did not establish useful token savings.
+> The newer structural-preprotection experiment is opt-in and has not completed
+> native or real-model qualification. This branch is not a release.
+
 <p align="center">
-  <img src="assets/tokenmaster-hero.svg?v=2" alt="TokenMaster — a single bright graph-routed query path cutting through a faint tangle of brute-force search edges" width="100%">
+  <img src="assets/tokenmaster-hero.svg?v=2" alt="A bounded graph query instead of repeated source-search paths" width="100%">
 </p>
 
-**A new cost model for code-understanding agents.** TokenMaster re-engineers *token economics at the harness layer* — the layer that decides what the model re-reads on every single turn — for [Claude Code](https://docs.claude.com/en/docs/claude-code) and GitHub Copilot CLI.
+**Complete the same independently verified task with fewer observable reference tokens.**
 
-The thesis in one line: **the model should pay once to understand a codebase's structure, then never again.** Today's harnesses violate this on every turn — they hand the model a growing transcript and let it grep its way to understanding, re-paying for the entire accumulated context turn after turn. TokenMaster makes that re-derivation *economically illegal*: structural questions get routed to a **prebuilt code graph** answered in one bounded query, so the cumulative token bill collapses instead of compounding.
+TokenMaster combines graph navigation, conservative recoverable views, explicit
+request planning, and a validator-gated policy search. The core is harness-neutral:
+it consumes declared requests and traces rather than a provider's billing API.
+There are **no monetary calculations and no foundation-model weight updates**.
 
-It attacks the bill on **two complementary fronts**: a **routing layer** (below) that collapses the cost of re-deriving structure, and **[Brainspace](#brainspace--the-compression-layer)**, a compression layer that shrinks the raw tool outputs sitting in the transcript. Different token populations, so the wins compound. Routing is the headline; Brainspace is the multiplier.
+**Historical component result — October 8, 2026:** the opt-in conservative V3 policy
+matches baseline on all six reading questions: **6/6 correct, 23 requests,
+116,883 gateway-reported tokens in each arm**. Four deliberately repeated-read
+checks pass in both arms with **9.9% fewer task tokens** under V3 and no extra
+requests. That is conditional mechanism evidence, **not a general savings
+rate or production qualification**. See the
+[repair and measured results](token-master-plugin/docs/CONSERVATIVE_POLICY_FIX.md)
+and the preserved [earlier scorecard](token-master-plugin/docs/CONTROLLED_SCORECARD.md).
 
-### Baseline vs TokenMaster, measured
+## What is implemented
 
-Same CLI. Same model. Same task. The only variable is whether TokenMaster's routing agent is on.
+- **Exact visible reuse (V3):** keep unique source content; shorten only identical
+  older reads whose full original is still visible. Verify exact reconstruction
+  and final token/byte guards. The opt-in conservative configuration adds no
+  task-mode prompt and performs no external recovery or extra model call.
+- **Safer views:** exact code/prose by default; explicit `navigation` for Python/Rust
+  skeletons and `overview` for suitable JSON or successful logs. Exact/edit/debug,
+  exhaustive, aggregate and security intents bypass. Failed recovery storage never
+  justifies dropping content.
+- **Complete recovery:** workspace-scoped originals, full-content and page digests,
+  bounded exact search, Unicode paging, explicit errors, session leases and observable
+  retention. A recovery reference is not a task-quality guarantee.
+- **Honest measurement:** a pinned reference vocabulary, final-envelope token/byte
+  guards, and separate input/output/peak/call totals. No savings footers in tool results.
+  Estimates and native counters cannot enter an exact reference-token certificate.
+- **Whole-task evaluation:** retries, auxiliaries, failures, recovery and verification
+  all count at the declared boundary. Learning and deployment remain separate;
+  all-in metrics require complete, sealed inventories.
+- **Bounded improvement:** durable policy candidates, fresh paired confirmation,
+  cumulative statistical error spending, atomic champion promotion and rollback.
+  Jev screens proposals only; an independent outcome oracle controls promotion.
+- **Scoped discipline:** preserve required depth, avoid unrelated work, and stop after
+  sufficient verification. Task-local and session modes are distinct and reversible.
+- **Graph integrity:** index/source provenance, stale-source detection and paging.
+  Inferred graph edges remain candidates to verify against source.
 
-> **-73% input tokens. 3.71x more efficient overall. Up to 7.8x on blast-radius analysis.**
-> **12 / 12 tasks answered from the graph. Zero correctness regressions.**
-> >
-> *Pooled across scikit-learn + sympy. 36 live GitHub Copilot runs.* [*Full breakdown below.*](#by-the-numbers)
+The mathematical definitions, derivation and limitations are in
+[Token efficiency](token-master-plugin/docs/TOKEN_EFFICIENCY.md). The tracked
+[implementation/verification matrix](token-master-plugin/docs/IMPLEMENTATION_PLAN.md)
+separates implemented features from release qualification. Current receipts and
+limitations are summarized in [Verification](token-master-plugin/docs/VERIFICATION.md).
 
-```text
-/token-master
-```
+## Measure the entire trajectory
 
-That one command builds the index for the current repository and turns on routing.
-
----
-
-## Why token economics, not token *count*
-
-Start with the one fact everything else follows from: **the model has no memory between turns.** To continue a task, the harness re-sends the *entire* transcript every turn — every file read, every tool result, every message so far — and the model re-reads and re-reasons over all of it before doing anything new.
-
-So a token is not paid for once. It is paid for **every turn it stays in the context window.** The cost that matters is not *tokens sent* but the **total tokens processed, summed across every turn** until the task is done.
-
-### Same answer, two bills
-
-The task: *"who calls `load_config`?"* The context carried forward grows each turn, so every turn re-pays for the ones before it.
-
-```text
-GREP its way there                       GRAPH lookup
-turn 1  grep            2,000            turn 1  query graph   2,500
-turn 2  read auth.py    6,000            turn 2  answer        3,000
-turn 3  read server    11,000            ──────────────────────────
-turn 4  read handlers  17,000            TOTAL PROCESSED       5,500
-turn 5  grep narrower  19,000
-turn 6  read config    24,000
-turn 7  answer         26,000
-──────────────────────────
-TOTAL PROCESSED       105,000
-```
-
-Same answer. **105,000 vs 5,500 tokens processed.** The grep total is not 26,000 — it is the *sum of all seven turns*, because turn 7 re-read what turn 1 saw, six times over.
-
-### It is the area under the curve
-
-Plot context size per turn and measure the area. A turn that looks cheap on its own is a trap; what costs you is the whole shaded region.
-
-```text
-context
-  │              ___________   grep: climbs AND runs long
-  │           __/              -> big area, expensive
-  │        __/
-  │     __/
-  │  __/
-  │ /__________   graph: stays low AND ends fast -> tiny area
-  └──────────────────────────► turns
-```
-
-### Offering the graph is not enough — you have to enforce it
-
-Left alone, the model defaults to grep out of habit: in TokenMaster's own runs it reached for the graph **0 / 15 times** until it was actively routed there. So TokenMaster does not merely *offer* the cheap path — it makes the prebuilt graph the **default** for structural questions ("who calls X," "what breaks if I change Y"). Offering saves nothing; enforcing is what collapses the area under the curve — and that collapse is exactly the `-73%` headline above.
-
-## By the numbers
-
-First proven on **Django** (992 `.py` files, hard multi-hop tasks), then **replicated on independent SWE-bench Lite repos** to rule out single-repo luck. One measurement throughout: cumulative input tokens to finish a structural task, **the baseline agent vs the same setup with TokenMaster on**.
-
-> **Baseline** = the stock agent, no routing layer. It answers structural questions by reading and re-reading files, turn after turn. **TokenMaster** routes those same questions to a prebuilt graph. Identical model (`claude-sonnet-4.5`), identical prompts, identical correctness oracle. The routing agent is the only thing that changes.
-
-### Pooled headline
-
-*36 live GitHub Copilot runs. 2 repos x 3 tasks x 2 reps x 3 arms.*
-
-|  | Baseline | **TokenMaster** | Delta |
-| --- | :---: | :---: | :---: |
-| Cumulative input tokens | baseline | **-73.1%** | **3.71x fewer** |
-| Tasks answered from the graph | n/a | **12 / 12** | never fell back |
-| Correctness vs AST oracle | pass | **pass** | no regression |
-
-### Where the win lives
-
-The harder the traversal, the bigger the collapse. Caller lookups save 3-5x; blast-radius analysis ("what breaks if I change this?") is where the baseline agent detonates, re-reading files across the whole repo to trace impact, and where one bounded graph query wins biggest:
+For all model calls in one task, under a pinned tokenizer and serialization:
 
 ```text
-Cumulative input tokens to finish the task   (lower is better)
-
-"Who calls X?"  -  reverse dependency lookup
-  scikit-learn  Baseline    █████████                      69,609
-  scikit-learn  TokenMaster ███                            21,215   3.3x fewer
-  sympy         Baseline    ██████████████                107,954
-  sympy         TokenMaster ███                            21,189   5.1x fewer
-
-"What breaks if I change this?"  -  blast radius
-  scikit-learn  Baseline    ███████████████████████████   203,481
-  scikit-learn  TokenMaster ████                           26,908   7.6x fewer
-  sympy         Baseline    ████████████████████████████  210,214
-  sympy         TokenMaster ████                           26,830   7.8x fewer
+reference tokens = sum(full input tokens + full output tokens)
+quality-normalized metric = all runtime tokens / verified successful tasks
 ```
 
-On blast radius, the baseline balloons past **200,000 tokens** tracing impact by hand; TokenMaster answers from the graph in **\~27,000** - an order-of-magnitude saving, repeated across two unrelated codebases.
+Replayed history counts again. Raw tool output is not added a second time outside
+those calls. Cache reuse does not subtract supplied tokens. Hidden reasoning,
+non-text processing, unobserved auxiliary calls and opaque provider state are not
+zero: partial traces cannot masquerade as complete measurements.
 
-### Honest negatives — the proof the method is real
+A smaller tool result does not prove lower whole-task usage. It may trigger extra
+retrieval, retries or a wrong answer. Token counts also do not prove lower latency
+or compute. Zero verified successes yield an undefined ratio, not free execution.
 
-A harness that wins *everywhere* is measuring an artifact. TokenMaster doesn't:
+## Safe defaults and host support
 
-- **Inheritor lookup on sympy ran -44%** - the graph query cost more than the baseline on that one task. Reported, not hidden.
-- **Negative control** (a question the baseline already nails in \~3 turns) correctly came out a **wash** - no traversal needed, no win claimed.
-
-> **Provenance.** Every figure above comes from the project's live A/B/C benchmark harness
-> (`run_nav.py` -> `score_nav.py`), reproduced verbatim from its generated report. The benchmark
-> sandbox and raw reports are kept out of this repo by design (research and scratch stay on disk).
-> Django origin figures: **-72% overall (3.5x), up to -80% (5.0x)**.
-
-## How it works
-
-TokenMaster installs a **routing agent** that prefers graph queries over grep, backed by two interchangeable graph suppliers and the host CLI's own session memory:
-
-| Layer | Supplier | Role |
+| Surface | Implemented boundary | Not implied |
 | --- | --- | --- |
-| **Semantic-spatial** (default) | [`graphify`](https://github.com/safishamsi/graphify) | Fast, no-LLM structural index. Answers callers / callees / impact / inheritors from inferred edges. The cheap default. |
-| **Precise-spatial** (last-mile) | [`@colbymchenry/codegraph`](https://www.npmjs.com/package/@colbymchenry/codegraph) | AST-resolved call edges. The precision escalation: when an inferred edge isn't trustworthy enough — precision-critical impact analysis, or sparse call graphs (common in JS/TS) where name-inference under-connects. Costs more tokens to buy exact edges. |
-| **Temporal** | host CLI session memory | Native cross-session recall — no extra server. |
+| Claude Code | Native MCP configuration and an explicit PostToolUse schema adapter | Every tool/version accepts replacement; see transport evidence |
+| Codex CLI / desktop configuration | Documented local MCP configuration | Transparent output interception or desktop runtime qualification |
+| GitHub Copilot CLI | Model-invoked MCP by default; explicit conservative JSON `view` hook via `--copilot-output-hook` | General hook/schema coverage or native full-profile Ponytail/Headroom/Jev execution |
+| Direct Python API / CLI | Explicit request planning, measurement and evaluation | Automatic interception of an opaque harness |
 
-The routing layer is the product; the indexes are interchangeable suppliers. Routing is the load-bearing primitive — in early tests the model queried the graph **0/15 times** without an explicit nudge and **8/8** with it. A graph the model never queries saves nothing, so TokenMaster's job is not to *offer* the efficient tool but to make it the path of least resistance.
+An explicit [`native-copilot` route](token-master-plugin/docs/NATIVE_FULL_RUNTIME.md)
+now connects the selected full runtime to the actual native CLI, scoped recovery
+and the same ledger. Installed protocol checks pass; real-model efficiency,
+native learning and broader write/debug qualification remain open.
 
-## Brainspace — the compression layer
+Installers preserve unrelated configuration, reject malformed JSON/TOML, use
+owned-setting receipts, backups and atomic writes, and support scoped uninstall.
+They do not prove that a native host accepted a result. Unsupported schemas,
+mixed media, error results and unavailable exact tokenization pass through.
 
-Routing collapses the cost of *re-deriving structure*. But there is a second token population it never touches: the **raw tool outputs** — directory listings, test logs, file dumps — that land in the transcript and then get re-sent on every subsequent turn. Brainspace is the layer that attacks *those*.
+A separate native acceptance matrix now verifies the named Read/Grep/Bash,
+PowerShell-via-Bash, MCP text-array and bypass cases in Claude Code 2.1.289.
+It also exercises actual temporary user-settings install/uninstall, without
+an ambient tokenizer masking configuration mistakes. This is local
+**mock-provider transport evidence**, not a model-quality result or a claim
+about every host version. See [Native envelopes](token-master-plugin/docs/NATIVE_ENVELOPES.md).
 
-It is deliberately a **complement, not a competitor**: routing shrinks what the model re-reads to *understand the codebase*; Brainspace shrinks what the model re-reads from its *own tool results*. Disjoint populations, so the savings **compound** rather than overlap. The same "area under the curve" logic from above applies — a tool output that is 6x smaller is 6x smaller *every turn it lingers in context*, not just once.
+An additional **Copilot CLI 1.0.95-0** before/install/uninstall run now verifies
+the explicitly enabled conservative JSON `view` hook against a synthetic
+provider. It is not the native full-profile runtime or a savings benchmark.
+See [Native Copilot hook](token-master-plugin/docs/NATIVE_COPILOT_HOOK.md).
 
-### How it stays lossless
+The reference runtime is validated on **Windows, CPython 3.12**. Other operating
+systems, Python versions and host versions require separate qualification.
 
-The risk with compressing tool output is obvious: throw away the one line that mattered. Brainspace's escape hatch is the **CCR** (Content-addressed, Cached, Reversible store). A compressor may drop detail from what the model *sees*, but only after handing the original to CCR, which stores it verbatim under `sha256(content)` and returns a stable placeholder:
+## Run locally
+
+Provision the existing runtime dependencies once; server launches never invoke
+an unpinned package resolver:
+
+```powershell
+python -m venv .token-master-runtime
+.\.token-master-runtime\Scripts\python.exe -m pip install -r token-master-plugin/requirements-runtime.txt
+```
+
+Use that environment's Python for the following scripts. A reference tokenizer
+must already be cached or supplied as a verified local file. Vocabulary acquisition
+is a separate opt-in operation; runtime compression does not download it.
+
+### Compression and recovery
+
+The skill directory is `token-master-plugin/skills/token-master`.
+
+```powershell
+# Inspect the local tools and explicit task/session modes:
+python token-master-plugin/skills/token-master/brainspace_tools.py --help
+
+# Benchmark exact recovery on files; an overview is an explicit request:
+python token-master-plugin/skills/token-master/brainspace_benchmark.py data.json --intent overview --json
+```
+
+The benchmark distinguishes `unchanged`, `root_exact`, `fragments_exact`,
+`unverified` and `failed`. It actually retrieves minted references and compares
+content. Changed output with no recovery evidence is not certified; a legitimate
+JSON-whitespace compaction can therefore be `unverified` for *exact-text recovery*.
+Failed or unverified required recovery returns a nonzero exit. The benchmark
+**does not** certify task quality or whole-task savings.
+
+MCP recovery is paged:
 
 ```text
-[[BR:9f3a2b1c4d5e|log; pytest run; 412L]]
+brainspace_retrieve(ref, offset=0, limit=32768)
+# Continue at next_offset until complete=true. Check full and page SHA-256.
+brainspace_search(ref, query, offset=0, limit=20)
 ```
 
-If the model ever needs the dropped detail, it calls `brainspace_retrieve` with that placeholder and gets the **exact original bytes** back. Content-addressing buys two things at once: identical content stashes once (free dedup), and the placeholder is byte-identical across turns — so it never perturbs the provider's prompt-cache prefix. (That last point is the whole reason compression and caching don't collide: a placeholder carrying a timestamp or hit-counter would silently evict the cache every turn. Brainspace's are derived only from content.)
+Private references are workspace-scoped. An explicit session ID adds session
+isolation; otherwise the workspace has a persistent default lease. Sharing is
+explicit. A server's scope is fixed at launch: use distinct processes or explicit
+launch scopes for different workspaces/sessions. Stash/read pins originals; release only when references are no longer
+needed. Retention quotas count compressed payload bytes, not total SQLite size.
 
-### By the numbers, measured
+### Demonstrate the improvement gate
 
-Every figure below is the real compressor run over a **real artifact** — actual repo source, a live `pytest -v` capture, a real serialized directory listing, the real README — measured in `tiktoken cl100k_base` tokens (the same proxy the engine ships). Reproduce with `python sandbox_brainspace/measure_impact.py`.
-
-```text
-Tokens in -> out, per content type   (lower out is better)
-
-JSON   dir listing, 200 files   769  ->   92      88.0%   8.36x
-log    live pytest -v run     2,838  ->  475      83.3%   5.97x
-code   real ccr/router/mcp    5,172  -> 3,345     35.3%   1.55x
-prose  README + research doc 20,169  -> 20,067     0.5%   1.01x   <- honest negative
+```powershell
+python token-master-plugin/skills/token-master/token_efficiency.py --db .token-master/demo.sqlite demo --synthetic --samples 256
+python token-master-plugin/skills/token-master/token_efficiency.py --db .token-master/demo.sqlite status
 ```
 
-The shape is the point. **Structured, repetitive output (JSON, logs) compresses 6-8x** because its redundancy is mechanical and safe to elide. **Code compresses ~1.5x** — signatures and docstrings kept, bodies stashed. **Prose barely moves** (0.5%): natural language has little safe-to-drop redundancy, so Brainspace defaults to near-lossless whitespace normalization and leaves the lossy ML path off. A layer that claimed to squeeze prose like it squeezes a directory listing would be lying; this one reports the 0.5% and moves on.
+This executes the real planner, counter, independent toy oracle, durable registry
+and promotion logic. **It is a constructed offline fixture, not a real language
+model performance result.** The Python `Optimizer` API accepts an independently
+implemented evaluator for a real, declared workload.
 
-**Benchmark it on your own code** — these numbers are not a brochure, they're a command. The same harness that produced the table ships with the plugin; point it at *your* files, logs, or piped output:
+Only a registry-saved certificate for the current incumbent may promote a
+candidate. Strict equal-quality evidence may remain inconclusive; the controller
+never quietly relaxes the correctness gate. No global optimum or indefinite
+improvement is promised.
 
-```bash
-# your own files (type auto-detected per file):
-uv run --with mcp --with tiktoken python brainspace_benchmark.py path/to/big.json server.log ./src
+### Optional Jev screening
 
-# or pipe a real command's output straight in:
-pytest -v | uv run --with mcp --with tiktoken python brainspace_benchmark.py --stdin --hint=pytest
+`brainspace.jev.JevClient` pins `jev-1.13.0`, reads `TYPESAFE_API_KEY` from the
+calling process, and requires both explicit network enablement and a
+synthetic/sanitized data classification. It denies redirects, bounds requests
+and responses, makes no automatic retries, and avoids credential-bearing logs.
+
+The user controls which state leaves the machine. A sanitized label is an
+attestation, not an automatic sanitizer or a retention guarantee. Missing keys,
+network errors and invalid responses retain the deterministic fallback; Jev
+confidence never becomes correctness evidence or authorization. Credentials are
+not persisted by this package. See [Jev contract](token-master-plugin/docs/JEV_CONTRACT.md).
+
+### Check whole-task savings offline
+
+```powershell
+python token-master-plugin/evals/verify_savings.py --study <complete-study-directory> --use-recorded-reviews
 ```
 
-It measures in real `tiktoken` tokens, verifies lossless recovery on every placeholder it stashes, and prints the per-type table plus the area-under-curve projection below. Run with no arguments for an instant demo over Brainspace's own files. `--json` emits machine-readable output for your own dashboards.
+No API key or network call is needed. The checker recounts raw calls, checks
+source/model/task/control identities and saved outcome evidence, and rejects
+incomplete or inconsistent traces. Exit 0 means audit consistency, **not a
+savings certificate**. Unknown outcomes and reduced quality block efficiency
+wins. Reference counts, explicit-context counts and bridge-reported usage stay
+in separate units; cached/reasoning tokens are not subtracted/added twice.
 
-### Where the win actually lives: per-turn, not per-output
+The eight-pair exploratory pilot observed **10.77% fewer bridge-reported tokens**
+and **3.49% fewer full-body reference tokens**, with 8/8 outcomes passing in each
+arm. One constructed navigation case dominated the reduction; six other cases
+used more reported tokens. Calls and wall time increased. There is **no statistical
+certificate, representative-workload claim, or policy promotion**.
+See [Objective savings](token-master-plugin/docs/OBJECTIVE_SAVINGS.md) for the
+raw-count boundaries, reproducible local command, per-task interpretation and
+learning overhead.
 
-A single compressed output is re-sent every turn it stays in context, so its saving is **multiplied by the turns it survives**. The live pytest log above, left in a 10-turn task:
+### Install only into the host you choose
 
-```text
-turns in context     raw cumulative    compressed     tokens saved
-        1                  2,838             475           2,363
-        3                  8,514           1,425           7,089
-        5                 14,190           2,375          11,815
-       10                 28,380           4,750          23,630
+Installation is an explicit configuration change. For isolated validation, set
+`CODEX_HOME`, `CLAUDE_CONFIG_DIR` or `COPILOT_HOME` to a temporary directory first.
+
+```powershell
+python token-master-plugin/skills/token-master/brainspace_setup.py --host codex --python <runtime-python> --tokenizer-file <verified-local-vocabulary>
+python token-master-plugin/skills/token-master/brainspace_setup.py --host codex --uninstall
 ```
 
-One log. 23,630 tokens saved across ten turns — and it round-trips losslessly the moment the model asks for it.
+Use `--host claude` or `--host copilot` for those adapters. Uninstall removes
+owned configuration and retains package files and recovery data. For graph
+routing, `setup.py <repo-root> --host <host> --python <runtime-python>` requires an
+already installed graph supplier. Optional supplier installation is separate and
+explicit. Graph freshness covers indexed files, not newly added unindexed files.
 
-### Two delivery paths, both verified on the real host
+## Verification and claim boundaries
 
-| Host | Mode | What's verified |
-| --- | --- | --- |
-| **Claude Code** | Full — auto-compress **hook** + model-invoked tools | PostToolUse hook rewrote a real `3,226 -> 98` token output (**97.0%**) with the buried `ValueError` **preserved**, via the verified `updatedToolOutput` field |
-| **GitHub Copilot CLI** | MCP-only — model-invoked `compress` / `retrieve` | The **real `copilot` binary** spawned the server via `uv` and invoked `brainspace_compress` end-to-end: `8,299 chars -> 303`, tool footer `2,075 -> 55` tokens (**97.3%**) |
-
-### Honest limitations — Brainspace edition
-
-- **Copilot is MCP-only.** GitHub Copilot CLI has no documented output-rewriting hook, so it gets the model-invoked `brainspace_compress` / `brainspace_retrieve` tools but **not** transparent auto-compression. Claude Code gets the full layer. This is a real capability gap, surfaced in the installer summary rather than hidden.
-- **Code skeletonization covers Python and Rust today.** The AST compressor ships tree-sitter grammars for both and resolves the language from the file extension (`.py`, `.rs`). Other code files still *route* as code, but the body-eliding path is a no-op until their grammar is wired in — a single entry in `_LANG_SPECS`. (The graph **routing** layer is language-agnostic and works for every language `graphify` indexes, Rust included — a real 4.1k-LOC Rust crate measured a dense `0.21 calls/symbol` call graph and `66.2%` code-output compression.)
-- **Prose is the weakest lever.** As the table shows, ~0%. The optional LLMLingua-style ML path exists but is off by default because it trades lossless-ness for a marginal prose gain — the wrong trade for tool output.
-- **Tiny inputs can't be compressed profitably.** Placeholder + footer overhead would dominate, so a centralized *never-expand* guard returns the original unchanged whenever compression wouldn't strictly shrink it. Compression must never *cost* tokens.
-- **Token proxy, not the host tokenizer.** Numbers are `tiktoken cl100k_base`; the host model's exact tokenizer differs in absolute counts, but compression *ratios* are stable across tokenizers, and ratios are what's reported.
-
-> **Provenance.** Compression figures come from `brainspace_benchmark.py` (the same self-serve tool shipped with the plugin — real artifacts, real tokenizer); the dual-host figures from `sandbox_brainspace/verify_dual_host.py` plus a live `copilot -p` run against a sandboxed `COPILOT_HOME` (the real `~/.copilot` is never touched). 120 unit tests cover the four compressors (Python + Rust skeletonization), the router, and the never-expand invariant (enforced in tokens, not characters — a distinction the benchmark itself surfaced).
-
-
-
-## Installation
-
-TokenMaster supports two host CLIs — **Claude Code** and **GitHub Copilot CLI**. Install the
-routing agent for whichever you use (the prerequisites below are shared). `/token-master` builds
-the per-repo graph and installs the host-appropriate routing agent into your user-scope CLI home.
-
-### Claude Code
-
-TokenMaster is distributed as a Claude Code plugin through a plugin marketplace:
-
-```javascript
-/plugin marketplace add shyamsridhar123/TokenMasterX
-/plugin install token-master@token-master
+```powershell
+python -m pytest token-master-plugin/skills/token-master -q
 ```
 
-Then, inside any repository you want to index:
+Install the pinned development requirements first when running tests. The suite
+covers corruption, failed storage, full public recovery, envelope schemas, exact
+counts, protected requests, configuration ownership, graph freshness, statistical
+constants, replay/restart protection, candidate validation and stale promotion.
 
-```javascript
-/token-master
-```
+Transport fixtures exercise actual native executables against a **synthetic mock
+provider**, with isolated homes and no copied authentication. That checks transport,
+not model reasoning quality. A separate real-model study exercises synthetic
+workspaces and actual generated-code tests in a bounded WSL sandbox. Its eight
+task pairs are exploratory, not independent population confirmation. The live
+Jev smoke uses synthetic state only. None is a production workload benchmark or
+a broad Ponytail/Headroom parity certificate.
 
-The installer writes the routing agent to `~/.claude/agents/token-master.md` and registers the
-graph MCP server in `~/.claude.json`. After the first install, **restart Claude Code** (or start it
-with `claude --agent token-master`) for routing to take effect.
-
-### GitHub Copilot CLI
-
-Copilot CLI reads the **same plugin marketplace** as Claude Code, so installation is the same two
-commands. In an interactive `copilot` session:
-
-```javascript
-/plugin marketplace add shyamsridhar123/TokenMasterX
-/plugin install token-master@token-master
-```
-
-(Equivalently, from your shell: `copilot plugin marketplace add shyamsridhar123/TokenMasterX`
-followed by `copilot plugin install token-master@token-master`.)
-
-Then, inside any repository you want to index:
-
-```javascript
-/token-master
-```
-
-This builds the per-repo graph and writes the routing agent — with its MCP servers declared inline —
-to `~/.copilot/agents/token-master.agent.md`. After the first install, **restart Copilot** (or start
-it with `copilot --agent token-master`) for routing to take effect.
-
-> **If you have *both* Claude Code and Copilot CLI installed**, the `/token-master` installer can't
-> tell which CLI launched it and defaults to Claude Code. Force the Copilot target by setting
-> `TOKEN_MASTER_HOST=copilot` in your environment before running `/token-master`. As a manual
-> alternative you can run the installer directly and pass the host explicitly:
-> >
-> \`\`\`
-> python token-master-plugin/skills/token-master/setup.py <repo-root> --host=copilot
-> \`\`\`
-
-### Prerequisites
-
-- [**`graphify`**](https://github.com/safishamsi/graphify) — the default graph backend. Install with [`uv`](https://docs.astral.sh/uv/):
-
-```javascript
-  uv tool install graphifyy
-```
-
-- **`uv`** — the routing agent launches the graph server through it.
-- **`node` + `npm`** *(optional)* — only needed for the precise `codegraph` escalation backend. Without them, TokenMaster runs graphify-only and still works.
-
-If a prerequisite is missing, `/token-master` tells you exactly what to install, then re-run it.
-
-## Usage
-
-After setup, just ask structural questions normally:
-
-- *"Who calls `force_str`?"*
-- *"What breaks if I change the signature of this method?"*
-- *"What inherits from `BaseValidator`?"*
-
-The agent answers them from the graph. To confirm routing is active, ask a known structural question and check that the answer comes from a graph tool call rather than a grep sweep.
-
-Re-run `/token-master` whenever the code has changed enough that the graph is stale.
-
-> **Note:** The routing agent loads at CLI startup. After the first install, restart your host CLI
-> (or start it with `--agent token-master`) for routing to take effect. The setup summary prints the
-> exact restart command for your host.
-
-## What gets written
-
-`/token-master` is conservative about your working tree:
-
-- The code graph is stored at `.token-master/graph.json` inside the repo.
-- `.token-master/` and `.codegraph/` are added to the repo's `.gitignore`.
-- The routing agent and graph server are installed to your user-scope CLI home, not the repo.
-
-## Honest limitations
-
-- **Not a universal speedup.** TokenMaster wins on hard, multi-hop traversal. On short structural questions that grep answers in \~3 turns, it is correctly *neutral*. A harness that "wins everywhere" is measuring an artifact.
-- **graphify edges are inferred; codegraph is the last mile.** The default backend infers call edges by name (\~0.8 confidence) — fast and cheap, and on well-named Python it answers correctly the large majority of the time. `codegraph` exists to buy the *last mile* of precision: AST-resolved edges for the cases inference can't be trusted on. That precision is not free. On the SWE-bench Lite pilot, codegraph cost **\~3-4x more tokens than graphify** and on the simpler caller/inheritor tasks frequently ran *below* the baseline; its resolved edge set **diverged from graphify's inferred set on every compared cell** — different, and exact, but not a free upgrade. The takeaway the data supports: **graphify is the default; codegraph is the deliberate escalation when an exact edge is worth paying for**, not an always-on replacement.
-- **Sparse call graphs.** On some languages (notably JavaScript/TypeScript) graphify's call graph is sparse; setup detects this and prints a warning pointing you at the `codegraph` backend.
-- **Cumulative tokens, not dollars.** TokenMaster optimizes the integral of context size over a task. Billing proxies (premium requests, total token counts) are explicitly *not* the metric.
-
-## Repository layout
-
-```text
-token-master-plugin/          The plugin (this is the deliverable)
-├── .claude-plugin/
-│   └── plugin.json            Plugin manifest
-└── skills/token-master/
-    ├── SKILL.md               The /token-master command
-    ├── setup.py               Installer: builds the graph, installs the host agent
-    ├── graphify_mcp.py        Graph-query MCP server
-    ├── agent.template.claude.md    Routing agent template (Claude Code format)
-    ├── agent.template.copilot.md   Routing agent template (Copilot CLI format)
-    │
-    ├── brainspace_setup.py      Brainspace installer (dual-host: hook+MCP / MCP-only)
-    ├── brainspace_mcp.py        Compression MCP server (compress/retrieve/stats)
-    ├── brainspace_posttooluse.py    Claude Code auto-compress hook
-    ├── brainspace_benchmark.py  Self-serve benchmark — measure on your own files
-    └── brainspace/              The compression engine
-        ├── ccr.py             Content-addressed reversible store (the escape hatch)
-        ├── router.py          ContentRouter — type detection + never-expand guard
-        ├── tokens.py          tiktoken-or-heuristic token meter
-        ├── benchmark.py       Benchmark core (file/dir/stdin, JSON, area-under-curve)
-        ├── compressors/       json / code (Python + Rust) / logs / prose compressors
-        └── tests/             120 unit tests
-
-sandbox_brainspace/             Isolated verification harnesses (never touch real config)
-├── measure_impact.py         Real-artifact compression measurement (README numbers)
-├── mcp_stdio_smoke.py        MCP protocol conformance via the official client
-└── verify_dual_host.py       Dual-host install + end-to-end checks
-
-.claude-plugin/
-└── marketplace.json           Plugin marketplace manifest (the packager)
-
-assets/
-├── generate_art.py            Deterministic, dependency-free SVG generator
-└── tokenmaster-hero.svg       The hero image above (reproducible from a seed)
-```
-
-The hero image is generative: it *is* the thesis. The faint tangle is brute-force
-search sprawl — context re-read turn after turn — and the single bright path is one
-bounded graph-routed query. Regenerate or remix it with:
-
-```bash
-python assets/generate_art.py --seed 42
-```
+Earlier headline percentages and blanket "lossless/verified host" statements in
+Git history predate the repaired oracle and current conservative defaults. They
+are **not current release evidence**. New efficiency claims require a complete
+whole-task trace and independent outcome validation for the named workload.
 
 ## License
 

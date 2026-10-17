@@ -1,0 +1,105 @@
+{
+  "date": "2026-10-04",
+  "node": "v25.9.0",
+  "python": "3.12.12",
+  "platform": "win32",
+  "upstream_blobs_verified": 169,
+  "commands": [
+    {
+      "name": "node-selected",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "--test",
+        "tests/behavior.test.js",
+        "tests/hooks-windows.test.js",
+        "ponytail-mcp/test/instructions.test.js",
+        "ponytail-mcp/test/server.test.js"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/node-selected.stdout.txt",
+      "stderr": "verification/node-selected.stderr.txt"
+    },
+    {
+      "name": "loc-regressions",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "benchmarks/loc.test.js"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/loc-regressions.stdout.txt",
+      "stderr": "verification/loc-regressions.stderr.txt"
+    },
+    {
+      "name": "correctness-regressions",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "benchmarks/correctness.test.js"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/correctness-regressions.stdout.txt",
+      "stderr": "verification/correctness-regressions.stderr.txt"
+    },
+    {
+      "name": "version-consistency",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "scripts/check-versions.js"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/version-consistency.stdout.txt",
+      "stderr": "verification/version-consistency.stderr.txt"
+    },
+    {
+      "name": "rule-consistency",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "scripts/check-rule-copies.js"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/rule-consistency.stdout.txt",
+      "stderr": "verification/rule-consistency.stderr.txt"
+    },
+    {
+      "name": "completeness-gate-offline",
+      "command": [
+        "C:\\Users\\shyamsridhar\\.local\\bin\\python.exe",
+        "-B",
+        "benchmarks/agentic/complete.py",
+        "--selftest-offline"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/completeness-gate-offline.stdout.txt",
+      "stderr": "verification/completeness-gate-offline.stderr.txt"
+    },
+    {
+      "name": "agentic-10-scorers",
+      "command": [
+        "C:\\Users\\shyamsridhar\\.local\\bin\\python.exe",
+        "-B",
+        "-c",
+        "\nimport json, pathlib, sys, tempfile\nsys.path.insert(0, str(pathlib.Path('benchmarks/agentic').resolve()))\nfrom tasks import TASKS\nnames = ['safe-path','rate-limit','sql-user','auth-token','csv-sum','cache',\n         'critic-email','trace-transfer','reuse-slug','reuse-money']\nrows=[]\nfor name in names:\n    task=TASKS[name]\n    for kind in ('good','bad'):\n        with tempfile.TemporaryDirectory() as d:\n            root=pathlib.Path(d)\n            for fn,content in task.get('seed',{}).items():\n                (root/fn).write_text(content,encoding='utf-8')\n            (root/task['file']).write_text(task[kind],encoding='utf-8')\n            result=task['score'](root)\n        axis=task.get('axis','safe')\n        passed=(result['correct']==1 and result['safe']==1) if kind=='good' else result[axis]==0\n        rows.append(dict(task=name,reference=kind,passed=passed,result=result))\nprint(json.dumps(rows,indent=2))\nassert all(r['passed'] for r in rows)\n"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/agentic-10-scorers.stdout.txt",
+      "stderr": "verification/agentic-10-scorers.stderr.txt"
+    },
+    {
+      "name": "runtime-state-probe",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.EXE",
+        "-e",
+        "\nconst fs=require('node:fs'),path=require('node:path'),cp=require('node:child_process');\nconst env={...process.env,PLUGIN_DATA:process.env.PROBE_STATE,\n  CLAUDE_PLUGIN_ROOT:process.cwd(),CLAUDE_PROJECT_DIR:'C:/research/project-A'};\nconst state=path.join(env.PLUGIN_DATA,'ponytail-modes','C__research_project-A');\nfunction hook(file,payload){\n const r=cp.spawnSync(process.execPath,[path.join('hooks',file)],\n {env,input:JSON.stringify(payload),encoding:'utf8',timeout:5000});\n if(r.status!==0) throw Error(r.stderr);\n return r.stdout ? JSON.parse(r.stdout) : {};\n}\nconst rows=[];\nrows.push({step:'startup',output:hook('ponytail-activate.js',{source:'startup'})});\nif(fs.readFileSync(state,'utf8')!=='full')throw Error('startup not full');\nrows.push({step:'switch-ultra',output:hook('ponytail-mode-tracker.js',{prompt:'/ponytail ultra'})});\nif(fs.readFileSync(state,'utf8')!=='ultra')throw Error('switch not ultra');\nrows.push({step:'review-one-shot',output:hook('ponytail-mode-tracker.js',{prompt:'/ponytail-review'})});\nif(fs.readFileSync(state,'utf8')!=='ultra')throw Error('review changed mode');\nrows.push({step:'compact',output:hook('ponytail-activate.js',{source:'compact'})});\nif(fs.readFileSync(state,'utf8')!=='full')throw Error('compact did not reset to default');\nrows.push({step:'stop',output:hook('ponytail-mode-tracker.js',{prompt:'stop ponytail'})});\nif(fs.existsSync(state))throw Error('stop did not clear state');\nrows.push({step:'resume',output:hook('ponytail-activate.js',{source:'resume'})});\nif(fs.readFileSync(state,'utf8')!=='full')throw Error('resume did not reset to default');\nfor(const r of rows){\n const o=r.output.hookSpecificOutput;\n r.event=o?.hookEventName;\n r.context_header=o?.additionalContext?.split('\\n')[0] || null;\n delete r.output;\n}\nconsole.log(JSON.stringify(rows,null,2));\n"
+      ],
+      "exit_code": 0,
+      "stdout": "verification/runtime-state-probe.stdout.txt",
+      "stderr": "verification/runtime-state-probe.stderr.txt"
+    }
+  ],
+  "all_commands_passed": true,
+  "limitations": [
+    "No model benchmarks, API calls, services, installers, or host plugin installation.",
+    "No full npm test: selected tests only; full hooks.test.js assumes /bin/sh.",
+    "No MCP stdio handshake; MCP tests are instruction selection and source-wiring checks.",
+    "No run.py full selftest (contains HTTP service and tree-kill exercises)."
+  ]
+}

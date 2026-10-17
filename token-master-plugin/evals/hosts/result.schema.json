@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TokenMaster native mock-provider transport evidence",
+  "type": "object",
+  "required": ["schema_version", "host", "scenario", "evidence_kind", "model_quality_verified", "runtime_acceptance_verified", "status", "assertions"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "host": {"enum": ["claude", "codex", "copilot", "codex-desktop"]},
+    "scenario": {"enum": ["hook", "mcp"]},
+    "evidence_kind": {"const": "mock-provider-transport-only"},
+    "model_quality_verified": {"const": false},
+    "runtime_acceptance_verified": {"type": "boolean"},
+    "transport_verified": {"type": "boolean"},
+    "status": {"enum": ["passed", "failed", "blocked"]},
+    "assertions": {"type": "object", "additionalProperties": {"type": "boolean"}},
+    "blocker": {"type": "string"},
+    "provider_requests": {"type": "integer", "minimum": 0},
+    "mock_errors": {"type": "array", "items": {"type": "string"}}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "passed"}}},
+      "then": {
+        "properties": {
+          "runtime_acceptance_verified": {"const": true},
+          "transport_verified": {"const": true}
+        },
+        "required": ["transport_verified"]
+      }
+    }
+  ]
+}

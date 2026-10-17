@@ -1,0 +1,84 @@
+{
+  "research_date": "2026-10-04",
+  "repository": "C:\\Users\\shyamsridhar\\code\\TokenMaster",
+  "commit": "426fc853389ddba4bc6e1dd35a28179a895c064f",
+  "python": "C:\\Users\\shyamsridhar\\code\\TokenMaster\\sandbox-scale\\tools\\mcpvenv\\Scripts\\python.exe",
+  "python_version": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "mcp": "1.27.2",
+    "pytest": null,
+    "tiktoken": null,
+    "tree-sitter": null,
+    "tree-sitter-python": null,
+    "tree-sitter-rust": null
+  },
+  "token_measurement": "heuristic",
+  "scope": "Local function and hook subprocess probes; no live host or model run.",
+  "recovery_validator": {
+    "placeholders_in_compressed_view": 1,
+    "stored_entries": 1,
+    "benchmark_reports_lossless": true,
+    "retrieve_calls_made_by_benchmark": 0,
+    "fault_injection": "CCR.retrieve always returns None.",
+    "finding_reproduced": true
+  },
+  "final_response_expansion": {
+    "backend": "heuristic",
+    "input_characters": 1073,
+    "input_estimated_tokens": 269,
+    "core_compressed_estimated_tokens": 267,
+    "mcp_emitted_estimated_tokens": 290,
+    "hook_emitted_estimated_tokens": 290,
+    "mcp_expands": true,
+    "hook_expands": true,
+    "qualification": "Real entry points; character-based shipped fallback, not provider billing."
+  },
+  "structured_hook_shape": {
+    "original_response_type": "dict",
+    "emitted_replacement_type": "str",
+    "preserves_response_shape": false,
+    "qualification": "Subprocess output verified; current host acceptance is a documentation-based inference, not a live host test."
+  },
+  "prose_literal_preservation": {
+    "input": "This example requires exact string content:\n```python\nassert \"alpha                    beta\" != \"alpha beta\"\n```\n",
+    "output": "This example requires exact string content:\n```python\nassert \"alpha beta\" != \"alpha beta\"\n```\n",
+    "changed": true,
+    "input_has_distinct_string_literals": true,
+    "output_has_false_assertion": true,
+    "recovery_placeholder_present": false,
+    "finding_reproduced": true
+  },
+  "retrieval_delivery": {
+    "input_characters": 200100,
+    "configured_cap": 200000,
+    "direct_CCR_exact": true,
+    "MCP_exact": false,
+    "MCP_characters": 200041,
+    "truncation_notice_present": true
+  },
+  "placeholder_identity": {
+    "same_content_and_hash": true,
+    "different_source_metadata": true,
+    "byte_identical_placeholders": false
+  },
+  "graph_freshness": {
+    "on_disk_symbol": "new_symbol",
+    "in_process_symbol": "old_symbol",
+    "reloads_after_file_change": false
+  },
+  "illustrative_cache_economics": {
+    "synthetic_not_measured": true,
+    "rates": {
+      "uncached": 1.0,
+      "cache_read": 0.1
+    },
+    "baseline_warm_tokens": 10000,
+    "compressed_tokens": 5000,
+    "baseline_warm_cost_units": 1900.0,
+    "compressed_cache_miss_cost_units": 5000.0,
+    "transition_cost_ratio": 2.6315789473684212,
+    "compressed_warm_cost_units": 950.0,
+    "requests_until_total_cost_break_even": 5,
+    "assumptions": "One cache-invalidating transition, then repeated warm requests; zero compression overhead; no quality change."
+  }
+}

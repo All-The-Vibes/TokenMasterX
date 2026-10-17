@@ -1,63 +1,103 @@
 ---
 name: token-master
-description: Turn on token-efficient code-graph routing for the current repository. Builds a structural code index and installs the routing agent so the host CLI answers "who calls X / what breaks if I change Y" from a prebuilt graph instead of repeated grep, cutting cumulative context tokens. Use when the user types /token-master or asks to enable token-efficient routing.
+description: Configure graph navigation and conservative token-efficiency tools for an explicitly selected host. Use when the user asks to enable TokenMaster, graph routing, recoverable views, or scoped token-efficiency discipline. Not a universal interceptor or a task-quality guarantee.
 ---
 
-# /token-master
+# TokenMaster
 
-This skill turns on TokenMaster's token-efficient routing for the repository the user is working
-in. It is the on-switch: it builds the code graph and installs the routing engine.
+Use the smallest requested surface. An informational or explain-only request does
+not authorize repository edits or a host installation. Preserve requested depth,
+proofs, safety checks and justified reusable abstractions.
 
-## What it does
+## Graph navigation setup
 
-1. Builds a structural **code graph** of the repo with `graphify` (no LLM, fast) — the default,
-   cheapest backend.
-2. Stores it at `.token-master/graph.json` and adds `.token-master/` to the repo's `.gitignore`.
-3. Best-effort installs a second **`codegraph`** backend (AST-resolved call edges) for precision
-   escalation, and indexes the repo with it. This needs `node` + `npm`; if they are missing the
-   plugin still works graphify-only (the agent is written without the codegraph server).
-4. Installs/refreshes the **`token-master` routing agent** (user scope) and its graph MCP servers.
+Run the script from this skill directory with the requested repository, explicit
+host and an already provisioned pinned runtime:
 
-The two backends are not interchangeable: graphify is the cheap default; codegraph is a targeted
-escalation for precision-critical or sparse-call-graph cases (see "After setup"). If graphify's call
-graph is **sparse** for the repo (common in JavaScript/TypeScript), setup prints a warning — that is
-the signal codegraph will do the call-resolution work on that repo.
-
-## How to run it
-
-The setup script lives in this skill's own directory. Locate it reliably, then run it:
-
-1. Run `/skills info token-master` and read the skill's directory path from the output.
-2. Run the script, passing that directory and the repo root (normally the current working
-   directory):
-
-```
-python "<skill-dir>/setup.py" "<repo-root>"
+```text
+<runtime-python> setup.py <repo-root> --host claude|codex|copilot --python <runtime-python>
 ```
 
-Then relay the script's summary output to the user verbatim.
+The script requires an already installed graph supplier. Do not install an
+unverified similarly named package or silently resolve dependencies at every
+launch. Optional supplier installation is a separate explicit choice. Runtime
+pins are in the plugin's `requirements-runtime.txt` and closure lock.
 
-- If the script reports that `graphify` (or `uv`) is not installed, tell the user to install the
-  missing tool — `uv tool install graphify` (see https://github.com/safishamsi/graphify) or `uv`
-  itself (https://docs.astral.sh/uv/) — then run `/token-master` again.
-- The routing agent is loaded at CLI startup, so the user must **restart their CLI** before routing
-  takes effect (unless it is already active). The setup script prints the exact host-specific
-  restart command in its summary — relay that line as-is rather than guessing the host.
+Report the actual installer result, not a claim that a host accepted a tool.
+Claude/Copilot get a routing agent; Codex gets native MCP configuration, not a
+translated Claude agent or output-replacement hook. Honor the restart guidance
+printed for the selected host. Never rewrite another host's profile by guessing.
 
-## After setup
+Treat graph output as candidate locations. Check index/source freshness, follow
+bounded pages until the required enumeration is complete, and verify decisive
+edges in source. `semantic_complete=false` is not an exhaustive dependency proof.
+Freshness covers indexed files, not newly added unindexed files.
 
-Once the agent is active, the user just asks structural questions normally ("who calls X?", "what
-breaks if I change Y?") and they are answered from the graph. To confirm it is working, ask a
-known structural question and check that the answer comes from a `graphify-nav` MCP tool call.
+## Recoverable views
 
-The agent prefers `graphify-nav` (cheap) and escalates to `codegraph` (precise, ~2x tokens, AST-
-resolved) only when it matters: graphify returned nothing for a symbol that exists, name collisions
-where text matching over-reaches, or when exact `file:line` call sites are load-bearing. On a repo
-where setup warned the call graph is sparse, expect that escalation to fire more often.
+The model-invoked `brainspace_compress` tool defaults to conservative behavior.
+Explicit navigation may expose code skeletons; explicit overview may sample
+suitable structured content. Exact/edit/debug/aggregate/exhaustive/security tasks
+must retain their answer-bearing material. Errors and mixed media pass through.
 
-For **cross-session** continuity, the agent uses the host CLI's **native** session memory (no extra
-server): keyword recall over past turns and the host's `--resume`/`--continue`. This is lexical and
-opt-in, not automatic semantic memory — resume replays the full prior transcript (re-billed as
-input), so it is only worth it after a large investigation, not for short sessions.
+Use `brainspace_retrieve(ref, offset, limit)` repeatedly at `next_offset` until
+`complete=true`. Verify digests when reconstructing originals. Exact search is
+available via `brainspace_search`; a bounded snippet is not the full original.
+Do not treat a stored original, a shorter view, or a Jev confidence as proof of
+successful task completion.
 
-Re-run `/token-master` whenever the code has changed enough that the graph is stale.
+MCP is model-invoked, not transparent interception. The Claude PostToolUse adapter
+has a separate versioned schema and runtime-acceptance gate. Unknown hosts/shapes
+are not assumed compatible. No model-visible savings footer is required.
+
+## Scoped discipline
+
+For an explicitly requested task-local mode, state a compact contract:
+
+1. Required result.
+2. Non-goals.
+3. Evidence needed.
+4. Stop condition.
+5. Optional advisory output-token budget, without suppressing requested detail.
+
+`brainspace_tools.py` exposes task-local and explicit session-keyed modes. Never
+infer that an enable flag from another session applies here. `off` removes only
+this mode's owned state; it does not delete unrelated configuration or claim to
+erase instructions already in a conversation. The review-only companion is
+`token-master-review` and does not authorize edits.
+
+## Evaluation and improvement
+
+Use the token-only reference metric: all observed model inputs and outputs across
+the whole task, including failures, retries, auxiliary decisions and recovery.
+Keep learning separate; reject partial or nonmaterialized traces rather than
+inventing totals. Native counters are diagnostics, not interchangeable units.
+
+`token_efficiency.py` exposes the durable controller and an offline synthetic
+fixture. The fixture verifies plumbing, not real language-model performance.
+The installed `session` runtime can explicitly select actual pinned Ponytail
+instructions and Headroom. `initialize-runtime` / `learn-runtime` connect a
+bounded real read-only evaluator; initialization is safety admission only, and
+learning compares an enabled local incumbent with a local neighbor, not an
+optimizer-off baseline. See `docs/PRODUCT_RUNTIME.md` before using these paths.
+For full compositions, `initialize-profile` / `learn-profile` use closed
+`RuntimePolicy` data and explicit pinned resources, with a true-off default.
+They reuse the strict registry/evaluator and do not promote automatically.
+See `docs/PROFILE_LEARNING.md`; Jev abstention is not an improvement judgment.
+Opt-in V4 adds lexical JSON payload compaction with exact original recovery;
+it is not sampling or a default change. See `docs/LEXICAL_JSON_POLICY.md` and
+`docs/LEXICAL_JSON_RESULTS.md` for its presentation contract and limited evidence.
+The optional `--require-nonexpanding-input` session guard includes composition
+overhead and falls back to the exact original input; it is not a task-savings
+or quality certificate and is not enabled globally.
+It may omit newly inserted optional guidance while retaining a valid smaller
+context; reports distinguish configured and applied instructions. Headroom's
+optional `--headroom-time-budget-seconds` is explicit, bounded and profile-bound,
+not a hard wall-time guarantee or permission to forward arbitrary environment.
+Real candidates need an independent outcome evaluator, fresh confirmation data,
+a fixed measurement/regime, valid whole-task bounds and the persisted promotion
+gate. Jev is optional advisory screening, network-disabled unless explicitly
+configured; never send repository data or secrets as an implicit side effect.
+
+See the plugin's `docs/TOKEN_EFFICIENCY.md` and `docs/IMPLEMENTATION_PLAN.md` for
+the proof assumptions, supported boundaries and remaining release qualification.

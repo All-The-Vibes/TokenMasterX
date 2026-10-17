@@ -7,6 +7,64 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Conservative request-policy repair — October 8, 2026
+
+- Added opt-in V3 exact visible-read reuse: retain unique evidence, require
+  bound executor receipts, verify full reconstruction, and guard the complete
+  request without lossy callbacks, external recovery, or task-mode instructions.
+- Added the explicit `request --conservative --source-reads` CLI path and
+  preserved disabled defaults and legacy V1/V2 transformation behavior.
+- Fixed successful `fetch_artifact` alias receipts to retain the actual
+  model-facing tool identity; failed and mismatched reads remain untrusted.
+- Replayed 69 prior baseline requests unchanged. A new frozen paired run matched
+  baseline on six reading questions and used 9.9% fewer gateway-reported task
+  tokens on four deliberate repeated-read probes, with all answers correct
+  and no extra requests. This is not a general savings or promotion claim.
+- Added corruption, CLI/installed-copy, negative-control, and failure-accounting
+  tests. Historical captures and the previous unsuccessful scorecard are retained.
+
+### Token-only foundations and conservative parity work — October 4, 2026
+
+- Added pinned reference measurement identities, complete task/call inventories,
+  sealed learning accounting, and independent fixed/anytime confirmation.
+- Added a durable bounded hill-climber with immutable safe policy neighbors,
+  registry-only promotion, stale-version checks, cancellation and rollback.
+- Added the opt-in typed Jev client. Jev remains advisory; it never provides
+  authorization or its own correctness certificate. No credentials are persisted.
+- Added task/session contracts, bounded review, explicit request planning and
+  protected instructions, tool pairs, recent results and declared stable prefixes.
+- Repaired the recovery benchmark: it now retrieves emitted references and checks
+  exact equality, distinguishes root/fragment/no-op/unverified results, and never
+  equates storage recovery with successful task completion.
+- Made code/prose conservative by default; skeletons and lossy overviews are
+  explicit. Added final representation guards and removed savings footers.
+- Added scoped, digested, paged Unicode recovery and bounded exact search.
+- Added schema-preserving Claude output adapters, explicit Codex configuration,
+  safe owned-setting install/uninstall, and pinned offline-at-launch runtimes.
+- Added graph provenance, source/index freshness and bounded enumeration.
+- Replaced current README efficiency/host claims with explicit evidence boundaries.
+  No monetary objective or model-weight changes are part of this implementation.
+- Added a frozen-source real-model challenge runner, separately graded synthetic
+  workspaces, bounded WSL code execution and complete visible call captures.
+- Added an offline whole-task savings audit with exact recounting, source/call/
+  outcome hashes, explicit review opt-in, separate bridge-reported diagnostics,
+  per-pair results and retained-receipt verification. No statistical certificate
+  is issued from the non-IID pilot.
+- Added compact task-contract rendering without machine/session telemetry, and
+  repaired a Windows cleanup-test startup race with bounded readiness and an
+  exact retained descendant handle.
+- Repaired native Claude MCP text-result handling using captured bare content
+  arrays; preserved mixed media, structured strings, errors and interruption
+  bypasses under an explicit updated contract.
+- Added an 11-cell native envelope matrix and real temporary user-settings
+  install/uninstall verification, with complete provider-result comparisons,
+  helper-source integrity checks and unrelated-configuration preservation.
+
+**Historical notes below describe the earlier implementation and measurements.**
+Their blanket losslessness, stable-ratio, default-skeletonization, unpinned-launch
+and host-verification claims are superseded by the current contracts and
+verification matrix. They are retained for history, not current release evidence.
+
 ### Added — Rust as a first-class language
 
 Both token-economics layers now treat Rust the way they treat Python.

@@ -1,0 +1,646 @@
+{
+  "status": "complete",
+  "scope": "parent boundary only; worker implementation, vendor recovery and efficacy explicitly not approved",
+  "started_utc": "2026-10-10T01:25:14.440801+00:00",
+  "parent_source_before_hashes": {
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\document_structure.py": "5925a75902a07fd9c585516d99240f79896d877f11251a6899f730649d7001f4",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py": "29942e0643ec6f1e34c858671cad4ffb5faa2b7d3f386c8afa9ba7d128e79c73",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py": "c1bc6f36bad70a55b383e6909dd8fb13fb0121843fc56f1b568e37271db7c92a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_resources.py": "b0b2b3dd2a96f0e53caf5743ac7e6edeef38e75aec85553d5060f092aa3c1f56",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime.py": "78d5f76683148046b324fe482241e875eeb032ed54f566894a564806e30b933a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_document_structure_spans.py": "88169ff8821c5d68efc590dcc9140994ad966dd7657678ba8f75c03f63acc8fa",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py": "c18a82b00e970d8ca24b15739b0ee10a37d729f6144c39796cab50e7ecedb6ad"
+  },
+  "contract_sha256": "046e038dd9c7204daaeb32c407c6c8614766def323a0db0d7b683a4b283bb835",
+  "pure_worker_dependency_before": {
+    "preprotection_indices": "bd4f0e1c889805d59326d730862b55b761c2859d021f5f6aecfc2c6f6f47acd7",
+    "document_indices": "61a3439023e83ceedd66c20e4ec9b84d8714b07c3a2b0b49d53976625db6834b",
+    "_canonical": "73b239d2c70f0ed55bdd009c196a1e74450579b4a0be1a04f73eefddee2eea35",
+    "_sha256": "338bfde56aa73d2eeabb04d0193677be726f34db765a7454c5a569f87bec661a",
+    "_successful_metadata": "7644c95288dfa0741f07d46f46fd6462def8051ca305c15b8fcecd4fb49fa2a7"
+  },
+  "worker_scope": "Only pure mechanical validator dependency inspected; annotation/pipeline/store/handler/recovery remain in-progress worker lane, not approved.",
+  "focused_parent_tests": {
+    "command": [
+      "C:\\Users\\shyamsridhar\\code\\TokenMaster\\.token-master-dev\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "-q",
+      "tests/test_document_structure.py",
+      "tests/test_document_structure_spans.py",
+      "tests/test_headroom_preprotection_parent.py",
+      "tests/test_headroom_document_adapter.py",
+      "tests/test_headroom_document_policy.py",
+      "tests/test_headroom_document_runtime.py",
+      "tests/test_document_structure_runtime.py"
+    ],
+    "exit_code": 0,
+    "stdout": "........................................................................ [ 29%]\n........................................................................ [ 58%]\n........................................................................ [ 87%]\n................................                                         [100%]\n248 passed in 6.88s\n",
+    "stderr": "",
+    "scope": "Parent/parser and existing adapter/runtime guards using explicit doubles; no worker pipeline/recovery qualification."
+  },
+  "adapter_echo_adversarial": [
+    {
+      "case": "eligible_float",
+      "field": "eligible_indices",
+      "value": [
+        2.0
+      ],
+      "result": "ACCEPTED",
+      "failed_latch": false
+    },
+    {
+      "case": "protected_false",
+      "field": "protected_indices",
+      "value": [
+        false,
+        1,
+        3,
+        4
+      ],
+      "result": "ACCEPTED",
+      "failed_latch": false
+    },
+    {
+      "case": "protected_true",
+      "field": "protected_indices",
+      "value": [
+        0,
+        true,
+        3,
+        4
+      ],
+      "result": "ACCEPTED",
+      "failed_latch": false
+    },
+    {
+      "case": "protected_float",
+      "field": "protected_indices",
+      "value": [
+        0,
+        1.0,
+        3,
+        4
+      ],
+      "result": "ACCEPTED",
+      "failed_latch": false
+    },
+    {
+      "case": "prefix_bool",
+      "field": "document_request",
+      "value": {
+        "frozen_message_count": true,
+        "keep_recent_tool_results": 1
+      },
+      "result": "headroom_document_manifest_mismatch",
+      "failed_latch": true
+    },
+    {
+      "case": "recent_bool",
+      "field": "document_request",
+      "value": {
+        "frozen_message_count": 1,
+        "keep_recent_tool_results": true
+      },
+      "result": "headroom_document_manifest_mismatch",
+      "failed_latch": true
+    },
+    {
+      "case": "span_hash",
+      "field": "message_spans_sha256",
+      "value": "0000000000000000000000000000000000000000000000000000000000000000",
+      "result": "headroom_document_manifest_mismatch",
+      "failed_latch": true
+    },
+    {
+      "case": "eligible_wrong",
+      "field": "eligible_indices",
+      "value": [
+        4
+      ],
+      "result": "headroom_document_manifest_mismatch",
+      "failed_latch": true
+    },
+    {
+      "case": "extra_control",
+      "field": "document_request",
+      "value": {
+        "frozen_message_count": 1,
+        "keep_recent_tool_results": 1,
+        "extra": false
+      },
+      "result": "headroom_document_manifest_mismatch",
+      "failed_latch": true
+    },
+    {
+      "case": "eligible_true",
+      "field": "eligible_indices",
+      "value": [
+        true
+      ],
+      "expected_indices": [
+        1
+      ],
+      "result": "ACCEPTED",
+      "failed_latch": false
+    },
+    {
+      "case": "lifetime_config_drift",
+      "result": "headroom_document_manifest_mismatch",
+      "failed_latch": true
+    }
+  ],
+  "adapter_input_frame_adversarial": [
+    {
+      "case": "bool_index",
+      "result": "invalid message span descriptor",
+      "rpc_calls": 0
+    },
+    {
+      "case": "bad_content_hash",
+      "result": "stale span content",
+      "rpc_calls": 0
+    },
+    {
+      "case": "bad_span_hash",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "bool_start",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "negative_start",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "overlap",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "reverse",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "extra_entry_field",
+      "result": "invalid message span descriptor",
+      "rpc_calls": 0
+    },
+    {
+      "case": "extra_span_field",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "wrong_kind",
+      "result": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "missing_entry",
+      "result": "one span entry per eligible message required",
+      "rpc_calls": 0
+    }
+  ],
+  "counterexamples": [
+    {
+      "id": "P1",
+      "severity": "MEDIUM",
+      "location": "brainspace/headroom.py:393-394",
+      "claim": "Returned eligible/protected index arrays are exact typed echoes",
+      "reproduction_cases": [
+        {
+          "case": "eligible_float",
+          "field": "eligible_indices",
+          "value": [
+            2.0
+          ],
+          "result": "ACCEPTED",
+          "failed_latch": false
+        },
+        {
+          "case": "protected_false",
+          "field": "protected_indices",
+          "value": [
+            false,
+            1,
+            3,
+            4
+          ],
+          "result": "ACCEPTED",
+          "failed_latch": false
+        },
+        {
+          "case": "protected_true",
+          "field": "protected_indices",
+          "value": [
+            0,
+            true,
+            3,
+            4
+          ],
+          "result": "ACCEPTED",
+          "failed_latch": false
+        },
+        {
+          "case": "protected_float",
+          "field": "protected_indices",
+          "value": [
+            0,
+            1.0,
+            3,
+            4
+          ],
+          "result": "ACCEPTED",
+          "failed_latch": false
+        },
+        {
+          "case": "eligible_true",
+          "field": "eligible_indices",
+          "value": [
+            true
+          ],
+          "expected_indices": [
+            1
+          ],
+          "result": "ACCEPTED",
+          "failed_latch": false
+        }
+      ],
+      "impact": "Python list equality silently accepts bool/int/float substitutions in the response echo; malformed worker receipt can be accepted. This does not prove a final protected-message mutation because RuntimeSession independently checks original eligibility/content.",
+      "recommendation": "For the new strategy, require exact list type and strict int elements and/or canonical typed-JSON equality for eligible_indices and protected_indices; add bool/float echo regressions without changing legacy policy IDs."
+    }
+  ],
+  "runtime_adversarial_probes": [
+    {
+      "case": "accepted",
+      "starts": 1,
+      "prepare_calls": 1,
+      "primary_sends": 1,
+      "wire_unchanged": false,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "unbound_pristine",
+      "starts": 0,
+      "prepare_calls": 0,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "aggregate_span_budget",
+      "starts": 0,
+      "prepare_calls": 0,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "at_span_budget",
+      "starts": 1,
+      "prepare_calls": 1,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "unsupported_nested_fence",
+      "starts": 0,
+      "prepare_calls": 0,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "lost_fence",
+      "starts": 1,
+      "prepare_calls": 1,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "changed_structure",
+      "starts": 1,
+      "prepare_calls": 1,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "wire_expansion",
+      "starts": 1,
+      "prepare_calls": 1,
+      "primary_sends": 1,
+      "wire_unchanged": true,
+      "descriptors_confined_to_internal_rpc": true,
+      "input_unchanged": true
+    },
+    {
+      "case": "frozen_policy",
+      "rejected": "runtime_configuration_is_frozen",
+      "starts": 0
+    },
+    {
+      "case": "resource_drift",
+      "rejected": "fixture_resource_drift",
+      "starts": 0,
+      "primary_sends": 0
+    }
+  ],
+  "frame_bounds_and_output_fields": [
+    {
+      "case": "frame_size",
+      "reason": "preprotection request exceeds frame bound",
+      "rpc_calls": 0
+    },
+    {
+      "case": "eligible_bool",
+      "reason": "invalid_headroom_document_controls",
+      "rpc_calls": 0
+    },
+    {
+      "case": "frozen_bool",
+      "reason": "invalid_headroom_document_controls",
+      "rpc_calls": 0
+    },
+    {
+      "case": "recent_bool",
+      "reason": "invalid_headroom_document_controls",
+      "rpc_calls": 0
+    },
+    {
+      "case": "descriptor_unicode_hash",
+      "reason": "invalid structural span",
+      "rpc_calls": 0
+    },
+    {
+      "case": "response_diagnostic_fields_not_forwarded",
+      "prepared_keys": [
+        "messages",
+        "model"
+      ],
+      "passed": true
+    }
+  ],
+  "parser_independent_checks": [
+    {
+      "newline": "LF",
+      "unicode_prefix": false,
+      "spans": 3,
+      "slice_identity": true
+    },
+    {
+      "newline": "LF",
+      "unicode_prefix": true,
+      "spans": 3,
+      "slice_identity": true
+    },
+    {
+      "newline": "CRLF",
+      "unicode_prefix": false,
+      "spans": 3,
+      "slice_identity": true
+    },
+    {
+      "newline": "CRLF",
+      "unicode_prefix": true,
+      "spans": 3,
+      "slice_identity": true
+    }
+  ],
+  "policy_and_parser_identity": {
+    "default_policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+    "default_neighbor_ids": [
+      "runtime-policy-v1:0d9b509c8c71f63f9d61a844b1390e492f1a2443b03bf2cd952199655c5060f9",
+      "runtime-policy-v1:ac0b4fd80d6b2f5426fc128cf4bbf1b89046d967fc01df802a49dc65bfa42ce1",
+      "runtime-policy-v1:a3b2d79486c692059b9f24ca723f7fd67275bf5c848b360140759a7623990833",
+      "runtime-policy-v1:e47f2e8461bea75a1934b6975184943b02bb1206263995dabe7e33caa0011e9d",
+      "runtime-policy-v1:0044f3fafe9f2fa590b1c1d845ffb78ff4310c312ff2c88077377820b4ca299d",
+      "runtime-policy-v1:79bcf3ca9eec6b7dea3df86b3c115dee36ff645b7376883dea8ff36713421776"
+    ],
+    "default_neighbor_count": 6,
+    "new_mode_in_default_neighbors": false,
+    "single_parser_used_by_both_apis": true,
+    "max_total_spans": 256,
+    "catalog_version": "\"runtime-policy-neighbors-v4\""
+  },
+  "concurrent_parent_test_change": {
+    "file": "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py",
+    "before": "c18a82b00e970d8ca24b15739b0ee10a37d729f6144c39796cab50e7ecedb6ad",
+    "after": "4feaba318066efe5b32bbe3d333fdebc74c6926738b4635d32fcadbd1dd6df93",
+    "exact_change": "Test helper wire lambda replaced by equivalent named def returning the same json.dumps call; reversing only these bytes reproduces the exact original SHA.",
+    "production_parent_files_changed": false,
+    "fresh_targeted_recheck": {
+      "command": [
+        "C:\\Users\\shyamsridhar\\code\\TokenMaster\\.token-master-dev\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "tests/test_headroom_preprotection_parent.py"
+      ],
+      "exit_code": 0,
+      "stdout": ".....................                                                    [100%]\n21 passed in 2.86s\n",
+      "stderr": ""
+    }
+  },
+  "parent_source_after_hashes": {
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\document_structure.py": "5925a75902a07fd9c585516d99240f79896d877f11251a6899f730649d7001f4",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py": "29942e0643ec6f1e34c858671cad4ffb5faa2b7d3f386c8afa9ba7d128e79c73",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py": "c1bc6f36bad70a55b383e6909dd8fb13fb0121843fc56f1b568e37271db7c92a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_resources.py": "b0b2b3dd2a96f0e53caf5743ac7e6edeef38e75aec85553d5060f092aa3c1f56",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime.py": "78d5f76683148046b324fe482241e875eeb032ed54f566894a564806e30b933a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_document_structure_spans.py": "88169ff8821c5d68efc590dcc9140994ad966dd7657678ba8f75c03f63acc8fa",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py": "4feaba318066efe5b32bbe3d333fdebc74c6926738b4635d32fcadbd1dd6df93"
+  },
+  "parent_source_drift": [
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py"
+  ],
+  "pure_worker_dependency_after": {
+    "preprotection_indices": "bd4f0e1c889805d59326d730862b55b761c2859d021f5f6aecfc2c6f6f47acd7",
+    "document_indices": "61a3439023e83ceedd66c20e4ec9b84d8714b07c3a2b0b49d53976625db6834b",
+    "_canonical": "73b239d2c70f0ed55bdd009c196a1e74450579b4a0be1a04f73eefddee2eea35",
+    "_sha256": "338bfde56aa73d2eeabb04d0193677be726f34db765a7454c5a569f87bec661a",
+    "_successful_metadata": "7644c95288dfa0741f07d46f46fd6462def8051ca305c15b8fcecd4fb49fa2a7"
+  },
+  "pure_worker_dependency_drift": [],
+  "verdict": "PARTIAL",
+  "recommendation": "REQUEST_CHANGES_PARENT_ECHO_VALIDATION",
+  "worker_approval": false,
+  "recovery_approval": false,
+  "real_vendor_qualification": false,
+  "completed_utc": "2026-10-10T01:36:35.980897+00:00",
+  "audit_writes_finished": true,
+  "criteria": [
+    {
+      "claim": "Manual mode requires structure guard/nonexpansion; old off identity/neighbors/catalog preserved",
+      "verdict": "PASS",
+      "evidence": [
+        "focused_parent_tests",
+        "policy_and_parser_identity"
+      ]
+    },
+    {
+      "claim": "One parser exports exact immutable offsets/digests with unsupported distinct from empty",
+      "verdict": "PASS",
+      "evidence": [
+        "focused_parent_tests",
+        "parser_independent_checks"
+      ]
+    },
+    {
+      "claim": "Pristine binding and aggregate256-span/unsupported bypass before lazy startup",
+      "verdict": "PASS",
+      "evidence": [
+        "runtime_adversarial_probes"
+      ],
+      "scope": "Ordinary invoke; explicit readiness is separate."
+    },
+    {
+      "claim": "Request fields/index types/bounds/hash/control validation before RPC",
+      "verdict": "PASS",
+      "evidence": [
+        "adapter_input_frame_adversarial",
+        "frame_bounds_and_output_fields"
+      ]
+    },
+    {
+      "claim": "Exact typed returned eligible/protected index echoes",
+      "verdict": "FAIL",
+      "evidence": [
+        "adapter_echo_adversarial",
+        "P1"
+      ]
+    },
+    {
+      "claim": "Other span/control/config echo mismatches and lifetime config drift rejected",
+      "verdict": "PASS",
+      "evidence": [
+        "adapter_echo_adversarial"
+      ],
+      "qualification": "Except returned index-array types P1."
+    },
+    {
+      "claim": "Parent does not annotate pristine text; final Root/fence/structure/whole-wire guards retained",
+      "verdict": "PASS",
+      "evidence": [
+        "runtime_adversarial_probes",
+        "frame_bounds_and_output_fields"
+      ],
+      "scope": "Backend doubles, not actual worker deannotation or vendor recovery."
+    }
+  ],
+  "contract_interpretation": {
+    "file": "IMPLEMENTATION_CONTRACT.md",
+    "public_validation_reads": "New-mode public CompressionStore.retrieve may affect access/feedback; must be separately counted as preparation validation, never native recovery or free work.",
+    "strict_recovery_condition": "Each newly emitted vendor handle must resolve to a nonempty UTF8 exact contiguous pristine observed-source slice; reject contamination/ambiguity/absence/bounds violations, never decode/rekey annotated fragments to pass.",
+    "worker_boundary": "Annotation/deannotation, actual public pipeline/store/handler, validation side effects and recovery remain unapproved worker scope."
+  },
+  "gaps": [
+    "P1: returned index-array echoes accept bool/int/float substitutions.",
+    "Worker annotation/public pipeline/store/handler and validation/recovery accounting not qualified here.",
+    "Actual vendor/model/native/Docker qualification not executed; doubles only.",
+    "Pre-start skips apply to lazy invoke, not separately authorized prepare_components readiness."
+  ],
+  "risks": [
+    "Protected recognized structure and smaller input do not prove prose/query relevance, model quality, fewer reads or whole-task savings.",
+    "Only pure worker validator dependency ASTs were checked stable; full in-progress worker is not approved.",
+    "One concurrent test-only lambda-to-def cleanup was byte-reconstructed and freshly rerun; production parent files remained unchanged."
+  ],
+  "report_files": {
+    "markdown": "PARENT_REVIEW.md",
+    "markdown_sha256": "663011c9c0611f6fcd2ee2f0c84b1d904780f455d9e0b529c770f25203c9c67e",
+    "json": "PARENT_REVIEW.json"
+  },
+  "parent_echo_closure": {
+    "verdict": "PASS",
+    "completed_utc": "2026-10-10T01:45:52.457370+00:00",
+    "headroom_sha256": "ea35fd782d61f738c241d1d6824b3a641aa8977efab0af7efbf7bae8d79cad34",
+    "parent_test_sha256": "4e09a81fd4574e1b7ce258720c4334146bd40286e36b2311f4ac0f1f69727382",
+    "replayed_counterexamples": [
+      {
+        "case": "eligible_float",
+        "previous": "ACCEPTED",
+        "now": "headroom_document_manifest_mismatch",
+        "failed_latch": true
+      },
+      {
+        "case": "protected_false",
+        "previous": "ACCEPTED",
+        "now": "headroom_document_manifest_mismatch",
+        "failed_latch": true
+      },
+      {
+        "case": "protected_true",
+        "previous": "ACCEPTED",
+        "now": "headroom_document_manifest_mismatch",
+        "failed_latch": true
+      },
+      {
+        "case": "protected_float",
+        "previous": "ACCEPTED",
+        "now": "headroom_document_manifest_mismatch",
+        "failed_latch": true
+      },
+      {
+        "case": "eligible_true",
+        "previous": "ACCEPTED",
+        "now": "headroom_document_manifest_mismatch",
+        "failed_latch": true
+      }
+    ],
+    "fresh_test_evidence": {
+      "command": [
+        "C:\\Users\\shyamsridhar\\code\\TokenMaster\\.token-master-dev\\Scripts\\python.exe",
+        "-B",
+        "-m",
+        "pytest",
+        "-p",
+        "no:cacheprovider",
+        "-q",
+        "tests/test_headroom_preprotection_parent.py",
+        "tests/test_headroom_preprotection_worker.py",
+        "tests/test_headroom_document_worker.py",
+        "tests/test_headroom_document_adapter.py",
+        "tests/test_headroom_activity_ledger.py",
+        "tests/test_document_structure_spans.py",
+        "tests/test_document_structure_runtime.py"
+      ],
+      "cwd": "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master",
+      "exit_code": 0,
+      "stdout": "........................................................................ [ 22%]\n........................................................................ [ 45%]\n........................................................................ [ 67%]\n........................................................................ [ 90%]\n................................                                         [100%]\n320 passed in 6.03s\n",
+      "stderr": "",
+      "scope": "Pure worker/RPC dispatcher/parent composition with mocked vendor modules and no privileged bootstrap; no actual vendor/model/network."
+    },
+    "scope": "Parent P1 only; whole worker/recovery independently reviewed in WORKER_REVIEW, not granted by this closure."
+  },
+  "latest_parent_verdict": "PASS",
+  "parent_writes_finished": true,
+  "whole_composition_followup": {
+    "parent_echo_P1": "CLOSED_PASS",
+    "whole_composition_verdict": "FAIL",
+    "worker_report": "WORKER_REVIEW.md",
+    "cross_boundary_finding": "W2 eager readiness/early retrieval bypasses new-mode validation before worker strategy lock",
+    "separate_worker_finding": "W1 non-Exception termination loses current validation receipt",
+    "sources_unchanged": true
+  }
+}

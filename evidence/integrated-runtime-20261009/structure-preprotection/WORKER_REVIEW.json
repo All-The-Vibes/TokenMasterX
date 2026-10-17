@@ -1,0 +1,827 @@
+{
+  "status": "complete",
+  "started_utc": "2026-10-10T01:43:00.236520+00:00",
+  "source_before_hashes": {
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\headroom_worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py": "ea35fd782d61f738c241d1d6824b3a641aa8977efab0af7efbf7bae8d79cad34",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime.py": "78d5f76683148046b324fe482241e875eeb032ed54f566894a564806e30b933a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py": "c1bc6f36bad70a55b383e6909dd8fb13fb0121843fc56f1b568e37271db7c92a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_resources.py": "b0b2b3dd2a96f0e53caf5743ac7e6edeef38e75aec85553d5060f092aa3c1f56",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\document_structure.py": "5925a75902a07fd9c585516d99240f79896d877f11251a6899f730649d7001f4",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py": "4e09a81fd4574e1b7ce258720c4334146bd40286e36b2311f4ac0f1f69727382",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_worker.py": "2f710518e05b024d66320801bba4784c19a07ea5266e4c32a277e904983d694e"
+  },
+  "contract_sha256": "046e038dd9c7204daaeb32c407c6c8614766def323a0db0d7b683a4b283bb835",
+  "scope": "Whole explicit preprotection worker/recovery composition; offline controlled doubles, no vendor qualification/model/network/native/Docker.",
+  "focused_tests": {
+    "command": [
+      "C:\\Users\\shyamsridhar\\code\\TokenMaster\\.token-master-dev\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pytest",
+      "-p",
+      "no:cacheprovider",
+      "-q",
+      "tests/test_headroom_preprotection_parent.py",
+      "tests/test_headroom_preprotection_worker.py",
+      "tests/test_headroom_document_worker.py",
+      "tests/test_headroom_document_adapter.py",
+      "tests/test_headroom_activity_ledger.py",
+      "tests/test_document_structure_spans.py",
+      "tests/test_document_structure_runtime.py"
+    ],
+    "cwd": "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master",
+    "exit_code": 0,
+    "stdout": "........................................................................ [ 22%]\n........................................................................ [ 45%]\n........................................................................ [ 67%]\n........................................................................ [ 90%]\n................................                                         [100%]\n320 passed in 6.03s\n",
+    "stderr": "",
+    "scope": "Pure worker/RPC dispatcher/parent composition with mocked vendor modules and no privileged bootstrap; no actual vendor/model/network."
+  },
+  "independent_worker_probes": [
+    {
+      "case": "new_model_association",
+      "candidate": "reverted",
+      "validation_reads": 2,
+      "stored_binding_unchanged": true,
+      "old_raw_recovery_valid": true,
+      "handler_calls": 1,
+      "total_reads_after_genuine_recovery": 3
+    },
+    {
+      "case": "new_path_association",
+      "candidate": "reverted",
+      "validation_reads": 2,
+      "stored_binding_unchanged": true,
+      "old_raw_recovery_valid": true,
+      "handler_calls": 1,
+      "total_reads_after_genuine_recovery": 3
+    },
+    {
+      "case": "new_result_metadata_association",
+      "candidate": "reverted",
+      "validation_reads": 2,
+      "stored_binding_unchanged": true,
+      "old_raw_recovery_valid": true,
+      "handler_calls": 1,
+      "total_reads_after_genuine_recovery": 3
+    },
+    {
+      "case": "new_source_text_association",
+      "candidate": "reverted",
+      "validation_reads": 2,
+      "stored_binding_unchanged": true,
+      "old_raw_recovery_valid": true,
+      "handler_calls": 1,
+      "total_reads_after_genuine_recovery": 3
+    },
+    {
+      "case": "unicode_raw_recovery_exact",
+      "handler_calls": 1,
+      "additional_public_reads": 1,
+      "adapter_prereads": 0,
+      "content_wire_sha256": "f903bead624e288035fcc28e234ce36261cd2b2d56e862b8c7d598fe9cefe64c",
+      "raw_store_unchanged": true
+    },
+    {
+      "case": "changed_vendor_raw_after_validation",
+      "handler_calls_total": 2,
+      "constant_safe_refusal": true,
+      "prior_raw_retained": true
+    },
+    {
+      "case": "late_validation_exception",
+      "attempts": 2,
+      "public_reads": 2,
+      "outcomes": [
+        "validated_candidate",
+        "exception"
+      ],
+      "message_reverted": true,
+      "validated_not_published": true,
+      "exception_text_not_disclosed": true
+    },
+    {
+      "case": "new_handle_saturation",
+      "new_projection_reverted": true,
+      "additional_reads": 0,
+      "actual_validation_attempts": 1,
+      "prior_mapping_retained": true
+    }
+  ],
+  "full_parent_worker_composition_probe": {
+    "worker_candidate_validated": true,
+    "worker_candidate_changed": true,
+    "parent_final_wire_equals_unaugmented_original": true,
+    "parent_transformations": 0,
+    "native_recovery_calls": 0,
+    "public_preparation_reads": 1,
+    "validation_cost_inventory_retained": true,
+    "publication_label": "unknown_no_parent_ack",
+    "upstream_counters_scope": "annotated_vendor_pass_before_adapter_fallback_not_final_wire",
+    "parent_decision": "whole_request_reversion",
+    "actual_reference_original_input": 493,
+    "actual_reference_emitted_input": 493,
+    "generated_framing_or_offsets_in_model_wire": false,
+    "transport_scope": "in-memory canned transport; no primary inference",
+    "store_scope": "mock public store; no actual vendor behavior qualified"
+  },
+  "independent_exception_boundary_probe": [
+    {
+      "exception": "RuntimeError",
+      "public_retrieve_calls": 1,
+      "memory_inventory_attempts": 1,
+      "memory_outcome": "exception",
+      "emitted_response_count": 1,
+      "emitted_validation_receipts": [
+        {
+          "version": "preparation-validation-v1",
+          "attempts": 1,
+          "since_attempt": 0,
+          "events": [
+            {
+              "id": "preparation-validation-1",
+              "rpc_id": "doc-1",
+              "message_index": 4,
+              "handle": "aaaaaaaaaaaaaaaaaaaaaaaa",
+              "source_binding": "adcc6ec3be0558064a9e84b58aeb9800ba47e16ee78083e18d92554587e45d3f",
+              "source_sha256": "55ad03f325480efbfe049a3e1179d268fd0bea21532be06587f6ad349661cccb",
+              "outcome": "exception",
+              "public_retrieve_entered": true,
+              "error_type": "RuntimeError",
+              "seconds": 0.0
+            }
+          ],
+          "attempts_semantics": "cumulative_not_additive",
+          "public_retrieve_entries": 1,
+          "scope": "local_preparation_validation_not_native_or_model_recovery",
+          "feedback": "public_retrieve_updates_access_feedback_telemetry_toin_even_if_projection_reverts",
+          "publication": "unknown_no_parent_ack",
+          "validated_handles": 0,
+          "retained_bytes": 0,
+          "retained_frame_identities": 2,
+          "retention_unit": "exact_raw_fragment_utf8_bytes"
+        }
+      ],
+      "propagated": null,
+      "exit_return": 0
+    },
+    {
+      "exception": "KeyboardInterrupt",
+      "public_retrieve_calls": 1,
+      "memory_inventory_attempts": 1,
+      "memory_outcome": "exception",
+      "emitted_response_count": 0,
+      "emitted_validation_receipts": [],
+      "propagated": "KeyboardInterrupt",
+      "exit_return": null
+    },
+    {
+      "exception": "SystemExit",
+      "public_retrieve_calls": 1,
+      "memory_inventory_attempts": 1,
+      "memory_outcome": "exception",
+      "emitted_response_count": 0,
+      "emitted_validation_receipts": [],
+      "propagated": "SystemExit",
+      "exit_return": null
+    }
+  ],
+  "findings": [
+    {
+      "id": "W1",
+      "severity": "MEDIUM",
+      "title": "Non-Exception interruption after public validation read is not emitted in a durable worker receipt",
+      "locations": [
+        "brainspace/headroom_worker.py:643-685",
+        "brainspace/headroom_worker.py:1229-1242"
+      ],
+      "counterexamples": [
+        {
+          "exception": "KeyboardInterrupt",
+          "public_retrieve_calls": 1,
+          "memory_inventory_attempts": 1,
+          "memory_outcome": "exception",
+          "emitted_response_count": 0,
+          "propagated": "KeyboardInterrupt",
+          "exit_return": null
+        },
+        {
+          "exception": "SystemExit",
+          "public_retrieve_calls": 1,
+          "memory_inventory_attempts": 1,
+          "memory_outcome": "exception",
+          "emitted_response_count": 0,
+          "propagated": "SystemExit",
+          "exit_return": null
+        }
+      ],
+      "impact": "validate() records the side-effecting read in memory then rethrows KeyboardInterrupt/SystemExit; dispatcher only catches Exception, so zero response/validation inventory reaches the parent for that entered read. Parent can mark the RPC incomplete, but cannot preserve the known preparation-read count/outcome from the worker.",
+      "scope": "Safely simulated in-memory actual dispatcher loop with privileged bootstrap removed; no OS interruption, process/model/network/store operation beyond doubles. Regular RuntimeError remains counted and safe.",
+      "recommendation": "At the dispatcher termination boundary, best-effort emit the existing preparation/ONNX inventory for non-Exception exits before preserving cancellation/exit semantics; do not retry the operation. Add controlled KeyboardInterrupt/SystemExit tests. Keep hard-kill/closed-pipe inventory gaps explicitly unknown."
+    },
+    {
+      "id": "W2",
+      "severity": "HIGH",
+      "title": "Selected preprotected parent can route recovery through legacy unvalidated handler before first compression",
+      "locations": [
+        "brainspace/headroom.py:421-429",
+        "brainspace/headroom_worker.py:1085-1086",
+        "brainspace/headroom_worker.py:1175-1186",
+        "brainspace/runtime.py:371-377",
+        "brainspace/runtime.py:_recover_content"
+      ],
+      "counterexample": {
+        "parent_declared_strategy": "native-documents-structure-tags-v1",
+        "parent_strategy_manifest_before": null,
+        "worker_strategy_before": null,
+        "prior_compression_or_validation_calls": 0,
+        "entered_public_handler_calls": 1,
+        "entered_public_store_reads": 1,
+        "worker_success": true,
+        "parent_returned_raw_handler_text": true,
+        "contaminated_original_in_seeded_vendor_double_returned": true,
+        "entry_raw_sha256": "ce3d8dc4df676692d04da07bc62b5ef3c4d98896db9d9c05a86896d56d014736",
+        "scope": "Actual dispatcher code via no-bootstrap mock harness; fake store seeded to expose return path, not a claim such an entry exists in a real fresh worker. Unvalidated/unknown handler invocation occurs even before any public source validation.",
+        "production_reachability": "HeadroomContainer strategy selected at construction is not sent/locked in worker until first compression RPC. RuntimeSession.prepare_components can start selected Headroom before any compression; recover then sees _headroom active and calls retrieve."
+      },
+      "impact": "Before strategy lock, retrieve uses the legacy handler branch; zero validation is required and the parent returns its raw text. The new mode promise to reject unvalidated handles without exposing annotated content is not enforced over eager-readiness/early-recovery ordering.",
+      "recommendation": "Bind the selected strategy before any recovery can dispatch, or fail closed in the parent new-mode retrieval path until a validated new-mode prepare handshake exists; retain legacy behavior for old strategies. Add eager-start/early-retrieve regressions for absent and contaminated seeded entries, requiring no handler/read for unvalidated handles."
+    }
+  ],
+  "early_recovery_probe": {
+    "parent_declared_strategy": "native-documents-structure-tags-v1",
+    "parent_strategy_manifest_before": null,
+    "worker_strategy_before": null,
+    "prior_compression_or_validation_calls": 0,
+    "entered_public_handler_calls": 1,
+    "entered_public_store_reads": 1,
+    "worker_success": true,
+    "parent_returned_raw_handler_text": true,
+    "contaminated_original_in_seeded_vendor_double_returned": true,
+    "entry_raw_sha256": "ce3d8dc4df676692d04da07bc62b5ef3c4d98896db9d9c05a86896d56d014736",
+    "scope": "Actual dispatcher code via no-bootstrap mock harness; fake store seeded to expose return path, not a claim such an entry exists in a real fresh worker. Unvalidated/unknown handler invocation occurs even before any public source validation.",
+    "production_reachability": "HeadroomContainer strategy selected at construction is not sent/locked in worker until first compression RPC. RuntimeSession.prepare_components can start selected Headroom before any compression; recover then sees _headroom active and calls retrieve."
+  },
+  "early_recovery_runtime_composition": {
+    "real_RuntimeSession_prepare_components_and_recover": true,
+    "actual_parent_retrieve_method": true,
+    "actual_worker_dispatcher_without_privileged_bootstrap": true,
+    "runtime_declared_strategy": "native-documents-structure-tags-v1",
+    "prior_compressions": 0,
+    "prior_primary_sends": 0,
+    "public_handler_calls": 1,
+    "public_store_reads": 1,
+    "unvalidated_framed_fragment_returned": true,
+    "resource_and_transport_scope": "explicit doubles; no actual network/Docker/native/model/old store",
+    "returned_tool_message": "{\n  \"hash\": \"aaaaaaaaaaaaaaaaaaaaaaaa\",\n  \"original_content\": \"<tm-structure-unvalidated>framed entry</tm-structure-unvalidated>\",\n  \"original_item_count\": 1\n}"
+  },
+  "old_strategy_probes": [
+    {
+      "operation": "compress",
+      "public_preparation_reads": 0,
+      "custom_tag_preflights": 0,
+      "native_handler_calls": 0,
+      "new_validation_fields_in_old_response": false,
+      "legacy_facade_calls": 1,
+      "document_pipeline_calls": 0
+    },
+    {
+      "operation": "compress_documents",
+      "public_preparation_reads": 0,
+      "custom_tag_preflights": 0,
+      "native_handler_calls": 0,
+      "new_validation_fields_in_old_response": false,
+      "legacy_facade_calls": 0,
+      "document_pipeline_calls": 1
+    }
+  ],
+  "selfcontained_static_review": {
+    "no_relative_or_product_test_eval_imports": true,
+    "no_direct_vendor_private_backend_access": true,
+    "forbidden_nodes": [],
+    "allowed_existing_handler_entry": "CCRResponseHandler._execute_retrieval, exactly one entry after new-mode validation; this existing handler path is not direct backend access. Early pre-lock exception to validation is W2."
+  },
+  "local_primary_source_reads": {
+    "docs\\research\\2026-10-04-parity\\headroom\\source\\headroom-1cf496612e781ef8d67ff87ee4f78037492f0bc7\\headroom\\transforms\\tag_protector.py": "fc3471e91c62b954b860ed9047d6448ff9a5d3467aaea248605ab68ed6c153b9",
+    "docs\\research\\2026-10-04-parity\\headroom\\source\\headroom-1cf496612e781ef8d67ff87ee4f78037492f0bc7\\headroom\\cache\\compression_store.py": "1f269d508abe7590f0634654832bd6fd45786dc8f3e569d983966648c87b1a73",
+    "docs\\research\\2026-10-04-parity\\headroom\\source\\headroom-1cf496612e781ef8d67ff87ee4f78037492f0bc7\\headroom\\ccr\\response_handler.py": "67948fe59b945d4b2146ffb0ac35c7a42fda198af5e5db8eb21dc6582755e823"
+  },
+  "public_api_read_findings": {
+    "protect_restore_shape": "Pinned shim returns str and list[(placeholder, original)]; no execution here.",
+    "store_retrieve_side_effects": "Public retrieve calls record_access, backend update and optional feedback/TOIN. Adapter calls public API, not those backend internals directly.",
+    "handler_shape": "Pinned handler retrieves and emits hash/original_content/original_item_count; adapter inspects and returns the exact successful content string, or fixed clean refusal.",
+    "actual_vendor_qualification_executed": false
+  },
+  "runtime_boundary_lines": {
+    "_prepare_components": 371,
+    "_recover_content": 897
+  },
+  "verdict": "FAIL",
+  "recommendation": "REQUEST_CHANGES_BEFORE_WHOLE_COMPOSITION_APPROVAL",
+  "source_after_hashes": {
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\headroom_worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py": "ea35fd782d61f738c241d1d6824b3a641aa8977efab0af7efbf7bae8d79cad34",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime.py": "78d5f76683148046b324fe482241e875eeb032ed54f566894a564806e30b933a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py": "c1bc6f36bad70a55b383e6909dd8fb13fb0121843fc56f1b568e37271db7c92a",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\runtime_resources.py": "b0b2b3dd2a96f0e53caf5743ac7e6edeef38e75aec85553d5060f092aa3c1f56",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\brainspace\\document_structure.py": "5925a75902a07fd9c585516d99240f79896d877f11251a6899f730649d7001f4",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py": "4e09a81fd4574e1b7ce258720c4334146bd40286e36b2311f4ac0f1f69727382",
+    "C:\\Users\\shyamsridhar\\code\\TokenMaster\\token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_worker.py": "2f710518e05b024d66320801bba4784c19a07ea5266e4c32a277e904983d694e"
+  },
+  "source_unchanged_during_review": true,
+  "completed_utc": "2026-10-10T02:00:07.783997+00:00",
+  "audit_writes_finished": true,
+  "old_evidence_and_registries_untouched": true,
+  "production_edits": false,
+  "actual_vendor_qualification": false,
+  "model_native_docker_network_calls": 0,
+  "criteria": [
+    {
+      "claim": "Parent typed E/complement response echo fix",
+      "verdict": "PASS",
+      "evidence": "PARENT_REVIEW parent_echo_closure:5/5 original malformed echoes now rejected"
+    },
+    {
+      "claim": "Self-contained worker and actual public API entry shapes; no direct private backend access",
+      "verdict": "PASS",
+      "evidence": [
+        "selfcontained_static_review",
+        "public_api_read_findings"
+      ],
+      "scope": "Source inspection and vendor doubles only, not actual vendor runtime qualification"
+    },
+    {
+      "claim": "Exact registered frames, pristine query/protected metadata, no-frame-loss repair",
+      "verdict": "PASS",
+      "evidence": [
+        "focused_tests",
+        "full_parent_worker_composition_probe"
+      ]
+    },
+    {
+      "claim": "Immutable handle/raw/source binding, new origin revalidation, bounded non-evicting registries",
+      "verdict": "PASS",
+      "evidence": [
+        "independent_worker_probes",
+        "focused_tests"
+      ]
+    },
+    {
+      "claim": "Preparation reads/feedback disclosed and all entered read attempts durably emitted even on interruption",
+      "verdict": "PARTIAL",
+      "evidence": [
+        "independent_exception_boundary_probe",
+        "W1"
+      ],
+      "scope": "Ordinary exceptions retained; KeyboardInterrupt/SystemExit stay only in worker memory"
+    },
+    {
+      "claim": "Unknown/unvalidated new-mode recovery always refuses before handler, including eager-start ordering",
+      "verdict": "FAIL",
+      "evidence": [
+        "early_recovery_probe",
+        "early_recovery_runtime_composition",
+        "W2"
+      ]
+    },
+    {
+      "claim": "After new-mode handshake, known-handle handler exactly once/no extra preread; raw content unchanged or clean refusal",
+      "verdict": "PASS",
+      "evidence": [
+        "independent_worker_probes",
+        "focused_tests"
+      ],
+      "scope": "Does not cover failing pre-handshake ordering W2"
+    },
+    {
+      "claim": "Validated candidate never equated with parent publication or savings",
+      "verdict": "PASS",
+      "evidence": [
+        "full_parent_worker_composition_probe"
+      ]
+    },
+    {
+      "claim": "Old strategies gain no prevalidation/tag reads and retain mode separation",
+      "verdict": "PASS",
+      "evidence": [
+        "old_strategy_probes",
+        "focused_tests"
+      ]
+    }
+  ],
+  "gaps": [
+    "W2 early-recovery validation bypass must be fixed/tested across explicit eager readiness and first RPC ordering.",
+    "W1 non-Exception interruption should best-effort emit known preparation/ONNX inventories without retry, then preserve termination semantics.",
+    "Actual pinned public API/tag/pipeline/store/handler dynamic qualification remains pending; all execution here used explicit doubles.",
+    "No real-model/native efficacy, all-in savings, promotion or production readiness claim.",
+    "Hard kill or a broken output channel cannot promise complete durable inventories; those cases must remain unknown/incomplete."
+  ],
+  "risks": [
+    "W2 contamination is demonstrated with a seeded in-memory vendor store; actual fresh-container entry reachability was not measured. The unconditional missing validation/extra handler call is directly reproduced.",
+    "Public retrieve side effects are part of the new strategy, not free observation; late raw audits may contain annotation but must never be treated as model delivery.",
+    "Retained validation candidates are not proof of publication; parent whole-wire fallback can preserve costs while publishing no transform."
+  ],
+  "report_files": {
+    "markdown": "WORKER_REVIEW.md",
+    "markdown_sha256": "919041946ab18fde1de851b51c4f7bd3277a49a54d40d7f294da0a6e8645c632",
+    "json": "WORKER_REVIEW.json"
+  }
+,
+  "followups": [
+  {
+    "version": "effective-protection-and-public-api-followup-v1",
+    "started_utc": "2026-10-10T02:19:43.134410+00:00",
+    "completed_utc": "2026-10-10T02:19:43.747549+00:00",
+    "verdict": "FAIL",
+    "scope": "Independent in-memory counterexample and read-only inspection of parent controlled public-API evidence; no production/runtime/vendor execution",
+    "parent_P1": "CLOSED; prior closure remains unchanged",
+    "open_findings": [
+      "W1",
+      "W2",
+      "W3"
+    ],
+    "new_finding": {
+      "id": "W3",
+      "severity": "MEDIUM",
+      "title": "Effective fallback-added hard protection is not enforced after the pipeline",
+      "locations": [
+        "headroom_worker.py:907-916",
+        "headroom_worker.py:931-948",
+        "headroom_worker.py:954-958"
+      ],
+      "observed": "E4 in effective_protect; changed content does not raise; all final messages equal pristine originals. Non-E0 mutation raises.",
+      "impact": "Hard-protect enforcement contract gap; no demonstrated model-content bypass, contaminated output or vendor recovery leak in this counterexample.",
+      "required_change": "Validate exact equality for effective_protect, not only original protect; retain original fallback and add hostile-pipeline regressions for fallback-added protection. No fix made by reviewer."
+    },
+    "independent_reproduction_results": [
+      {
+        "effective_protected_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "raised": false,
+        "final_equals_original": true,
+        "decisions": [
+          {
+            "index": 4,
+            "status": "fallback",
+            "reason": "tag_preflight_failed"
+          }
+        ],
+        "mutated_index": null,
+        "request_unchanged": true,
+        "public_reads": 0,
+        "handler_calls": 0,
+        "pipeline_calls": 1
+      },
+      {
+        "effective_protected_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "raised": false,
+        "final_equals_original": true,
+        "decisions": [
+          {
+            "index": 4,
+            "status": "fallback",
+            "reason": "tag_preflight_failed"
+          }
+        ],
+        "mutated_index": 4,
+        "request_unchanged": true,
+        "public_reads": 0,
+        "handler_calls": 0,
+        "pipeline_calls": 1
+      },
+      {
+        "effective_protected_indices": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "raised": true,
+        "error_type": "ValueError",
+        "error": "pipeline changed protected message",
+        "mutated_index": 0,
+        "request_unchanged": true,
+        "public_reads": 0,
+        "handler_calls": 0,
+        "pipeline_calls": 1
+      }
+    ],
+    "reproduction_setup": "Run existing .token-master-dev/Scripts/python.exe -B; put token-master-plugin/skills/token-master and its tests on sys.path; import json, pytest and test_headroom_preprotection_worker as t. No real worker main/bootstrap.",
+    "reproduction_python": "results=[]\nfor target in [None,4,0]:\n    mp=pytest.MonkeyPatch()\n    try:\n        v=t.vendor.__wrapped__(mp); v.preflight_mode='lost'\n        runner=t.worker.DocumentPipeline(preprotect=True)\n        incoming=t.request(); pristine=json.loads(json.dumps(incoming))\n        apply=runner.pipeline.apply; seen={}\n        def corrupt(**kwargs):\n            seen['effective_protected_indices']=sorted(kwargs['protect'])\n            result=apply(**kwargs)\n            if target is not None:\n                result.messages[target]['content']='MUTATED PROTECTED CONTENT'\n            return result\n        runner.pipeline.apply=corrupt\n        try:\n            result,receipt=runner.compress(incoming)\n            seen.update(raised=False, final_equals_original=result.messages==pristine['messages'],\n                        decisions=receipt['preprotection']['decisions'])\n        except Exception as exc:\n            seen.update(raised=True,error_type=type(exc).__name__,error=str(exc))\n        seen.update(mutated_index=target,request_unchanged=incoming==pristine,\n                    public_reads=len(v.reads),handler_calls=len(v.handler_calls),\n                    pipeline_calls=len(v.applies))\n        results.append(seen)\n    finally:\n        mp.undo()\nassert results[0]['raised'] is False and results[0]['final_equals_original'] is True\nassert results[1]['raised'] is False and results[1]['final_equals_original'] is True\nassert 4 in results[1]['effective_protected_indices']\nassert results[2]['raised'] is True and results[2]['error']=='pipeline changed protected message'\nassert all(r['public_reads']==r['handler_calls']==0 and r['request_unchanged'] for r in results)\n",
+    "parent_red_receipt_consistent": true,
+    "public_api_qualification": {
+      "verdict": "PASS for probe003 bounded controlled mechanics only",
+      "runs": [
+        {
+          "run": "001",
+          "passed": false,
+          "error_type": "ValueError",
+          "plan_sha256": "c94a9c49c91a32c0e5a6a4dfd2474070ed632c0da12132b685d665294035f7ff",
+          "plan_seal_and_snapshot_hashes_verified": true,
+          "worker_matches_unchanged_product": true,
+          "current_checkout_drift_from_historical_plan": [
+            "evidence\\integrated-runtime-20261009\\structure-preprotection\\run_public_api_probe.py",
+            "evidence\\integrated-runtime-20261009\\structure-preprotection\\public_api_probe.py"
+          ],
+          "stdout_equals_summary": false,
+          "recomputed_parent_guards": [],
+          "recomputed_validation_events": [],
+          "cleanup_receipt_matches_exact_cid_and_rm": true,
+          "recorded_terminal_state": "created",
+          "controlled_probe_metadata": {}
+        },
+        {
+          "run": "002",
+          "passed": false,
+          "error_type": "ValueError",
+          "plan_sha256": "dc07f9f07e50458ae3e83783f2edf610aff40ec93a0a37c1270e9bb84e568bfa",
+          "plan_seal_and_snapshot_hashes_verified": true,
+          "worker_matches_unchanged_product": true,
+          "current_checkout_drift_from_historical_plan": [
+            "evidence\\integrated-runtime-20261009\\structure-preprotection\\public_api_probe.py"
+          ],
+          "stdout_equals_summary": true,
+          "recomputed_parent_guards": [
+            {
+              "case": "mixed",
+              "fence_restoration_available": false,
+              "structure_preserved": false
+            },
+            {
+              "case": "pure",
+              "fence_restoration_available": true,
+              "structure_preserved": true
+            }
+          ],
+          "recomputed_validation_events": [
+            {
+              "case": "mixed",
+              "handle": "8ff436def1451285599a1b1a",
+              "outcome": "validated_candidate",
+              "source_sha256_verified": true,
+              "raw_utf8_bytes": 5,
+              "unique_slice_digest_length_verified": true,
+              "source_binding_verified": true
+            },
+            {
+              "case": "mixed",
+              "handle": "eeed0cc1fe77c3c386553279",
+              "outcome": "validated_candidate",
+              "source_sha256_verified": true,
+              "raw_utf8_bytes": 6931,
+              "unique_slice_digest_length_verified": true,
+              "source_binding_verified": true
+            },
+            {
+              "case": "pure",
+              "handle": "4f56d6aecde22eb529d33e3c",
+              "outcome": "contaminated",
+              "source_sha256_verified": true,
+              "raw_utf8_bytes": 13745
+            }
+          ],
+          "cleanup_receipt_matches_exact_cid_and_rm": true,
+          "recorded_terminal_state": "exited",
+          "controlled_probe_metadata": {
+            "passed": true,
+            "scope": "actual public APIs with controlled detector/compressor doubles",
+            "real_primary_model_calls": 0,
+            "learned_compressor": "controlled_double",
+            "detector_double_calls": 2,
+            "compressor_double_calls": 3,
+            "network_attempts": 0,
+            "neural_efficacy": false,
+            "task_quality": false,
+            "savings_claim": false
+          }
+        },
+        {
+          "run": "003",
+          "passed": true,
+          "error_type": null,
+          "plan_sha256": "950f56340ca7a4e209643cba411841748f8c7f57f7bba6d6df3ded587a72910c",
+          "plan_seal_and_snapshot_hashes_verified": true,
+          "worker_matches_unchanged_product": true,
+          "current_checkout_drift_from_historical_plan": [],
+          "stdout_equals_summary": true,
+          "recomputed_parent_guards": [
+            {
+              "case": "mixed",
+              "fence_restoration_available": true,
+              "structure_preserved": true
+            },
+            {
+              "case": "pure",
+              "fence_restoration_available": true,
+              "structure_preserved": true
+            }
+          ],
+          "recomputed_validation_events": [
+            {
+              "case": "mixed",
+              "handle": "eeed0cc1fe77c3c386553279",
+              "outcome": "validated_candidate",
+              "source_sha256_verified": true,
+              "raw_utf8_bytes": 6931,
+              "unique_slice_digest_length_verified": true,
+              "source_binding_verified": true
+            },
+            {
+              "case": "pure",
+              "handle": "fab0ef3fd7cdc2be00fa8bc7",
+              "outcome": "contaminated",
+              "source_sha256_verified": true,
+              "raw_utf8_bytes": 13745
+            }
+          ],
+          "cleanup_receipt_matches_exact_cid_and_rm": true,
+          "recorded_terminal_state": "exited",
+          "controlled_probe_metadata": {
+            "passed": true,
+            "scope": "actual public APIs with controlled detector/compressor doubles",
+            "real_primary_model_calls": 0,
+            "learned_compressor": "controlled_double",
+            "detector_double_calls": 2,
+            "compressor_double_calls": 2,
+            "network_attempts": 0,
+            "neural_efficacy": false,
+            "task_quality": false,
+            "savings_claim": false
+          }
+        }
+      ],
+      "retained_failures": {
+        "001": "No probe stdout; terminal created/unstarted; create arguments omit -i and specify -B -u /inputs/probe.py, inconsistent with strict Cmd/OpenStdin. Summary records only ValueError, not exact failing field.",
+        "002": "Container probe exit0 is not parent success: mixed candidate fails fence/structure guard. Independently verified 5-byte x = 1 was a validated compressed fragment. Pure case remains unchanged."
+      },
+      "new_003_evidence": "Actual tag/pipeline/store/handler imported by frozen probe; detector and learned compressor explicitly doubled. Mixed unique pristine 6931-byte fragment digest/length/source binding independently match; real handler equal-fragment and changed-entry refusal are asserted by frozen script and recorded pass. Pure route has one contaminated validation read and exact original fallback. Both parent guards independently recompute true.",
+      "known_feedback_work": "Two preparation validation reads across two independent case-local stores in003; mixed validated_candidate, pure contaminated; feedback effects explicitly recorded even for fallback; publication remains unknown_no_parent_ack.",
+      "limits": [
+        "Not a complete RuntimeSession/native wire/Root/size-guard qualification; existing mocked composition evidence remains separate.",
+        "No neural efficacy, real-model task quality, all-in savings, default enablement or promotion claim.",
+        "Handler raw responses were asserted in the frozen probe but are not separately persisted. raw_entry_preservation=true is a literal report field, not an independently instrumented store census.",
+        "Cleanup accepted as exact-owned recorded receipts, not a fresh Docker inspection. Probe001 lacks saved inspect and exact exception message; its pre-start boundary diagnosis is source/command inference.",
+        "Earlier runner source001 is hash-pinned but not snapshotted; current harness drift is expected and must not be called during-execution product drift. Probe003 all seven plan source pins match."
+      ]
+    },
+    "source_and_original_artifact_before_hashes": {
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\effective-protection-red.json": "12dc204fa66ffe4f4b4871cae55132074dafff91ccf96107dac3133b3e241122",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\IMPLEMENTATION_CONTRACT.md": "046e038dd9c7204daaeb32c407c6c8614766def323a0db0d7b683a4b283bb835",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\PARENT_REVIEW.json": "c419f1bbdad7ffc3d1af71fb3982cb379664806c649943c5a5a00e358c078ce3",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\PARENT_REVIEW.md": "fde8fd3493b38b7cb744486e7d6019fa60f6a75f8208f83a87e3df76bbe67ebc",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\container-id.txt": "2de0aee35061d1ce5893433a79472e0e8f36351f5881545de41ac2133e799f1d",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\control\\cleanup.json": "bd193f876452e36d4037daad8bf00aab2763570ad08a18ad14ef3f2c50996fa4",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\control\\docker-commands.json": "8a4fd2dfb6a134da65b812974def8e4a5163bbf11b313e1055d08148cc6fc185",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\docker-config\\config.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\plan-seal.json": "d4b41ca06f3e933a2ac7996ce664bb2184d1185818826600c0941fc748691866",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\plan.json": "c94a9c49c91a32c0e5a6a4dfd2474070ed632c0da12132b685d665294035f7ff",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\probe.py": "45b67c51785d9f302aee25334550475c79bb7994525efdf198f3db916ee9e505",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\started.json": "4f7ce2fc696d396cc6ec9ec5b755a642250bf771b60afb0d335dc606fe1931f1",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\summary.json": "2fcf117319be0d85a056036a1f20fbc864b3f4790752eca244ef88bd7f69914c",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\container-id.txt": "45775799256fd2dbf32e3d2777f206c507be32e029b3c31550a16700cacfcc40",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\container-inspect.json": "5dd339b801ab3266ecf6f93bef55ece8a2bade47cdc2540e3050cd8829d22df7",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\control\\cleanup.json": "4b20fd37967d8e157cfa1c23c62f530ccb2efb2dd795190bb185df61a4fcd765",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\control\\docker-commands.json": "0d0ea0b30885887813ba1e16dd0c6838cdcd8eb17873f539c3aa28e8d43202db",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\docker-config\\config.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\parent-guard-checks.json": "e58cc9938b134f6c4c01f161130b37c4802e3f940aad76c04489ae46e6040c80",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\plan-seal.json": "7d55744fa51d14f1edab8361ab08c55014ef1f74fbb377cf9ba41c7528accbfc",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\plan.json": "dc07f9f07e50458ae3e83783f2edf610aff40ec93a0a37c1270e9bb84e568bfa",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\probe.py": "3acf7e37309fbbba807f738ede8d31ab61c9255f84f3802adfc268265d18eaa9",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\started.json": "4f7ce2fc696d396cc6ec9ec5b755a642250bf771b60afb0d335dc606fe1931f1",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\stderr.txt": "1c5d6614796d02550cf308eacb1005a6349dcefbea242fc130edf2867f87fbd3",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\stdout.txt": "45333a9f9c95cb3dc5cc53bd72d1eff5352911741ea869dadd0c31e84e1ad86b",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\summary.json": "3dde9b34b1a1e3a53b68c1194f8da833a40cd7f912161bededc2b46d7a319c19",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\container-id.txt": "2283d6974890f83799ca628d9825e6e46d04909c0a7fe24baa8c58dfc80c3cff",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\container-inspect.json": "7184a31f522745bcb0b93649005da6db63e2af665a86149b0ca0bd734c838fac",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\control\\cleanup.json": "07dfa869026eca345c4ff2c8e3a01d06333471ec29c108f9cff9f38682ab28b4",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\control\\docker-commands.json": "c04e83f3c58d89b8de02c19d982efb55bfb7fbd0d8d7b256c8b9aeabb54ad7f7",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\docker-config\\config.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\parent-guard-checks.json": "878cb12500bbdcc9e3b4e5819a890b477790a7cd0befc039a44f8ad904f14ec6",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\plan-seal.json": "285139c45efc18399355cf5ed7588fd5aea7de47a5a8a52757b6f48aa64fd8da",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\plan.json": "950f56340ca7a4e209643cba411841748f8c7f57f7bba6d6df3ded587a72910c",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\probe.py": "ca63e940af664c38565adf840d9b233232369b50899e9ab74310330746e04720",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\started.json": "4f7ce2fc696d396cc6ec9ec5b755a642250bf771b60afb0d335dc606fe1931f1",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\stderr.txt": "c23f2cb87b3eb8e90e7f2ba276cc0a343255ea7cd8c30351cd9c918bd01e9bc2",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\stdout.txt": "58f622300fa8097d28d5b80031052180aed4ac5776a9035f275250886525760c",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\summary.json": "8488b021826213911e1ecbb56d4f61ee614fe16e0dd7ef0ad4198a6b62e0e9b8",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public_api_probe.py": "ca63e940af664c38565adf840d9b233232369b50899e9ab74310330746e04720",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\run_public_api_probe.py": "1d72a86438845188e4248be9c7a8fe5381c4e53d70ea500057fb42c8367e5748",
+      "token-master-plugin\\skills\\token-master\\brainspace\\document_structure.py": "5925a75902a07fd9c585516d99240f79896d877f11251a6899f730649d7001f4",
+      "token-master-plugin\\skills\\token-master\\brainspace\\headroom.py": "ea35fd782d61f738c241d1d6824b3a641aa8977efab0af7efbf7bae8d79cad34",
+      "token-master-plugin\\skills\\token-master\\brainspace\\headroom_worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "token-master-plugin\\skills\\token-master\\brainspace\\protected_text.py": "4406825058e81b7c76c3d2ecfc4de76d08e4636d9ad950b6c7a51c1c4444136f",
+      "token-master-plugin\\skills\\token-master\\brainspace\\runtime.py": "78d5f76683148046b324fe482241e875eeb032ed54f566894a564806e30b933a",
+      "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py": "c1bc6f36bad70a55b383e6909dd8fb13fb0121843fc56f1b568e37271db7c92a",
+      "token-master-plugin\\skills\\token-master\\brainspace\\runtime_resources.py": "b0b2b3dd2a96f0e53caf5743ac7e6edeef38e75aec85553d5060f092aa3c1f56",
+      "token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py": "4e09a81fd4574e1b7ce258720c4334146bd40286e36b2311f4ac0f1f69727382",
+      "token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_worker.py": "2f710518e05b024d66320801bba4784c19a07ea5266e4c32a277e904983d694e"
+    },
+    "source_and_original_artifact_after_hashes": {
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\effective-protection-red.json": "12dc204fa66ffe4f4b4871cae55132074dafff91ccf96107dac3133b3e241122",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\IMPLEMENTATION_CONTRACT.md": "046e038dd9c7204daaeb32c407c6c8614766def323a0db0d7b683a4b283bb835",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\PARENT_REVIEW.json": "c419f1bbdad7ffc3d1af71fb3982cb379664806c649943c5a5a00e358c078ce3",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\PARENT_REVIEW.md": "fde8fd3493b38b7cb744486e7d6019fa60f6a75f8208f83a87e3df76bbe67ebc",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\container-id.txt": "2de0aee35061d1ce5893433a79472e0e8f36351f5881545de41ac2133e799f1d",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\control\\cleanup.json": "bd193f876452e36d4037daad8bf00aab2763570ad08a18ad14ef3f2c50996fa4",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\control\\docker-commands.json": "8a4fd2dfb6a134da65b812974def8e4a5163bbf11b313e1055d08148cc6fc185",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\docker-config\\config.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\plan-seal.json": "d4b41ca06f3e933a2ac7996ce664bb2184d1185818826600c0941fc748691866",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\plan.json": "c94a9c49c91a32c0e5a6a4dfd2474070ed632c0da12132b685d665294035f7ff",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\probe.py": "45b67c51785d9f302aee25334550475c79bb7994525efdf198f3db916ee9e505",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\started.json": "4f7ce2fc696d396cc6ec9ec5b755a642250bf771b60afb0d335dc606fe1931f1",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\summary.json": "2fcf117319be0d85a056036a1f20fbc864b3f4790752eca244ef88bd7f69914c",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-001\\worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\container-id.txt": "45775799256fd2dbf32e3d2777f206c507be32e029b3c31550a16700cacfcc40",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\container-inspect.json": "5dd339b801ab3266ecf6f93bef55ece8a2bade47cdc2540e3050cd8829d22df7",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\control\\cleanup.json": "4b20fd37967d8e157cfa1c23c62f530ccb2efb2dd795190bb185df61a4fcd765",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\control\\docker-commands.json": "0d0ea0b30885887813ba1e16dd0c6838cdcd8eb17873f539c3aa28e8d43202db",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\docker-config\\config.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\parent-guard-checks.json": "e58cc9938b134f6c4c01f161130b37c4802e3f940aad76c04489ae46e6040c80",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\plan-seal.json": "7d55744fa51d14f1edab8361ab08c55014ef1f74fbb377cf9ba41c7528accbfc",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\plan.json": "dc07f9f07e50458ae3e83783f2edf610aff40ec93a0a37c1270e9bb84e568bfa",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\probe.py": "3acf7e37309fbbba807f738ede8d31ab61c9255f84f3802adfc268265d18eaa9",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\started.json": "4f7ce2fc696d396cc6ec9ec5b755a642250bf771b60afb0d335dc606fe1931f1",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\stderr.txt": "1c5d6614796d02550cf308eacb1005a6349dcefbea242fc130edf2867f87fbd3",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\stdout.txt": "45333a9f9c95cb3dc5cc53bd72d1eff5352911741ea869dadd0c31e84e1ad86b",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\summary.json": "3dde9b34b1a1e3a53b68c1194f8da833a40cd7f912161bededc2b46d7a319c19",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-002\\worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\container-id.txt": "2283d6974890f83799ca628d9825e6e46d04909c0a7fe24baa8c58dfc80c3cff",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\container-inspect.json": "7184a31f522745bcb0b93649005da6db63e2af665a86149b0ca0bd734c838fac",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\control\\cleanup.json": "07dfa869026eca345c4ff2c8e3a01d06333471ec29c108f9cff9f38682ab28b4",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\control\\docker-commands.json": "c04e83f3c58d89b8de02c19d982efb55bfb7fbd0d8d7b256c8b9aeabb54ad7f7",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\docker-config\\config.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\parent-guard-checks.json": "878cb12500bbdcc9e3b4e5819a890b477790a7cd0befc039a44f8ad904f14ec6",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\plan-seal.json": "285139c45efc18399355cf5ed7588fd5aea7de47a5a8a52757b6f48aa64fd8da",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\plan.json": "950f56340ca7a4e209643cba411841748f8c7f57f7bba6d6df3ded587a72910c",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\probe.py": "ca63e940af664c38565adf840d9b233232369b50899e9ab74310330746e04720",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\started.json": "4f7ce2fc696d396cc6ec9ec5b755a642250bf771b60afb0d335dc606fe1931f1",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\stderr.txt": "c23f2cb87b3eb8e90e7f2ba276cc0a343255ea7cd8c30351cd9c918bd01e9bc2",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\stdout.txt": "58f622300fa8097d28d5b80031052180aed4ac5776a9035f275250886525760c",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\summary.json": "8488b021826213911e1ecbb56d4f61ee614fe16e0dd7ef0ad4198a6b62e0e9b8",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public-api-runs\\probe-003\\worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\public_api_probe.py": "ca63e940af664c38565adf840d9b233232369b50899e9ab74310330746e04720",
+      "evidence\\integrated-runtime-20261009\\structure-preprotection\\run_public_api_probe.py": "1d72a86438845188e4248be9c7a8fe5381c4e53d70ea500057fb42c8367e5748",
+      "token-master-plugin\\skills\\token-master\\brainspace\\document_structure.py": "5925a75902a07fd9c585516d99240f79896d877f11251a6899f730649d7001f4",
+      "token-master-plugin\\skills\\token-master\\brainspace\\headroom.py": "ea35fd782d61f738c241d1d6824b3a641aa8977efab0af7efbf7bae8d79cad34",
+      "token-master-plugin\\skills\\token-master\\brainspace\\headroom_worker.py": "f9b0c4c073422e2f646199fd879e995b4d6fa6f1f268201f5bc9c5e6b3efca89",
+      "token-master-plugin\\skills\\token-master\\brainspace\\protected_text.py": "4406825058e81b7c76c3d2ecfc4de76d08e4636d9ad950b6c7a51c1c4444136f",
+      "token-master-plugin\\skills\\token-master\\brainspace\\runtime.py": "78d5f76683148046b324fe482241e875eeb032ed54f566894a564806e30b933a",
+      "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py": "c1bc6f36bad70a55b383e6909dd8fb13fb0121843fc56f1b568e37271db7c92a",
+      "token-master-plugin\\skills\\token-master\\brainspace\\runtime_resources.py": "b0b2b3dd2a96f0e53caf5743ac7e6edeef38e75aec85553d5060f092aa3c1f56",
+      "token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_parent.py": "4e09a81fd4574e1b7ce258720c4334146bd40286e36b2311f4ac0f1f69727382",
+      "token-master-plugin\\skills\\token-master\\tests\\test_headroom_preprotection_worker.py": "2f710518e05b024d66320801bba4784c19a07ea5266e4c32a277e904983d694e"
+    },
+    "originals_unchanged": true,
+    "prior_report_sha256": {
+      "WORKER_REVIEW.md": "919041946ab18fde1de851b51c4f7bd3277a49a54d40d7f294da0a6e8645c632",
+      "WORKER_REVIEW.json": "971849badef892c5b747c6afe07faa5197246e04fe6be84a8f19ff5dede7df3f"
+    },
+    "prior_markdown_prefix_bytes": 14787,
+    "writes": [
+      "WORKER_REVIEW.md",
+      "WORKER_REVIEW.json"
+    ],
+    "production_edits": false,
+    "old_studies_and_registries_touched": false,
+    "actual_model_native_docker_network_calls_by_reviewer": 0,
+    "stop_condition": "W3 reproduced; controlled probe inspected; W1/W2 remain open at unchanged pins. Return to owner for repairs, without source edits by verifier.",
+    "audit_writes_finished": true
+  }
+]
+}

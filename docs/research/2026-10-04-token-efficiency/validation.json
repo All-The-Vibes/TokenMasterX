@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-04",
+  "passed": true,
+  "check_count": 22,
+  "checks": [
+    {
+      "check": "Cumulative input is the sum of invocations, not final context",
+      "passed": true
+    },
+    {
+      "check": "All returned text is included",
+      "passed": true
+    },
+    {
+      "check": "Combined runtime footprint",
+      "passed": true
+    },
+    {
+      "check": "Peak context remains a separate metric",
+      "passed": true
+    },
+    {
+      "check": "Runtime Jev is included rather than hidden",
+      "passed": true
+    },
+    {
+      "check": "Learning and deployment invocations are disjoint",
+      "passed": true
+    },
+    {
+      "check": "Learning tokens are measured separately",
+      "passed": true
+    },
+    {
+      "check": "Declared-horizon aggregate counts learning once",
+      "passed": true
+    },
+    {
+      "check": "Native/cache diagnostics do not discount or mix reference tokens",
+      "passed": true
+    },
+    {
+      "check": "Failures remain in the batch numerator",
+      "passed": true
+    },
+    {
+      "check": "Lower total with lower success can mean no efficiency improvement",
+      "passed": true
+    },
+    {
+      "check": "Zero successes is not reported as zero tokens per success",
+      "passed": true
+    },
+    {
+      "check": "Duplicate invocations cannot be counted twice",
+      "passed": true
+    },
+    {
+      "check": "Partial coverage cannot produce a complete score",
+      "passed": true
+    },
+    {
+      "check": "Unknown count is not silently zero",
+      "passed": true
+    },
+    {
+      "check": "Negative token count is rejected",
+      "passed": true
+    },
+    {
+      "check": "Mixed tokenizer versions cannot be summed",
+      "passed": true
+    },
+    {
+      "check": "Mixed extraction protocols cannot be summed",
+      "passed": true
+    },
+    {
+      "check": "Unknown phases cannot silently hide invocations",
+      "passed": true
+    },
+    {
+      "check": "Token-difference specialization keeps the correct Hoeffding constant",
+      "passed": true
+    },
+    {
+      "check": "Lower expected tokens with maintained quality lowers the ratio",
+      "passed": true
+    },
+    {
+      "check": "No production source changes",
+      "passed": true
+    }
+  ],
+  "examples": {
+    "baseline": {
+      "input": 4500,
+      "output": 600,
+      "total": 5100,
+      "peak_input": 2000,
+      "calls": 3
+    },
+    "candidate": {
+      "input": 2300,
+      "output": 220,
+      "total": 2520,
+      "peak_input": 1100,
+      "calls": 3
+    },
+    "learning": {
+      "input": 1000,
+      "output": 150,
+      "total": 1150,
+      "peak_input": 600,
+      "calls": 2
+    }
+  },
+  "framework_sha256": "3dc47a6fa5245fe89bb1fd2369a2a3b13df1af1edf4f90b36e1db33217ee1d91",
+  "limitations": [
+    "Synthetic counts, not model or tokenizer measurements.",
+    "Coverage flags are asserted fixtures, not demonstrated instrumentation.",
+    "No latency, hardware-efficiency, quality or token-saving benchmark was run.",
+    "Mathematical guarantees still require the stated sampling and oracle assumptions."
+  ]
+}

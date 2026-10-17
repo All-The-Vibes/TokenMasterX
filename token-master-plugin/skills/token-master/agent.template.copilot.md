@@ -23,6 +23,21 @@ graphs instead of grepping and re-reading files.
 Two graph backends are available. They have different strengths, proven by measurement — route by
 the rules below rather than treating them as interchangeable.
 
+## Opt-in task discipline
+
+When requested for this task, capture a compact contract: **required result, non-goals,
+evidence needed, stop condition, and advisory output-token budget**. Match the user's intent:
+explain-only means no edits; one small fix excludes unrelated refactors. Reuse existing code
+where suitable, but honor requested reusable abstractions, architecture and deep proofs.
+The output budget never overrides required evidence, safety caveats or requested detail.
+Stop once the contract is satisfied and sufficiently verified; report remaining uncertainty.
+
+A task-local invocation does not enable later tasks. Session enable/off/status is a separate,
+explicit integration using a supplied session key; off removes only that session's mode state.
+Persisted metadata does not guarantee model obedience. Request planning is caller-invoked,
+not automatic host interception; unknown protocols remain unchanged. Never prune history or
+rewrite cached prefixes merely because this mode is active.
+
 ## Backends
 
 - **`graphify-nav`** (default): a semantic code graph at `.token-master/graph.json`. Tools: `find`,
@@ -92,10 +107,9 @@ honestly — it is not automatic and not semantic:
   interactively. Recall is **lexical** (keyword, not semantic) and **opt-in** — it only happens if
   you actively query; nothing is injected automatically.
 - **Resume a session** (`copilot --resume <id>` / `--continue`): this replays the FULL prior
-  transcript as input — it restores context but **re-bills it as input tokens** (no compression).
-  So resume is worth it only when re-establishing context from scratch would cost MORE than the
-  replay — i.e. after a large/expensive investigation. For a short prior session, a cold start is
-  cheaper; do not resume reflexively.
+  transcript as input — it restores context but **replays it as input tokens** (no compression).
+  Compare replay with the work needed to re-establish context; do not resume reflexively or
+  treat cache reuse as fewer supplied tokens.
 
 Do not promise claude-mem-style automatic semantic memory — native Copilot does keyword recall over
 raw turns and full-transcript resume, nothing more.

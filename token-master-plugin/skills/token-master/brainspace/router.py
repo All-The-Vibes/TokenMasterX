@@ -104,7 +104,7 @@ def lang_from_hint(hint: Optional[str]) -> Optional[str]:
 
 # --- dispatch (lazy, fail-safe) -----------------------------------------------
 
-def _load(ctype: ContentType):
+def _load(ctype: ContentType, diagnostics: dict | None = None):
     """Return the compressor callable for a type, or ``noop`` if it can't load."""
     try:
         if ctype is ContentType.JSON:
@@ -119,7 +119,12 @@ def _load(ctype: ContentType):
         if ctype is ContentType.PROSE:
             from .compressors.prose_compressor import compress_prose
             return compress_prose
-    except Exception:
+    except Exception as exc:
+        if isinstance(diagnostics, dict):
+            diagnostics.update(
+                reason="dependency_unavailable" if isinstance(exc, ImportError) else "transform_error",
+                error_type=type(exc).__name__,
+            )
         return noop
     return noop
 
@@ -137,28 +142,30 @@ def route(content: str, hint: Optional[str] = None, *, stash=None, **opts) -> st
     return out
 
 
-def route_typed(content: str, hint: Optional[str] = None, *, stash=None, **opts):
+def route_typed(content: str, hint: Optional[str] = None, *, stash=None,
+                intent: str | None = "conservative", max_output_bytes: int | None = None,
+                diagnostics: dict | None = None, **opts):
     """Like :func:`route` but also returns the detected ``ContentType`` (for the
     MCP server's reporting). Returns ``(compressed, content_type)``.
 
-    Enforces the never-expand invariant centrally so every caller (MCP tool,
-    PostToolUse hook, direct use) is protected: a result that is not strictly
-    smaller than the input is discarded in favor of the original.
-
-    The invariant is measured in *tokens*, not characters, because tokens are the
-    real cost. The distinction is not academic: a content-addressed placeholder
-    like ``[[BR:0fd4e3ad3d2b|code; some_long_function_name body; 3L]]`` can be
-    fewer characters than the body it replaces while tokenizing to *more* tokens
-    (random hex hashes and long identifiers do not BPE-merge). A char-based guard
-    would wave that through and silently cost tokens — the exact thing this guard
-    exists to forbid. We still short-circuit on the cheap char check first: if the
-    output is not even shorter in characters, it cannot be a win, so we skip the
-    tokenizer call.
+    Guards the complete text view under an exact reference tokenizer. Callers
+    must also guard their FINAL envelopes; this guard cannot know wrapper text.
+    Estimates are diagnostic only. Missing exact tokenization or a safe budget
+    fit returns the original, never forced truncation. Protected/unknown intents
+    bypass before loading any compressor.
     """
+    diag = diagnostics if isinstance(diagnostics, dict) else {}
+    diag.update(policy_version="safe-views-v1", decision="unchanged",
+                reason="unchanged_or_unsupported")
     if not content:
+        diag["reason"] = "empty"
         return content, ContentType.PROSE
+    ctype = ContentType.PROSE
     try:
         ctype = detect(content, hint)
+        if intent not in ("conservative", "navigation", "overview"):
+            diag["reason"] = "protected_or_unknown_intent"
+            return content, ctype
         # For code, resolve the language from the hint's extension and pass it to
         # the compressor (which otherwise defaults to Python). An explicit caller
         # ``lang`` wins; an unrecognized extension leaves it unset (compressor
@@ -167,13 +174,29 @@ def route_typed(content: str, hint: Optional[str] = None, *, stash=None, **opts)
             lang = lang_from_hint(hint)
             if lang:
                 opts = {**opts, "lang": lang}
-        out = _load(ctype)(content, stash=stash, **opts)
-        if not isinstance(out, str) or len(out) >= len(content):
-            return content, ctype  # cheap reject: not even char-smaller
-        # Char-smaller but we bill in tokens — confirm it is token-smaller too.
-        from .tokens import estimate
-        if estimate(out) >= estimate(content):
-            return content, ctype  # never expand in the unit that actually costs
+        def checked_stash(original, **metadata):
+            try:
+                reference = stash(original, **metadata) if stash is not None else None
+                if reference is None:
+                    diag["reason"] = "storage_unavailable"
+                return reference
+            except Exception as exc:
+                # Content stays safe, but operational failure is not mislabeled
+                # as a successful no-op. No exception messages or payload logs.
+                diag.update(reason="storage_error", error_type=type(exc).__name__)
+                raise
+        out = _load(ctype, diag)(content, stash=checked_stash, intent=intent,
+                                diagnostics=diag, **opts)
+        if not isinstance(out, str) or out == content:
+            return content, ctype
+        from .tokens import guard_replacement
+        if not guard_replacement(content, out, max_bytes=max_output_bytes):
+            if not diag["reason"].startswith("storage_"):
+                diag["reason"] = "final_guard_rejected"
+            return content, ctype
+        diag.update(decision="transformed", reason="reference_token_reduction")
         return out, ctype
-    except Exception:
-        return content, ContentType.PROSE
+    except Exception as exc:
+        if not diag["reason"].startswith("storage_"):
+            diag.update(reason="transform_error", error_type=type(exc).__name__)
+        return content, ctype

@@ -1,30 +1,23 @@
-"""Brainspace — the context-compression layer that complements TokenMaster routing.
+"""Brainspace: conservative views, scoped recovery and token-only evaluation.
 
-TokenMaster *eliminates* re-reads by routing structural questions to a prebuilt
-code graph. Brainspace *shrinks* the content that still enters the context window —
-tool outputs, file reads, logs, RAG chunks — so the tokens TokenMaster does not
-remove are at least cheap.
+Graph navigation and content views can reduce overlapping traffic; their gains
+must be measured together, not assumed to multiply. Runtime transforms are
+explicit, offline by default and guarded on the complete reference-token view.
+A matching original in storage is not a task-quality or efficiency certificate.
 
-The two act on near-disjoint token populations, so they compound rather than
-compete. The one rule that keeps them from colliding at the provider's prompt
-cache: compress each piece of content exactly once, at the moment it first enters
-context, with a STABLE content-addressed placeholder — never rewrite history.
-(Rewriting a block that is already in the cached prefix changes the cumulative
-prefix hash and evicts everything after it.)
+Public modules:
+  router: intent-aware guarded text transformations.
+  ccr: workspace/session-scoped exact originals, paging and search.
+  tokens: pinned offline reference counter; estimates are diagnostic only.
+  pipeline/request_policy: explicit protected whole-request planning.
+  token_ledger/certification/optimizer: complete traces and independent gates.
+  jev: optional advisory typed decisions; no authority or model-weight updates.
+  task_mode: explicit task/session contracts, not guaranteed model obedience.
 
-Public surface:
-  * ``compressors.Compressor`` — the protocol every compressor implements.
-  * ``ccr.CCR`` — the content-addressed reversible store of originals.
-  * ``router.route`` — detect content type and dispatch to the right compressor.
-  * ``tokens.estimate`` — a token-count proxy for measuring reduction.
-
-Design rules inherited from the TokenMaster codebase (see graphify_mcp.py):
-  * Never raise out of a tool/compressor path — degrade to a clear value instead.
-  * Lazy-import heavy/optional backends (tree-sitter, llmlingua) so the server
-    registers cleanly even when they are absent.
-  * UTF-8 everywhere; resolve paths so one install serves every repo.
+Tools safely retain input when unavailable. Optimizer proof obligations instead
+reject invalid/incomplete evidence. Host interception is adapter-specific; no
+module claims universal capture or unknown internal tokens equal zero.
 """
 
 __all__ = ["__version__"]
-
 __version__ = "0.1.0"

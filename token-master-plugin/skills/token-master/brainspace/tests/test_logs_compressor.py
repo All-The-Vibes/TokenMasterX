@@ -32,7 +32,8 @@ def make_fake_stash():
     """
     store: dict[str, str] = {}
 
-    def _stash(content: str, *, ctype: str = "", source: str = "", summary: str = "") -> str | None:
+    def _stash(content: str, *, ctype: str = "", source: str = "", summary: str = "",
+               kind: str = "fragment") -> str | None:
         if not content:
             return None
         raw = content.encode("utf-8", errors="replace")
@@ -107,6 +108,10 @@ def make_build_log(n_info: int = 450, error_at: list[int] | None = None) -> str:
     lines.append("[INFO] 487 tests run, 2 failures\n")
 
     return "".join(lines)
+
+
+def make_success_log(n=100):
+    return "".join(f"[INFO] Compiling module_{i}.py\n" for i in range(n)) + "[INFO] Build succeeded\n"
 
 
 def make_repeated_log() -> str:
@@ -244,129 +249,50 @@ class TestDeterminism:
 # ---------------------------------------------------------------------------
 
 class TestLosslessRecovery:
-    """Rule 3: stash stores the exact original; placeholder enables full retrieval."""
+    def test_successful_overview_full_log_stashed(self):
+        stash, store = make_fake_stash()
+        text = make_success_log()
+        out = import_compressor()(text, stash=stash, intent="overview")
+        assert "overview (lossy)" in out
+        assert "lines elided" in out
+        ref = out.split("full log: ")[1].strip()
+        assert store[ref] == text
+        assert text.splitlines()[0] in out
+        assert text.splitlines()[-1] in out
 
-    def test_full_log_stashed(self):
-        """With stash, the exact original is in the store."""
-        compress_logs = import_compressor()
-        stash_fn, store = make_fake_stash()
-        original = make_build_log()
+    def test_default_even_successful_log_is_exact(self):
+        stash, store = make_fake_stash()
+        text = make_success_log()
+        assert import_compressor()(text, stash=stash) == text
+        assert not store
 
-        result = compress_logs(original, stash=stash_fn)
-
-        # One of the placeholders in the store must hold the exact original.
-        assert any(v == original for v in store.values()), (
-            "The full original log must be stashed verbatim"
-        )
-
-    def test_recovery_line_appended(self):
-        """With stash, output ends with 'full log: <placeholder>'."""
-        compress_logs = import_compressor()
-        stash_fn, store = make_fake_stash()
-        original = make_build_log()
-
-        result = compress_logs(original, stash=stash_fn)
-
-        # Find the recovery line.
-        lines = result.splitlines()
-        recovery_lines = [l for l in lines if l.startswith("full log: ")]
-        assert recovery_lines, (
-            f"Expected a 'full log: <placeholder>' line in output.\n"
-            f"Last 5 lines: {lines[-5:]}"
-        )
-        # The placeholder in that line must be in the store.
-        recovery_line = recovery_lines[0]
-        ph = recovery_line[len("full log: "):]
-        assert ph in store, f"Placeholder {ph!r} not found in stash store"
-        assert store[ph] == original
+    @pytest.mark.parametrize("builder", [make_build_log, make_repeated_log])
+    def test_failures_keep_all_causal_context_even_in_overview(self, builder):
+        stash, store = make_fake_stash()
+        text = builder()
+        assert import_compressor()(text, stash=stash, intent="overview", context=0) == text
+        assert not store
 
     def test_no_lossy_output_without_stash(self):
-        """Without a stash there is no recovery path, so the compressor must stay
-        lossless: it returns the original content unchanged rather than an elided
-        (irrecoverable) summary."""
-        compress_logs = import_compressor()
-        original = make_build_log()
+        text = make_success_log()
+        assert import_compressor()(text, intent="overview") == text
 
-        result = compress_logs(original, stash=None)
+    def test_failed_stash_is_exact(self):
+        text = make_success_log()
+        assert import_compressor()(text, stash=lambda *a, **kw: None, intent="overview") == text
 
-        assert result == original, (
-            "Without a stash the log compressor must return content unchanged "
-            "(no irrecoverable elision)."
-        )
+    def test_unknown_final_state_is_passthrough(self):
+        text = make_success_log().replace("Build succeeded", "Build status unknown")
+        stash, store = make_fake_stash()
+        assert import_compressor()(text, stash=stash, intent="overview") == text
+        assert not store
 
-    def test_error_lines_survive_verbatim(self):
-        """ERROR/Traceback/FATAL lines must appear unchanged in output."""
-        compress_logs = import_compressor()
-        original = make_build_log()
-        stash_fn, _ = make_fake_stash()
+    @pytest.mark.parametrize("context", [-1, None, True, "two"])
+    def test_invalid_context_is_passthrough(self, context):
+        text = make_success_log()
+        stash, _ = make_fake_stash()
+        assert import_compressor()(text, stash=stash, intent="overview", context=context) == text
 
-        result = compress_logs(original, stash=stash_fn, context=2)
-
-        assert "[ERROR] Test failed: test_validate_array" in result
-        assert "Traceback (most recent call last):" in result
-        assert "[FATAL] Cannot continue: critical validation failure" in result
-        assert "ValueError: Array length 10001 exceeds limit" in result
-        assert "[WARN] Deprecated API call: use new_api() instead" in result
-
-    def test_context_lines_kept(self):
-        """Lines within 'context' positions of an important line are kept."""
-        compress_logs = import_compressor()
-        stash_fn, _ = make_fake_stash()
-        # Pad with enough noise lines that the file clears the min-log-lines bar
-        # and the elision path actually runs.
-        log = (
-            "[INFO] before-2\n"
-            "[INFO] before-1\n"
-            "[ERROR] the error\n"
-            "[INFO] after-1\n"
-            "[INFO] after-2\n"
-            + "".join(f"[INFO] noise-{i}\n" for i in range(20))
-        )
-        result = compress_logs(log, stash=stash_fn, context=2)
-
-        assert "before-2" in result
-        assert "before-1" in result
-        assert "the error" in result
-        assert "after-1" in result
-        assert "after-2" in result
-
-    def test_elision_marker_present(self):
-        """Long runs of unimportant lines produce an elision marker."""
-        compress_logs = import_compressor()
-        original = make_build_log()
-        stash_fn, _ = make_fake_stash()
-        result = compress_logs(original, stash=stash_fn, context=2)
-        assert "lines elided" in result, (
-            "Expected at least one '... K lines elided ...' marker in output"
-        )
-
-    def test_repeated_lines_collapsed(self):
-        """Consecutive identical lines must be collapsed to 'line (xN)'."""
-        compress_logs = import_compressor()
-        log = make_repeated_log()
-        stash_fn, _ = make_fake_stash()
-        result = compress_logs(log, stash=stash_fn)
-        # 50 repetitions of the poll line should appear as (x50).
-        assert "(x50)" in result or any(
-            f"(x{n})" in result for n in range(40, 55)
-        ), f"Expected collapsed repetition marker in:\n{result[:500]}"
-
-    def test_no_data_loss_when_stash_returns_none(self):
-        """If stash returns None (store unwritable), the compressor must not drop
-        any content — it returns the full original verbatim, since there is no
-        placeholder to recover the elided lines from."""
-        compress_logs = import_compressor()
-
-        def null_stash(content, **kwargs):
-            return None
-
-        original = make_build_log()
-        result = compress_logs(original, stash=null_stash)
-
-        # A failed stash must yield the exact original — fully lossless.
-        assert result == original, (
-            "When stash returns None the compressor must return content unchanged."
-        )
 
 
 # ---------------------------------------------------------------------------
@@ -374,45 +300,16 @@ class TestLosslessRecovery:
 # ---------------------------------------------------------------------------
 
 class TestMeasuredReduction:
-    """Verify meaningful token reduction on the realistic build-log sample."""
-
-    def test_build_log_reduction(self):
-        compress_logs = import_compressor()
+    def test_successful_overview_reduction(self):
         from brainspace import tokens
+        text = make_success_log(450)
+        stash, _ = make_fake_stash()
+        out = import_compressor()(text, stash=stash, intent="overview")
+        report = tokens.reduction(text, out)
+        print(f"\nLog overview: {report}")
+        assert report["pct_reduction"] >= 50.0
 
-        original = make_build_log(n_info=450)
-        stash_fn, _ = make_fake_stash()
-        compressed = compress_logs(original, stash=stash_fn, context=2)
-
-        report = tokens.reduction(original, compressed)
-        print(
-            f"\n[Log build log: {report['tokens_before']}->{report['tokens_after']} tok, "
-            f"{report['pct_reduction']}% reduction, {report['ratio']}x, "
-            f"backend={report['backend']}]"
-        )
-        assert report["pct_reduction"] >= 50.0, (
-            f"Expected >= 50% reduction on ~500-line build log, "
-            f"got {report['pct_reduction']}% "
-            f"(before={report['tokens_before']}, after={report['tokens_after']})"
-        )
-
-    def test_error_lines_survive_reduction(self):
-        """After compression the key ERROR/FATAL lines must still be present."""
-        compress_logs = import_compressor()
-        original = make_build_log(n_info=450)
-        stash_fn, _ = make_fake_stash()
-        compressed = compress_logs(original, stash=stash_fn, context=2)
-
-        assert "[ERROR] Test failed: test_validate_array" in compressed
-        assert "Traceback (most recent call last):" in compressed
-        assert "[FATAL] Cannot continue: critical validation failure" in compressed
-
-    def test_compressed_shorter_than_original(self):
-        compress_logs = import_compressor()
-        original = make_build_log(n_info=450)
-        stash_fn, _ = make_fake_stash()
-        compressed = compress_logs(original, stash=stash_fn)
-        assert len(compressed) < len(original), (
-            f"Compressed ({len(compressed)} chars) should be shorter than "
-            f"original ({len(original)} chars)"
-        )
+    def test_failed_build_has_no_artificial_savings(self):
+        text = make_build_log(450)
+        stash, _ = make_fake_stash()
+        assert import_compressor()(text, stash=stash, intent="overview") == text

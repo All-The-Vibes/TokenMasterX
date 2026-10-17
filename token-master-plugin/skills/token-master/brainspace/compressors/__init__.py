@@ -11,12 +11,12 @@ Hard rules (enforced by the test suite, relied on by the router and MCP server):
     layer is to be invisible when it cannot help — never to break the host.
 2.  **Pure text in, text out.** Content arrives as a ``str`` and leaves as a
     ``str``. Closed token-only APIs (Claude, Copilot) cannot carry anything else.
-3.  **Lossy display, lossless recovery.** A compressor may drop detail from what
-    the model *sees*, but only if it first hands the original to ``stash`` and
-    embeds the returned placeholder. ``stash(original, ...)`` returns a stable
-    ``<<hr:HASH|meta>>`` token the model can pass to ``brainspace_retrieve`` to get
-    the full content back. If ``stash`` is ``None`` the compressor must stay
-    lossless (used in measurement / no-CCR contexts).
+3.  **Exact by default, recoverable views by explicit intent.** ``conservative``
+    preserves content (JSON may remove insignificant whitespace). ``navigation``
+    permits code skeletons; ``overview`` permits structured/log sampling. All
+    other intents bypass. Omitted content must first be handed to ``stash``,
+    which must return a valid ``[[BR:HASH|meta]]`` reference. Storage/reference
+    failures return the original input, never an irrecoverable marker.
 4.  **Deterministic.** Same input + same options + same stash ⇒ same output,
     byte for byte. This is what keeps provider prompt-cache prefixes stable.
 
@@ -29,9 +29,39 @@ from __future__ import annotations
 from typing import Callable, Protocol
 
 # A stash function takes the original content plus light metadata and returns a
-# stable placeholder string. Provided by the CCR store; injected so compressors
-# never import the store directly (keeps them unit-testable in isolation).
-StashFn = Callable[..., str]
+# stable placeholder string or None on failure. Storage is injected; only the
+# canonical reference parser is imported, without constructing/opening a store.
+StashFn = Callable[..., str | None]
+
+
+def report_failure(options: dict, error: Exception) -> None:
+    """Optional out-of-band reason; never expose exception text or content."""
+    diagnostics = options.get("diagnostics")
+    if not isinstance(diagnostics, dict):
+        return
+    if diagnostics.get("reason") in ("storage_error", "storage_unavailable"):
+        return
+    reason = (
+        "dependency_unavailable" if isinstance(error, ImportError)
+        else "invalid_or_unsupported_input" if isinstance(error, (ValueError, TypeError))
+        else "transform_error"
+    )
+    diagnostics.update(reason=reason, error_type=type(error).__name__)
+
+
+def require_stash(content: str, *, stash, **metadata) -> str:
+    """Require a reference from the injected recovery store, or abort the view.
+
+    The callback owns durable storage and retrieval integrity. A syntactically
+    valid reference is necessary, not independent proof of recoverability.
+    Callers catch failures at the whole-input boundary, never per fragment.
+    """
+    from ..ccr import PLACEHOLDER_RE
+
+    reference = stash(content, **metadata)
+    if not isinstance(reference, str) or not PLACEHOLDER_RE.fullmatch(reference):
+        raise ValueError("Storage did not return a recovery reference")
+    return reference
 
 
 class Compressor(Protocol):

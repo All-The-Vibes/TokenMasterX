@@ -1,0 +1,80 @@
+{
+  "provenance": {
+    "scope": "Selected decoded records, unchanged; not a new native run.",
+    "source_sha256": {
+      "evidence\\integrated-runtime-20261009\\native-ranged-results\\runs\\native-003\\plan.json": "d59cc6424236fbc6a71388849e292457ea50ee29095dd3d10cfc417a6be707d3",
+      "evidence\\integrated-runtime-20261009\\native-ranged-results\\runs\\native-003\\exact\\run\\native-process.json": "9a443a340bf7b77b2ac3c56c61cdc2bb5342be412b21c83da298978c26705e41",
+      "evidence\\integrated-runtime-20261009\\native-ranged-results\\runs\\native-003\\exact\\run\\native-ingress.jsonl": "8c3806faf1fdafc9ecb44fa1950204aa94d684c07678317458ca88137c49b6d5"
+    },
+    "native_version": "1.0.95-0",
+    "renderer": "native-view-missing-path-1.0.95-v1"
+  },
+  "action": {
+    "name": "view",
+    "arguments": {
+      "path": "C:\\Users\\shyamsridhar\\AppData\\Local\\Temp\\tokenmaster-ranged-lrkwfn6b\\missing-status-control.md",
+      "view_range": [
+        1,
+        -1
+      ]
+    },
+    "call_id": "exact_missing",
+    "namespace": null
+  },
+  "events": [
+    {
+      "type": "tool.execution_start",
+      "data": {
+        "toolCallId": "exact_missing",
+        "toolName": "view",
+        "arguments": {
+          "path": "C:\\Users\\shyamsridhar\\AppData\\Local\\Temp\\tokenmaster-ranged-lrkwfn6b\\missing-status-control.md",
+          "view_range": [
+            1,
+            -1
+          ]
+        },
+        "turnId": "1",
+        "model": "gpt-6-astra",
+        "toolTitle": "Viewing file"
+      },
+      "id": "17434109-0961-4358-bffc-10957fe27f25",
+      "timestamp": "2026-10-09T21:58:44.786Z",
+      "parentId": "a4bb4479-0b74-443a-9d32-e1c2b2904238"
+    },
+    {
+      "type": "tool.execution_complete",
+      "data": {
+        "toolCallId": "exact_missing",
+        "model": "gpt-6-astra",
+        "interactionId": "e1db1d1a-f628-4f0e-bc7a-5f78d923d7aa",
+        "turnId": "1",
+        "rte": false,
+        "success": false,
+        "error": {
+          "message": "Path does not exist",
+          "code": "failure"
+        },
+        "toolTelemetry": {
+          "properties": {
+            "command": "view",
+            "options": "{\"truncateBasedOn\":\"tokenCount\",\"truncateStyle\":\"middle\"}",
+            "inputs": "[\"path\",\"view_range\",\"command\"]",
+            "resolvedPathAgainstCwd": "false",
+            "fileExtension": "[\".md\"]",
+            "viewType": "unknown"
+          },
+          "restrictedProperties": {},
+          "metrics": {
+            "resultLength": 144,
+            "resultForLlmLength": 144
+          }
+        }
+      },
+      "id": "363703e2-db92-466e-9d77-2d0a8c1979f6",
+      "timestamp": "2026-10-09T21:58:44.799Z",
+      "parentId": "17434109-0961-4358-bffc-10957fe27f25"
+    }
+  ],
+  "delivered_text": "Path C:\\Users\\shyamsridhar\\AppData\\Local\\Temp\\tokenmaster-ranged-lrkwfn6b\\missing-status-control.md does not exist. Please provide a valid path."
+}

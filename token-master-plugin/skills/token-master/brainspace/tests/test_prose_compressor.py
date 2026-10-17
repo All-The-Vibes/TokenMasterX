@@ -1,20 +1,8 @@
-"""Tests for brainspace/compressors/prose_compressor.py
-
-Covers:
-  (a) Near-losslessness of the default path: the set of word tokens is identical
-      before and after compression (no words dropped).
-  (b) Never-raises: garbage / edge-case inputs do not raise.
-  (c) Determinism: calling twice yields byte-identical output.
-  (d) Measured reduction on a realistic messy-prose sample (honest ~10-25%).
-  (e) Stash integration: a placeholder is embedded and the original is recoverable
-      via the fake stash.
-  (f) Lossless when stash is None (no words removed, no placeholder injected).
-"""
+"""Prose is exact: word-set equality does not preserve literal text."""
 
 from __future__ import annotations
 
 import hashlib
-import re
 from typing import Optional
 
 import pytest
@@ -25,9 +13,6 @@ from brainspace import tokens as tok_mod
 # ---------------------------------------------------------------------------
 # Fake in-memory stash (dict-backed, stable SHA1-12 placeholder)
 # ---------------------------------------------------------------------------
-
-_PLACEHOLDER_RE = re.compile(r"\[\[BR:[0-9a-f]{6,64}(?:\|[^\]]*)?\]\]")
-
 
 def make_fake_stash():
     """Return (stash_fn, store_dict).  stash returns [[BR:<sha1-12>|<meta>]]."""
@@ -96,181 +81,37 @@ automated  SAST  on  every  PR.    The  threat  model  is  reviewed  quarterly.
 """
 
 
-def _word_tokens(text: str) -> set[str]:
-    """Extract the set of whitespace-separated tokens for losslessness checks."""
-    return set(re.findall(r"\S+", text))
+class TestExactProse:
+    @pytest.mark.parametrize("text", [MESSY_PROSE, MESSY_PROSE * 3, "", None,
+                                      "a" * 50_000, "   ", "\n\n\n\n\n",
+                                      "\x00\xff\n\t", "word " * 1000],
+                             ids=["messy", "large", "empty", "none", "long", "spaces", "newlines", "binary", "words"])
+    @pytest.mark.parametrize("intent", ["conservative", "overview", "navigation", "exact"])
+    def test_byte_exact_with_or_without_stash(self, text, intent):
+        stash, store = make_fake_stash()
+        assert compress_prose(text, stash=stash, intent=intent) == text
+        assert compress_prose(text, intent=intent) == text
+        assert not store
 
-
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
-
-class TestDefaultPath:
-    """Default path: use_ml=False, stdlib only."""
-
-    def test_near_lossless_no_stash(self):
-        """No words are removed when stash is None (lossless mode)."""
-        result = compress_prose(MESSY_PROSE, stash=None)
-        before_words = _word_tokens(MESSY_PROSE)
-        after_words = _word_tokens(result)
-        # The compressed output must contain every word that was in the input.
-        # (It may contain *extra* tokens like the stash placeholder — but those
-        # are additive, not subtractive.)
-        missing = before_words - after_words
-        assert not missing, f"Words removed from output: {missing}"
-
-    def test_near_lossless_with_stash_small(self):
-        """For small content (<=2000 chars) with stash, no placeholder is added."""
-        stash_fn, store = make_fake_stash()
-        small = MESSY_PROSE[:400]
-        result = compress_prose(small, stash=stash_fn)
-        before_words = _word_tokens(small)
-        after_words = _word_tokens(result)
-        missing = before_words - after_words
-        assert not missing, f"Words removed: {missing}"
-        # No placeholder should have been injected for small content.
-        assert "[[BR:" not in result
-
-    def test_stash_placeholder_injected_for_large_content(self):
-        """For large content (>2000 chars), a placeholder is appended."""
-        stash_fn, store = make_fake_stash()
-        # Pad prose to ensure it exceeds the 2000-char threshold.
-        large = MESSY_PROSE * 3
-        assert len(large) > 2_000
-        result = compress_prose(large, stash=stash_fn)
-        assert "[[BR:" in result, "Expected a placeholder in the output for large content"
-        # The placeholder must be a validly shaped BR token.
-        placeholders = _PLACEHOLDER_RE.findall(result)
-        assert placeholders, "No well-formed [[BR:...]] placeholder found"
-
-    def test_stash_roundtrip_recovers_original(self):
-        """Extracting the placeholder hash and looking up the store returns original."""
-        stash_fn, store = make_fake_stash()
-        large = MESSY_PROSE * 3
-        result = compress_prose(large, stash=stash_fn)
-        m = _PLACEHOLDER_RE.search(result)
-        assert m, "No placeholder found"
-        # Extract the short hash from the placeholder [[BR:<hash>|...]]
-        inner = m.group(0)  # e.g. "[[BR:abc123def456|prose]]"
-        short = re.search(r"\[\[BR:([0-9a-f]+)", inner).group(1)
-        assert short in store, f"Hash {short!r} not found in fake stash store"
-        recovered = store[short]
-        assert recovered == large, "Recovered content does not match original"
-
-    def test_determinism(self):
-        """Two calls with the same input and stash give byte-identical output."""
-        stash_fn, _ = make_fake_stash()
-        out1 = compress_prose(MESSY_PROSE, stash=stash_fn)
-        # Fresh stash that produces the same hashes (SHA1 is deterministic).
-        stash_fn2, _ = make_fake_stash()
-        out2 = compress_prose(MESSY_PROSE, stash=stash_fn2)
-        assert out1 == out2, "Output is not deterministic"
-
-    def test_determinism_no_stash(self):
-        """Determinism also holds without a stash."""
-        out1 = compress_prose(MESSY_PROSE, stash=None)
-        out2 = compress_prose(MESSY_PROSE, stash=None)
-        assert out1 == out2
-
-
-class TestNeverRaises:
-    """Garbage and edge-case inputs must not raise."""
-
-    @pytest.mark.parametrize("bad_input", [
-        pytest.param("", id="empty"),
-        pytest.param(None, id="none"),  # type: ignore[arg-type]  -- intentionally wrong type
-        pytest.param("\x00\xff\n\t", id="binary"),
-        pytest.param("   ", id="spaces"),
-        pytest.param("\n\n\n\n\n", id="blank_lines"),
-        pytest.param("a" * 50_000, id="very_large"),   # very large
-        pytest.param("word " * 1_000, id="many_words"),
+    @pytest.mark.parametrize("text", [
+        "hello   \nworld  \n", "para1\n\n\n\n\npara2",
+        "foo  bar   baz\nindented    content", "    def foo():\n        pass\n",
+        'The exact literal is "a  b".', "inline `a  b` and hard break  \nnext",
+        "~~~text\n  code  \n~~~", "before\r\n\r\nafter\r\n",
     ])
-    def test_no_raise_on_bad_input(self, bad_input):
-        try:
-            result = compress_prose(bad_input, stash=None)
-        except Exception as exc:
-            pytest.fail(f"compress_prose raised on input {bad_input!r:.40}: {exc}")
-        # Result must always be a str.
-        assert isinstance(result, str)
+    def test_whitespace_is_not_assumed_insignificant(self, text):
+        assert compress_prose(text) == text
 
-    def test_no_raise_with_broken_stash(self):
-        """A stash that always raises must not propagate the error."""
-        def bad_stash(content, **_):
-            raise RuntimeError("stash exploded")
+    def test_broken_storage_cannot_change_text(self):
+        def bad_stash(*_, **__):
+            raise OSError("full")
+        assert compress_prose(MESSY_PROSE * 3, stash=bad_stash) == MESSY_PROSE * 3
 
-        large = MESSY_PROSE * 3
-        try:
-            result = compress_prose(large, stash=bad_stash)
-        except Exception as exc:
-            pytest.fail(f"compress_prose raised despite bad stash: {exc}")
-        assert isinstance(result, str)
+    def test_legacy_options_remain_accepted_without_model_calls(self):
+        assert compress_prose(MESSY_PROSE, use_ml=True, rate=0.01,
+                              budget=1, future_option=True) == MESSY_PROSE
 
-    def test_no_raise_with_stash_returning_none(self):
-        """A stash that returns None (failure) must not cause placeholder injection."""
-        def none_stash(content, **_):
-            return None
-
-        large = MESSY_PROSE * 3
-        result = compress_prose(large, stash=none_stash)
-        assert isinstance(result, str)
-        assert "[[BR:" not in result, "Placeholder injected even though stash returned None"
-
-    def test_no_raise_use_ml_false(self):
-        """use_ml=False must never raise even on weird input."""
-        result = compress_prose("Hello   world.\n\n\n\n\nGoodbye.", stash=None, use_ml=False)
-        assert isinstance(result, str)
-
-
-class TestWhitespaceNormalisation:
-    """Detailed checks that the default-path transforms work correctly."""
-
-    def test_trailing_whitespace_stripped(self):
-        text = "hello   \nworld  \n"
-        result = compress_prose(text, stash=None)
-        for line in result.splitlines():
-            assert line == line.rstrip(), f"Trailing whitespace in line: {line!r}"
-
-    def test_blank_line_runs_collapsed(self):
-        text = "para1\n\n\n\n\npara2\n\n\n\npara3"
-        result = compress_prose(text, stash=None)
-        # Should not contain 3+ consecutive newlines.
-        assert "\n\n\n" not in result
-
-    def test_interior_spaces_collapsed(self):
-        text = "foo  bar   baz\nindented    content"
-        result = compress_prose(text, stash=None)
-        # Interior double-spaces should be gone.
-        lines = result.splitlines()
-        # "foo  bar" -> "foo bar"
-        assert "foo bar baz" in lines[0]
-
-    def test_leading_indentation_preserved(self):
-        """Leading spaces (indentation) must NOT be collapsed."""
-        text = "    def foo():\n        pass\n"
-        result = compress_prose(text, stash=None)
-        assert result.startswith("    def foo():")
-
-
-class TestMeasuredReduction:
-    """Report an honest measured reduction figure (expected ~10-25%)."""
-
-    def test_measured_reduction(self):
-        result = compress_prose(MESSY_PROSE, stash=None)
+    def test_measured_savings_are_not_claimed_for_passthrough(self):
+        result = compress_prose(MESSY_PROSE)
         report = tok_mod.reduction(MESSY_PROSE, result)
-        print(
-            f"\n[prose reduction] {report['tokens_before']} -> {report['tokens_after']} tokens "
-            f"({report['pct_reduction']}% reduction, {report['ratio']}x, backend={report['backend']})"
-        )
-        # The default path is conservative; we expect at least 1% (whitespace savings).
-        assert report["pct_reduction"] >= 1.0, (
-            f"Expected at least 1% reduction, got {report['pct_reduction']}%"
-        )
-        # And it should not be wildly lossy (no more than 50% for the default path).
-        assert report["pct_reduction"] <= 50.0, (
-            f"Too aggressive for a whitespace-only path: {report['pct_reduction']}%"
-        )
-        # Store the measured string for StructuredOutput reporting.
-        TestMeasuredReduction.last_report = (
-            f"prose sample: {report['tokens_before']}->{report['tokens_after']} tok, "
-            f"{report['pct_reduction']}%"
-        )
+        assert report["pct_reduction"] == 0.0

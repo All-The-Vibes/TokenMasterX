@@ -33,7 +33,8 @@ def make_fake_stash():
     """
     store: dict[str, str] = {}
 
-    def _stash(content: str, *, ctype: str = "", source: str = "", summary: str = "") -> str | None:
+    def _stash(content: str, *, ctype: str = "", source: str = "", summary: str = "",
+               kind: str = "fragment") -> str | None:
         if not content:
             return None
         raw = content.encode("utf-8", errors="replace")
@@ -223,173 +224,72 @@ class TestDeterminism:
 # ---------------------------------------------------------------------------
 
 class TestLosslessRecovery:
-    """Rule 3: every value stashed must be exactly recoverable."""
+    """Exact compaction by default; overview recovers the full original root."""
 
-    def test_long_string_value_stashed(self):
+    def test_long_strings_preserved_even_with_stash(self):
         compress_json = import_compressor()
-        stash_fn, store = make_fake_stash()
-        original_value = "Z" * 500  # well over default max_str=200
-        payload = json.dumps({"key": original_value})
+        stash, store = make_fake_stash()
+        text = json.dumps({"key": "Z" * 500})
+        for intent in ("conservative", "overview"):
+            result = compress_json(text, stash=stash, max_str=1, intent=intent)
+            assert json.loads(result) == json.loads(text)
+        assert not store
 
-        result = compress_json(payload, stash=stash_fn, max_str=200)
-        result_obj = json.loads(result)
-
-        # The value must contain a placeholder.
-        compressed_val = result_obj["key"]
-        ph_matches = [k for k in store if k in compressed_val]
-        assert ph_matches, (
-            f"No placeholder found in compressed value {compressed_val!r}. "
-            f"Store keys: {list(store)}"
-        )
-        # The placeholder must recover the exact original.
-        ph = ph_matches[0]
-        assert store[ph] == original_value
-
-    def test_elided_list_middle_is_recoverable(self):
-        """Regression (P1): the elided middle slice of a long list must be stashed
-        so brainspace_retrieve can recover the dropped records. Otherwise large
-        arrays (API responses, dir listings) silently lose load-bearing data."""
+    def test_overview_full_original_is_recoverable(self):
         compress_json = import_compressor()
-        stash_fn, store = make_fake_stash()
-        items = [{"id": i, "name": f"item{i}"} for i in range(20)]
-        payload = json.dumps(items)
+        stash, store = make_fake_stash()
+        text = make_dir_listing(200)
+        result = json.loads(compress_json(text, stash=stash, intent="overview"))
+        assert result["_brainspace_view"] == "overview"
+        assert result["lossy"] is True
+        assert result["total_items"] == 200
+        assert result["omitted_items"] == 197
+        assert result["indices"] == [0, 1, 199]
+        assert result["items"] == [json.loads(text)[i] for i in result["indices"]]
+        assert store[result["original"]] == text
 
-        result = compress_json(payload, stash=stash_fn, sample=2, tail=1)
-        result_obj = json.loads(result)
-
-        # Find the elision marker and the placeholder embedded in it.
-        marker = next(v for v in result_obj if isinstance(v, str) and "more items" in v)
-        ph_matches = [k for k in store if k in marker]
-        assert ph_matches, (
-            f"Elision marker {marker!r} carries no recovery placeholder — the "
-            f"omitted records are unrecoverable. Store keys: {list(store)}"
-        )
-        # The placeholder must recover the EXACT omitted middle slice.
-        recovered = json.loads(store[ph_matches[0]])
-        assert recovered == items[2:19], (
-            "Recovered middle slice does not match the omitted records."
-        )
-
-    def test_elided_list_lossless_roundtrip_full_reconstruction(self):
-        """The head + recovered-middle + tail must reconstruct the entire list."""
+    @pytest.mark.parametrize("sample,tail", [(0, 2), (2, 0), (3, 2)])
+    def test_overview_windows_keep_order_and_cardinality(self, sample, tail):
         compress_json = import_compressor()
-        stash_fn, store = make_fake_stash()
-        items = list(range(50))
-        result = compress_json(json.dumps(items), stash=stash_fn, sample=3, tail=2)
-        result_obj = json.loads(result)
+        stash, store = make_fake_stash()
+        text = make_dir_listing(30)
+        result = json.loads(compress_json(text, stash=stash, intent="overview",
+                                          sample=sample, tail=tail))
+        expected = list(range(sample)) + list(range(30 - tail, 30))
+        assert result["indices"] == expected
+        assert len(result["items"]) + result["omitted_items"] == 30
+        assert result["items"] == [json.loads(text)[i] for i in expected]
+        assert store[result["original"]] == text
 
-        marker_idx = next(i for i, v in enumerate(result_obj)
-                          if isinstance(v, str) and "more items" in v)
-        head = result_obj[:marker_idx]
-        tail = result_obj[marker_idx + 1:]
-        marker = result_obj[marker_idx]
-        ph = next(k for k in store if k in marker)
-        middle = json.loads(store[ph])
+    @pytest.mark.parametrize("sample,tail", [(-1, 1), (1, -1), (0, 0), (True, 1), (1.5, 1)])
+    def test_invalid_windows_passthrough(self, sample, tail):
+        stash, _ = make_fake_stash()
+        text = make_dir_listing(30)
+        assert import_compressor()(text, stash=stash, intent="overview",
+                                   sample=sample, tail=tail) == text
 
-        assert head + middle + tail == items, "Full list must reconstruct losslessly"
+    def test_default_keeps_every_record_and_full_string(self):
+        text = make_nested_api_response()
+        assert json.loads(import_compressor()(text)) == json.loads(text)
 
-    def test_keys_always_preserved(self):
-        compress_json = import_compressor()
-        payload = json.dumps({"alpha": 1, "beta": 2, "gamma": 3, "delta": 4})
-        result = compress_json(payload)
-        result_obj = json.loads(result)
-        assert set(result_obj.keys()) == {"alpha", "beta", "gamma", "delta"}
+    def test_keys_and_null_missing_remain_distinct(self):
+        text = '{"z":null,"a":{"id":1},"b":{"id":1,"optional":null}}'
+        result = import_compressor()(text)
+        assert result == text
+        assert list(json.loads(result)) == ["z", "a", "b"]
 
-    def test_short_values_not_stashed(self):
-        compress_json = import_compressor()
-        stash_fn, store = make_fake_stash()
-        payload = json.dumps({"x": "short string"})
-        result = compress_json(payload, stash=stash_fn, max_str=200)
-        result_obj = json.loads(result)
-        assert result_obj["x"] == "short string"
-        assert len(store) == 0, "Short strings must not be stashed"
+    @pytest.mark.parametrize("text", ["[]", "{}", "[10,20,30,40]", '"a  b"'])
+    def test_small_json_passthrough(self, text):
+        assert import_compressor()(text) == text
 
-    def test_list_elision_marker_present(self):
-        compress_json = import_compressor()
-        items = list(range(20))
-        payload = json.dumps(items)
-        result = compress_json(payload, sample=2, tail=1)
-        result_obj = json.loads(result)
-        # The middle items should be replaced with a marker string.
-        assert any(
-            isinstance(v, str) and "more items" in v
-            for v in result_obj
-        ), f"Expected elision marker in {result_obj!r}"
+    def test_retained_overview_number_and_string_lexemes_are_exact(self):
+        stash, store = make_fake_stash()
+        record = '{"n":1.0000000000000000001,"zero":-0,"s":"\\u0061  b"}'
+        text = "[" + ", ".join([record] * 30) + "]"
+        result = import_compressor()(text, stash=stash, intent="overview")
+        assert result.count(record) == 3
+        assert store[json.loads(result)["original"]] == text
 
-    def test_list_head_tail_preserved(self):
-        compress_json = import_compressor()
-        items = [{"id": i, "name": f"item{i}"} for i in range(20)]
-        payload = json.dumps(items)
-        result = compress_json(payload, sample=2, tail=1)
-        result_obj = json.loads(result)
-        # First 2 elements should be kept (as dicts) and last 1.
-        assert result_obj[0] == items[0]
-        assert result_obj[1] == items[1]
-        assert result_obj[-1] == items[-1]
-
-    def test_no_stash_truncation_marker(self):
-        """Without stash, long strings get a truncation marker (no stash involved)."""
-        compress_json = import_compressor()
-        original_value = "A" * 500
-        payload = json.dumps({"text": original_value})
-        result = compress_json(payload, stash=None, max_str=200)
-        result_obj = json.loads(result)
-        val = result_obj["text"]
-        assert val.startswith("A" * 200), "Prefix must be preserved"
-        assert "chars" in val, "Must include a character-count marker"
-
-    def test_nested_dict_keys_preserved(self):
-        compress_json = import_compressor()
-        payload = json.dumps({
-            "outer": {
-                "inner": {
-                    "deep": [1, 2, 3],
-                    "also": "value",
-                }
-            }
-        })
-        result = compress_json(payload)
-        result_obj = json.loads(result)
-        assert "outer" in result_obj
-        assert "inner" in result_obj["outer"]
-        assert "deep" in result_obj["outer"]["inner"]
-        assert "also" in result_obj["outer"]["inner"]
-
-    def test_short_list_not_elided(self):
-        """Lists at or below the threshold must be kept intact."""
-        compress_json = import_compressor()
-        # sample=2, tail=1 => threshold = 4; a list of 4 should not be elided.
-        items = [10, 20, 30, 40]
-        payload = json.dumps(items)
-        result = compress_json(payload, sample=2, tail=1)
-        result_obj = json.loads(result)
-        assert result_obj == items, (
-            f"List of length {len(items)} should not be elided (threshold=4)"
-        )
-
-    def test_long_list_elision_count_correct(self):
-        """The elision marker must report the correct number of hidden items."""
-        compress_json = import_compressor()
-        n = 20
-        items = list(range(n))
-        payload = json.dumps(items)
-        result = compress_json(payload, sample=2, tail=1)
-        result_obj = json.loads(result)
-        marker = next(v for v in result_obj if isinstance(v, str) and "more items" in v)
-        hidden = n - 2 - 1  # n - sample - tail
-        assert str(hidden) in marker, f"Marker {marker!r} must contain the count {hidden}"
-
-    def test_empty_list_passthrough(self):
-        compress_json = import_compressor()
-        payload = "[]"
-        result = compress_json(payload)
-        assert json.loads(result) == []
-
-    def test_empty_dict_passthrough(self):
-        compress_json = import_compressor()
-        payload = "{}"
-        result = compress_json(payload)
-        assert json.loads(result) == {}
 
 
 # ---------------------------------------------------------------------------
@@ -397,52 +297,17 @@ class TestLosslessRecovery:
 # ---------------------------------------------------------------------------
 
 class TestMeasuredReduction:
-    """Verify meaningful token reduction on the realistic sample."""
-
-    def test_dir_listing_reduction(self):
-        compress_json = import_compressor()
+    def test_explicit_overview_dir_listing_reduction(self):
         from brainspace import tokens
+        stash, _ = make_fake_stash()
+        text = make_dir_listing(200)
+        out = import_compressor()(text, stash=stash, intent="overview")
+        report = tokens.reduction(text, out)
+        print(f"\nJSON overview: {report}")
+        assert report["pct_reduction"] >= 50.0
 
-        data = make_dir_listing(200)
-        stash_fn, _ = make_fake_stash()
-        compressed = compress_json(data, stash=stash_fn, sample=2, tail=1)
-
-        report = tokens.reduction(data, compressed)
-        print(
-            f"\n[JSON dir listing: {report['tokens_before']}->{report['tokens_after']} tok, "
-            f"{report['pct_reduction']}% reduction, {report['ratio']}x, "
-            f"backend={report['backend']}]"
-        )
-        assert report["pct_reduction"] >= 50.0, (
-            f"Expected >= 50% reduction on 200-element dir listing, "
-            f"got {report['pct_reduction']}% "
-            f"(before={report['tokens_before']}, after={report['tokens_after']})"
-        )
-
-    def test_nested_api_response_reduction(self):
-        compress_json = import_compressor()
-        from brainspace import tokens
-
-        data = make_nested_api_response()
-        stash_fn, _ = make_fake_stash()
-        compressed = compress_json(data, stash=stash_fn)
-
-        report = tokens.reduction(data, compressed)
-        print(
-            f"\n[JSON nested API: {report['tokens_before']}->{report['tokens_after']} tok, "
-            f"{report['pct_reduction']}% reduction]"
-        )
-        assert report["pct_reduction"] >= 30.0, (
-            f"Expected >= 30% reduction on nested API response, "
-            f"got {report['pct_reduction']}%"
-        )
-
-    def test_compressed_shorter_than_original(self):
-        compress_json = import_compressor()
-        data = make_dir_listing(200)
-        stash_fn, _ = make_fake_stash()
-        compressed = compress_json(data, stash=stash_fn)
-        assert len(compressed) < len(data), (
-            f"Compressed ({len(compressed)} chars) must be shorter than "
-            f"original ({len(data)} chars)"
-        )
+    def test_default_nested_response_is_smaller_without_losing_values(self):
+        text = json.dumps(json.loads(make_nested_api_response()), indent=4)
+        out = import_compressor()(text)
+        assert len(out) < len(text)
+        assert json.loads(out) == json.loads(text)

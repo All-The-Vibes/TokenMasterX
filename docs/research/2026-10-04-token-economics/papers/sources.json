@@ -1,0 +1,801 @@
+{
+  "research_title": "Task-level LLM token economics",
+  "review_date": "2026-10-04",
+  "timezone": "America/Chicago",
+  "literature_cutoff": "2026-10-04",
+  "scope": "Primary-paper research only; no repository analysis or benchmark reproduction.",
+  "source_count": 21,
+  "core_publication_count": 16,
+  "boundary_reference_count": 4,
+  "precursor_metadata_count": 1,
+  "latest_in_field_claim": false,
+  "search_strategy": [
+    "Search arXiv for requested seed papers, information bottleneck and rate-distortion compression.",
+    "Follow primary citations on task-aware compression, learned latent interfaces, context evaluation, and memory.",
+    "Search for 2026 compression evaluation and memory work; inspect selected full methods/evaluations.",
+    "Verify revision histories directly from arXiv and pin claims to selected revisions."
+  ],
+  "excluded_evidence": "No third-party summaries, repository-local claims, dependency rankings, or current pricing.",
+  "known_ambiguities": [
+    "TALE v5 Table 3 caption disagrees with its average row and task count.",
+    "MemFly was renamed MemCoRe; old-version result headlines must not be mixed with v3 tables.",
+    "Selective Context precursor and EMNLP-era paper use different arXiv identifiers.",
+    "Compression speedup is sensitive to model/server/cache/output-length baselines.",
+    "P16 abstract/body timing metrics differ; one-token compressor-inclusive TTFT is not full-generation latency. Reader-reported 43%/53%/64% and Figure 2/Section 4.4 could not be reproduced in retrieved v1 HTML/PDF (Figure 3/Section 4.5)."
+  ],
+  "sources": [
+    {
+      "key": "P01",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Compressing Context to Enhance Inference Efficiency of Large Language Models",
+      "arxiv_id": "2310.06201",
+      "selected_version": 1,
+      "selected_version_date": "2023-10-09",
+      "selected_version_submitted_at_utc": "2023-10-09T23:03:24+00:00",
+      "first_submission_date": "2023-10-09",
+      "abs_url": "https://arxiv.org/abs/2310.06201v1",
+      "pdf_url": "https://arxiv.org/pdf/2310.06201v1",
+      "html_url": "https://arxiv.org/html/2310.06201v1",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-10-09T23:03:24+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:32:46.601657+00:00",
+      "metadata_html_sha256": "6ae01d7e98344e31e0b8b55f3b2205f87079a76ca7b9a544779297ffcf846565",
+      "inspected_sections": "Methods and experiments; efficiency and quality analyses",
+      "interface_classification_inference": "text_api_plus_auxiliary_scorer",
+      "narrow_claim": "50% context reduction; 36% inference-memory and 32% inference-time reduction; BERTScore -0.023 and faithfulness -0.038.",
+      "limitations": "Application/model-specific aggregate; not a task-correctness guarantee.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P02",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models",
+      "arxiv_id": "2310.05736",
+      "selected_version": 2,
+      "selected_version_date": "2023-12-06",
+      "selected_version_submitted_at_utc": "2023-12-06T17:02:25+00:00",
+      "first_submission_date": "2023-10-09",
+      "abs_url": "https://arxiv.org/abs/2310.05736v2",
+      "pdf_url": "https://arxiv.org/pdf/2310.05736v2",
+      "html_url": "https://arxiv.org/html/2310.05736v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-10-09T14:10:21+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2023-12-06T17:02:25+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:26:56.260290+00:00",
+      "metadata_html_sha256": "d28c7f900162a318ea9cbf97bfa6f53a662a7d0c4f126238026a30388a0653d1",
+      "inspected_sections": "Sections 4-5; Table 2",
+      "interface_classification_inference": "text_api_plus_auxiliary_compressor",
+      "narrow_claim": "GSM8K GPT-3.5-Turbo-0301: 2366 to 117 tokens, EM 78.85 to 77.33.",
+      "limitations": "Few-shot prompt compression; auxiliary alignment is not target retraining.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P03",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "LongLLMLingua: Accelerating and Enhancing LLMs in Long Context Scenarios via Prompt Compression",
+      "arxiv_id": "2310.06839",
+      "selected_version": 2,
+      "selected_version_date": "2024-08-12",
+      "selected_version_submitted_at_utc": "2024-08-12T03:53:35+00:00",
+      "first_submission_date": "2023-10-10",
+      "abs_url": "https://arxiv.org/abs/2310.06839v2",
+      "pdf_url": "https://arxiv.org/pdf/2310.06839v2",
+      "html_url": "https://arxiv.org/html/2310.06839v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-10-10T17:59:58+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-08-12T03:53:35+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:26:57.844222+00:00",
+      "metadata_html_sha256": "bc18b12876683124e220a4e1d26fdc52daf3c86a6999ca6e17db032bed3770d0",
+      "inspected_sections": "Sections 4-5; Tables 1-2",
+      "interface_classification_inference": "text_api_query_conditioned",
+      "narrow_claim": "NQ 20 documents: 2946 to 748 tokens; position-10 54.1 to 71.2; reordered pipeline 75.5.",
+      "limitations": "The 21.4-point headline combines compression with reordering; ablate both.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P04",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "LLMLingua-2: Data Distillation for Efficient and Faithful Task-Agnostic Prompt Compression",
+      "arxiv_id": "2403.12968",
+      "selected_version": 2,
+      "selected_version_date": "2024-08-12",
+      "selected_version_submitted_at_utc": "2024-08-12T04:48:11+00:00",
+      "first_submission_date": "2024-03-19",
+      "abs_url": "https://arxiv.org/abs/2403.12968v2",
+      "pdf_url": "https://arxiv.org/pdf/2403.12968v2",
+      "html_url": "https://arxiv.org/html/2403.12968v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-03-19T17:59:56+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-08-12T04:48:11+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:26:59.441961+00:00",
+      "metadata_html_sha256": "deb1dc1d155f4e7027f4b3773addebb6a646456a3b1fa6171c1c56dd9fad3749",
+      "inspected_sections": "Sections 3-5; Tables 3, 5, 11; appendices",
+      "interface_classification_inference": "text_api_trained_auxiliary_encoder",
+      "narrow_claim": "LongBench 2000-token constraint: aggregate 39.1 at 1954 tokens versus LLMLingua 34.6 at 1950.",
+      "limitations": "Task-agnostic; benchmark aggregates and local V100 latency do not establish API latency.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P05",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "RECOMP: Improving Retrieval-Augmented LMs with Compression and Selective Augmentation",
+      "arxiv_id": "2310.04408",
+      "selected_version": 1,
+      "selected_version_date": "2023-10-06",
+      "selected_version_submitted_at_utc": "2023-10-06T17:55:36+00:00",
+      "first_submission_date": "2023-10-06",
+      "abs_url": "https://arxiv.org/abs/2310.04408v1",
+      "pdf_url": "https://arxiv.org/pdf/2310.04408v1",
+      "html_url": "https://arxiv.org/html/2310.04408v1",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-10-06T17:55:36+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:06.050385+00:00",
+      "metadata_html_sha256": "e26555d62084275efa38a80888748726c6eebb141cb73d62188d6b7f60d960ff",
+      "inspected_sections": "Sections 3-5; LM/QA settings and transfer results",
+      "interface_classification_inference": "text_api_trained_auxiliary_compressor",
+      "narrow_claim": "Trained LM compressors retain about 25%; QA retains 5-10%, with under 10% reported relative degradation.",
+      "limitations": "Do not conflate trained and oracle results, particularly the 6% headline.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P06",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Fundamental Limits of Prompt Compression: A Rate-Distortion Framework for Black-Box Language Models",
+      "arxiv_id": "2407.15504",
+      "selected_version": 2,
+      "selected_version_date": "2024-12-11",
+      "selected_version_submitted_at_utc": "2024-12-11T01:59:36+00:00",
+      "first_submission_date": "2024-07-22",
+      "abs_url": "https://arxiv.org/abs/2407.15504v2",
+      "pdf_url": "https://arxiv.org/pdf/2407.15504v2",
+      "html_url": "https://arxiv.org/html/2407.15504v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-07-22T09:40:13+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-12-11T01:59:36+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:07.667590+00:00",
+      "metadata_html_sha256": "f8bb0865ea2c4c3469afff4efbaee4de986c6b80084a0e769eb12c2c216fe1a4",
+      "inspected_sections": "Sections 2-4; experiments; Appendices C-D",
+      "interface_classification_inference": "framework_and_text_api_methods",
+      "narrow_claim": "Exact rate-distortion curves in tractable settings; exhaustive curves infeasible for NarrativeQA-sized prompts.",
+      "limitations": "Optimality depends on source/query distribution, model, compressor, and distortion; toy experiments fine-tune models.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P07",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "QUITO-X: A New Perspective on Context Compression from the Information Bottleneck Theory",
+      "arxiv_id": "2408.10497",
+      "selected_version": 3,
+      "selected_version_date": "2025-10-13",
+      "selected_version_submitted_at_utc": "2025-10-13T07:51:33+00:00",
+      "first_submission_date": "2024-08-20",
+      "abs_url": "https://arxiv.org/abs/2408.10497v3",
+      "pdf_url": "https://arxiv.org/pdf/2408.10497v3",
+      "html_url": "https://arxiv.org/html/2408.10497v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-08-20T02:44:45+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-12-16T15:03:54+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2025-10-13T07:51:33+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:09.308853+00:00",
+      "metadata_html_sha256": "2ff1c990ab366631a452c6da168b79f75bc9d301adea892f40d67406b7efac3c",
+      "inspected_sections": "Sections 3-4; Tables 1-2; Appendix F",
+      "interface_classification_inference": "text_api_auxiliary_cross_attention",
+      "narrow_claim": "Quoref, Llama-3-8B-Instruct, retained ratio .25: 86.8 EM versus full 93.1.",
+      "limitations": "Attention-based relevance is a surrogate; no universal retention certificate.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P08",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Lost in the Middle: How Language Models Use Long Contexts",
+      "arxiv_id": "2307.03172",
+      "selected_version": 3,
+      "selected_version_date": "2023-11-20",
+      "selected_version_submitted_at_utc": "2023-11-20T23:09:34+00:00",
+      "first_submission_date": "2023-07-06",
+      "abs_url": "https://arxiv.org/abs/2307.03172v3",
+      "pdf_url": "https://arxiv.org/pdf/2307.03172v3",
+      "html_url": "https://arxiv.org/html/2307.03172v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-07-06T17:54:11+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2023-07-31T17:48:48+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2023-11-20T23:09:34+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:02.793499+00:00",
+      "metadata_html_sha256": "af63ac4b31d2d47748f3ad62081349ff820ca488c577888c8b0289545915c275",
+      "inspected_sections": "Sections 2-3; Appendix G, Table 6",
+      "interface_classification_inference": "black_box_evaluation",
+      "narrow_claim": "GPT-3.5-Turbo 20-document QA: first 75.8, index-9 53.8, last 63.2.",
+      "limitations": "Historical model snapshots; position effect is not a present-model score prediction.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P09",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "RULER: What's the Real Context Size of Your Long-Context Language Models?",
+      "arxiv_id": "2404.06654",
+      "selected_version": 3,
+      "selected_version_date": "2024-08-06",
+      "selected_version_submitted_at_utc": "2024-08-06T21:48:58+00:00",
+      "first_submission_date": "2024-04-09",
+      "abs_url": "https://arxiv.org/abs/2404.06654v3",
+      "pdf_url": "https://arxiv.org/pdf/2404.06654v3",
+      "html_url": "https://arxiv.org/html/2404.06654v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-04-09T23:41:27+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-04-11T23:53:59+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2024-08-06T21:48:58+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:04.389350+00:00",
+      "metadata_html_sha256": "fc4d644f649918595252e8e4150770521ea8b6e63b77b9516abf5f9f4afc6622",
+      "inspected_sections": "Sections 3-6; Table 3",
+      "interface_classification_inference": "black_box_evaluation",
+      "narrow_claim": "13 tasks; GPT-4 96.6 at 4K, 87.0 at 64K, 81.2 at 128K.",
+      "limitations": "Effective length uses an 85.6 threshold and is benchmark-defined, not hardware capacity.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P10",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "NoLiMa: Long-Context Evaluation Beyond Literal Matching",
+      "arxiv_id": "2502.05167",
+      "selected_version": 3,
+      "selected_version_date": "2025-07-09",
+      "selected_version_submitted_at_utc": "2025-07-09T14:35:23+00:00",
+      "first_submission_date": "2025-02-07",
+      "abs_url": "https://arxiv.org/abs/2502.05167v3",
+      "pdf_url": "https://arxiv.org/pdf/2502.05167v3",
+      "html_url": "https://arxiv.org/html/2502.05167v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2025-02-07T18:49:46+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2025-03-26T13:23:30+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2025-07-09T14:35:23+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:15.833262+00:00",
+      "metadata_html_sha256": "a01bf52dae11d8f9946194d6ecb977fd1aed9ed83f14ad6352bac548681e9e74",
+      "inspected_sections": "Sections 3-5; Table 3; Appendices E-F",
+      "interface_classification_inference": "black_box_evaluation",
+      "narrow_claim": "GPT-4o base 99.3, 32K 69.7, effective length 8K at 85% of base.",
+      "limitations": "Synthetic non-literal associations and historical model snapshots; not complete application coverage.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P11",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "LongMemEval: Benchmarking Chat Assistants on Long-Term Interactive Memory",
+      "arxiv_id": "2410.10813",
+      "selected_version": 2,
+      "selected_version_date": "2025-03-04",
+      "selected_version_submitted_at_utc": "2025-03-04T22:19:41+00:00",
+      "first_submission_date": "2024-10-14",
+      "abs_url": "https://arxiv.org/abs/2410.10813v2",
+      "pdf_url": "https://arxiv.org/pdf/2410.10813v2",
+      "html_url": "https://arxiv.org/html/2410.10813v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-10-14T17:59:44+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2025-03-04T22:19:41+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:12.579751+00:00",
+      "metadata_html_sha256": "99daea50e12f2d4b626df58da79690c50a0893bbbe0b58fea0f00c98a1a22ddb",
+      "inspected_sections": "Sections 3-5; Figure 3; memory design analyses",
+      "interface_classification_inference": "black_box_evaluation_stateful_memory",
+      "narrow_claim": "500 questions; S about 115K tokens; Llama-3.1-8B oracle .710 versus full-history .420.",
+      "limitations": "Oracle retrieval is diagnostic; compression to user facts changes subgroup performance.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P12",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "MemCoRe: Recovering Evidence from Progressively Compressed Factual Knowledge for Agent Memory",
+      "arxiv_id": "2602.07885",
+      "selected_version": 3,
+      "selected_version_date": "2026-09-04",
+      "selected_version_submitted_at_utc": "2026-09-04T02:45:30+00:00",
+      "first_submission_date": "2026-02-08",
+      "abs_url": "https://arxiv.org/abs/2602.07885v3",
+      "pdf_url": "https://arxiv.org/pdf/2602.07885v3",
+      "html_url": "https://arxiv.org/html/2602.07885v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2026-02-08T09:37:25+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2026-08-05T10:56:08+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2026-09-04T02:45:30+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:17.446520+00:00",
+      "metadata_html_sha256": "563fa1c225e4034670c58d92d3633191a26d4ac78d83a4fe22b3ab4609cf1a14",
+      "inspected_sections": "Sections 2-3; Tables 1-2; implementation details and appendices",
+      "interface_classification_inference": "text_api_stateful_memory_orchestration",
+      "narrow_claim": "LoCoMo GPT-4o-mini average F1: MemCoRe 43.76, A-MEM 41.97, LoCoMo baseline 39.74.",
+      "limitations": "Title changed from MemFly; latest revision does not establish lower lifetime cost.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P13",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Learning to Compress Prompts with Gist Tokens",
+      "arxiv_id": "2304.08467",
+      "selected_version": 3,
+      "selected_version_date": "2024-02-12",
+      "selected_version_submitted_at_utc": "2024-02-12T19:03:18+00:00",
+      "first_submission_date": "2023-04-17",
+      "abs_url": "https://arxiv.org/abs/2304.08467v3",
+      "pdf_url": "https://arxiv.org/pdf/2304.08467v3",
+      "html_url": null,
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-04-17T17:47:37+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2023-07-16T00:29:16+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2024-02-12T19:03:18+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:10.988066+00:00",
+      "metadata_html_sha256": "77366b313823726aa9c93e89861da0575678e7ced597720334217493df57744a",
+      "inspected_sections": "PDF Sections 2-6; Table 3; limitations",
+      "interface_classification_inference": "target_training_and_activation_interface",
+      "narrow_claim": "Mean instruction cache 26 to 1 tokens; LLaMA full-cache comparison: .11% FLOPs and 1% wall-time savings.",
+      "limitations": "Single-forward-pass profiling; special-token text is not a learned activation; nuance may be lost.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "PDF extracted with pre-existing pdftotext; HTML request returned HTTP 406.",
+      "reviewed_pdf_sha256": "50417a80cb655866ad97542a04f36d66810e5df00ef676d481a9b6b63e14fe08"
+    },
+    {
+      "key": "P14",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Token-Budget-Aware LLM Reasoning",
+      "arxiv_id": "2412.18547",
+      "selected_version": 5,
+      "selected_version_date": "2025-06-02",
+      "selected_version_submitted_at_utc": "2025-06-02T00:44:09+00:00",
+      "first_submission_date": "2024-12-24",
+      "abs_url": "https://arxiv.org/abs/2412.18547v5",
+      "pdf_url": "https://arxiv.org/pdf/2412.18547v5",
+      "html_url": "https://arxiv.org/html/2412.18547v5",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-12-24T16:55:45+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-12-30T01:07:39+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2024-12-31T06:11:39+00:00"
+        },
+        {
+          "version": 4,
+          "submitted_at_utc": "2025-02-17T15:55:08+00:00"
+        },
+        {
+          "version": 5,
+          "submitted_at_utc": "2025-06-02T00:44:09+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:14.245269+00:00",
+      "metadata_html_sha256": "663ffcd09b6f985ea35320a3b9f6e9b7622bdba17f0ea7c959228b101a8fdf6a",
+      "inspected_sections": "Sections 3-6; Tables 3-4",
+      "interface_classification_inference": "EP_text_api_PT_training",
+      "narrow_claim": "GSM8K 318.10 to 77.26 output tokens, 81.35 to 84.46 accuracy; college 78 to 70 accuracy.",
+      "limitations": "Table 3 caption conflicts with average row; task cells used, aggregate left unresolved.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P15",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "s1: Simple test-time scaling",
+      "arxiv_id": "2501.19393",
+      "selected_version": 3,
+      "selected_version_date": "2025-03-01",
+      "selected_version_submitted_at_utc": "2025-03-01T06:07:39+00:00",
+      "first_submission_date": "2025-01-31",
+      "abs_url": "https://arxiv.org/abs/2501.19393v3",
+      "pdf_url": "https://arxiv.org/pdf/2501.19393v3",
+      "html_url": "https://arxiv.org/html/2501.19393v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2025-01-31T18:48:08+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2025-02-03T16:31:30+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2025-03-01T06:07:39+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:22.211565+00:00",
+      "metadata_html_sha256": "b9cab37b28af10bf6ef523bead995fa0f5e7c690708511b4d52460ad2af0b2cd",
+      "inspected_sections": "Sections 2-5; Tables 3-4; Appendices A-B, E",
+      "interface_classification_inference": "target_training_and_decoding_control",
+      "narrow_claim": "s1 AIME24 50.0 to 56.7 with four Wait extensions; budget forcing control 100% versus token prompting 40%.",
+      "limitations": "Not s1.1; small math benchmark and nondeterministic evaluation; output brevity is not equivalent.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "P16",
+      "category": "core",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Prompt Compression in the Wild: Measuring Latency, Rate Adherence, and Quality for Faster LLM Inference",
+      "arxiv_id": "2604.02985",
+      "selected_version": 1,
+      "selected_version_date": "2026-04-03",
+      "selected_version_submitted_at_utc": "2026-04-03T11:41:53+00:00",
+      "first_submission_date": "2026-04-03",
+      "abs_url": "https://arxiv.org/abs/2604.02985v1",
+      "pdf_url": "https://arxiv.org/pdf/2604.02985v1",
+      "html_url": "https://arxiv.org/html/2604.02985v1",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2026-04-03T11:41:53+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:19.032883+00:00",
+      "metadata_html_sha256": "e83d807bf1ce79c0b1d32de748bcc955a5e70c4e278fb2d2a516d8b548d747ec",
+      "inspected_sections": "Abstract; Section 4.2 one-token TTFT setup and serving/API comparison; memory discussion. Retrieved HTML/PDF label the TTFT plot Figure 3 and memory Section 4.5; reader reports Figure 2/Section 4.4.",
+      "interface_classification_inference": "text_api_and_server_evaluation",
+      "narrow_claim": "Mistral-7B/Transformers 3-4x is compressor-inclusive TTFT for one-token output, prompts >2000 tokens and compression >=5x, not full-generation/task latency. No reliable TTFT speedup was reported for the tested GPT-3.5 Turbo/GPT-4o mini API setups.",
+      "limitations": "Historical setup-specific TTFT evidence. Abstract 18% end-to-end headline is not reconciled with body TTFT factors. Reader-reported 43% TTFT gain and 53%/64% aggregate GPU-memory increases were not found in the retrieved v1 HTML/PDF; conditions, memory scope, and representation mismatch remain unresolved.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata",
+      "precision_recheck": {
+        "date": "2026-10-04",
+        "confirmed_metric": "compressor-inclusive time to first token under one-token output",
+        "not_established": "full-generation latency, successful-task latency, universal API behavior, or a unified latency/memory headline",
+        "confirmed_abstract_claim": "up to 18% end-to-end speedup under matched conditions",
+        "reader_supplied_unverified": {
+          "ttft_improvement_percent": 43,
+          "aggregate_gpu_memory_increases_percent": [
+            53,
+            64
+          ],
+          "parameter": "max_new_tokens=1",
+          "ttft_figure": 2,
+          "memory_section": "4.4",
+          "memory_wording": "very low memory overhead"
+        },
+        "retrieved_representation": {
+          "ttft_figure": 3,
+          "memory_section": "4.5",
+          "literal_parameter_found": false,
+          "reader_memory_figures_found": false,
+          "one_token_output_confirmed": true
+        },
+        "resolution": "Unresolved source/conditions discrepancy; preserve distinct claims and do not combine them.",
+        "retrievals": [
+          {
+            "url": "https://arxiv.org/abs/2604.02985v1",
+            "retrieved_at_utc": "2026-10-04T20:50:46.837218+00:00",
+            "sha256": "43a43107664e7775355315a6653f1a4e06217780f3858413fae5b204fa55c5d2",
+            "method": "direct HTTP, decoded and text inspected"
+          },
+          {
+            "url": "https://arxiv.org/html/2604.02985v1",
+            "retrieved_at_utc": "2026-10-04T20:50:47.013798+00:00",
+            "sha256": "3de586d845866876fc89c7422de582da452c24b0c5cedc01689e8635fec4e4d6",
+            "method": "direct HTTP, parsed and targeted text inspected"
+          },
+          {
+            "url": "https://arxiv.org/pdf/2604.02985v1",
+            "method": "web tool PDF text, Section 4.2 and memory Section 4.5 inspected; no local PDF written"
+          }
+        ]
+      }
+    },
+    {
+      "key": "B01",
+      "category": "boundary",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "In-context Autoencoder for Context Compression in a Large Language Model",
+      "arxiv_id": "2307.06945",
+      "selected_version": 4,
+      "selected_version_date": "2024-05-08",
+      "selected_version_submitted_at_utc": "2024-05-08T18:16:09+00:00",
+      "first_submission_date": "2023-07-13",
+      "abs_url": "https://arxiv.org/abs/2307.06945v4",
+      "pdf_url": "https://arxiv.org/pdf/2307.06945v4",
+      "html_url": "https://arxiv.org/html/2307.06945v4",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-07-13T17:59:21+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2023-10-02T22:38:42+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2024-03-18T00:45:48+00:00"
+        },
+        {
+          "version": 4,
+          "submitted_at_utc": "2024-05-08T18:16:09+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:20.636974+00:00",
+      "metadata_html_sha256": "7ec7b801ccfd01f55cd7d61dbccd2f8ed7341be0e6956e09c784591fd8fa9f88",
+      "inspected_sections": "Sections 2-3, especially 3.3; memory-slot/training method",
+      "interface_classification_inference": "trained_encoder_and_soft_embedding_interface",
+      "narrow_claim": "512 context tokens to 128 memory slots; learned encoder, target LLM unchanged; span concatenation needs training exposure.",
+      "limitations": "Unchanged decoder weights do not imply a standard text-only API can receive the soft representation.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    },
+    {
+      "key": "B02",
+      "category": "boundary",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "KIVI: A Tuning-Free Asymmetric 2bit Quantization for KV Cache",
+      "arxiv_id": "2402.02750",
+      "selected_version": 2,
+      "selected_version_date": "2024-07-25",
+      "selected_version_submitted_at_utc": "2024-07-25T09:16:05+00:00",
+      "first_submission_date": "2024-02-05",
+      "abs_url": "https://arxiv.org/abs/2402.02750v2",
+      "pdf_url": "https://arxiv.org/pdf/2402.02750v2",
+      "html_url": "https://arxiv.org/html/2402.02750v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2024-02-05T06:06:47+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2024-07-25T09:16:05+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:23.822450+00:00",
+      "metadata_html_sha256": "4e8022a25f8baec407478a8e615138daf608c4180b8b8a32ebe6c64f6d66f672",
+      "inspected_sections": "Primary abstract and mechanism description",
+      "interface_classification_inference": "serving_cache_precision_control",
+      "narrow_claim": "KV quantization reduces numerical precision/storage, not submitted text.",
+      "limitations": "Mechanism-only review, no performance comparison or provider billing inference.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv abstract; narrowly used for mechanism distinction"
+    },
+    {
+      "key": "B03",
+      "category": "boundary",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "H$_2$O: Heavy-Hitter Oracle for Efficient Generative Inference of Large Language Models",
+      "arxiv_id": "2306.14048",
+      "selected_version": 3,
+      "selected_version_date": "2023-12-18",
+      "selected_version_submitted_at_utc": "2023-12-18T19:10:00+00:00",
+      "first_submission_date": "2023-06-24",
+      "abs_url": "https://arxiv.org/abs/2306.14048v3",
+      "pdf_url": "https://arxiv.org/pdf/2306.14048v3",
+      "html_url": "https://arxiv.org/html/2306.14048v3",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-06-24T20:11:14+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2023-07-19T06:02:38+00:00"
+        },
+        {
+          "version": 3,
+          "submitted_at_utc": "2023-12-18T19:10:00+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:25.405636+00:00",
+      "metadata_html_sha256": "4fe1bbda5424a06c366ac51911215f8867fa614208f5f9f7f8a4bceefe141e75",
+      "inspected_sections": "Primary abstract and mechanism description",
+      "interface_classification_inference": "serving_attention_and_cache_control",
+      "narrow_claim": "KV eviction keeps recent and high-attention heavy-hitter states.",
+      "limitations": "Mechanism-only review; not prompt deletion or a semantic retention guarantee.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv abstract; narrowly used for mechanism distinction"
+    },
+    {
+      "key": "B04",
+      "category": "boundary",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Fast Inference from Transformers via Speculative Decoding",
+      "arxiv_id": "2211.17192",
+      "selected_version": 2,
+      "selected_version_date": "2023-05-18",
+      "selected_version_submitted_at_utc": "2023-05-18T20:28:20+00:00",
+      "first_submission_date": "2022-11-30",
+      "abs_url": "https://arxiv.org/abs/2211.17192v2",
+      "pdf_url": "https://arxiv.org/pdf/2211.17192v2",
+      "html_url": "https://arxiv.org/html/2211.17192v2",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2022-11-30T17:33:28+00:00"
+        },
+        {
+          "version": 2,
+          "submitted_at_utc": "2023-05-18T20:28:20+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:26.987503+00:00",
+      "metadata_html_sha256": "56a42c7b4aa2a6588a28019e969d8baeed734a144bc77126bf7f9440f5f2f687",
+      "inspected_sections": "Primary abstract and exact-sampling mechanism",
+      "interface_classification_inference": "draft_target_decoding_coordination",
+      "narrow_claim": "Exact speculative sampling preserves target distribution under algorithm assumptions; original T5-XXL reports 2-3x speedup.",
+      "limitations": "Not fewer semantic prompt/output tokens; no current endpoint compatibility claim.",
+      "claim_status": "reported_not_reproduced",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv abstract; narrowly used for mechanism distinction"
+    },
+    {
+      "key": "H01",
+      "category": "precursor_metadata_only",
+      "source_type": "primary_research_arxiv",
+      "title_at_retrieval": "Unlocking Context Constraints of LLMs: Enhancing Context Efficiency of LLMs with Self-Information-Based Content Filtering",
+      "arxiv_id": "2304.12102",
+      "selected_version": 1,
+      "selected_version_date": "2023-04-24",
+      "selected_version_submitted_at_utc": "2023-04-24T13:55:47+00:00",
+      "first_submission_date": "2023-04-24",
+      "abs_url": "https://arxiv.org/abs/2304.12102v1",
+      "pdf_url": "https://arxiv.org/pdf/2304.12102v1",
+      "html_url": "https://arxiv.org/html/2304.12102v1",
+      "version_history_at_retrieval": [
+        {
+          "version": 1,
+          "submitted_at_utc": "2023-04-24T13:55:47+00:00"
+        }
+      ],
+      "retrieved_at_utc": "2026-10-04T20:27:01.202743+00:00",
+      "metadata_html_sha256": "5c7be52afd80e2a5aae163d4bb1c20429708fc6b4454b24f5aed0e1465dd9a52",
+      "inspected_sections": "Version metadata only; not used for independent numeric corroboration",
+      "interface_classification_inference": "not_assessed",
+      "narrow_claim": "Earlier Selective Context-related preprint.",
+      "limitations": "Not the load-bearing EMNLP-era paper 2310.06201v1.",
+      "claim_status": "metadata_only",
+      "venue_certification": "ArXiv revision verified; peer-review status is not used as a quality guarantee.",
+      "review_format": "versioned arXiv HTML and abstract metadata"
+    }
+  ]
+}

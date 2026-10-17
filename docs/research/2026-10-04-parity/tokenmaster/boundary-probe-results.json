@@ -1,0 +1,91 @@
+{
+  "as_of_date": "2026-10-04",
+  "source_sha": "426fc853389ddba4bc6e1dd35a28179a895c064f",
+  "python": "3.12.12 (main, Dec 17 2025, 21:10:14) [MSC v.1944 64 bit (AMD64)]",
+  "tokenizer": "shipped chars/4 fallback explicitly selected",
+  "scope": "Offline deterministic boundary probes; no model-quality or billed-cost measurement.",
+  "results": [
+    {
+      "probe": "json_middle_exception_hidden_but_retrievable",
+      "confirmed": true,
+      "output": "[{\"id\":0,\"status\":\"ok\"},{\"id\":1,\"status\":\"ok\"},\"...27 more items (same shape) [[BR:f7cbe70146e6|json; 27 list items; 1L]]...\",{\"id\":29,\"status\":\"ok\"}]",
+      "references": [
+        "f7cbe70146e6"
+      ],
+      "recovery_note": "Omitted JSON slice is reserialized, not the full input bytes."
+    },
+    {
+      "probe": "json_stash_failure_still_elides",
+      "confirmed": true,
+      "output": "[{\"id\":0,\"status\":\"ok\"},{\"id\":1,\"status\":\"ok\"},\"...27 more items (same shape)...\",{\"id\":29,\"status\":\"ok\"}]"
+    },
+    {
+      "probe": "code_stub_stash_failure_still_elides",
+      "confirmed": true,
+      "output": "    ... <3 lines elided>\n",
+      "scope": "Direct helper probe. Full AST path needs absent tree-sitter dependencies."
+    },
+    {
+      "probe": "log_failed_test_marker_hidden",
+      "confirmed": true,
+      "output": "... 41 lines elided ...\nfull log: [[BR:ef4810e8e6c2|log; 41L]]\n",
+      "recovery_available": true
+    },
+    {
+      "probe": "log_stash_failure_preserves_original",
+      "confirmed": true
+    },
+    {
+      "probe": "mcp_footer_bypasses_never_expand",
+      "confirmed": true,
+      "tokens": {
+        "before": 4,
+        "core": 2,
+        "wrapped": 24,
+        "backend": "heuristic"
+      },
+      "output": "{\"x\":1}\n\n— brainspace[json]: 4→2 tok (50.0% via heuristic); expand with brainspace_retrieve —",
+      "scope": "Actual wrapper body; MCP decorator only is shimmed, no transport."
+    },
+    {
+      "probe": "hook_footer_bypasses_never_expand",
+      "confirmed": true,
+      "tokens": {
+        "before": 204,
+        "replacement": 226,
+        "backend": "heuristic"
+      },
+      "exit_code": 0,
+      "scope": "Real hook subprocess output, NOT a live Claude Code request."
+    },
+    {
+      "probe": "structured_bash_input_replaced_with_plain_string",
+      "confirmed": true,
+      "input_shape": "object: stdout, stderr, interrupted, isImage",
+      "output_shape": "str",
+      "scope": "Actual hook subprocess output. Current official host docs say mismatched built-in output shapes are ignored; live host behavior was not tested."
+    },
+    {
+      "probe": "benchmark_recovery_check_skips_minted_hashes",
+      "confirmed": true,
+      "reported_lossless": true,
+      "retrieve_calls": 0,
+      "reason": "findall returns bare hashes; applying PLACEHOLDER_RE again always yields no match."
+    },
+    {
+      "probe": "mcp_retrieve_truncates_without_paging",
+      "confirmed": true,
+      "original_characters": 200001,
+      "store_round_trip": true,
+      "mcp_return_characters": 200041,
+      "scope": "Actual wrapper body; no MCP transport."
+    },
+    {
+      "probe": "same_content_different_source_changes_placeholder",
+      "confirmed": true,
+      "first": "[[BR:bc3f740edc40|code; alpha body; 1L]]",
+      "second": "[[BR:bc3f740edc40|code; beta body; 1L]]",
+      "meaning": "Content key is stable; the full placeholder additionally depends on source metadata."
+    }
+  ]
+}

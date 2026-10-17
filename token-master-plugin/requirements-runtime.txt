@@ -1,0 +1,11 @@
+# Existing runtime dependencies, pinned to the isolated validation environment.
+# Provision separately: python -m pip install -r requirements-runtime.txt
+# Servers launch the explicitly tested interpreter; they never resolve packages.
+# Exact transitive constraints from the verified Windows CPython 3.12 runtime.
+# The installer records the full inventory and lock digest in *-runtime.json.
+-c requirements-runtime.lock.txt
+mcp==1.27.2
+tiktoken==0.14.0
+tree-sitter==0.26.0
+tree-sitter-python==0.25.0
+tree-sitter-rust==0.24.2

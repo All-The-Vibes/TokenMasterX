@@ -1,28 +1,19 @@
 #!/usr/bin/env python
-"""Brainspace benchmark launcher — measure compression on your own content.
+"""Benchmark guarded views and actual recovery, not whole-task model quality.
 
-Thin entry point (mirrors brainspace_mcp.py / brainspace_posttooluse.py): it makes the
-sibling ``brainspace`` package importable when the host launches this file by absolute
-path from an arbitrary working directory, then delegates to ``brainspace.benchmark``.
+Use the already provisioned pinned Python runtime and a verified local tokenizer:
+  python brainspace_benchmark.py data.json --intent overview --json
+  python brainspace_benchmark.py ./logs
+  python brainspace_benchmark.py --stdin --hint=fixture.log --intent=overview
 
-Quick start (from the installed location, ``<host-home>/token-master/``)::
-
-    # Benchmark your own files:
-    uv run --with mcp --with tiktoken python brainspace_benchmark.py path/to/file.json server.log
-
-    # Benchmark a directory (type auto-detected per file):
-    uv run --with mcp --with tiktoken python brainspace_benchmark.py ./logs
-
-    # Benchmark piped output:
-    pytest -v | uv run --with mcp --with tiktoken python brainspace_benchmark.py --stdin --hint=pytest
-
-    # No args → instant demo over Brainspace's own files.
-    uv run --with mcp --with tiktoken python brainspace_benchmark.py
-
-Add ``--json`` for machine-readable output, ``--turns N`` for the area-under-curve
-horizon, ``--max-files N`` to widen the directory cap. ``tiktoken`` gives accurate
-token counts (falls back to a heuristic if absent); add ``--with tree-sitter
---with tree-sitter-python`` for the code compressor.
+No arguments use installed source as a demo corpus. --turns supplies only an
+illustrative replay projection, not a captured whole-task total. --max-files
+limits directory walking. Missing exact tokenization makes transforms no-ops;
+estimates remain labeled. Recovery results distinguish unchanged, root_exact,
+fragments_exact, unverified and failed. Failed/unverified required recovery exits
+nonzero. Conservative JSON whitespace changes may be unverified for exact-text
+recovery, even though their literal values are retained. No dependency resolving
+or downloads occur at launch.
 """
 import sys
 from pathlib import Path

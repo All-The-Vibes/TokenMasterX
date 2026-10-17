@@ -118,7 +118,12 @@ def test_route_typed_skeletonizes_rust_via_hint():
         "    result\n"
         "}\n"
     ) * 4
-    out, ctype = route_typed(rs, "lib.rs")
+    # Navigation is explicitly requested and a recovery callback is available.
+    # Default reads/debugging must not silently skeletonize implementation.
+    out, ctype = route_typed(
+        rs, "lib.rs", intent="navigation",
+        stash=lambda content, **metadata: "[[BR:abcdef012345|body]]",
+    )
     assert ctype is ContentType.CODE
     # The doc comment and signature survive; the executable body is elided.
     assert "pub fn add(a: i64, b: i64) -> i64" in out
@@ -136,3 +141,75 @@ def test_route_typed_rust_without_hint_does_not_corrupt():
     assert isinstance(out, str)
     assert len(out) <= len(rs)
 
+
+def test_protected_intent_bypasses_compressor_loading(monkeypatch):
+    from brainspace import router
+    def forbidden(*_):
+        raise AssertionError("exact intent must bypass, not call the compressor")
+    monkeypatch.setattr(router, "_load", forbidden)
+    text = '{  "exact":  "   spaced   "  }'
+    out, ctype = router.route_typed(text, "x.json", intent="exact")
+    assert out == text
+    assert ctype is ContentType.JSON
+
+
+def test_heuristic_is_not_used_for_exact_nonexpansion(monkeypatch):
+    from brainspace import tokens
+    monkeypatch.setattr(tokens, "_TRIED", True)
+    monkeypatch.setattr(tokens, "_ENCODER", None)
+    text = '{\n  "key": [\n     1,\n     2\n  ]\n}'
+    assert route_typed(text, "x.json")[0] == text
+
+
+def test_router_cannot_force_view_under_impossible_byte_cap():
+    text = '{\n  "key": [\n     1,\n     2\n  ]\n}'
+    assert route_typed(text, "x.json", max_output_bytes=1)[0] == text
+
+
+def test_storage_failure_is_observable_without_model_visible_noise():
+    text = "[INFO] repeated synthetic message\n" * 200 + "[INFO] tests passed\n"
+    diagnostics = {}
+    def broken_stash(*args, **kwargs):
+        raise RuntimeError("private operational detail must not leak")
+    out, _ = route_typed(text, "x.log", intent="overview", stash=broken_stash,
+                         diagnostics=diagnostics)
+    assert out == text
+    assert diagnostics["reason"] == "storage_error"
+    assert diagnostics["error_type"] == "RuntimeError"
+    assert "private" not in repr(diagnostics)
+
+
+def test_internal_transform_failure_is_not_an_intentional_noop(monkeypatch):
+    from brainspace.compressors import json_compressor
+    def broken_compaction(*args):
+        raise RuntimeError("sensitive implementation detail")
+    monkeypatch.setattr(json_compressor, "_compact", broken_compaction)
+    diagnostics = {}
+    original = '{  "value":  1  }'
+    assert route_typed(original, "fixture.json", diagnostics=diagnostics)[0] == original
+    assert diagnostics["reason"] == "transform_error"
+    assert diagnostics["error_type"] == "RuntimeError"
+    assert "sensitive" not in repr(diagnostics)
+
+
+def test_invalid_json_reports_expected_rejection_not_transform_crash():
+    diagnostics = {}
+    original = "{malformed"
+    assert route_typed(original, "fixture.json", diagnostics=diagnostics)[0] == original
+    assert diagnostics["reason"] == "invalid_or_unsupported_input"
+
+
+def test_loader_failure_preserves_input_and_exposes_diagnostic(monkeypatch):
+    import builtins
+    original_import = builtins.__import__
+    def broken_import(name, *args, **kwargs):
+        if "json_compressor" in name:
+            raise ImportError("private import path")
+        return original_import(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, "__import__", broken_import)
+    diagnostics = {}
+    text = '{"x":    1}'
+    assert route_typed(text, "x.json", diagnostics=diagnostics)[0] == text
+    assert diagnostics["reason"] == "dependency_unavailable"
+    assert diagnostics["error_type"] == "ImportError"
+    assert "private" not in repr(diagnostics)

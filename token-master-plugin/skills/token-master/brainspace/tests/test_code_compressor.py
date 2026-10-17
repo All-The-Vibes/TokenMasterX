@@ -18,10 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import re
-import sys
 import textwrap
-import types
-import importlib
 
 import pytest
 
@@ -108,7 +105,7 @@ SAMPLE_PY = textwrap.dedent("""\
                 return False
             if len(item) > 1_000_000:
                 return False
-            disallowed = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
+            disallowed = re.compile(r"[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f]")
             if disallowed.search(item):
                 return False
             return True
@@ -217,6 +214,11 @@ def import_compressor():
 # Tests
 # ---------------------------------------------------------------------------
 
+def test_python_sample_is_valid_source():
+    """The reduction fixture must not rely on tree-sitter error recovery."""
+    compile(SAMPLE_PY, "<sample>", "exec")
+
+
 class TestCodeCompressorNeverRaises:
     """Rule 1: the function must never raise."""
 
@@ -272,9 +274,9 @@ class TestDeterminism:
     def test_deterministic_with_stash(self):
         compress_code = import_compressor()
         stash_fn, store1 = make_fake_stash()
-        r1 = compress_code(SAMPLE_PY, stash=stash_fn)
+        r1 = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
         stash_fn2, store2 = make_fake_stash()
-        r2 = compress_code(SAMPLE_PY, stash=stash_fn2)
+        r2 = compress_code(SAMPLE_PY, stash=stash_fn2, intent="navigation")
         assert r1 == r2, "Determinism must hold across two independent stash instances"
 
 
@@ -282,9 +284,11 @@ class TestLosslessRecovery:
     """Rule 3: stashed bodies must be exactly recoverable."""
 
     def test_all_stashed_bodies_recoverable(self):
+        pytest.importorskip("tree_sitter")
+        pytest.importorskip("tree_sitter_python")
         compress_code = import_compressor()
         stash_fn, store = make_fake_stash()
-        skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
+        skeleton = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
 
         assert isinstance(skeleton, str)
         # Every placeholder in the skeleton must resolve to its original body
@@ -297,7 +301,7 @@ class TestLosslessRecovery:
     def test_function_header_preserved(self):
         compress_code = import_compressor()
         stash_fn, _ = make_fake_stash()
-        skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
+        skeleton = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
         # All function signatures should appear in skeleton
         assert "def __init__(self, source: str" in skeleton
         assert "def load(self, path: str)" in skeleton
@@ -306,26 +310,25 @@ class TestLosslessRecovery:
     def test_docstrings_preserved(self):
         compress_code = import_compressor()
         stash_fn, _ = make_fake_stash()
-        skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
+        skeleton = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
         assert "A realistic sample module" in skeleton
         assert "Processes data from various sources" in skeleton
 
     def test_imports_preserved(self):
         compress_code = import_compressor()
         stash_fn, _ = make_fake_stash()
-        skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
+        skeleton = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
         assert "import os" in skeleton
         assert "import re" in skeleton
 
     def test_lossless_without_stash(self):
-        """When stash is None, bodies should have an elision marker, not be lost."""
+        """Without recovery, the entire source stays exact."""
         compress_code = import_compressor()
         skeleton = compress_code(SAMPLE_PY, stash=None)
         assert isinstance(skeleton, str)
         # Should still have function signatures
         assert "def parse_config" in skeleton
-        # Should have elision markers
-        assert "lines elided" in skeleton
+        assert skeleton == SAMPLE_PY
 
     def test_stash_returning_none_keeps_body(self):
         """If stash returns None, the body must not silently vanish."""
@@ -334,10 +337,9 @@ class TestLosslessRecovery:
         def always_none(content, **kwargs):
             return None  # simulate stash failure
 
-        result = compress_code(SAMPLE_PY, stash=always_none)
+        result = compress_code(SAMPLE_PY, stash=always_none, intent="navigation")
         assert isinstance(result, str)
-        # With a failing stash, bodies should fall back to elision marker
-        assert "lines elided" in result
+        assert result == SAMPLE_PY
 
 
 class TestNoopDegradeWithoutTreeSitter:
@@ -361,7 +363,8 @@ class TestNoopDegradeWithoutTreeSitter:
         monkeypatch.setattr(builtins, "__import__", patched_import)
 
         from brainspace.compressors.code_compressor import compress_code
-        result = compress_code(SAMPLE_PY)
+        stash_fn, _ = make_fake_stash()
+        result = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
         assert result == SAMPLE_PY, "Must return input unchanged when tree-sitter absent"
 
 
@@ -369,11 +372,13 @@ class TestMeasuredReduction:
     """Verify meaningful token reduction on the realistic sample."""
 
     def test_reduction_at_least_25_pct(self):
+        pytest.importorskip("tree_sitter")
+        pytest.importorskip("tree_sitter_python")
         compress_code = import_compressor()
         from brainspace import tokens
 
         stash_fn, _ = make_fake_stash()
-        skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
+        skeleton = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
 
         report = tokens.reduction(SAMPLE_PY, skeleton)
         print(
@@ -393,9 +398,11 @@ class TestMeasuredReduction:
         )
 
     def test_skeleton_shorter_than_original(self):
+        pytest.importorskip("tree_sitter")
+        pytest.importorskip("tree_sitter_python")
         compress_code = import_compressor()
         stash_fn, _ = make_fake_stash()
-        skeleton = compress_code(SAMPLE_PY, stash=stash_fn)
+        skeleton = compress_code(SAMPLE_PY, stash=stash_fn, intent="navigation")
         assert len(skeleton) < len(SAMPLE_PY), (
             f"Skeleton ({len(skeleton)} chars) should be shorter than original ({len(SAMPLE_PY)} chars)"
         )
@@ -556,17 +563,22 @@ class TestRustCodeCompressor:
         assert "fn area(&self) -> f64" in skeleton
 
     def test_trait_signature_kept_default_body_elided(self):
+        pytest.importorskip("tree_sitter")
+        pytest.importorskip("tree_sitter_rust")
         compress_code = import_compressor_rust()
-        skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
+        stash_fn, _ = make_fake_stash()
+        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust", intent="navigation")
         # function_signature_item (no body) stays verbatim, including the `;`.
         assert "fn kind(&self) -> ShapeKind;" in skeleton
         # The trait's default method body is executable, so it is elided.
         assert 'format!("shape:{:?}", kind)' not in skeleton
 
     def test_function_bodies_stashed_and_recoverable(self):
+        pytest.importorskip("tree_sitter")
+        pytest.importorskip("tree_sitter_rust")
         compress_code = import_compressor_rust()
         stash_fn, store = make_fake_stash()
-        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust")
+        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust", intent="navigation")
         placeholders = re.findall(r"\[\[BR:[0-9a-f]{12}\|[^\]]*\]\]", skeleton)
         assert placeholders, "expected at least one stashed Rust body"
         for ph in placeholders:
@@ -578,8 +590,8 @@ class TestRustCodeCompressor:
     def test_lossless_without_stash(self):
         compress_code = import_compressor_rust()
         skeleton = compress_code(SAMPLE_RS, stash=None, lang="rust")
-        assert "lines elided" in skeleton
-        # Header still present even though the body is gone.
+        assert skeleton == SAMPLE_RS
+        # Both header and body remain exact without recovery.
         assert "pub fn distance(&self, other: &Point) -> f64" in skeleton
 
     def test_deterministic(self):
@@ -607,15 +619,18 @@ class TestRustCodeCompressor:
             return real_import_module(name, *args, **kwargs)
 
         monkeypatch.setattr(cc.importlib, "import_module", fake_import_module)
-        result = cc.compress_code(SAMPLE_RS, lang="rust")
+        stash_fn, _ = make_fake_stash()
+        result = cc.compress_code(SAMPLE_RS, lang="rust", stash=stash_fn, intent="navigation")
         assert result == SAMPLE_RS
 
     def test_reduction_at_least_25_pct(self):
+        pytest.importorskip("tree_sitter")
+        pytest.importorskip("tree_sitter_rust")
         compress_code = import_compressor_rust()
         from brainspace import tokens
 
         stash_fn, _ = make_fake_stash()
-        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust")
+        skeleton = compress_code(SAMPLE_RS, stash=stash_fn, lang="rust", intent="navigation")
         report = tokens.reduction(SAMPLE_RS, skeleton)
         print(
             f"\n[rust reduction] {report['tokens_before']} -> {report['tokens_after']} tokens "

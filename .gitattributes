@@ -3,3 +3,8 @@
 *.py text eol=lf
 *.md text eol=lf
 *.json text eol=lf
+
+# Frozen research and qualification records contain byte-level hash contracts.
+# Preserve their original bytes rather than normalizing evidence on checkout.
+docs/research/** -text
+evidence/** -text

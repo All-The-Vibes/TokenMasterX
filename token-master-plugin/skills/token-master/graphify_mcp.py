@@ -1,359 +1,334 @@
 #!/usr/bin/env python
-"""TokenMaster graph-navigation MCP server.
+"""Graph candidate navigation with freshness, provenance and bounded paging.
 
-Exposes a prebuilt code graph behind routing-friendly tool names so the host CLI
-will call them for structural ("who calls X", "what breaks if I change Y") questions
-instead of repeatedly grepping and re-reading files. That substitution is what
-cuts cumulative context tokens.
-
-Design notes:
-  * Lazy-loads the graph on the first tool call, so the server registers cleanly
-    even before an index exists.
-  * GRAPH_PATH defaults to repo-relative ``.token-master/graph.json``. The MCP
-    server inherits the workspace root as its working directory, so this single
-    relative default works across every repository.
-  * Honesty: ``calls`` edges are name-based INFERRED candidates (confidence
-    ~0.8), not a verified call graph. Every response says so; the graph is a
-    CANDIDATE GENERATOR and callers must verify each hit at the cited
-    file:line.
-
-Run: uv run --with mcp python graphify_mcp.py
+Launch with the preflight-tested interpreter recorded by setup.py. No imports of
+source parsers are required. Missing MCP disables transport, not local queries.
+Every tool still returns a string; its final ``metadata: {...}`` line is JSON.
 """
 import collections
+import hashlib
 import json
 import os
-import time
 from pathlib import Path
+import sys
+import time
+from typing import Any
 
-from mcp.server.fastmcp import FastMCP
+try:
+    from mcp.server.fastmcp import FastMCP
+except ImportError:
+    FastMCP = None
 
-# GRAPH_PATH may be absolute or relative. When relative (the default), the graph
-# is located by walking UP from the current working directory looking for that
-# path — so it resolves whether the host CLI launches the MCP server at the repo
-# root or in a subdirectory.
 GRAPH_PATH = os.environ.get("GRAPH_PATH", os.path.join(".token-master", "graph.json"))
-# Optional: set MCP_CALL_LOG to record each tool call (used by the observability
-# meter). Off by default so the server never litters the repo.
 CALL_LOG = os.environ.get("MCP_CALL_LOG")
-
-# Caps to preserve the whole point of this server — token efficiency — on large
-# repos, where a symbol like `run`/`main` can resolve or fan out enormously.
-MAX_DEFS = 8     # if a name resolves to more definitions, force disambiguation
-MAX_ROWS = 60    # max rows a single tool will emit before truncating
-
-_STATE = {"loaded": False, "NODES": {}, "OUT": None, "IN": None, "BY_NAME": None}
+MAX_DEFS = 8
+MAX_ROWS = 60
+_STATE: dict[str, Any] = {"loaded": False, "NODES": {}, "OUT": {}, "IN": {}, "BY_NAME": {}}
 
 
-def _find_graph() -> str:
-    """Resolve the graph file. Absolute GRAPH_PATH is used as-is; a relative one
-    is searched for from cwd upward to the filesystem root."""
-    p = Path(GRAPH_PATH)
-    if p.is_absolute():
-        return str(p)
+def _sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+
+def _source_digest(root, name):
+    """Never follow a graph-supplied source path outside the workspace."""
+    try:
+        path = (root / name).resolve()
+        path.relative_to(root.resolve())
+        return _sha(path.read_bytes()) if path.is_file() else None
+    except (OSError, ValueError):
+        return None
+
+
+def _fingerprint(manifest):
+    return _sha(json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+
+
+def stamp_graph(graph, root, supplier, build_seconds=None, source_manifest=None):
+    """Record source bytes and supplier at build time, not first query time.
+
+    Scope is referenced source files only; newly added unindexed files are not
+    covered. Supplier version may be unknown, never inferred from our version.
+    A pre-build source manifest can be supplied to detect edits during indexing.
+    """
+    files = sorted({n["source_file"] for n in graph["nodes"]
+                    if isinstance(n.get("source_file"), str) and n["source_file"]})
+    manifest = {name: _source_digest(Path(root), name) for name in files}
+    if source_manifest is not None:
+        manifest = {name: source_manifest.get(name) for name in files}
+    graph["token_master_index"] = {
+        "schema_version": 1, "supplier": supplier,
+        "source_scope": "indexed_source_files_only", "sources": manifest,
+        "source_fingerprint": _fingerprint(manifest),
+        "build_seconds": build_seconds,
+        "edge_semantics": "name-inferred candidates; not exhaustive or verified",
+    }
+    return graph
+
+
+def _find_graph():
+    path = Path(GRAPH_PATH)
+    if path.is_absolute():
+        return path
     here = Path.cwd().resolve()
-    for d in [here, *here.parents]:
-        cand = d / p
-        if cand.is_file():
-            return str(cand)
-    return str(here / p)  # not found; reported as a clear error on load
+    for directory in [here, *here.parents]:
+        candidate = directory / path
+        if candidate.is_file():
+            return candidate
+    return here / path
 
 
-def _norm(label: str) -> str:
+def _norm(label):
     return str(label).strip().rstrip("()").lower()
 
 
-def _log(tool: str, symbol: str) -> None:
-    if not CALL_LOG:
-        return
-    try:
-        os.makedirs(os.path.dirname(CALL_LOG) or ".", exist_ok=True)
-        with open(CALL_LOG, "a", encoding="utf-8") as fh:
-            fh.write(f"{time.strftime('%Y-%m-%dT%H:%M:%S')}\t{tool}\t{symbol}\n")
-    except OSError:
-        pass
+def _log(tool, symbol):
+    if CALL_LOG:
+        try:
+            path = Path(CALL_LOG)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with path.open("a", encoding="utf-8") as stream:
+                stream.write(f"{time.time()}\t{tool}\t{symbol}\n")
+        except OSError:
+            pass
+
+
+def _validate(graph):
+    if not isinstance(graph, dict):
+        raise ValueError("graph must be an object")
+    nodes, links = graph.get("nodes"), graph.get("links")
+    if not isinstance(nodes, list) or not nodes or not isinstance(links, list):
+        raise ValueError("expected nonempty nodes list and links list")
+    ids = set()
+    for node in nodes:
+        if not isinstance(node, dict) or not isinstance(node.get("id"), str) or not node["id"]:
+            raise ValueError("node IDs must be nonempty strings")
+        if node["id"] in ids:
+            raise ValueError("duplicate node ID")
+        ids.add(node["id"])
+    for link in links:
+        if not isinstance(link, dict) or not all(isinstance(link.get(k), str) for k in ("source", "target", "relation")):
+            raise ValueError("edge requires string source, target and relation")
+        if link["source"] not in ids or link["target"] not in ids:
+            raise ValueError("dangling edge endpoint")
+    provenance = graph.get("token_master_index")
+    if provenance is not None:
+        if not isinstance(provenance, dict) or provenance.get("schema_version") != 1:
+            raise ValueError("unsupported provenance schema")
+        sources = provenance.get("sources")
+        if not isinstance(sources, dict) or any(not isinstance(k, str) or (v is not None and not isinstance(v, str)) for k, v in sources.items()):
+            raise ValueError("invalid source manifest")
+        if provenance.get("source_fingerprint") != _fingerprint(sources):
+            raise ValueError("source manifest fingerprint mismatch")
+        source_files = {n["source_file"] for n in nodes
+                        if isinstance(n.get("source_file"), str) and n["source_file"]}
+        if set(sources) != source_files:
+            raise ValueError("source manifest does not cover indexed source files")
+        if not isinstance(provenance.get("supplier"), dict):
+            raise ValueError("invalid supplier provenance")
+    return nodes, links, provenance
 
 
 def _ensure_loaded():
-    """Load the graph on first use. Returns an error message string on failure,
-    or None on success — so tools degrade to a clear diagnostic instead of
-    crashing."""
-    if _STATE["loaded"]:
-        return None
     path = _find_graph()
-    if not os.path.isfile(path):
-        return (
-            f"TokenMaster graph not found (looked for '{GRAPH_PATH}' from "
-            f"{Path.cwd()} upward). Run /token-master in this repo to build it."
-        )
     try:
-        with open(path, "r", encoding="utf-8") as fh:
-            graph = json.load(fh)
-        node_list = graph["nodes"]
-        link_list = graph["links"]
-    except (ValueError, KeyError, OSError) as exc:
-        return (
-            f"TokenMaster graph at '{path}' is missing or invalid ({exc}). "
-            "Re-run /token-master to rebuild it."
-        )
-    if not node_list:
-        return (
-            f"TokenMaster graph at '{path}' has no nodes — the repo may be "
-            "unsupported or empty. Re-run /token-master after adding source files."
-        )
-    nodes = {n["id"]: n for n in node_list}
-    by_name = collections.defaultdict(list)
-    for n in node_list:
-        if n.get("file_type") == "code":
-            by_name[_norm(n.get("label", ""))].append(n["id"])
-    out = collections.defaultdict(list)
-    inn = collections.defaultdict(list)
-    for link in link_list:
-        out[link["source"]].append((link["relation"], link["target"], link))
-        inn[link["target"]].append((link["relation"], link["source"], link))
-    _STATE.update(loaded=True, NODES=nodes, OUT=out, IN=inn, BY_NAME=by_name)
-    return None
+        content = path.read_bytes()
+        digest = _sha(content)
+        if not _STATE["loaded"] or _STATE.get("digest") != digest or _STATE.get("path") != path:
+            graph = json.loads(content.decode("utf-8-sig"))
+            nodes, links, provenance = _validate(graph)
+            by_name, outgoing, incoming = (collections.defaultdict(list) for _ in range(3))
+            for node in nodes:
+                if node.get("file_type") == "code":
+                    by_name[_norm(node.get("label", ""))].append(node["id"])
+            for link in links:
+                outgoing[link["source"]].append((link["relation"], link["target"], link))
+                incoming[link["target"]].append((link["relation"], link["source"], link))
+            _STATE.update(loaded=True, path=path, digest=digest, provenance=provenance,
+                          NODES={n["id"]: n for n in nodes}, OUT=outgoing, IN=incoming,
+                          BY_NAME=by_name)
+        provenance = _STATE["provenance"]
+        metadata = {"index_sha256": digest, "supplier": {"name": "unknown", "version": None},
+                    "source_status": "unknown", "source_scope": "unknown",
+                    "source_fingerprint": None, "current_source_fingerprint": None,
+                    "semantic_complete": False,
+                    "caveat": "INFERRED candidates only; verify cited source. Dynamic dispatch and name collisions may be missing or wrong."}
+        if provenance:
+            # Canonical path is <workspace>/.token-master/graph.json. For an
+            # explicitly selected graph elsewhere, its containing dir is root.
+            root = path.parent.parent if path.parent.name == ".token-master" else path.parent
+            expected = provenance["sources"]
+            current = {name: _source_digest(root, name) for name in expected}
+            changed = [name for name in expected if expected[name] != current[name]]
+            status = "stale" if changed else "fresh" if expected and all(expected.values()) else "unknown"
+            metadata.update(supplier=provenance["supplier"], source_status=status,
+                            source_scope="indexed_source_files_only",
+                            source_fingerprint=provenance["source_fingerprint"],
+                            current_source_fingerprint=_fingerprint(current),
+                            changed_source_count=len(changed), changed_sources=changed[:MAX_ROWS],
+                            build_seconds=provenance.get("build_seconds"))
+        _STATE["metadata"] = metadata
+        return None
+    except (OSError, ValueError, TypeError, KeyError) as exc:
+        _STATE["loaded"] = False
+        return f"TokenMaster graph missing or invalid at '{path}': {exc}. Rebuild the index; use source search meanwhile."
 
 
-def _ambiguity_msg(symbol: str, ids) -> str:
-    rows = [f"  - id={i}  {_STATE['NODES'][i].get('label')}  [{_loc(_STATE['NODES'][i])}]" for i in ids[:MAX_DEFS]]
-    extra = "" if len(ids) <= MAX_DEFS else f"\n  ... (+{len(ids) - MAX_DEFS} more)"
-    return (
-        f"'{symbol}' is ambiguous — {len(ids)} definitions. Re-run with a specific "
-        f"id (the tools accept a node id as the symbol):\n" + "\n".join(rows) + extra
-    )
-
-
-def _resolve(symbol: str):
-    if symbol in _STATE["NODES"]:
-        return [symbol]
-    return list(_STATE["BY_NAME"].get(_norm(symbol), []))
-
-
-def _loc(node) -> str:
+def _loc(node):
     return f"{node.get('source_file', '?')}:{node.get('source_location', '?')}"
 
 
-mcp = FastMCP("graphify-nav")
+def _resolve(symbol):
+    if symbol in _STATE["NODES"]:
+        return [symbol]
+    return sorted(_STATE["BY_NAME"].get(_norm(symbol), []))
 
 
-@mcp.tool()
-def find(symbol: str) -> str:
-    """Resolve a symbol name to its definition(s) in the code graph.
-
-    Returns each matching node with its file:line so you can disambiguate before
-    asking for callers/callees/impact."""
-    err = _ensure_loaded()
-    if err:
-        return err
-    _log("find", symbol)
-    ids = _resolve(symbol)
-    if not ids:
-        return f"No definition node found for '{symbol}'."
-    out = [f"Definitions of '{symbol}' ({len(ids)}):"]
-    for i in ids[:MAX_ROWS]:
-        n = _STATE["NODES"][i]
-        out.append(f"  - {n.get('label')}  [{_loc(n)}]  id={i}  type={n.get('file_type')}")
-    if len(ids) > MAX_ROWS:
-        out.append(f"  ... (+{len(ids) - MAX_ROWS} more)")
-    return "\n".join(out)
-
-
-@mcp.tool()
-def callers(symbol: str) -> str:
-    """List DIRECT callers of a function/method (one hop, reverse `calls`).
-
-    Each row is name + source file:line + edge confidence. Edges are INFERRED
-    (name-based) — verify each at the cited file:line before trusting it."""
-    err = _ensure_loaded()
-    if err:
-        return err
-    _log("callers", symbol)
-    ids = _resolve(symbol)
-    if not ids:
-        return f"No definition node found for '{symbol}'."
-    if len(ids) > MAX_DEFS:
-        return _ambiguity_msg(symbol, ids)
-    rows, seen = [], set()
-    for tid in ids:
-        for rel, sid, link in _STATE["IN"].get(tid, []):
-            if rel != "calls":
-                continue
-            s = _STATE["NODES"].get(sid, {})
-            key = (s.get("label"), s.get("source_file"), link.get("source_location"))
-            if key in seen:
-                continue
-            seen.add(key)
-            rows.append(
-                f"  - {s.get('label')}  [{s.get('source_file')}:{link.get('source_location')}]"
-                f"  conf={link.get('confidence')}"
-            )
-    if not rows:
-        return f"No callers of '{symbol}' in graph (note: graph may miss dynamic dispatch)."
+def _render(title, rows=(), offset=0, limit=MAX_ROWS, **extra):
+    if isinstance(offset, bool) or isinstance(limit, bool) or not isinstance(offset, int) or not isinstance(limit, int) or offset < 0 or limit < 1:
+        return "Invalid pagination: offset must be >= 0 and limit must be >= 1 (integers)."
+    limit = min(limit, MAX_ROWS)
+    page = rows[offset:offset + limit]
     total = len(rows)
-    capped = rows[:MAX_ROWS]
-    head = f"DIRECT callers of '{symbol}' ({total}) — INFERRED edges, verify at source:"
-    if total > MAX_ROWS:
-        capped.append(f"  ... (+{total - MAX_ROWS} more; refine by id)")
-    return head + "\n" + "\n".join(capped)
+    metadata = {**_STATE["metadata"], "offset": offset, "limit": limit,
+                "returned": len(page), "total": total,
+                "row_ids": [row[0] for row in page],
+                "next_offset": offset + len(page) if offset + len(page) < total else None,
+                "enumeration_complete": offset + len(page) >= total,
+                "all_rows_in_response": offset == 0 and len(page) == total,
+                "enumeration_scope": "indexed candidate nodes, not exhaustive source relationships",
+                "pagination_contract": "reuse offsets only for the same index_sha256; restart if it changes",
+                **extra}
+    warning = "\nSTALE SOURCE: rebuild before trusting candidates." if metadata["source_status"] == "stale" else ""
+    return title + warning + "\n" + "\n".join(row[1] for row in page) + "\nmetadata: " + json.dumps(metadata, ensure_ascii=False, sort_keys=True)
 
 
-@mcp.tool()
-def callees(symbol: str) -> str:
-    """List what a function/method DIRECTLY calls (one hop, forward `calls`)."""
-    err = _ensure_loaded()
-    if err:
-        return err
-    _log("callees", symbol)
+def _query(tool, symbol):
+    error = _ensure_loaded()
+    if error:
+        return [], error
+    _log(tool, symbol)
     ids = _resolve(symbol)
     if not ids:
-        return f"No definition node found for '{symbol}'."
-    if len(ids) > MAX_DEFS:
-        return _ambiguity_msg(symbol, ids)
-    rows, seen = [], set()
-    for sid in ids:
-        for rel, tid, link in _STATE["OUT"].get(sid, []):
-            if rel != "calls":
-                continue
-            t = _STATE["NODES"].get(tid, {})
-            key = (t.get("label"), link.get("source_location"))
-            if key in seen:
-                continue
-            seen.add(key)
-            rows.append(
-                f"  - {t.get('label')}  [defined {_loc(t)}]  call@{link.get('source_location')}"
-                f"  conf={link.get('confidence')}"
-            )
-    if not rows:
-        return f"'{symbol}' has no outgoing call edges in graph."
-    total = len(rows)
-    capped = rows[:MAX_ROWS]
-    if total > MAX_ROWS:
-        capped.append(f"  ... (+{total - MAX_ROWS} more)")
-    return f"DIRECT callees of '{symbol}' ({total}):\n" + "\n".join(capped)
+        return [], _render(f"No definition node found for '{symbol}'.")
+    if len(ids) > 1 and tool not in ("find",):
+        rows = [(i, f"  - id={i}  {_STATE['NODES'][i].get('label')} [{_loc(_STATE['NODES'][i])}]") for i in ids]
+        return [], _render(f"'{symbol}' is ambiguous — {len(ids)} definitions. Use a specific node id; find() pages all definitions.", rows, limit=MAX_DEFS, ambiguous=True)
+    return ids, None
 
 
-@mcp.tool()
-def impact(symbol: str, depth: int = 3) -> str:
-    """Transitive blast radius: every function/method that can reach `symbol`
-    through up to `depth` reverse `calls` hops. Use to find everything affected
-    if `symbol`'s behavior/signature changes. INFERRED edges compound over hops,
-    so deeper results are less reliable — verify the chain at source."""
-    err = _ensure_loaded()
-    if err:
-        return err
-    _log("impact", symbol)
-    ids = _resolve(symbol)
-    if not ids:
-        return f"No definition node found for '{symbol}'."
-    if len(ids) > MAX_DEFS:
-        return _ambiguity_msg(symbol, ids)
-    try:
-        depth = max(1, min(int(depth), 5))
-    except (TypeError, ValueError):
-        depth = 3
-    frontier = set(ids)
-    visited = set(ids)
-    levels = []
-    for _hop in range(depth):
-        nxt = set()
-        for tid in frontier:
-            for rel, sid, _link in _STATE["IN"].get(tid, []):
-                if rel == "calls" and sid not in visited:
-                    nxt.add(sid)
-        if not nxt:
-            break
-        visited |= nxt
-        levels.append(nxt)
-        frontier = nxt
-    total = sum(len(lvl) for lvl in levels)
-    out = [
-        f"IMPACT of '{symbol}' ({total}) transitive callers within {len(levels)} hop(s) "
-        f"(INFERRED edges, deeper = less reliable):"
-    ]
-    for i, lvl in enumerate(levels, 1):
-        out.append(f" hop {i} ({len(lvl)}):")
-        for nid in sorted(lvl):
-            n = _STATE["NODES"].get(nid, {})
-            out.append(f"    - {n.get('label')}  [{_loc(n)}]")
-            if len(out) > 120:
-                out.append(f"    ... (truncated; {total} total)")
-                return "\n".join(out)
-    return "\n".join(out)
+mcp = FastMCP("graphify-nav") if FastMCP else None
 
 
-# Reverse edges that mean "is a `symbol`": class inheritance (`inherits`) and,
-# for languages without inheritance, trait/interface implementation
-# (`implements`, e.g. Rust `impl Trait for Type`). Both answer "what are the
-# subtypes / implementors of `symbol`", so a single tool serves both worlds.
-_SUBTYPE_RELS = ("inherits", "implements")
+def _tool(fn):
+    return mcp.tool()(fn) if mcp else fn
 
 
-@mcp.tool()
-def inheritors(symbol: str) -> str:
-    """List types that derive from `symbol` and the methods each defines.
+@_tool
+def find(symbol: str, offset: int = 0, limit: int = MAX_ROWS) -> str:
+    """Page definition candidates with source/index freshness and provenance."""
+    ids, error = _query("find", symbol)
+    if error:
+        return error
+    rows = [(i, f"  - {_STATE['NODES'][i].get('label')} [{_loc(_STATE['NODES'][i])}] id={i}") for i in ids]
+    return _render(f"Definitions of '{symbol}' ({len(ids)}):", rows, offset, limit)
 
-    Covers both class inheritance (reverse `inherits`) and trait/interface
-    implementation (reverse `implements`, e.g. Rust `impl Trait for Type`), so
-    "what implements/overrides X" works across OOP and trait-based languages."""
-    err = _ensure_loaded()
-    if err:
-        return err
-    _log("inheritors", symbol)
-    ids = _resolve(symbol)
-    if not ids:
-        return f"No type node found for '{symbol}'."
-    if len(ids) > MAX_DEFS:
-        return _ambiguity_msg(symbol, ids)
+
+def _direct(tool, symbol, reverse, offset, limit):
+    ids, error = _query(tool, symbol)
+    if error:
+        return error
+    edges = _STATE["IN" if reverse else "OUT"].get(ids[0], [])
+    candidates = collections.defaultdict(list)
+    for relation, other, edge in edges:
+        if relation == "calls":
+            candidates[other].append(edge)
     rows = []
-    for tid in ids:
-        for rel, sid, _link in _STATE["IN"].get(tid, []):
-            if rel not in _SUBTYPE_RELS:
-                continue
-            c = _STATE["NODES"].get(sid, {})
-            methods = [
-                _STATE["NODES"].get(mt, {}).get("label")
-                for r2, mt, _l in _STATE["OUT"].get(sid, [])
-                if r2 == "method"
-            ]
-            mlist = ", ".join(m for m in methods if m) or "(no methods in graph)"
-            verb = "implements" if rel == "implements" else "subclasses"
-            rows.append(f"  - {c.get('label')}  ({verb})  [{_loc(c)}]\n      methods: {mlist}")
-    if not rows:
-        return f"No subtypes/implementors of '{symbol}' in graph."
-    total = len(rows)
-    capped = rows[:MAX_ROWS]
-    if total > MAX_ROWS:
-        capped.append(f"  ... (+{total - MAX_ROWS} more)")
-    return f"Subtypes/implementors of '{symbol}' ({total}):\n" + "\n".join(capped)
+    for other, links in sorted(candidates.items()):
+        node = _STATE["NODES"][other]
+        edge = links[0]
+        rows.append((other, f"  - {node.get('label')} [{_loc(node)}] id={other} "
+                     f"call@{edge.get('source_location', '?')} conf={edge.get('confidence', 'unknown')} "
+                     f"indexed_call_sites={len(links)}"))
+    return _render(f"DIRECT {tool} of '{symbol}' ({len(rows)}) — INFERRED edges, verify at source:", rows, offset, limit)
 
 
-@mcp.tool()
-def explain(symbol: str) -> str:
-    """Show a symbol's node plus all its immediate neighbors across every relation
-    (contains/method/calls/inherits/uses/imports). Good for orienting before a
-    deeper query."""
-    err = _ensure_loaded()
-    if err:
-        return err
-    _log("explain", symbol)
-    ids = _resolve(symbol)
-    if not ids:
-        return f"No node found for '{symbol}'."
-    out = []
-    for nid in ids[:MAX_DEFS]:
-        n = _STATE["NODES"][nid]
-        out.append(f"{n.get('label')}  [{_loc(n)}]  id={nid}")
-        grouped = collections.defaultdict(list)
-        for rel, tid, _link in _STATE["OUT"].get(nid, []):
-            grouped["out:" + rel].append(_STATE["NODES"].get(tid, {}).get("label"))
-        for rel, sid, _link in _STATE["IN"].get(nid, []):
-            grouped["in:" + rel].append(_STATE["NODES"].get(sid, {}).get("label"))
-        for k in sorted(grouped):
-            vals = [v for v in grouped[k] if v][:12]
-            extra = "" if len(grouped[k]) <= 12 else f" (+{len(grouped[k]) - 12} more)"
-            out.append(f"   {k} ({len(grouped[k])}): {', '.join(vals)}{extra}")
-    return "\n".join(out)
+@_tool
+def callers(symbol: str, offset: int = 0, limit: int = MAX_ROWS) -> str:
+    """Page direct calling candidate nodes (not verified or exhaustive calls)."""
+    return _direct("callers", symbol, True, offset, limit)
+
+
+@_tool
+def callees(symbol: str, offset: int = 0, limit: int = MAX_ROWS) -> str:
+    """Page directly called candidate nodes (not verified or exhaustive calls)."""
+    return _direct("callees", symbol, False, offset, limit)
+
+
+@_tool
+def impact(symbol: str, depth: int = 3, offset: int = 0, limit: int = MAX_ROWS) -> str:
+    """Page reverse-call candidates within 1-5 hops; inference uncertainty compounds."""
+    ids, error = _query("impact", symbol)
+    if error:
+        return error
+    if isinstance(depth, bool) or not isinstance(depth, int) or not 1 <= depth <= 5:
+        return "Invalid depth: expected integer 1 through 5."
+    visited, frontier, rows = set(ids), set(ids), []
+    for hop in range(1, depth + 1):
+        nxt = {other for node in frontier for rel, other, edge in _STATE["IN"].get(node, [])
+               if rel == "calls" and other not in visited}
+        if not nxt:
+            frontier = set()
+            break
+        visited.update(nxt)
+        for node in sorted(nxt):
+            n = _STATE["NODES"][node]
+            rows.append((node, f"  - hop={hop} {n.get('label')} [{_loc(n)}] id={node}"))
+        frontier = nxt
+    beyond = any(rel == "calls" and other not in visited for node in frontier
+                 for rel, other, edge in _STATE["IN"].get(node, []))
+    return _render(f"IMPACT of '{symbol}' — INFERRED, within {depth} hops:", rows, offset, limit,
+                   depth=depth, depth_boundary_has_more=beyond)
+
+
+@_tool
+def inheritors(symbol: str, offset: int = 0, limit: int = MAX_ROWS) -> str:
+    """Page direct subtype/implementor candidates. Method previews are bounded."""
+    ids, error = _query("inheritors", symbol)
+    if error:
+        return error
+    candidates: dict[str, set[str]] = {}
+    for rel, other, edge in _STATE["IN"].get(ids[0], []):
+        if rel in ("inherits", "implements"):
+            candidates.setdefault(other, set()).add(rel)
+    rows = []
+    for other, relations in sorted(candidates.items()):
+        node = _STATE["NODES"][other]
+        methods = sorted({target for rel, target, edge in _STATE["OUT"].get(other, []) if rel == "method"})
+        names = [str(_STATE["NODES"][i].get("label", i)) for i in methods[:12]]
+        rows.append((other, f"  - {node.get('label')} ({','.join(sorted(relations))}) [{_loc(node)}] id={other}\n"
+                     f"      methods preview ({min(12, len(methods))}/{len(methods)}): {', '.join(names)}"))
+    return _render(f"Subtypes/implementors of '{symbol}' — graph candidates:", rows, offset, limit,
+                   methods_preview_complete=False)
+
+
+@_tool
+def explain(symbol: str, offset: int = 0, limit: int = MAX_ROWS) -> str:
+    """Page immediate neighbor edges across all indexed relations."""
+    ids, error = _query("explain", symbol)
+    if error:
+        return error
+    node = _STATE["NODES"][ids[0]]
+    rows = []
+    for direction, key in (("out", "OUT"), ("in", "IN")):
+        for index, (rel, other, edge) in enumerate(_STATE[key].get(ids[0], [])):
+            neighbor = _STATE["NODES"][other]
+            rows.append((f"{direction}:{index}:{other}", f"  - {direction}:{rel} {neighbor.get('label')} [{_loc(neighbor)}] id={other}"))
+    return _render(f"{node.get('label')} [{_loc(node)}] id={ids[0]}", rows, offset, limit)
 
 
 if __name__ == "__main__":
+    if mcp is None:
+        print("TokenMaster: MCP dependency unavailable; use source search or provision the explicit runtime.", file=sys.stderr)
+        raise SystemExit(1)
     mcp.run()

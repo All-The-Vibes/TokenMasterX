@@ -2,8 +2,9 @@
 # TokenMaster — whitelist .gitignore
 #
 # Strategy: ignore everything at the repo root, then explicitly re-include only
-# the core deliverable. Research, benchmarks, sandboxes, session history, and
-# scratch all stay on disk but out of the repo. Nothing is deleted.
+# the core deliverable and the explicitly selected working-handoff records below.
+# Raw runs, fetched source trees, model assets, sandboxes, session history, and
+# scratch stay on disk but out of the repo. Nothing is deleted.
 # =============================================================================
 
 # 1. Ignore every entry at the repo root (leading slash = root-only, non-recursive).
@@ -41,3 +42,165 @@ desktop.ini
 # OMC orchestration scratch state (see CLAUDE.md: .omc/skills/** is the committable exception)
 .omc/
 !.omc/skills/
+
+# Working handoff: explicit authored records only; raw archives remain ignored.
+!/docs/
+/docs/**
+!/evidence/
+/evidence/**
+!/docs/research/
+!/evidence/integrated-runtime-20261009/
+!/evidence/working-handoff-20261016/
+!/docs/research/2026-10-04-parity/
+!/docs/research/2026-10-04-token-economics/
+!/docs/research/2026-10-04-token-efficiency/
+!/docs/research/2026-10-05-paper-2608.05643/
+!/evidence/integrated-runtime-20261009/native-ranged-results/
+!/evidence/integrated-runtime-20261009/post-study-guards/
+!/evidence/integrated-runtime-20261009/structure-preprotection/
+!/docs/research/2026-10-04-parity/headroom/
+!/docs/research/2026-10-04-parity/ponytail/
+!/docs/research/2026-10-04-parity/tokenmaster/
+!/docs/research/2026-10-04-token-economics/foundations/
+!/docs/research/2026-10-04-token-economics/oss/
+!/docs/research/2026-10-04-token-economics/papers/
+!/docs/research/2026-10-04-token-economics/reducers/
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/
+!/evidence/integrated-runtime-20261009/post-study-guards/full-regression-001/
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/
+!/evidence/integrated-runtime-20261009/structure-preprotection/repaired-focused-001/
+!/docs/research/2026-10-04-token-economics/foundations/jev/
+!/docs/research/2026-10-04-token-economics/foundations/references/
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/fixtures/
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/fixtures/
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/span_reference/
+!/DUAL_HOST_PLAN.md
+!/MISSION.md
+!/docs/research/2026-10-04-parity/BENCHMARK_PROTOCOL.md
+!/docs/research/2026-10-04-parity/EVIDENCE_INDEX.md
+!/docs/research/2026-10-04-parity/GAP_BACKLOG.md
+!/docs/research/2026-10-04-parity/PARITY_REPORT.md
+!/docs/research/2026-10-04-parity/evidence-validation.json
+!/docs/research/2026-10-04-parity/headroom/REPORT.md
+!/docs/research/2026-10-04-parity/headroom/citation-validation.json
+!/docs/research/2026-10-04-parity/headroom/commit.json
+!/docs/research/2026-10-04-parity/headroom/history-evidence.md
+!/docs/research/2026-10-04-parity/headroom/kompress-model-card.md
+!/docs/research/2026-10-04-parity/headroom/kompress-model-metadata.json
+!/docs/research/2026-10-04-parity/headroom/manifest.json
+!/docs/research/2026-10-04-parity/headroom/pure-checks.json
+!/docs/research/2026-10-04-parity/headroom/pure_checks.py
+!/docs/research/2026-10-04-parity/headroom/render_report.py
+!/docs/research/2026-10-04-parity/headroom/verification-summary.json
+!/docs/research/2026-10-04-parity/ponytail/HASHES.md
+!/docs/research/2026-10-04-parity/ponytail/REPORT.md
+!/docs/research/2026-10-04-parity/ponytail/installed-manifest.json
+!/docs/research/2026-10-04-parity/ponytail/report-validation.json
+!/docs/research/2026-10-04-parity/ponytail/skill-parity.json
+!/docs/research/2026-10-04-parity/ponytail/upstream-hashes.json
+!/docs/research/2026-10-04-parity/ponytail/verification-summary.json
+!/docs/research/2026-10-04-parity/ponytail/verify_evidence.py
+!/docs/research/2026-10-04-parity/repository-identities.json
+!/docs/research/2026-10-04-parity/tokenmaster/INDEPENDENT_REVIEW.md
+!/docs/research/2026-10-04-parity/tokenmaster/boundary-probe-results.json
+!/docs/research/2026-10-04-parity/tokenmaster/probe_boundaries.py
+!/docs/research/2026-10-04-parity/tokenmaster/publisher-verification-provenance.json
+!/docs/research/2026-10-04-parity/tokenmaster/publisher-verification-snapshot.py
+!/docs/research/2026-10-04-parity/tokenmaster/pytest-run.json
+!/docs/research/2026-10-04-parity/tokenmaster/source-manifest.json
+!/docs/research/2026-10-04-parity/validate_evidence.py
+!/docs/research/2026-10-04-token-economics/CURRENT-SCOPE.md
+!/docs/research/2026-10-04-token-economics/FINAL-REVIEW.md
+!/docs/research/2026-10-04-token-economics/FUNDAMENTAL-RESEARCH.md
+!/docs/research/2026-10-04-token-economics/audit_local.py
+!/docs/research/2026-10-04-token-economics/foundations/COOKBOOK-ADAPTATION.md
+!/docs/research/2026-10-04-token-economics/foundations/PROOFS-AND-CONTINUOUS-IMPROVEMENT.md
+!/docs/research/2026-10-04-token-economics/foundations/REVIEW-AND-VALIDATION.md
+!/docs/research/2026-10-04-token-economics/foundations/integration-source-checks.json
+!/docs/research/2026-10-04-token-economics/foundations/jev/evidence-memo.md
+!/docs/research/2026-10-04-token-economics/foundations/jev/retrieval-log.json
+!/docs/research/2026-10-04-token-economics/foundations/jev/source-metadata.json
+!/docs/research/2026-10-04-token-economics/foundations/jev/verification.json
+!/docs/research/2026-10-04-token-economics/foundations/math-checks.json
+!/docs/research/2026-10-04-token-economics/foundations/math_checks.py
+!/docs/research/2026-10-04-token-economics/foundations/references/foundational-reference-memo.md
+!/docs/research/2026-10-04-token-economics/foundations/references/foundational-reference-metadata.json
+!/docs/research/2026-10-04-token-economics/foundations/validate_foundations.py
+!/docs/research/2026-10-04-token-economics/foundations/validation.json
+!/docs/research/2026-10-04-token-economics/local-audit.json
+!/docs/research/2026-10-04-token-economics/local-source-index.json
+!/docs/research/2026-10-04-token-economics/oss/REPORT.md
+!/docs/research/2026-10-04-token-economics/oss/evidence.json
+!/docs/research/2026-10-04-token-economics/oss/source-files.json
+!/docs/research/2026-10-04-token-economics/oss/validation.json
+!/docs/research/2026-10-04-token-economics/papers/build_sources.py
+!/docs/research/2026-10-04-token-economics/papers/gather_metadata.py
+!/docs/research/2026-10-04-token-economics/papers/inspect_primary.py
+!/docs/research/2026-10-04-token-economics/papers/research-memo.md
+!/docs/research/2026-10-04-token-economics/papers/sources.json
+!/docs/research/2026-10-04-token-economics/papers/verification.json
+!/docs/research/2026-10-04-token-economics/pytest-baseline-run.json
+!/docs/research/2026-10-04-token-economics/reducers/REVIEW.md
+!/docs/research/2026-10-04-token-economics/reducers/source-index.json
+!/docs/research/2026-10-04-token-economics/reducers/summary.json
+!/docs/research/2026-10-04-token-economics/validate_research.py
+!/docs/research/2026-10-04-token-economics/validation.json
+!/docs/research/2026-10-04-token-efficiency/FRAMEWORK.md
+!/docs/research/2026-10-04-token-efficiency/check_metric_examples.py
+!/docs/research/2026-10-04-token-efficiency/validation.json
+!/docs/research/2026-10-05-paper-2608.05643/APPLICABILITY.md
+!/docs/research/2026-10-05-paper-2608.05643/AUTHOR_CODE_AUDIT.md
+!/docs/research/2026-10-05-paper-2608.05643/SOURCES.md
+!/docs/research/2026-10-05-paper-2608.05643/source_manifest.json
+!/docs/research/2026-10-05-paper-2608.05643/validation.json
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/AUTHORING_CHECKS.md
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/DESIGN.md
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/checks.py
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/fixtures/native-003-missing-path.json
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/pytest.ini
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/qualify_ranges.py
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/test_checks.py
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/test_driver.py
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/test_missing_path_renderer.py
+!/evidence/integrated-runtime-20261009/native-ranged-results/qualifier/test_root_styles.py
+!/evidence/integrated-runtime-20261009/post-study-guards/full-regression-001/pytest.txt
+!/evidence/integrated-runtime-20261009/post-study-guards/full-regression-001/source-before.json
+!/evidence/integrated-runtime-20261009/post-study-guards/full-regression-001/started.json
+!/evidence/integrated-runtime-20261009/post-study-guards/full-regression-001/status.json
+!/evidence/integrated-runtime-20261009/structure-preprotection/CONTINUATION.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/DESIGN_REVIEW.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/IMPLEMENTATION_CONTRACT.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/PARENT_REVIEW.json
+!/evidence/integrated-runtime-20261009/structure-preprotection/PARENT_REVIEW.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/WORKER_REVIEW.json
+!/evidence/integrated-runtime-20261009/structure-preprotection/WORKER_REVIEW.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/public_api_probe.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/AUTHORING_CHECKS.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/DESIGN.md
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/ORIGIN.json
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/checks.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/fixtures/native-003-missing-path.json
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/preprotection_checks.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/pytest.ini
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/qualify_ranges.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/span_reference/__init__.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/span_reference/document_structure.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/span_reference/protected_text.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/structure_fixtures.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/test_checks.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/test_driver.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/test_missing_path_renderer.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/test_preprotection.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/qualifier/test_root_styles.py
+!/evidence/integrated-runtime-20261009/structure-preprotection/repaired-focused-001/pytest.txt
+!/evidence/integrated-runtime-20261009/structure-preprotection/repaired-focused-001/status.json
+!/evidence/integrated-runtime-20261009/structure-preprotection/run_public_api_probe.py
+!/evidence/working-handoff-20261016/focused-pytest.txt
+!/evidence/working-handoff-20261016/qualifier-pytest.txt
+!/evidence/working-handoff-20261016/test-results.json
+!/harness-command-design.md
+!/token-efficient-harness-research.md
+
+# The qualifier's two audited public documents and their LICENSE/NOTICE are
+# explicitly tracked. Keep their source/ parent ignored: unignoring the whole
+# parent would let upstream's nested ignore rules expose unrelated local files.

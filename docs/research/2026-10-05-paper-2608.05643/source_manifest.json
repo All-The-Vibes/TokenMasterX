@@ -1,0 +1,1445 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-05T04:22:01.020245+00:00",
+  "scope": "Public documentation/source research only; all research outputs in this directory; no inference/account/credential/config operations.",
+  "authoritative_input": "https://arxiv.org/html/2608.05643v1",
+  "paper_identity": {
+    "id": "2608.05643v1",
+    "title": "Refining Over Resampling: Test-Time Self-Correction for LLM Reasoning",
+    "submitted_utc": "2026-08-06T06:38:37Z",
+    "corroborating_sources": [
+      "paper-2608.05643v1.html",
+      "paper-abstract.html",
+      "paper-source.tar.gz"
+    ],
+    "license": "CC BY 4.0",
+    "publication_note": "arXiv record says submitted to EMNLP 2026; acceptance not established"
+  },
+  "version_pins": {
+    "author_code": {
+      "repository": "AhsanBilal7/self_refine",
+      "sha": "cf260f39da0640ea5faf6db6139121485ee78fc7",
+      "committed_utc": "2026-10-04T19:52:02Z",
+      "caveat": "README self-identifies exact paper; no arXiv outbound link; later source not proof of original run provenance"
+    },
+    "copilot_sdk_stable": {
+      "tag": "v1.0.16",
+      "sha": "f8ae645902b74b62cd47aac1fd9b29adaec3aff2",
+      "tag_ref_verified": true,
+      "published_utc": "2026-09-30T21:59:40Z"
+    },
+    "copilot_sdk_observed_head": {
+      "sha": "6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b",
+      "committed_utc": "2026-10-04T19:39:47Z",
+      "caveat": "preview-era snapshot, not installed user runtime"
+    },
+    "web_docs": "rolling pages pinned by URL, retrieval time and SHA-256 snapshot"
+  },
+  "reading_coverage": {
+    "paper": "All main sections, Algorithm 1, Tables 1-4, Figures 1-6, numbered Eqs. 1-10, references, Appendices A-B; author TeX cross-check for disputed statements",
+    "figure_visual_review": "All seven figure PDFs rendered; figures 1-3 and 4-6 montages inspected with view_image",
+    "author_source": "Core prompts, step/rollout/orchestration/aggregation complete; generation wrapper, PRM entry point, evaluation/defaults and compute-accounting paths; no code execution",
+    "platform": "Official GitHub model/programmatic/concurrency/usage controls and SDK source; official OpenAI and Anthropic token contracts"
+  },
+  "retrievals": [
+    {
+      "file": "paper-2608.05643v1.html",
+      "url": "https://arxiv.org/html/2608.05643v1",
+      "status": 200,
+      "retrieved_utc": "2026-10-05T03:38:49.604106+00:00",
+      "retrieval_time_basis": "source snapshot filesystem modification time; request time not separately logged",
+      "sha256": "33a805ecd594621879e1b4f10bbf52089df2cb9fb489102d3df0b414d821ad68",
+      "bytes": 476835,
+      "path": "sources/paper-2608.05643v1.html"
+    },
+    {
+      "file": "author-src__cimr_prompts.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_prompts.py",
+      "retrieved_utc": "2026-10-05T04:10:35.935392+00:00",
+      "sha256": "c621520973ea66ba7bfc8adedbf81c6d7effa19f0136266882a26579ace4045d",
+      "bytes": 9241,
+      "status": 200,
+      "path": "sources/author-src__cimr_prompts.py"
+    },
+    {
+      "file": "author-src__cimr_step.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_step.py",
+      "retrieved_utc": "2026-10-05T04:10:35.953643+00:00",
+      "sha256": "d59739787151e8f1ca6f8b3db8b530d3a6e58f287d6ffc442d594f77ca5efaef",
+      "bytes": 14103,
+      "status": 200,
+      "path": "sources/author-src__cimr_step.py"
+    },
+    {
+      "file": "author-src__cimr_rollout.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_rollout.py",
+      "retrieved_utc": "2026-10-05T04:10:36.042478+00:00",
+      "sha256": "351a656164caed0081e2a5969093f34573133d17c3b8b04a6370c1e4c11ccc04",
+      "bytes": 7071,
+      "status": 200,
+      "path": "sources/author-src__cimr_rollout.py"
+    },
+    {
+      "file": "author-src__cimr_aggregator.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_aggregator.py",
+      "retrieved_utc": "2026-10-05T04:10:36.036932+00:00",
+      "sha256": "46b6c85cef64a6c5cecf253a4b4904219a25e7bb72c7732538957effa27dd83b",
+      "bytes": 6155,
+      "status": 200,
+      "path": "sources/author-src__cimr_aggregator.py"
+    },
+    {
+      "file": "author-src__cimr_inference.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_inference.py",
+      "retrieved_utc": "2026-10-05T04:10:36.143451+00:00",
+      "sha256": "f6c284c19f926ccc884deb9ff2e3641e76612d092d15bea5db3c201c23cb2806",
+      "bytes": 8523,
+      "status": 200,
+      "path": "sources/author-src__cimr_inference.py"
+    },
+    {
+      "file": "author-src__model_wrapper.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/model_wrapper.py",
+      "retrieved_utc": "2026-10-05T04:10:36.145976+00:00",
+      "sha256": "5c513917a45a44e653a9a10fabeed62a3dba11e0fef235327c5594c175898f7a",
+      "bytes": 20398,
+      "status": 200,
+      "path": "sources/author-src__model_wrapper.py"
+    },
+    {
+      "file": "author-extract_compute_flop.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/extract_compute_flop.py",
+      "retrieved_utc": "2026-10-05T04:10:36.396173+00:00",
+      "sha256": "859e86859b27d2058dde7d540508cc55a92a388b4d73ca2da63b79a66be207a4",
+      "bytes": 32698,
+      "status": 200,
+      "path": "sources/author-extract_compute_flop.py"
+    },
+    {
+      "file": "author-extract_baseline_flop.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/extract_baseline_flop.py",
+      "retrieved_utc": "2026-10-05T04:10:36.408947+00:00",
+      "sha256": "5c476b0fc59b8662f684dff33734be1c93bec335467c1cd0c1a9eedbd52bd662",
+      "bytes": 27726,
+      "status": 200,
+      "path": "sources/author-extract_baseline_flop.py"
+    },
+    {
+      "file": "author-run_paired_ablation.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/run_paired_ablation.py",
+      "retrieved_utc": "2026-10-05T04:10:36.363982+00:00",
+      "sha256": "f6d10eea91fff4c09c4d6d7035d972f5f743c14ca0b071f2bed8851537152492",
+      "bytes": 13495,
+      "status": 200,
+      "path": "sources/author-run_paired_ablation.py"
+    },
+    {
+      "file": "author-run_paired_ablation.sh",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/run_paired_ablation.sh",
+      "retrieved_utc": "2026-10-05T04:10:36.482977+00:00",
+      "sha256": "89371a655e9ca5cad394cebb832f1fc916829be7bdaacf013c05ca87ca9357c7",
+      "bytes": 5498,
+      "status": 200,
+      "path": "sources/author-run_paired_ablation.sh"
+    },
+    {
+      "file": "author-src__inference_methods.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/inference_methods.py",
+      "retrieved_utc": "2026-10-05T04:10:36.564230+00:00",
+      "sha256": "cc94dcf692d9d26601051b748e3e0ea42114b218da07efd48f4bec1ce1ca1890",
+      "bytes": 20040,
+      "status": 200,
+      "path": "sources/author-src__inference_methods.py"
+    },
+    {
+      "file": "author-src__evaluator_classes.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/evaluator_classes.py",
+      "retrieved_utc": "2026-10-05T04:10:36.729107+00:00",
+      "sha256": "40e4c25262af434badc929df3b4c1669eb4d80ba009c8eccd1b79e7a02de23d4",
+      "bytes": 10691,
+      "status": 200,
+      "path": "sources/author-src__evaluator_classes.py"
+    },
+    {
+      "file": "author-src__dataset_loader.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/dataset_loader.py",
+      "retrieved_utc": "2026-10-05T04:10:36.709078+00:00",
+      "sha256": "6eb587b12d09fb494fbbe13916bd9fdb63eec141327cec642f7b1da9a15699d1",
+      "bytes": 9653,
+      "status": 200,
+      "path": "sources/author-src__dataset_loader.py"
+    },
+    {
+      "file": "author-src__math_toolkit__latex_answer_check.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/math_toolkit/latex_answer_check.py",
+      "retrieved_utc": "2026-10-05T04:10:36.669877+00:00",
+      "sha256": "11bbb71c7cf9774620ccdfa321dc0cf104b7367af99b3af135615ed7d0220f64",
+      "bytes": 14304,
+      "status": 200,
+      "path": "sources/author-src__math_toolkit__latex_answer_check.py"
+    },
+    {
+      "file": "author-configs__qwen_1b.conf",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/qwen_1b.conf",
+      "retrieved_utc": "2026-10-05T04:10:36.896068+00:00",
+      "sha256": "b64905e14b380412a602fbb237f8ca544156a3c6ddfc02b53e7a5fa65209486e",
+      "bytes": 526,
+      "status": 200,
+      "path": "sources/author-configs__qwen_1b.conf"
+    },
+    {
+      "file": "author-configs__qwen_7b.conf",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/qwen_7b.conf",
+      "retrieved_utc": "2026-10-05T04:10:36.978298+00:00",
+      "sha256": "1c1348a516eb114f7d1c0fd798eb10b077b79bff874ef9dd1f34a778d15cf38a",
+      "bytes": 532,
+      "status": 200,
+      "path": "sources/author-configs__qwen_7b.conf"
+    },
+    {
+      "file": "author-configs__ministral_8b.conf",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/ministral_8b.conf",
+      "retrieved_utc": "2026-10-05T04:10:37.022335+00:00",
+      "sha256": "1430901afa36f59dbf37ebce83bc87d5deefb02fe174e41850c6909e969b248d",
+      "bytes": 546,
+      "status": 200,
+      "path": "sources/author-configs__ministral_8b.conf"
+    },
+    {
+      "file": "author-configs__llama3_8b.conf",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/llama3_8b.conf",
+      "retrieved_utc": "2026-10-05T04:10:36.943825+00:00",
+      "sha256": "a12493eeb363180d8b40ae91483cb658258979839913caec0a93675625ccebd3",
+      "bytes": 536,
+      "status": 200,
+      "path": "sources/author-configs__llama3_8b.conf"
+    },
+    {
+      "file": "author-requirements.txt",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/requirements.txt",
+      "retrieved_utc": "2026-10-05T04:10:37.114652+00:00",
+      "sha256": "edf2c667a341a6bfbfd68588efac8efb609923c1969c0fddab8c397b66dd6a42",
+      "bytes": 646,
+      "status": 200,
+      "path": "sources/author-requirements.txt"
+    },
+    {
+      "file": "author-extract_cimr_metrics.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/extract_cimr_metrics.py",
+      "retrieved_utc": "2026-10-05T04:10:37.308799+00:00",
+      "sha256": "d7e7666f9a7cd84a33518699f6fde83322f6a9e16182cfd2f708dce5a53b3dcc",
+      "bytes": 23599,
+      "status": 200,
+      "path": "sources/author-extract_cimr_metrics.py"
+    },
+    {
+      "file": "author-print_paired_accuracies.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/print_paired_accuracies.py",
+      "retrieved_utc": "2026-10-05T04:10:37.180146+00:00",
+      "sha256": "b6ccf0d1c2af901d2ce6996577c29140260a3a63a55b4c2a19087296789bb8b0",
+      "bytes": 10692,
+      "status": 200,
+      "path": "sources/author-print_paired_accuracies.py"
+    },
+    {
+      "file": "author-repository.json",
+      "url": "https://api.github.com/repos/AhsanBilal7/self_refine",
+      "retrieved_utc": "2026-10-05T04:06:32.579259+00:00",
+      "sha256": "f0c8aae226e6335db8d70619b5a44a23b8eea6d35b17b874a6a3b8e8ce9a7b1c",
+      "bytes": 5264,
+      "status": 200,
+      "path": "sources/author-repository.json"
+    },
+    {
+      "file": "author-head.json",
+      "url": "https://api.github.com/repos/AhsanBilal7/self_refine/commits/main",
+      "retrieved_utc": "2026-10-05T04:06:32.984592+00:00",
+      "sha256": "6c5d3e981d2715f87b5c2523898cdcb375f55bf129e0c4f13f06c15ef66766f5",
+      "bytes": 14337,
+      "status": 200,
+      "path": "sources/author-head.json"
+    },
+    {
+      "file": "author-tree.json",
+      "url": "https://api.github.com/repos/AhsanBilal7/self_refine/git/trees/cf260f39da0640ea5faf6db6139121485ee78fc7?recursive=1",
+      "retrieved_utc": "2026-10-05T04:06:33.316534+00:00",
+      "sha256": "eba6cfec6534cd99815c5e6402b108e1594bf372a759206086b6caa05e39d8d6",
+      "bytes": 10045,
+      "status": 200,
+      "path": "sources/author-tree.json"
+    },
+    {
+      "file": "author-README.md",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/README.md",
+      "retrieved_utc": "2026-10-05T04:06:33.697087+00:00",
+      "sha256": "df9aba34cb0a3bcae40b9b6a1a6b042b86ce4d99351e5386d2a3d61cf80fd51f",
+      "bytes": 11952,
+      "status": 200,
+      "path": "sources/author-README.md"
+    },
+    {
+      "file": "author-src__verifier.py",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/verifier.py",
+      "retrieved_utc": "2026-10-05T04:13:23.498629+00:00",
+      "sha256": "2793bb41f849e7976dc793ffb691c1028432d8fadf6a636d5bb8683236a8b7fe",
+      "bytes": 13815,
+      "status": 200,
+      "path": "sources/author-src__verifier.py"
+    },
+    {
+      "file": "copilot-sdk-repository.json",
+      "url": "https://api.github.com/repos/github/copilot-sdk",
+      "resolved_url": "https://api.github.com/repos/github/copilot-sdk",
+      "retrieved_utc": "2026-10-05T03:41:46.699059+00:00",
+      "status": 200,
+      "sha256": "a7cd67d54a3b376551aeefd74b1423bab4fd833d23422dd92e4c9f74de945fee",
+      "bytes": 6459,
+      "path": "sources/copilot-sdk-repository.json"
+    },
+    {
+      "file": "copilot-sdk-head.json",
+      "url": "https://api.github.com/repos/github/copilot-sdk/commits/main",
+      "resolved_url": "https://api.github.com/repos/github/copilot-sdk/commits/main",
+      "retrieved_utc": "2026-10-05T03:41:47.398759+00:00",
+      "status": 200,
+      "sha256": "5f2d73fa62f697172e8f2fab9220776525affcecf42773896dd71ca5e7ab71fd",
+      "bytes": 1174571,
+      "path": "sources/copilot-sdk-head.json"
+    },
+    {
+      "file": "copilot-sdk-releases.json",
+      "url": "https://api.github.com/repos/github/copilot-sdk/releases?per_page=5",
+      "resolved_url": "https://api.github.com/repos/github/copilot-sdk/releases?per_page=5",
+      "retrieved_utc": "2026-10-05T03:41:47.866584+00:00",
+      "status": 200,
+      "sha256": "70ba97bc987b7be1557b79c675c449273cfb8f4d418e3581c9f2db5fecf09794",
+      "bytes": 53594,
+      "path": "sources/copilot-sdk-releases.json"
+    },
+    {
+      "file": "copilot-supported-models.html",
+      "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+      "resolved_url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models",
+      "retrieved_utc": "2026-10-05T03:41:49.803299+00:00",
+      "status": 200,
+      "sha256": "04fdb2b49d58e908eab50c8011142c575bafe78e184ed090c4c514a3eca78758",
+      "bytes": 1354524,
+      "path": "sources/copilot-supported-models.html"
+    },
+    {
+      "file": "copilot-cli-model-change.html",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli-models",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "file": "copilot-rate-limits.html",
+      "url": "https://docs.github.com/en/copilot/concepts/rate-limits",
+      "resolved_url": "https://docs.github.com/en/copilot/concepts/billing-and-usage/individuals/usage-limits",
+      "retrieved_utc": "2026-10-05T03:41:51.298780+00:00",
+      "status": 200,
+      "sha256": "d05683dd4effba0673151a2f5004c0dedf623c03a835413138d974057d7c974c",
+      "bytes": 557983,
+      "path": "sources/copilot-rate-limits.html"
+    },
+    {
+      "file": "paper-abstract.html",
+      "url": "https://arxiv.org/abs/2608.05643v1",
+      "resolved_url": "https://arxiv.org/abs/2608.05643v1",
+      "retrieved_utc": "2026-10-05T03:41:51.410893+00:00",
+      "status": 200,
+      "sha256": "bda6805296a48de1b67cad713817b448f111f4a69a80c4e99c8336a954da39d2",
+      "bytes": 42523,
+      "path": "sources/paper-abstract.html"
+    },
+    {
+      "file": "author-code-search.json",
+      "url": "https://api.github.com/search/repositories?q=%222608.05643%22",
+      "resolved_url": "https://api.github.com/search/repositories?q=%222608.05643%22",
+      "retrieved_utc": "2026-10-05T03:41:51.720745+00:00",
+      "status": 200,
+      "sha256": "4af480b8ee5b87b369a76c49bd22c9a783908272ebffbe97898f8ab0f0772a5f",
+      "bytes": 55,
+      "path": "sources/author-code-search.json"
+    },
+    {
+      "file": "paper-title-code-search.json",
+      "url": "https://api.github.com/search/repositories?q=%22Refining+Over+Resampling%22",
+      "resolved_url": "https://api.github.com/search/repositories?q=%22Refining+Over+Resampling%22",
+      "retrieved_utc": "2026-10-05T03:41:52.048760+00:00",
+      "status": 200,
+      "sha256": "4af480b8ee5b87b369a76c49bd22c9a783908272ebffbe97898f8ab0f0772a5f",
+      "bytes": 55,
+      "path": "sources/paper-title-code-search.json"
+    },
+    {
+      "file": "sdk-README.md",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/README.md",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/README.md",
+      "retrieved_utc": "2026-10-05T03:46:44.877792+00:00",
+      "status": 200,
+      "sha256": "39ab230a39a2592ca4c18971ec82d4c91b9b6f973ddce96d09e77c2aed9fe5c1",
+      "bytes": 13442,
+      "path": "sources/sdk-README.md"
+    },
+    {
+      "file": "sdk-docs__getting-started.md",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/getting-started.md",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/getting-started.md",
+      "retrieved_utc": "2026-10-05T03:46:45.059598+00:00",
+      "status": 200,
+      "sha256": "9754e30ec0e969de89896355e4beeed9ab57138dd2c4187c9101f9b46096781d",
+      "bytes": 62472,
+      "path": "sources/sdk-docs__getting-started.md"
+    },
+    {
+      "file": "sdk-docs__features__session-limits.md",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/features/session-limits.md",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/features/session-limits.md",
+      "retrieved_utc": "2026-10-05T03:46:45.226538+00:00",
+      "status": 200,
+      "sha256": "d01bd1d04216784f1a4fe5cde22d4043a60f2f10ea49c82992179243953d2bdf",
+      "bytes": 4999,
+      "path": "sources/sdk-docs__features__session-limits.md"
+    },
+    {
+      "file": "sdk-docs__features__usage-and-billing.md",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/features/usage-and-billing.md",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/features/usage-and-billing.md",
+      "retrieved_utc": "2026-10-05T03:46:45.496112+00:00",
+      "status": 200,
+      "sha256": "a76db00bd1c65f441cea151ac3743afbc57477abf56e03fd1571a4284b2f0cea",
+      "bytes": 40636,
+      "path": "sources/sdk-docs__features__usage-and-billing.md"
+    },
+    {
+      "file": "sdk-nodejs__src__client.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/client.ts",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/client.ts",
+      "retrieved_utc": "2026-10-05T03:46:46.037779+00:00",
+      "status": 200,
+      "sha256": "f5b01a51598f540b782095d7bb43033c9a5740c5981bfbe886b3988a366cbc59",
+      "bytes": 153248,
+      "path": "sources/sdk-nodejs__src__client.ts"
+    },
+    {
+      "file": "sdk-nodejs__src__types.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/types.ts",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/types.ts",
+      "retrieved_utc": "2026-10-05T03:46:46.589951+00:00",
+      "status": 200,
+      "sha256": "7e9934cbb4c1b4a7135463ce90d515f62626cc3f1fdcab76478234b1c75b2d31",
+      "bytes": 133174,
+      "path": "sources/sdk-nodejs__src__types.ts"
+    },
+    {
+      "file": "sdk-nodejs__src__session.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/session.ts",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/session.ts",
+      "retrieved_utc": "2026-10-05T03:46:47.104736+00:00",
+      "status": 200,
+      "sha256": "ddb849f09a50a0c19c1dbd6e13ff6527a77d1912627f89ef5fad1b011770e3ac",
+      "bytes": 108024,
+      "path": "sources/sdk-nodejs__src__session.ts"
+    },
+    {
+      "file": "sdk-nodejs__src__generated__session-events.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/generated/session-events.ts",
+      "resolved_url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/generated/session-events.ts",
+      "retrieved_utc": "2026-10-05T03:46:47.483785+00:00",
+      "status": 200,
+      "sha256": "806b6b67a4d8879bdf9bb39200f2a1e839b0754008b8d3514c8867ccb8d709f4",
+      "bytes": 413852,
+      "path": "sources/sdk-nodejs__src__generated__session-events.ts"
+    },
+    {
+      "file": "copilot-sdk-latest-stable.json",
+      "url": "https://api.github.com/repos/github/copilot-sdk/releases/latest",
+      "resolved_url": "https://api.github.com/repos/github/copilot-sdk/releases/latest",
+      "retrieved_utc": "2026-10-05T03:46:47.777894+00:00",
+      "status": 200,
+      "sha256": "4c034321e217a40c348286778687b13b889ff3648a787e3b31949e54c39c7961",
+      "bytes": 3165,
+      "path": "sources/copilot-sdk-latest-stable.json"
+    },
+    {
+      "file": "copilot-programmatic.html",
+      "url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-programmatic-reference",
+      "resolved_url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-programmatic-reference",
+      "retrieved_utc": "2026-10-05T03:46:48.298064+00:00",
+      "status": 200,
+      "sha256": "3eec744a7305d3081f4470061c6b8917be1ee1ff8b9cf6b3961a215c61ffad58",
+      "bytes": 690324,
+      "path": "sources/copilot-programmatic.html"
+    },
+    {
+      "file": "copilot-run-programmatically.html",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically",
+      "resolved_url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically",
+      "retrieved_utc": "2026-10-05T03:46:48.909625+00:00",
+      "status": 200,
+      "sha256": "a4dfa8cfb8f5d560547a8c8a7d7a1fd78b0a4f6b01c456290d53e3ac74344b98",
+      "bytes": 665197,
+      "path": "sources/copilot-run-programmatically.html"
+    },
+    {
+      "file": "copilot-multiple-sessions.html",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/work-with-multiple-sessions",
+      "resolved_url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/work-with-multiple-sessions",
+      "retrieved_utc": "2026-10-05T03:46:49.335892+00:00",
+      "status": 200,
+      "sha256": "9d567f77069cd38c5f039dcc26b8ca4c1223bdd3f4666e71e4b9c63dc3f4a724",
+      "bytes": 650725,
+      "path": "sources/copilot-multiple-sessions.html"
+    },
+    {
+      "file": "copilot-cli-commands.html",
+      "url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference",
+      "resolved_url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference",
+      "retrieved_utc": "2026-10-05T03:46:51.599131+00:00",
+      "status": 200,
+      "sha256": "54dfaf5283be25b6d03e21283b35e68f7685192c662ed5e5c2339bed29aff938",
+      "bytes": 1879901,
+      "path": "sources/copilot-cli-commands.html"
+    },
+    {
+      "file": "copilot-session-limit.html",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/set-session-limit",
+      "resolved_url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/set-session-limit",
+      "retrieved_utc": "2026-10-05T03:46:51.977328+00:00",
+      "status": 200,
+      "sha256": "9882a4cc51740e2a86e0d444cbed7efad149ecbded803243962e4d5b7700ed15",
+      "bytes": 578825,
+      "path": "sources/copilot-session-limit.html"
+    },
+    {
+      "file": "paper-source.tar.gz",
+      "url": "https://arxiv.org/src/2608.05643v1",
+      "resolved_url": "https://arxiv.org/src/2608.05643v1",
+      "retrieved_utc": "2026-10-05T03:46:52.172875+00:00",
+      "status": 200,
+      "sha256": "c1b4c622bfc924004f2c139c68cab84c5a59b6f8e284a51a568edfc86732dd17",
+      "bytes": 300685,
+      "path": "sources/paper-source.tar.gz"
+    },
+    {
+      "file": "anthropic-prompt-caching.md",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching.md",
+      "resolved_url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching.md",
+      "retrieved_utc": "2026-10-05T03:46:52.742274+00:00",
+      "status": 200,
+      "sha256": "78d10f9ffe8ebd5d3674a3f41e613852427f3605ce04c45d071949dfc2032213",
+      "bytes": 159255,
+      "path": "sources/anthropic-prompt-caching.md"
+    },
+    {
+      "file": "openai-token-counting.md",
+      "url": "https://developers.openai.com/api/docs/guides/token-counting.md",
+      "resolved_url": "https://developers.openai.com/api/docs/guides/token-counting.md",
+      "retrieved_utc": "2026-10-05T03:46:53.008843+00:00",
+      "status": 200,
+      "sha256": "a446c08afd6dca0e252e69a3ebf82c117d45b8f60b304dc09a21340e3b6a07f6",
+      "bytes": 22672,
+      "path": "sources/openai-token-counting.md"
+    },
+    {
+      "file": "openai-response-create.md",
+      "url": "https://developers.openai.com/api/reference/resources/responses/methods/create.md",
+      "resolved_url": "https://developers.openai.com/api/reference/resources/responses/methods/create.md",
+      "retrieved_utc": "2026-10-05T03:46:53.335888+00:00",
+      "status": 200,
+      "sha256": "e9c46fb7f7a206b52bd3f43cfa7ae504cf385f1c5145196cb2cf1a3d34347680",
+      "bytes": 502744,
+      "path": "sources/openai-response-create.md"
+    },
+    {
+      "file": "sdk-stable-tag-ref.json",
+      "url": "https://api.github.com/repos/github/copilot-sdk/git/ref/tags/v1.0.16",
+      "retrieved_utc": "2026-10-05T04:04:58.097053+00:00",
+      "sha256": "19aec6f458e2d7e7ea6dd86218548f880c612fc85d0602d8b3f06ea28adbcf54",
+      "bytes": 341,
+      "status": 200,
+      "path": "sources/sdk-stable-tag-ref.json"
+    },
+    {
+      "file": "author-code-id-readme-search.json",
+      "url": "https://api.github.com/search/repositories?q=%222608.05643%22+in%3Areadme",
+      "retrieved_utc": "2026-10-05T04:04:58.741449+00:00",
+      "sha256": "2d2b74f875c5b42baec9c49b2746a59b2f168e58ece6159b29372346b7e7ca68",
+      "bytes": 5891,
+      "status": 200,
+      "path": "sources/author-code-id-readme-search.json"
+    },
+    {
+      "file": "author-code-title-readme-search.json",
+      "url": "https://api.github.com/search/repositories?q=%22Refining+Over+Resampling%22+in%3Aname%2Cdescription%2Creadme",
+      "retrieved_utc": "2026-10-05T04:04:59.536434+00:00",
+      "sha256": "3085f386a1c49023b3cecc7fcb2543b1a3aad4fe294d2f4870e4f636c20cc7fd",
+      "bytes": 44341,
+      "status": 200,
+      "path": "sources/author-code-title-readme-search.json"
+    },
+    {
+      "file": "stable-sdk-docs__features__session-limits.md",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/docs/features/session-limits.md",
+      "retrieved_utc": "2026-10-05T03:50:58.562109+00:00",
+      "sha256": "d01bd1d04216784f1a4fe5cde22d4043a60f2f10ea49c82992179243953d2bdf",
+      "bytes": 4999,
+      "status": 200,
+      "path": "sources/stable-sdk-docs__features__session-limits.md"
+    },
+    {
+      "file": "stable-sdk-docs__features__usage-and-billing.md",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/docs/features/usage-and-billing.md",
+      "retrieved_utc": "2026-10-05T03:50:58.770365+00:00",
+      "sha256": "a76db00bd1c65f441cea151ac3743afbc57477abf56e03fd1571a4284b2f0cea",
+      "bytes": 40636,
+      "status": 200,
+      "path": "sources/stable-sdk-docs__features__usage-and-billing.md"
+    },
+    {
+      "file": "stable-sdk-nodejs__src__types.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/src/types.ts",
+      "retrieved_utc": "2026-10-05T03:50:59.178648+00:00",
+      "sha256": "4bd098fd654d63cc906ec182c5dfdc3c2626b5f25d09c02a613646a3a800de06",
+      "bytes": 128813,
+      "status": 200,
+      "path": "sources/stable-sdk-nodejs__src__types.ts"
+    },
+    {
+      "file": "stable-sdk-nodejs__src__client.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/src/client.ts",
+      "retrieved_utc": "2026-10-05T03:50:59.717129+00:00",
+      "sha256": "321b1f51f1e0169844e60a607a37ca57f068a9847c3cce51d1949a67a8dfecd6",
+      "bytes": 148752,
+      "status": 200,
+      "path": "sources/stable-sdk-nodejs__src__client.ts"
+    },
+    {
+      "file": "stable-sdk-nodejs__src__generated__session-events.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/src/generated/session-events.ts",
+      "retrieved_utc": "2026-10-05T03:50:59.948819+00:00",
+      "sha256": "8bc4ec9dea0577c5ae6f6244ce1e30b51fc5855a8ba15ccc109f22d3feba2cb6",
+      "bytes": 404619,
+      "status": 200,
+      "path": "sources/stable-sdk-nodejs__src__generated__session-events.ts"
+    },
+    {
+      "file": "stable-sdk-nodejs__test__e2e__session_lifecycle.e2e.test.ts",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/test/e2e/session_lifecycle.e2e.test.ts",
+      "retrieved_utc": "2026-10-05T03:51:00.143732+00:00",
+      "sha256": "24e5eab708b9e2f56644c76bf567f15b9ae52da1640d8a0a823653367dec3e69",
+      "bytes": 6299,
+      "status": 200,
+      "path": "sources/stable-sdk-nodejs__test__e2e__session_lifecycle.e2e.test.ts"
+    },
+    {
+      "file": "copilot-sdk-tree.json",
+      "url": "https://api.github.com/repos/github/copilot-sdk/git/trees/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b?recursive=1",
+      "status": 200,
+      "retrieved_utc": "2026-10-05T03:44:27.520487+00:00",
+      "retrieval_time_basis": "source snapshot filesystem modification time; request time not separately logged",
+      "sha256": "c19b0e734bfa421e94c138a9cbdb018368cabb5e6edd31ec4a48a5b3861d1d6b",
+      "bytes": 1289031,
+      "path": "sources/copilot-sdk-tree.json"
+    }
+  ],
+  "archive_members": [
+    {
+      "member": "00README.json",
+      "bytes": 214,
+      "type": "file",
+      "sha256": "f8701fa631c1bb367c886b9e16028cad2f0cf37463a4e26268b9f1ae7f23a663"
+    },
+    {
+      "member": "acl_natbib.bst",
+      "bytes": 45186,
+      "type": "file",
+      "sha256": "e332fd51dcea48e2a8a89754892c3cb99674a1cd70b527b661e9aaffc235e83c"
+    },
+    {
+      "member": "acl.sty",
+      "bytes": 11615,
+      "type": "file",
+      "sha256": "19dfeddc2c0e448f3926a0bef048a9db3f3611b46265b760caabd7ada4f361de"
+    },
+    {
+      "member": "arxiv.tex",
+      "bytes": 75715,
+      "type": "file",
+      "sha256": "36d652ef85fb027b49707b00f295b39a67d85c5221aba8e01a5c802de8ca471b"
+    },
+    {
+      "member": "custom.bib",
+      "bytes": 30348,
+      "type": "file",
+      "sha256": "bce5d4e9d1fdc9b1ade1a0c4643fc34e2a0087b482bc373043aed1d0b8b19d27"
+    },
+    {
+      "member": "figs",
+      "bytes": 0,
+      "type": "directory"
+    },
+    {
+      "member": "figs/fig1_recovery_diversity.pdf",
+      "bytes": 38641,
+      "type": "file",
+      "sha256": "37d4e2106da9efc8b45982f393d409add61e38a514204510fa34536b3720a328"
+    },
+    {
+      "member": "figs/full_archi.pdf",
+      "bytes": 121454,
+      "type": "file",
+      "sha256": "3971eabf2e406f46ed42a3f82bfa9956f7ac3a2f457684f46dbd7101b415c993"
+    },
+    {
+      "member": "figs/fig4_compute_normalised_gain.pdf",
+      "bytes": 32717,
+      "type": "file",
+      "sha256": "a4a239a54e5e71f2725510e4ca8ffc2f4fbdf5a66640b5d45b2ea6daef4c0678"
+    },
+    {
+      "member": "figs/fig3_compute_tflops.pdf",
+      "bytes": 44817,
+      "type": "file",
+      "sha256": "30eacae595f1b611aa53fc84a20a946ab392efd69b0c24d081aaf6dc0cdd9d6f"
+    },
+    {
+      "member": "figs/fig2_correction_effectiveness.pdf",
+      "bytes": 34196,
+      "type": "file",
+      "sha256": "9b06d4db1084fc91b9fa9bb48b3bf7dd49a334275772c5b68d9125981bce9ff0"
+    },
+    {
+      "member": "figs/fig1_redundancy_structure.pdf",
+      "bytes": 17760,
+      "type": "file",
+      "sha256": "e52780f3de6acc9a54e4336286b268b5dd2d0670dac99ca229ec5d0284b7bff1"
+    },
+    {
+      "member": "figs/fig2_diversity_collapse.pdf",
+      "bytes": 19432,
+      "type": "file",
+      "sha256": "daa5b27355a8b50037d2a4d9252f81a2118cc77ce37b3bc8ae8135583e40c157"
+    }
+  ],
+  "source_artifacts": [
+    {
+      "path": "sources/anthropic-prompt-caching.md",
+      "bytes": 159255,
+      "sha256": "78d10f9ffe8ebd5d3674a3f41e613852427f3605ce04c45d071949dfc2032213",
+      "kind": "retrieved_primary_source",
+      "url": "https://platform.claude.com/docs/en/build-with-claude/prompt-caching.md"
+    },
+    {
+      "path": "sources/author-code-id-readme-search.json",
+      "bytes": 5891,
+      "sha256": "2d2b74f875c5b42baec9c49b2746a59b2f168e58ece6159b29372346b7e7ca68",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/search/repositories?q=%222608.05643%22+in%3Areadme"
+    },
+    {
+      "path": "sources/author-code-search.json",
+      "bytes": 55,
+      "sha256": "4af480b8ee5b87b369a76c49bd22c9a783908272ebffbe97898f8ab0f0772a5f",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/search/repositories?q=%222608.05643%22"
+    },
+    {
+      "path": "sources/author-code-title-readme-search.json",
+      "bytes": 44341,
+      "sha256": "3085f386a1c49023b3cecc7fcb2543b1a3aad4fe294d2f4870e4f636c20cc7fd",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/search/repositories?q=%22Refining+Over+Resampling%22+in%3Aname%2Cdescription%2Creadme"
+    },
+    {
+      "path": "sources/author-configs__llama3_8b.conf",
+      "bytes": 536,
+      "sha256": "a12493eeb363180d8b40ae91483cb658258979839913caec0a93675625ccebd3",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/llama3_8b.conf"
+    },
+    {
+      "path": "sources/author-configs__ministral_8b.conf",
+      "bytes": 546,
+      "sha256": "1430901afa36f59dbf37ebce83bc87d5deefb02fe174e41850c6909e969b248d",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/ministral_8b.conf"
+    },
+    {
+      "path": "sources/author-configs__qwen_1b.conf",
+      "bytes": 526,
+      "sha256": "b64905e14b380412a602fbb237f8ca544156a3c6ddfc02b53e7a5fa65209486e",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/qwen_1b.conf"
+    },
+    {
+      "path": "sources/author-configs__qwen_7b.conf",
+      "bytes": 532,
+      "sha256": "1c1348a516eb114f7d1c0fd798eb10b077b79bff874ef9dd1f34a778d15cf38a",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/configs/qwen_7b.conf"
+    },
+    {
+      "path": "sources/author-extract_baseline_flop.py",
+      "bytes": 27726,
+      "sha256": "5c476b0fc59b8662f684dff33734be1c93bec335467c1cd0c1a9eedbd52bd662",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/extract_baseline_flop.py"
+    },
+    {
+      "path": "sources/author-extract_cimr_metrics.py",
+      "bytes": 23599,
+      "sha256": "d7e7666f9a7cd84a33518699f6fde83322f6a9e16182cfd2f708dce5a53b3dcc",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/extract_cimr_metrics.py"
+    },
+    {
+      "path": "sources/author-extract_compute_flop.py",
+      "bytes": 32698,
+      "sha256": "859e86859b27d2058dde7d540508cc55a92a388b4d73ca2da63b79a66be207a4",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/extract_compute_flop.py"
+    },
+    {
+      "path": "sources/author-head.json",
+      "bytes": 14337,
+      "sha256": "6c5d3e981d2715f87b5c2523898cdcb375f55bf129e0c4f13f06c15ef66766f5",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/AhsanBilal7/self_refine/commits/main"
+    },
+    {
+      "path": "sources/author-print_paired_accuracies.py",
+      "bytes": 10692,
+      "sha256": "b6ccf0d1c2af901d2ce6996577c29140260a3a63a55b4c2a19087296789bb8b0",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/print_paired_accuracies.py"
+    },
+    {
+      "path": "sources/author-README.md",
+      "bytes": 11952,
+      "sha256": "df9aba34cb0a3bcae40b9b6a1a6b042b86ce4d99351e5386d2a3d61cf80fd51f",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/README.md"
+    },
+    {
+      "path": "sources/author-repository.json",
+      "bytes": 5264,
+      "sha256": "f0c8aae226e6335db8d70619b5a44a23b8eea6d35b17b874a6a3b8e8ce9a7b1c",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/AhsanBilal7/self_refine"
+    },
+    {
+      "path": "sources/author-requirements.txt",
+      "bytes": 646,
+      "sha256": "edf2c667a341a6bfbfd68588efac8efb609923c1969c0fddab8c397b66dd6a42",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/requirements.txt"
+    },
+    {
+      "path": "sources/author-run_paired_ablation.py",
+      "bytes": 13495,
+      "sha256": "f6d10eea91fff4c09c4d6d7035d972f5f743c14ca0b071f2bed8851537152492",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/run_paired_ablation.py"
+    },
+    {
+      "path": "sources/author-run_paired_ablation.sh",
+      "bytes": 5498,
+      "sha256": "89371a655e9ca5cad394cebb832f1fc916829be7bdaacf013c05ca87ca9357c7",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/run_paired_ablation.sh"
+    },
+    {
+      "path": "sources/author-src__cimr_aggregator.py",
+      "bytes": 6155,
+      "sha256": "46b6c85cef64a6c5cecf253a4b4904219a25e7bb72c7732538957effa27dd83b",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_aggregator.py"
+    },
+    {
+      "path": "sources/author-src__cimr_inference.py",
+      "bytes": 8523,
+      "sha256": "f6c284c19f926ccc884deb9ff2e3641e76612d092d15bea5db3c201c23cb2806",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_inference.py"
+    },
+    {
+      "path": "sources/author-src__cimr_prompts.py",
+      "bytes": 9241,
+      "sha256": "c621520973ea66ba7bfc8adedbf81c6d7effa19f0136266882a26579ace4045d",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_prompts.py"
+    },
+    {
+      "path": "sources/author-src__cimr_rollout.py",
+      "bytes": 7071,
+      "sha256": "351a656164caed0081e2a5969093f34573133d17c3b8b04a6370c1e4c11ccc04",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_rollout.py"
+    },
+    {
+      "path": "sources/author-src__cimr_step.py",
+      "bytes": 14103,
+      "sha256": "d59739787151e8f1ca6f8b3db8b530d3a6e58f287d6ffc442d594f77ca5efaef",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/cimr_step.py"
+    },
+    {
+      "path": "sources/author-src__dataset_loader.py",
+      "bytes": 9653,
+      "sha256": "6eb587b12d09fb494fbbe13916bd9fdb63eec141327cec642f7b1da9a15699d1",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/dataset_loader.py"
+    },
+    {
+      "path": "sources/author-src__evaluator_classes.py",
+      "bytes": 10691,
+      "sha256": "40e4c25262af434badc929df3b4c1669eb4d80ba009c8eccd1b79e7a02de23d4",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/evaluator_classes.py"
+    },
+    {
+      "path": "sources/author-src__inference_methods.py",
+      "bytes": 20040,
+      "sha256": "cc94dcf692d9d26601051b748e3e0ea42114b218da07efd48f4bec1ce1ca1890",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/inference_methods.py"
+    },
+    {
+      "path": "sources/author-src__math_toolkit__latex_answer_check.py",
+      "bytes": 14304,
+      "sha256": "11bbb71c7cf9774620ccdfa321dc0cf104b7367af99b3af135615ed7d0220f64",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/math_toolkit/latex_answer_check.py"
+    },
+    {
+      "path": "sources/author-src__model_wrapper.py",
+      "bytes": 20398,
+      "sha256": "5c513917a45a44e653a9a10fabeed62a3dba11e0fef235327c5594c175898f7a",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/model_wrapper.py"
+    },
+    {
+      "path": "sources/author-src__verifier.py",
+      "bytes": 13815,
+      "sha256": "2793bb41f849e7976dc793ffb691c1028432d8fadf6a636d5bb8683236a8b7fe",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/AhsanBilal7/self_refine/cf260f39da0640ea5faf6db6139121485ee78fc7/src/verifier.py"
+    },
+    {
+      "path": "sources/author-tree.json",
+      "bytes": 10045,
+      "sha256": "eba6cfec6534cd99815c5e6402b108e1594bf372a759206086b6caa05e39d8d6",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/AhsanBilal7/self_refine/git/trees/cf260f39da0640ea5faf6db6139121485ee78fc7?recursive=1"
+    },
+    {
+      "path": "sources/copilot-cli-commands.article.txt",
+      "bytes": 144925,
+      "sha256": "8d7e59c8130abd6bfe51b043fc67f2892d454a75fdc8b46b6642210200e7600a",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-cli-commands.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-cli-commands.html",
+      "bytes": 1879901,
+      "sha256": "54dfaf5283be25b6d03e21283b35e68f7685192c662ed5e5c2339bed29aff938",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference"
+    },
+    {
+      "path": "sources/copilot-multiple-sessions.article.txt",
+      "bytes": 12904,
+      "sha256": "fab981361c4a76fffbe96d54d96e2a5b623f7cebd7fb97f5b85f79df16b0651d",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-multiple-sessions.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-multiple-sessions.html",
+      "bytes": 650725,
+      "sha256": "9d567f77069cd38c5f039dcc26b8ca4c1223bdd3f4666e71e4b9c63dc3f4a724",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/work-with-multiple-sessions"
+    },
+    {
+      "path": "sources/copilot-programmatic.article.txt",
+      "bytes": 14515,
+      "sha256": "25fa60ab44cf9ede409c78e9ebb09b053653071aa6d5c6cfa6b453e7ec84e616",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-programmatic.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-programmatic.html",
+      "bytes": 690324,
+      "sha256": "3eec744a7305d3081f4470061c6b8917be1ee1ff8b9cf6b3961a215c61ffad58",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-programmatic-reference"
+    },
+    {
+      "path": "sources/copilot-rate-limits.article.txt",
+      "bytes": 1789,
+      "sha256": "c373b517af52bbab5d7e72cfdec0450743b7a42f05648f0a30d12f1304e7b325",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-rate-limits.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-rate-limits.html",
+      "bytes": 557983,
+      "sha256": "d05683dd4effba0673151a2f5004c0dedf623c03a835413138d974057d7c974c",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/concepts/rate-limits"
+    },
+    {
+      "path": "sources/copilot-rate-limits.txt",
+      "bytes": 15291,
+      "sha256": "95c6e7926cc7b1711250feea9fa9d24dac18560e637fa5f5e08181f94083392c",
+      "kind": "derived_text",
+      "note": "HTML text extraction; paper MathML alttext preserved; raw source is authoritative"
+    },
+    {
+      "path": "sources/copilot-run-programmatically.article.txt",
+      "bytes": 6815,
+      "sha256": "14a5f31c9e7e313cf18f4fb86798fb14dfb3cdda3d2aba675ba45f9f7f020f6b",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-run-programmatically.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-run-programmatically.html",
+      "bytes": 665197,
+      "sha256": "a4dfa8cfb8f5d560547a8c8a7d7a1fd78b0a4f6b01c456290d53e3ac74344b98",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically"
+    },
+    {
+      "path": "sources/copilot-sdk-head.json",
+      "bytes": 1174571,
+      "sha256": "5f2d73fa62f697172e8f2fab9220776525affcecf42773896dd71ca5e7ab71fd",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/github/copilot-sdk/commits/main"
+    },
+    {
+      "path": "sources/copilot-sdk-latest-stable.json",
+      "bytes": 3165,
+      "sha256": "4c034321e217a40c348286778687b13b889ff3648a787e3b31949e54c39c7961",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/github/copilot-sdk/releases/latest"
+    },
+    {
+      "path": "sources/copilot-sdk-releases.json",
+      "bytes": 53594,
+      "sha256": "70ba97bc987b7be1557b79c675c449273cfb8f4d418e3581c9f2db5fecf09794",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/github/copilot-sdk/releases?per_page=5"
+    },
+    {
+      "path": "sources/copilot-sdk-repository.json",
+      "bytes": 6459,
+      "sha256": "a7cd67d54a3b376551aeefd74b1423bab4fd833d23422dd92e4c9f74de945fee",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/github/copilot-sdk"
+    },
+    {
+      "path": "sources/copilot-sdk-tree.json",
+      "bytes": 1289031,
+      "sha256": "c19b0e734bfa421e94c138a9cbdb018368cabb5e6edd31ec4a48a5b3861d1d6b",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/github/copilot-sdk/git/trees/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b?recursive=1"
+    },
+    {
+      "path": "sources/copilot-session-limit.article.txt",
+      "bytes": 2398,
+      "sha256": "5b9698f21f5d7a50ebf597e3e448b10b600c22eb5e4b8dcc73d6a8e9f7057d9a",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-session-limit.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-session-limit.html",
+      "bytes": 578825,
+      "sha256": "9882a4cc51740e2a86e0d444cbed7efad149ecbded803243962e4d5b7700ed15",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/how-tos/copilot-cli/use-copilot-cli/set-session-limit"
+    },
+    {
+      "path": "sources/copilot-supported-models.article.txt",
+      "bytes": 26259,
+      "sha256": "0840365d8c277485f27c0c865dd55b5f7ad7ed30865bcefb1d04aafe0e231e89",
+      "kind": "derived_article_text",
+      "derived_from": "sources/copilot-supported-models.html",
+      "note": "HTML article-contents extraction, SVG accessible labels preserved"
+    },
+    {
+      "path": "sources/copilot-supported-models.html",
+      "bytes": 1354524,
+      "sha256": "04fdb2b49d58e908eab50c8011142c575bafe78e184ed090c4c514a3eca78758",
+      "kind": "retrieved_primary_source",
+      "url": "https://docs.github.com/en/copilot/reference/ai-models/supported-models"
+    },
+    {
+      "path": "sources/copilot-supported-models.txt",
+      "bytes": 32459,
+      "sha256": "869468fd295cd632de04e0c53d26ed972ef990371f976323e735b7b7408324d7",
+      "kind": "derived_text",
+      "note": "HTML text extraction; paper MathML alttext preserved; raw source is authoritative"
+    },
+    {
+      "path": "sources/openai-response-create.md",
+      "bytes": 502744,
+      "sha256": "e9c46fb7f7a206b52bd3f43cfa7ae504cf385f1c5145196cb2cf1a3d34347680",
+      "kind": "retrieved_primary_source",
+      "url": "https://developers.openai.com/api/reference/resources/responses/methods/create.md"
+    },
+    {
+      "path": "sources/openai-token-counting.md",
+      "bytes": 22672,
+      "sha256": "a446c08afd6dca0e252e69a3ebf82c117d45b8f60b304dc09a21340e3b6a07f6",
+      "kind": "retrieved_primary_source",
+      "url": "https://developers.openai.com/api/docs/guides/token-counting.md"
+    },
+    {
+      "path": "sources/paper-2608.05643v1.html",
+      "bytes": 476835,
+      "sha256": "33a805ecd594621879e1b4f10bbf52089df2cb9fb489102d3df0b414d821ad68",
+      "kind": "retrieved_primary_source",
+      "url": "https://arxiv.org/html/2608.05643v1"
+    },
+    {
+      "path": "sources/paper-2608.05643v1.txt",
+      "bytes": 105814,
+      "sha256": "467ff697827a571c5627f7f2bb0746cfdc0bff1a3e36c619b4d94821cc4c4115",
+      "kind": "derived_text",
+      "note": "HTML text extraction; paper MathML alttext preserved; raw source is authoritative"
+    },
+    {
+      "path": "sources/paper-abstract.html",
+      "bytes": 42523,
+      "sha256": "bda6805296a48de1b67cad713817b448f111f4a69a80c4e99c8336a954da39d2",
+      "kind": "retrieved_primary_source",
+      "url": "https://arxiv.org/abs/2608.05643v1"
+    },
+    {
+      "path": "sources/paper-fig1_recovery_diversity.pdf",
+      "bytes": 38641,
+      "sha256": "37d4e2106da9efc8b45982f393d409add61e38a514204510fa34536b3720a328",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/fig1_recovery_diversity.pdf"
+    },
+    {
+      "path": "sources/paper-fig1_recovery_diversity.png",
+      "bytes": 233052,
+      "sha256": "bec66bb083f64959d3ba4cfa3e5f75b99504806925aee6083b14d74a0c42c811",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-fig1_redundancy_structure.pdf",
+      "bytes": 17760,
+      "sha256": "e52780f3de6acc9a54e4336286b268b5dd2d0670dac99ca229ec5d0284b7bff1",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/fig1_redundancy_structure.pdf"
+    },
+    {
+      "path": "sources/paper-fig1_redundancy_structure.png",
+      "bytes": 102196,
+      "sha256": "afd09156df37c59157b0891faeeceed4414aaf938368ccd5bb9e49a150143937",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-fig2_correction_effectiveness.pdf",
+      "bytes": 34196,
+      "sha256": "9b06d4db1084fc91b9fa9bb48b3bf7dd49a334275772c5b68d9125981bce9ff0",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/fig2_correction_effectiveness.pdf"
+    },
+    {
+      "path": "sources/paper-fig2_correction_effectiveness.png",
+      "bytes": 171800,
+      "sha256": "7b032664c436128692da387046ff0409a762dc04c3be4b937187ccc0c71927b3",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-fig2_diversity_collapse.pdf",
+      "bytes": 19432,
+      "sha256": "daa5b27355a8b50037d2a4d9252f81a2118cc77ce37b3bc8ae8135583e40c157",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/fig2_diversity_collapse.pdf"
+    },
+    {
+      "path": "sources/paper-fig2_diversity_collapse.png",
+      "bytes": 94144,
+      "sha256": "91e4acabaadf7d3a3d921367eff1130badf1de64a1f510f47b5314b91de563b5",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-fig3_compute_tflops.pdf",
+      "bytes": 44817,
+      "sha256": "30eacae595f1b611aa53fc84a20a946ab392efd69b0c24d081aaf6dc0cdd9d6f",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/fig3_compute_tflops.pdf"
+    },
+    {
+      "path": "sources/paper-fig3_compute_tflops.png",
+      "bytes": 152545,
+      "sha256": "534e83d20bd02ed1f3034dd97d6e4a945331ed8535e6bf369c62385148175fe0",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-fig4_compute_normalised_gain.pdf",
+      "bytes": 32717,
+      "sha256": "a4a239a54e5e71f2725510e4ca8ffc2f4fbdf5a66640b5d45b2ea6daef4c0678",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/fig4_compute_normalised_gain.pdf"
+    },
+    {
+      "path": "sources/paper-fig4_compute_normalised_gain.png",
+      "bytes": 98825,
+      "sha256": "d7bcc19548a3cdb4c5d2aa0c59a5183ef190482e79fc23fcad453046ce541c87",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-figures-1-3.png",
+      "bytes": 652852,
+      "sha256": "978679ad9e3f8327a16a93d4a077988a533adb17bebe6dd16563c12611ceef11",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-figures-4-6.png",
+      "bytes": 428862,
+      "sha256": "391df5cd012b07cc392189b37daec0d28b17d1a1667a2439b9c89b33b87d7a2a",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-full_archi.pdf",
+      "bytes": 121454,
+      "sha256": "3971eabf2e406f46ed42a3f82bfa9956f7ac3a2f457684f46dbd7101b415c993",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "figs/full_archi.pdf"
+    },
+    {
+      "path": "sources/paper-full_archi.png",
+      "bytes": 189235,
+      "sha256": "cef72cd60883a9859894186712ffb1e1edf4b518eacc110c3598dea7aeeb02f7",
+      "kind": "rendered_figure_or_montage",
+      "derived_from": "corresponding paper figure PDFs extracted from paper-source.tar.gz",
+      "note": "PDFium rendering, scale 8; montages add filename labels only"
+    },
+    {
+      "path": "sources/paper-links.json",
+      "bytes": 14310,
+      "sha256": "43626cc42bc1993be5d161dfc4278d77e806596416464668d6fbf26dc62fc757",
+      "kind": "derived_link_inventory",
+      "derived_from": "sources/paper-2608.05643v1.html"
+    },
+    {
+      "path": "sources/paper-source.tar.gz",
+      "bytes": 300685,
+      "sha256": "c1b4c622bfc924004f2c139c68cab84c5a59b6f8e284a51a568edfc86732dd17",
+      "kind": "retrieved_primary_source",
+      "url": "https://arxiv.org/src/2608.05643v1"
+    },
+    {
+      "path": "sources/paper-src-arxiv.tex",
+      "bytes": 75715,
+      "sha256": "36d652ef85fb027b49707b00f295b39a67d85c5221aba8e01a5c802de8ca471b",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "arxiv.tex"
+    },
+    {
+      "path": "sources/paper-src-custom.bib",
+      "bytes": 30348,
+      "sha256": "bce5d4e9d1fdc9b1ade1a0c4643fc34e2a0087b482bc373043aed1d0b8b19d27",
+      "kind": "archive_member",
+      "derived_from": "sources/paper-source.tar.gz",
+      "member": "custom.bib"
+    },
+    {
+      "path": "sources/paper-title-code-search.json",
+      "bytes": 55,
+      "sha256": "4af480b8ee5b87b369a76c49bd22c9a783908272ebffbe97898f8ab0f0772a5f",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/search/repositories?q=%22Refining+Over+Resampling%22"
+    },
+    {
+      "path": "sources/retrieval-author-code.json",
+      "bytes": 7887,
+      "sha256": "cd7c04d157828e0ba3e95e57ca542e2898f53726a53cf35eb2010b0ebc35e99b",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/retrieval-author-discovery.json",
+      "bytes": 1312,
+      "sha256": "b5617313f2670e8d7cf8aa25a17ba2958053f04f82d755f78d71352d0d437333",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/retrieval-author-verifier.json",
+      "bytes": 365,
+      "sha256": "d00f3bb5b3837ca79ee2bfcd07fef5fd0616cac68f1a834867adf8d131e1a1c1",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/retrieval-batch1.json",
+      "bytes": 3360,
+      "sha256": "2fa7ecc5837a7376b612c253d5584519e6beed0352ac40a989efc32e7ce9b6c9",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/retrieval-batch2.json",
+      "bytes": 8471,
+      "sha256": "cb80229894549c665b3239669213e356491fd5fa20cd39c94d280b5056da7f05",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/retrieval-final.json",
+      "bytes": 1016,
+      "sha256": "13a5ba33418fbdffc3aafdb21689bc2e6951dad1a8422db18bd2157909591166",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/retrieval-stable-sdk.json",
+      "bytes": 2372,
+      "sha256": "69df69f55780441eb5db99facd17174c7069dc96ba72172de6c83c69304aa536",
+      "kind": "retrieval_log"
+    },
+    {
+      "path": "sources/sdk-docs__features__session-limits.md",
+      "bytes": 4999,
+      "sha256": "d01bd1d04216784f1a4fe5cde22d4043a60f2f10ea49c82992179243953d2bdf",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/features/session-limits.md"
+    },
+    {
+      "path": "sources/sdk-docs__features__usage-and-billing.md",
+      "bytes": 40636,
+      "sha256": "a76db00bd1c65f441cea151ac3743afbc57477abf56e03fd1571a4284b2f0cea",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/features/usage-and-billing.md"
+    },
+    {
+      "path": "sources/sdk-docs__getting-started.md",
+      "bytes": 62472,
+      "sha256": "9754e30ec0e969de89896355e4beeed9ab57138dd2c4187c9101f9b46096781d",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/docs/getting-started.md"
+    },
+    {
+      "path": "sources/sdk-nodejs__src__client.ts",
+      "bytes": 153248,
+      "sha256": "f5b01a51598f540b782095d7bb43033c9a5740c5981bfbe886b3988a366cbc59",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/client.ts"
+    },
+    {
+      "path": "sources/sdk-nodejs__src__generated__session-events.ts",
+      "bytes": 413852,
+      "sha256": "806b6b67a4d8879bdf9bb39200f2a1e839b0754008b8d3514c8867ccb8d709f4",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/generated/session-events.ts"
+    },
+    {
+      "path": "sources/sdk-nodejs__src__session.ts",
+      "bytes": 108024,
+      "sha256": "ddb849f09a50a0c19c1dbd6e13ff6527a77d1912627f89ef5fad1b011770e3ac",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/session.ts"
+    },
+    {
+      "path": "sources/sdk-nodejs__src__types.ts",
+      "bytes": 133174,
+      "sha256": "7e9934cbb4c1b4a7135463ce90d515f62626cc3f1fdcab76478234b1c75b2d31",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/nodejs/src/types.ts"
+    },
+    {
+      "path": "sources/sdk-README.md",
+      "bytes": 13442,
+      "sha256": "39ab230a39a2592ca4c18971ec82d4c91b9b6f973ddce96d09e77c2aed9fe5c1",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/6b4f3a3bde7eb9a8604617b91effe0f4a2e3921b/README.md"
+    },
+    {
+      "path": "sources/sdk-stable-tag-ref.json",
+      "bytes": 341,
+      "sha256": "19aec6f458e2d7e7ea6dd86218548f880c612fc85d0602d8b3f06ea28adbcf54",
+      "kind": "retrieved_primary_source",
+      "url": "https://api.github.com/repos/github/copilot-sdk/git/ref/tags/v1.0.16"
+    },
+    {
+      "path": "sources/stable-sdk-docs__features__session-limits.md",
+      "bytes": 4999,
+      "sha256": "d01bd1d04216784f1a4fe5cde22d4043a60f2f10ea49c82992179243953d2bdf",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/docs/features/session-limits.md"
+    },
+    {
+      "path": "sources/stable-sdk-docs__features__usage-and-billing.md",
+      "bytes": 40636,
+      "sha256": "a76db00bd1c65f441cea151ac3743afbc57477abf56e03fd1571a4284b2f0cea",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/docs/features/usage-and-billing.md"
+    },
+    {
+      "path": "sources/stable-sdk-nodejs__src__client.ts",
+      "bytes": 148752,
+      "sha256": "321b1f51f1e0169844e60a607a37ca57f068a9847c3cce51d1949a67a8dfecd6",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/src/client.ts"
+    },
+    {
+      "path": "sources/stable-sdk-nodejs__src__generated__session-events.ts",
+      "bytes": 404619,
+      "sha256": "8bc4ec9dea0577c5ae6f6244ce1e30b51fc5855a8ba15ccc109f22d3feba2cb6",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/src/generated/session-events.ts"
+    },
+    {
+      "path": "sources/stable-sdk-nodejs__src__types.ts",
+      "bytes": 128813,
+      "sha256": "4bd098fd654d63cc906ec182c5dfdc3c2626b5f25d09c02a613646a3a800de06",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/src/types.ts"
+    },
+    {
+      "path": "sources/stable-sdk-nodejs__test__e2e__session_lifecycle.e2e.test.ts",
+      "bytes": 6299,
+      "sha256": "24e5eab708b9e2f56644c76bf567f15b9ae52da1640d8a0a823653367dec3e69",
+      "kind": "retrieved_primary_source",
+      "url": "https://raw.githubusercontent.com/github/copilot-sdk/f8ae645902b74b62cd47aac1fd9b29adaec3aff2/nodejs/test/e2e/session_lifecycle.e2e.test.ts"
+    }
+  ],
+  "limitations": [
+    "Web search tool returned no usable body; primary pages fetched directly with unauthenticated HTTPS GETs.",
+    "No account entitlement or model availability queried.",
+    "No native model, corpus, generation, author benchmark or SDK E2E experiment executed.",
+    "No author raw result store present in inspected current tree.",
+    "Proxy-token paper/code measurements do not certify native token savings."
+  ]
+}
