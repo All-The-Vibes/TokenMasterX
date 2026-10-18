@@ -38,10 +38,6 @@ _resolve_host = resolve_host
 _host_home = host_home
 
 
-def _claude_mcp_config_path():
-    return config_path("claude")
-
-
 def _git_root(start: Path) -> Path:
     """Return the git toplevel for `start`, or `start` if not in a git repo."""
     git = shutil.which("git")

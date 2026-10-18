@@ -13,18 +13,10 @@ from pathlib import Path
 from hosts import (HOSTS, capabilities, config_path, host_home, preflight,
                    resolve_host, wire_hook, wire_mcp, wire_copilot_hook, copilot_hook_status)
 from hosts.config import atomic_write, environment, parse, read
-from hosts.runtime import (DEPENDENCIES, copilot_hook_entry, hook_entry, runtime_entry,
-                           validate_runtime)
+from hosts.runtime import copilot_hook_entry, hook_entry, runtime_entry, validate_runtime
 from hosts.tokenizer import read_tokenizer
 
 SKILL_DIR = Path(__file__).resolve().parent
-RUN_WITH = DEPENDENCIES  # dependency inventory only; never uv --with launch arguments
-_resolve_host = resolve_host
-_host_home = host_home
-
-
-def _claude_json_path():
-    return config_path("claude")
 
 
 def _fail(msg):
@@ -49,21 +41,6 @@ def _install_files(home):
             atomic_write(install_dir / "brainspace" / source.relative_to(SKILL_DIR / "brainspace"),
                          source.read_bytes())
     return install_dir
-
-
-def _wire_claude_mcp(python, mcp_script, *, remove=False):
-    return wire_mcp("claude", "brainspace", None if remove else runtime_entry(python, mcp_script))
-
-
-def _wire_claude_hook(home, python, hook_script, *, remove=False):
-    return wire_hook(home, None if remove else hook_entry(python, hook_script))
-
-
-def _wire_copilot_mcp(home, python, mcp_script, *, remove=False):
-    # Use the explicit home argument, including for isolated direct callers.
-    from hosts.config import json_server
-    entry = None if remove else {**runtime_entry(python, mcp_script), "type": "local", "tools": ["*"]}
-    return json_server(home / "mcp-config.json", "brainspace", entry)
 
 
 def main():

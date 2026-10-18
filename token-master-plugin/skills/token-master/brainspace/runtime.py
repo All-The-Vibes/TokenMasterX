@@ -24,7 +24,8 @@ from .optimizer import Optimizer, reference_measurement
 from .pipeline import prepare_request
 from .protected_text import protected_text_preserved, restore_protected_text
 from .request_policy import (
-    PROTOCOL, QUALIFIED_SOURCE_TOOLS, RequestPolicy, SourceReadInfo, _protected, _tool_indices,
+    NONEXPANDING_VERSIONS, PROTOCOL, QUALIFIED_SOURCE_TOOLS, RequestPolicy, SourceReadInfo, _protected,
+    _tool_indices,
 )
 from .runtime_io import append_receipt, parse_json, safe_root
 from .task_mode import ModeStatus, render_task_mode
@@ -243,7 +244,7 @@ class RuntimeSession:
         if (type(policy) is not RequestPolicy or (backend != "local" and policy.enabled)
                 or (backend == "local" and not policy.enabled)):
             raise ValueError("choose_one_transform_backend")
-        if backend == "local" and policy.version in ("request-policy-v4", "request-policy-v5", "request-policy-v6"):
+        if backend == "local" and policy.version in NONEXPANDING_VERSIONS:
             # V4/V5/V6's contract includes every wrapper/recovery/guidance token.
             # Neither a raw-policy caller nor a registry selection can turn
             # that versioned guarantee off with the legacy optional flag.
@@ -526,9 +527,12 @@ class RuntimeSession:
         # exact whole-root recovery for every accepted changed source result.
         # V6 hides nothing (lossless folds; digests name their own fetch path), so it
         # adds no recovery schema.
-        needed = (_RECOVERY_TOOLS if self.backend == "headroom" else
-                  _RECOVERY_TOOLS[:1] if self.backend == "local"
-                  and self.policy.version not in ("request-policy-v3", "request-policy-v6") else [])
+        if self.backend == "headroom":
+            needed = _RECOVERY_TOOLS
+        elif self.backend == "local" and self.policy.version not in ("request-policy-v3", "request-policy-v6"):
+            needed = _RECOVERY_TOOLS[:1]
+        else:
+            needed = []
         if needed:
             tools = request.setdefault("tools", [])
             for recovery in needed:

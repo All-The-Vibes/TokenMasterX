@@ -21,7 +21,7 @@ from .headroom import MODEL_REVISION as HEADROOM_MODEL_REVISION
 from .headroom_worker import MODEL_SHA256 as HEADROOM_MODEL_SHA256
 from .headroom_worker import TOKENIZER_REVISION as HEADROOM_TOKENIZER_REVISION
 from .ponytail import PINNED_INSTRUCTIONS_SHA256, PINNED_SOURCE_COMMIT
-from .request_policy import RequestPolicy, policy_neighbors
+from .request_policy import NONEXPANDING_VERSIONS, RequestPolicy, policy_neighbors
 from .runtime_io import parse_json
 
 
@@ -104,8 +104,7 @@ The default annotated style is likewise omitted from serialized policies.
             raise ValueError("runtime_policy_reducer_conflict")
         if self.backend != "local" and self.request_policy.version != "request-policy-v3":
             raise ValueError("inactive_request_version")
-        if (self.request_policy.version in ("request-policy-v4", "request-policy-v5", "request-policy-v6")
-                and not self.require_nonexpanding_input):
+        if self.request_policy.version in NONEXPANDING_VERSIONS and not self.require_nonexpanding_input:
             raise ValueError("v4_requires_nonexpanding_input")
         if self.request_policy.version == "request-policy-v6" and self.instruction != "none":
             # Guidance inserted mid-session would shift every later message and miss the cache.
@@ -276,7 +275,7 @@ keys remain exactly as before. No-op IDs and duplicate IDs are excluded.
             require_nonexpanding_input=policy.require_nonexpanding_input
             if policy.backend != "none" or instruction != "none" else False))
     if ((policy.backend != "none" or policy.instruction != "none")
-            and policy.request_policy.version not in ("request-policy-v4", "request-policy-v5", "request-policy-v6")
+            and policy.request_policy.version not in NONEXPANDING_VERSIONS
             and policy.headroom_strategy == "upstream-default-v1"
             and policy.headroom_root_reference_style != "compact-root-v1"):
         candidates.append(replace(policy, require_nonexpanding_input=not policy.require_nonexpanding_input))

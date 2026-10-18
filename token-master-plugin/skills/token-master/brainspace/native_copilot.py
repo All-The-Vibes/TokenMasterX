@@ -491,11 +491,8 @@ def run_native_copilot(
     if executable.suffix.lower() != ".exe" or not executable.is_file():
         raise ValueError("native_executable_required")
     exe_digest = _digest(executable)
-    if exe_digest == COPILOT_SHA256:
-        expected_version = COPILOT_VERSION
-    elif exe_digest in QUALIFIED_COPILOT_VERSIONS:
-        expected_version = QUALIFIED_COPILOT_VERSIONS[exe_digest]
-    else:
+    expected_version = {COPILOT_SHA256: COPILOT_VERSION, **QUALIFIED_COPILOT_VERSIONS}.get(exe_digest)
+    if expected_version is None:
         raise ValueError("unqualified_native_executable_hash")
     python = safe_root(sys.executable)
     mcp_script = Path(__file__).resolve().parents[1] / "brainspace_native_mcp.py"

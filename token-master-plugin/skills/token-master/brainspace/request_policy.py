@@ -41,6 +41,9 @@ _ERROR_TEXT = re.compile(r"\b(error|failed|denied|fatal|exception|traceback)\b",
 _EXACT_TEXT = re.compile(r"```|~~~|<exact[-_]answer\b|BEGIN EXACT", re.I)
 _VERSIONS = ("request-policy-v1", "request-policy-v2", "request-policy-v3", "request-policy-v4", "request-policy-v5",
              "request-policy-v6")
+# These versions' contracts count every wrapper, recovery and guidance token, so the
+# non-expanding whole-input guard is mandatory for them.
+NONEXPANDING_VERSIONS = ("request-policy-v4", "request-policy-v5", "request-policy-v6")
 _SOURCE_SUFFIXES = (".py", ".pyi", ".rs")
 
 
