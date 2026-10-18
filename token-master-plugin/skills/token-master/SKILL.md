@@ -18,20 +18,26 @@ host and an already provisioned pinned runtime:
 <runtime-python> setup.py <repo-root> --host claude|codex|copilot --python <runtime-python>
 ```
 
-The script requires an already installed graph supplier. Do not install an
-unverified similarly named package or silently resolve dependencies at every
-launch. Optional supplier installation is a separate explicit choice. Runtime
-pins are in the plugin's `requirements-runtime.txt` and closure lock.
+The script requires an already installed graph supplier (graphify). Do not install
+an unverified similarly named package or silently resolve dependencies at every
+launch. Runtime pins are in the plugin's `requirements-runtime.txt` and closure lock.
+
+It installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`), with three
+tools: `locate` (a symbol or a file's outline), `read_symbol` (one symbol, file or
+line range) and `impact` (callers). It builds `.token-master/graph.json` with
+graphify and prebuilds `.token-master/symbols.sqlite`; both are gitignored. Graph
+servers installed by earlier versions (`graphify-nav`, `codegraph`) are removed
+when TokenMaster owns them.
 
 Report the actual installer result, not a claim that a host accepted a tool.
-Claude/Copilot get a routing agent; Codex gets native MCP configuration, not a
+Claude/Copilot get a navigation agent; Codex gets native MCP configuration, not a
 translated Claude agent or output-replacement hook. Honor the restart guidance
 printed for the selected host. Never rewrite another host's profile by guessing.
 
-Treat graph output as candidate locations. Check index/source freshness, follow
-bounded pages until the required enumeration is complete, and verify decisive
-edges in source. `semantic_complete=false` is not an exhaustive dependency proof.
-Freshness covers indexed files, not newly added unindexed files.
+Treat `impact` lines marked `[inferred]` or `[name]` as candidates and verify them
+in source; dynamic calls, callbacks and string dispatch are invisible to it.
+`locate` and `read_symbol` see edits immediately. The call graph is a build-time
+snapshot; its edges from files edited since then are dropped.
 
 ## Recoverable views
 

@@ -18,9 +18,10 @@ agents. It has two parts:
    - `impact` lists callers.
    - Every result stays under 2,400 tokens.
 
-   v7 is measured in PRS-3 but not yet wired into host setup. Setup still installs
-   the older graph routing (graphify-nav and codegraph MCP servers plus a routing
-   prompt), which PRS-2 measured as more expensive.
+   Host setup (`setup.py`) installs v7 as one MCP server, `tokenmaster-nav`, with a
+   short agent prompt. It replaces the older graph routing (graphify-nav and
+   codegraph servers plus a 1,383-token routing prompt), which PRS-2 measured as more
+   expensive.
 
 ## Current evidence: PRS-3 (October 18, 2026) — v7 cuts cost by 22%
 
@@ -87,8 +88,8 @@ Protocol: [PRS1_PROTOCOL.md](token-master-plugin/docs/PRS1_PROTOCOL.md).
 
 | Component | Mechanism | Measured limits |
 | --- | --- | --- |
-| Graph-first navigation (v7) | `locate`, `read_symbol` and `impact` over a SQLite symbol index with exact line ranges and graphify's call graph. Every result is capped at 2,400 tokens; the tool definitions are 269 tokens. | PRS-3: −22.0% cost against stock, 120/120 passed. Against v6 alone, −10.4% (not significant). Cheaper on "who calls X" tasks, about equal on locate, logic and docs tasks, and 9% dearer on edits (exploratory). Not yet wired into host setup. |
-| Graph routing (installed today) | `graphify-nav` (6 tools) and `codegraph` MCP servers on prebuilt indexes, plus a routing agent prompt. | Adds about 2,100 tokens to every call; PRS-2: +12.9% cost. codegraph 1.6.2 exposes only `codegraph_explore`, while the agent text still names 8 tools. |
+| Graph-first navigation (v7) | `locate`, `read_symbol` and `impact` over a SQLite symbol index with exact line ranges and graphify's call graph. Every result is capped at 2,400 tokens; the tool definitions are 269 tokens. | PRS-3: −22.0% cost against stock, 120/120 passed. Against v6 alone, −10.4% (not significant). Cheaper on "who calls X" tasks, about equal on locate, logic and docs tasks, and 9% dearer on edits (exploratory). Installed by `setup.py` as the `tokenmaster-nav` MCP server. |
+| Graph routing (before v7) | `graphify-nav` (6 tools) and `codegraph` MCP servers on prebuilt indexes, plus a routing agent prompt. | Added about 2,100 tokens to every call; PRS-2: +12.9% cost. `setup.py` now removes these servers when TokenMaster owns them. |
 | `request-policy-v6` | Shapes each tool result once, deterministically, when it enters the conversation. Folds search and list output losslessly; turns oversized results into digests that name what was omitted and how to fetch it. | PRS-2: −11.6% cost; PRS-3: −13.0% cost on new tasks. Quality unchanged. Never rewrites history, so the provider's cache stays valid. |
 | `request-policy-v5` | Keeps the newest tool result verbatim. Compacts older `view` results (code skeletons, JSON overviews, Markdown and log summaries) behind one `[[BR:<sha256>\|r=1]]` reference with exact SQLite recovery. | Removed 15.7% of tokens on the requests it changed. Uncached input still rose 94.8%, because each rewrite invalidates the cached prefix. Superseded by v6. |
 | Runtime transport | Captures every request and reply for whole-task accounting. | Forces `parallel_tool_calls: false`, which the study suggests is costly. |

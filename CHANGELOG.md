@@ -7,6 +7,23 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### v7 navigation in host setup — October 18, 2026
+
+- `setup.py` now installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`),
+  with the three v7 tools. Only the server and the three modules it imports are
+  copied. The symbol index is prebuilt, and the server builds it on first use if it
+  is missing.
+- Pre-v7 graph servers are removed on install and uninstall, but only when
+  TokenMaster's ownership receipt says it installed them: `graphify-nav`, which
+  exposed graphify's 6 tools, and `codegraph`. Codegraph provisioning
+  (`--install-codegraph`) is gone; PRS-2 measured its `codegraph_explore` source
+  dumps as the most expensive graph tool.
+- The Claude and Copilot agent templates replace 1,383 tokens of routing rules with
+  the 66-token hint tested in PRS-3. Their task-discipline, memory and freshness
+  sections remain. Those sections were not part of the PRS-3 configuration.
+- Added `tests/test_navigation_mcp.py`, which runs the installed layout over MCP
+  stdio. The setup test now covers the upgrade path.
+
 ### Graph-first navigation (v7) and PRS-3 — October 18, 2026
 
 - Added `brainspace/symbol_index.py` (v7). It keeps a SQLite index of Python

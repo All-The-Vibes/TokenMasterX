@@ -319,8 +319,8 @@ def test_routing_agent_owned_update_and_uninstall(homes):
 
 
 def test_graph_setup_fake_supplier_real_installer_in_temp_home(homes, monkeypatch):
-    """Run all graph setup logic, mocking only external graph supplier/Node."""
-    from hosts import config_path, host_home
+    """Run all graph setup logic, mocking only the external graph supplier."""
+    from hosts import config_path, host_home, wire_mcp
     setup = load("setup")
     repo = homes / "repo space 工具"
     repo.mkdir()
@@ -340,17 +340,23 @@ def test_graph_setup_fake_supplier_real_installer_in_temp_home(homes, monkeypatc
     monkeypatch.setattr(setup.shutil, "which",
                         lambda name: "fixture-graphify" if name == "graphify" else real_which(name))
     monkeypatch.setattr(setup, "_git_root", lambda path: path)
-    monkeypatch.setattr(setup, "_ensure_codegraph", lambda *a, **k: (None, None))
     monkeypatch.setattr(setup, "_supplier", lambda p: {"name": "fixture-graphify", "version": "1"})
     for host in ("claude", "copilot", "codex"):
+        wire_mcp(host, "graphify-nav", {"command": sys.executable, "args": ["old.py"]})  # a pre-v7 install
         monkeypatch.setattr(sys, "argv", ["setup.py", str(repo), "--host", host, "--python", sys.executable])
         assert setup.main() == 0
         saved = json.loads((repo / ".token-master" / "graph.json").read_bytes())
         assert saved["token_master_index"]["supplier"]["name"] == "fixture-graphify"
-        assert config_path(host).is_file()
+        config = config_path(host).read_text("utf-8")
+        assert "tokenmaster-nav" in config and "graphify-nav" not in config
+        install = host_home(host) / "token-master"
+        assert (install / "navigation_mcp.py").is_file() and (install / "brainspace" / "symbol_index.py").is_file()
+        assert (repo / ".token-master" / "symbols.sqlite").is_file()
         if host == "copilot":
             text = (host_home(host) / "agents" / "token-master.agent.md").read_text("utf-8")
             assert "--with" not in text
             assert "fixture-graphify" not in text
+            assert "tokenmaster-nav:" in text and "`impact` lists callers" in text
         monkeypatch.setattr(sys, "argv", ["setup.py", "--host", host, "--uninstall"])
         assert setup.main() == 0
+        assert not config_path(host).is_file() or "tokenmaster-nav" not in config_path(host).read_text("utf-8")

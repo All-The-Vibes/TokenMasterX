@@ -1,18 +1,18 @@
 #!/usr/bin/env python
-"""Build graph candidates and install an explicitly scoped host adapter.
+"""Build the code graph and install TokenMaster's v7 code navigation for one host.
 
 Usage: python setup.py [REPO_ROOT] --host claude|codex|copilot --python PATH
        python setup.py --host HOST --uninstall
 
 PATH must be an already provisioned runtime. Launch never resolves dependencies.
-Optional codegraph installation requires --install-codegraph. Codex configuration
+The navigation server (navigation_mcp.py) answers locate, read_symbol and impact
+from an exact-range symbol index and graphify's call graph. Codex configuration
 supports CLI/Desktop MCP only; no native routing agent or output hook is claimed.
 """
 import argparse
 import hashlib
 import json
 import time
-import os
 import shutil
 import subprocess
 import sys
@@ -27,7 +27,11 @@ from graphify_mcp import stamp_graph
 
 SKILL_DIR = Path(__file__).resolve().parent
 GITIGNORE_LINE = ".token-master/"
-GITIGNORE_CG_LINE = ".codegraph/"
+NAV_SERVER = "tokenmaster-nav"
+# Graph servers installed before v7; removed on install and uninstall when TokenMaster owns them.
+LEGACY_SERVERS = ("graphify-nav", "codegraph")
+# What navigation_mcp.py imports, copied next to it.
+NAV_MODULES = ("brainspace/__init__.py", "brainspace/tokens.py", "brainspace/symbol_index.py")
 
 
 _resolve_host = resolve_host
@@ -82,115 +86,6 @@ def _ensure_gitignore_lines(gitignore: Path, lines: list) -> None:
         print(f"[token-master] warning: could not update .gitignore ({exc})")
 
 
-def _ensure_codegraph(home: Path, install: bool = False):
-    """Locate or install the codegraph shim.
-
-    Returns (node_path, shim_path) if codegraph is available, or (None, None)
-    if node is missing or installation failed.  All failures are non-fatal.
-    """
-    node = shutil.which("node")
-    if not node:
-        print("[token-master] codegraph: `node` not found on PATH — skipping codegraph backend.")
-        return None, None
-
-    # 1. Explicit env override.
-    env_shim = os.environ.get("TOKEN_MASTER_CG_SHIM", "")
-    if env_shim:
-        p = Path(env_shim)
-        if p.is_file():
-            return node, str(p)
-        print(
-            f"[token-master] warning: TOKEN_MASTER_CG_SHIM={env_shim!r} does not exist, "
-            "falling back to local install."
-        )
-
-    # 2. Stable local install home.
-    cg_home = home / "token-master" / "cgtool"
-    shim_path = (
-        cg_home / "node_modules" / "@colbymchenry" / "codegraph" / "npm-shim.js"
-    )
-    if shim_path.is_file():
-        return node, str(shim_path)
-
-    if not install:
-        print("[token-master] codegraph: not installed; optional provisioning requires --install-codegraph.")
-        return None, None
-
-    # 3. Explicitly requested local npm install (never part of a server launch).
-    npm = shutil.which("npm")
-    if not npm:
-        print("[token-master] codegraph: `npm` not found — skipping codegraph backend.")
-        return None, None
-
-    print(f"[token-master] codegraph: installing @colbymchenry/codegraph into {cg_home} ...")
-    try:
-        cg_home.mkdir(parents=True, exist_ok=True)
-        pkg_json = cg_home / "package.json"
-        if not pkg_json.is_file():
-            subprocess.run(
-                [npm, "init", "-y"],
-                cwd=str(cg_home),
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=60,
-            )
-        subprocess.run(
-            [npm, "install", "@colbymchenry/codegraph"],
-            cwd=str(cg_home),
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=300,
-        )
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
-        msg = getattr(exc, "output", None) or str(exc)
-        print(
-            f"[token-master] codegraph: npm install failed ({msg!r}) — "
-            "skipping codegraph backend."
-        )
-        return None, None
-
-    if shim_path.is_file():
-        print("[token-master] codegraph: installed successfully.")
-        return node, str(shim_path)
-
-    print(
-        "[token-master] codegraph: shim not found after install — skipping codegraph backend."
-    )
-    return None, None
-
-
-def _codegraph_node_count(node_path: str, shim_path: str, repo: Path):
-    """Return codegraph's indexed node count via ``status --json``, or None on failure.
-
-    Used as a post-index sanity check: a codegraph DB that built but holds zero nodes
-    cannot answer structural queries, so we should not advertise it as a backend.
-    """
-    try:
-        out = subprocess.run(
-            [node_path, shim_path, "status", "--json", "."],
-            cwd=str(repo),
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=60,
-        )
-        data = json.loads(out.stdout)
-        return int(data.get("nodeCount", 0))
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError, ValueError, TypeError):
-        return None
-
-
 def _calls_edge_count(graph_path: Path):
     """Return the count of 'calls' edges in a networkx node-link graph JSON.
 
@@ -210,70 +105,6 @@ def _calls_edge_count(graph_path: Path):
         return None
 
 
-def _strip_codegraph_from_template(template: str) -> str:
-    """Remove the codegraph mcp-server block and tool reference from the agent template.
-
-    Handles both host formats:
-      - Copilot: a quoted ``'codegraph/*'`` entry in the tools list plus an inline
-        ``  codegraph:`` mcp-server block.
-      - Claude: a bare ``codegraph`` token in a comma-separated tools string and no
-        inline mcp-server block (the codegraph block detection is simply a no-op there).
-
-    Operates line-by-line so it is robust to any surrounding whitespace changes.
-    """
-    lines = template.splitlines(keepends=True)
-    out = []
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        stripped = line.rstrip("\r\n")
-
-        # Remove the codegraph entry from the top-level tools list (either format).
-        if stripped.lstrip().startswith("tools:") and "codegraph" in stripped:
-            new_stripped = (
-                stripped
-                # Copilot quoted-glob form.
-                .replace("'codegraph/*', ", "")
-                .replace(", 'codegraph/*'", "")
-                .replace("'codegraph/*'", "")
-                # Claude bare-token comma-string form.
-                .replace("codegraph, ", "")
-                .replace(", codegraph", "")
-                .replace("codegraph", "")
-            )
-            eol = "\r\n" if line.endswith("\r\n") else "\n" if line.endswith("\n") else ""
-            out.append(new_stripped + eol)
-            i += 1
-            continue
-
-        # Detect start of the codegraph mcp-server block (exactly "  codegraph:").
-        if stripped == "  codegraph:":
-            # Consume this line and all subsequent more-deeply-indented lines.
-            i += 1
-            while i < len(lines):
-                next_stripped = lines[i].rstrip("\r\n")
-                # A non-empty line with fewer than 3 leading spaces is a sibling
-                # server entry or end of the mcp-servers block — stop consuming.
-                if next_stripped and not next_stripped.startswith("   "):
-                    break
-                i += 1
-            continue
-
-        out.append(line)
-        i += 1
-    return "".join(out)
-
-
-def _write_claude_mcp_servers(python: str, mcp_script: str, node_path, shim_path) -> Path:
-    entry = runtime_entry(python, mcp_script)
-    entry["env"]["GRAPH_PATH"] = ".token-master/graph.json"
-    path = wire_mcp("claude", "graphify-nav", entry)
-    if node_path and shim_path:
-        wire_mcp("claude", "codegraph", {"command": node_path,
-                 "args": [shim_path, "serve", "--mcp", "-p", "."]})
-    return path
-
-
 def _supplier(executable):
     version = None
     try:
@@ -286,27 +117,31 @@ def _supplier(executable):
             "executable_sha256": hashlib.sha256(Path(executable).read_bytes()).hexdigest()}
 
 
+def _remove_owned_servers(host: str, names) -> None:
+    """Remove MCP entries this installer owns; a user's own entry of the same name stays."""
+    from hosts.config import parse, read
+    receipt_path = config_path(host).with_name(config_path(host).name + ".token-master-owned.json")
+    owned = parse(read(receipt_path).decode("utf-8"))
+    for name in names:
+        if f"server:{name}" in owned:
+            wire_mcp(host, name, None)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("repo", nargs="?")
     parser.add_argument("--host", "-H", choices=HOSTS, default="")
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--uninstall", action="store_true")
-    parser.add_argument("--install-codegraph", action="store_true")
     args = parser.parse_args()
     host = _resolve_host(args.host)
     home = _host_home(host)
     preflight(host)
+    agent_file = "token-master.agent.md" if host == "copilot" else "token-master.md"
     if args.uninstall:
-        wire_mcp(host, "graphify-nav", None)
-        # Only remove a codegraph entry if this installer owns it.
-        from hosts.config import parse, read
-        receipt_path = config_path(host).with_name(config_path(host).name + ".token-master-owned.json")
-        if "server:codegraph" in parse(read(receipt_path).decode("utf-8")):
-            wire_mcp(host, "codegraph", None)
+        _remove_owned_servers(host, (NAV_SERVER, *LEGACY_SERVERS))
         if host != "codex":
-            filename = "token-master.agent.md" if host == "copilot" else "token-master.md"
-            owned_file(home / "agents" / filename, None)
+            owned_file(home / "agents" / agent_file, None)
         print("[token-master] removed owned host configuration; retained indexes, packages and user settings.")
         return 0
     receipt = validate_runtime(args.python, ("mcp",))
@@ -371,70 +206,23 @@ def main() -> int:
     # Keep supplier output: never recursively delete a potentially pre-existing directory.
 
     # Gitignore the per-repo build artifacts (best effort).
-    _ensure_gitignore_lines(repo / ".gitignore", [GITIGNORE_LINE, GITIGNORE_CG_LINE])
+    _ensure_gitignore_lines(repo / ".gitignore", [GITIGNORE_LINE])
 
-    # Install the MCP server to a stable, install-independent location.
-    home = _host_home(host)
+    # Install the navigation server and the modules it imports to a stable location.
     install_dir = home / "token-master"
-    install_dir.mkdir(parents=True, exist_ok=True)
-    mcp_target = install_dir / "graphify_mcp.py"
-    atomic_write(mcp_target, (SKILL_DIR / "graphify_mcp.py").read_bytes())
+    nav_target = install_dir / "navigation_mcp.py"
+    for rel in ("navigation_mcp.py", *NAV_MODULES):
+        (install_dir / rel).parent.mkdir(parents=True, exist_ok=True)
+        atomic_write(install_dir / rel, (SKILL_DIR / rel).read_bytes())
     atomic_write(install_dir / "graph-runtime.json", (json.dumps(receipt, indent=2) + "\n").encode("utf-8"))
 
-    # Locate or install codegraph (best effort, optional).
-    node_path, shim_path = _ensure_codegraph(home, install=args.install_codegraph)
-
-    # Index with codegraph if the shim is available.
-    if node_path and shim_path:
-        # codegraph requires `init` (which builds the initial index and creates
-        # .codegraph/codegraph.db) before `index`/`sync` will run — calling `index`
-        # on an uninitialized repo errors with "CodeGraph not initialized". So pick
-        # the subcommand by whether the repo has been initialized already.
-        cg_db = repo / ".codegraph" / "codegraph.db"
-        if cg_db.is_file():
-            cg_cmd, cg_action = [node_path, shim_path, "sync", "."], "syncing"
-        else:
-            cg_cmd, cg_action = [node_path, shim_path, "init", "."], "initializing"
-        print(f"[token-master] codegraph: {cg_action} {repo} ...")
-        try:
-            subprocess.run(
-                cg_cmd,
-                cwd=str(repo),
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=300,
-            )
-            print("[token-master] codegraph: index complete.")
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, OSError) as exc:
-            msg = getattr(exc, "output", None) or str(exc)
-            print(
-                f"[token-master] warning: codegraph indexing failed ({msg!r}) — "
-                "continuing graphify-only."
-            )
-            node_path, shim_path = None, None
-
-    # Post-index sanity check: a codegraph DB that built but indexed zero nodes
-    # cannot answer structural queries, so don't advertise it as a backend.
-    if node_path and shim_path:
-        cg_nodes = _codegraph_node_count(node_path, shim_path, repo)
-        if cg_nodes is None:
-            print(
-                "[token-master] warning: could not read codegraph status — "
-                "continuing graphify-only."
-            )
-            node_path, shim_path = None, None
-        elif cg_nodes == 0:
-            print(
-                "[token-master] warning: codegraph indexed 0 nodes for this repo — "
-                "continuing graphify-only."
-            )
-            node_path, shim_path = None, None
-        else:
-            print(f"[token-master] codegraph: {cg_nodes} nodes indexed.")
+    # Build the symbol index now, so the first navigation call does not wait for it.
+    from brainspace.symbol_index import SymbolIndex
+    index = SymbolIndex(repo)
+    try:
+        symbols = index.db.execute("SELECT count(*) FROM symbols WHERE kind != 'module'").fetchone()[0]
+    finally:
+        index.close()
 
     # Sparse call-graph gate.
     graph_json = tm_dir / "graph.json"
@@ -448,85 +236,48 @@ def main() -> int:
         threshold = code_nodes * 0.1
         if calls_edge_count < threshold:
             sparse_warning = True
-            cg_note = (
-                "codegraph (installed) will be the better backend for call-resolution here."
-                if node_path
-                else "Installing codegraph (`node` + `npm` required) would provide "
-                "AST-resolved call edges for this repo."
-            )
             print(
                 f"[token-master] WARNING: sparse call graph detected — "
                 f"{calls_edge_count} 'calls' edges for {code_nodes} code symbols "
                 f"(threshold {threshold:.0f}). "
                 "This is common in JavaScript/TypeScript repos (e.g. Express had 19 calls edges "
-                f"for 313 code nodes). 'Who calls X' queries may fall back to grep. {cg_note}"
+                "for 313 code nodes). `impact` then relies on name matches, marked [name]."
             )
 
-    # Preserve existing host-specific routing agents, but render argv with the
-    # tested interpreter. No edits to the source templates are needed.
-    entry = runtime_entry(python, str(mcp_target))
-    entry["env"]["GRAPH_PATH"] = ".token-master/graph.json"
+    entry = runtime_entry(python, str(nav_target))
     agent_path = None
     if host != "codex":
-        template_name = f"agent.template.{host}.md"
-        template = (SKILL_DIR / template_name).read_text(encoding="utf-8")
-        if not node_path or not shim_path:
-            template = _strip_codegraph_from_template(template)
+        template = (SKILL_DIR / f"agent.template.{host}.md").read_text(encoding="utf-8")
         agent = (template
                  .replace("command: __UV__", "command: " + json.dumps(python))
                  .replace("args: ['run', '--with', 'mcp', 'python', '__MCP_SCRIPT__']",
                           "args: " + json.dumps(entry["args"], ensure_ascii=False))
-                 .replace("command: __NODE__", "command: " + json.dumps(node_path))
-                 .replace("args: ['__CG_SHIM__', 'serve', '--mcp', '-p', '.']",
-                          "args: " + json.dumps([shim_path, "serve", "--mcp", "-p", "."]))
                  .replace("__UV__", python)
-                 .replace("__MCP_SCRIPT__", str(mcp_target))
-                 .replace("__NODE__", node_path or "")
-                 .replace("__CG_SHIM__", shim_path or ""))
-        filename = "token-master.agent.md" if host == "copilot" else "token-master.md"
-        agent_path = home / "agents" / filename
+                 .replace("__MCP_SCRIPT__", str(nav_target)))
+        agent_path = home / "agents" / agent_file
         owned_file(agent_path, agent.encode("utf-8"))
-    mcp_config_path = wire_mcp(host, "graphify-nav", entry)
-    if node_path and shim_path:
-        wire_mcp(host, "codegraph", {"command": node_path,
-                 "args": [shim_path, "serve", "--mcp", "-p", "."]})
+    _remove_owned_servers(host, LEGACY_SERVERS)
+    mcp_config_path = wire_mcp(host, NAV_SERVER, entry)
 
     node_count = _node_count(graph_json)
-
-    # Build summary lines.
     summary = ["[token-master] done."]
     graph_line = f"  graph:  {graph_json}"
     if node_count is not None:
         graph_line += f"  ({node_count} nodes)"
     summary.append(graph_line)
     if calls_edge_count is not None:
-        ce_line = f"  calls edges: {calls_edge_count}"
-        if sparse_warning:
-            ce_line += " (SPARSE — see warning above)"
-        summary.append(ce_line)
+        summary.append(f"  calls edges: {calls_edge_count}" + (" (SPARSE — see warning above)" if sparse_warning else ""))
+    summary.append(f"  symbols: {symbols} in {repo / '.token-master' / 'symbols.sqlite'}")
     summary.append(f"  agent:  {agent_path}")
-    summary.append(f"  server: {mcp_target}")
+    summary.append(f"  server: {nav_target}")
     if mcp_config_path is not None:
         summary.append(f"  mcp config: {mcp_config_path}")
-    if node_path and shim_path:
-        summary.append(f"  codegraph: {shim_path}")
-    else:
-        if not shutil.which("node"):
-            summary.append("  codegraph: skipped (node not found)")
-        else:
-            summary.append("  codegraph: skipped (npm install failed or shim missing)")
     if host == "codex":
         summary.append("Codex CLI/Desktop MCP configured; no Codex routing agent or replacement hook installed.")
-    elif host == "copilot":
-        summary.append(
-            "Restart Copilot (or start it with `copilot --agent token-master`) to activate "
-            "routing, then ask structural questions normally."
-        )
     else:
-        summary.append(
-            "Restart Claude Code (or start it with `claude --agent token-master`) to activate "
-            "routing, then ask structural questions normally."
-        )
+        command = "copilot" if host == "copilot" else "claude"
+        summary.append(f"Restart {'Copilot' if host == 'copilot' else 'Claude Code'} (or start it with "
+                       f"`{command} --agent token-master`) to activate navigation.")
     summary.append(json.dumps(capabilities(host)))
     print("\n".join(summary))
     return 0
