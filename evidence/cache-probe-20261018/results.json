@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-18T19:37:11Z",
+  "model": "gpt-6-astra",
+  "question": "Do new sessions' first calls read the provider cache across sessions, and does prompt_cache_key decide it?",
+  "rows": [
+    {
+      "call": "A",
+      "cache_key": "k1",
+      "session_folder": "s1",
+      "status": 200,
+      "reason": "ok",
+      "input": 3441,
+      "cached": 0,
+      "cache_write": 3438
+    },
+    {
+      "call": "B",
+      "cache_key": "k2",
+      "session_folder": "s2",
+      "status": 200,
+      "reason": "ok",
+      "input": 3438,
+      "cached": 0,
+      "cache_write": 3435
+    },
+    {
+      "call": "C",
+      "cache_key": "k1",
+      "session_folder": "s3",
+      "status": 200,
+      "reason": "ok",
+      "input": 3445,
+      "cached": 0,
+      "cache_write": 3442
+    },
+    {
+      "call": "D",
+      "cache_key": "k1",
+      "session_folder": "s4",
+      "status": 502,
+      "reason": "http_error",
+      "input": null,
+      "cached": null,
+      "cache_write": null
+    },
+    {
+      "call": "E",
+      "cache_key": "k3",
+      "session_folder": "s5",
+      "status": 200,
+      "reason": "ok",
+      "input": 3442,
+      "cached": 0,
+      "cache_write": 3439
+    }
+  ]
+}

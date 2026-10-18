@@ -4,84 +4,136 @@
 
 **We are redefining token economics at the harness level.**
 
-The harness is the unit of intervention. Not the model, not the prompt, not the user —
-the **harness**: the layer that decides *what context the model sees on every turn.*
-Today that layer is naive. It hands the model a growing transcript and lets it grep its
-way to understanding, re-paying for the entire accumulated context on every single turn.
-We treat that as an economic defect to be engineered away, not an inevitability to be
-billed for. Our work is to attack that waste structurally: \*\*the model should pay once to
-understand structure, then never again.\*\*
+The harness is the unit of intervention. Not the model, not the prompt, not the user:
+the **harness**, the layer that decides *what context the model sees on every call.*
+Today that layer is naive. It hands the model a growing transcript, lets it grep and
+read its way to understanding, and pays again for the accumulated context on every
+call. We treat that as an engineering defect, not an inevitability to be billed for.
+**The model should pay once to understand structure, then never again.**
 
 ## What "token economics" means here
 
-A token is not a billing line — it is **work the model is forced to do.** Every token in
-the context window is re-read, re-attended, and re-reasoned-over on each turn. The cost
-that matters is therefore not *tokens sent once* but \*\*cumulative tokens processed to
-finish a task\*\* — context size summed across every turn until done.
+A token is work the model is forced to do. What matters is not one call but **the
+real cost of finishing the whole task**, summed over every call.
 
-This reframing is the whole project. It changes what counts as a win:
+Providers cache exact prompt prefixes and bill cached input at about a tenth of the
+normal price. So the unit is cost per finished task, at equal quality:
 
-- The naive harness "saves" nothing by being short-per-turn if it takes 40 turns of
-  grep, because each turn re-processes a larger and larger working set.
-- A graph-routed harness that answers the same question in 3–13 turns with a small,
-  stable working set wins **even if any single turn looks comparable** — because the
-  cumulative integral collapses.
+```text
+cost = uncached input + 0.1 × cached input + 8 × output     (provider-reported usage)
+```
 
-We proved this on Django (992 `.py` files, hard multi-hop tasks): \*\*−72% cumulative
-input tokens overall (3.5×), up to −80% (5.0×) on blast-radius tasks\*\*, with no
-correctness regression and a negative-control task that correctly came out a wash. That
-last point is the mission in miniature — \*\*we win by changing the economics of hard
-traversal, and we honestly win nothing when traversal isn't needed.\*\*
+Raw cumulative tokens are reported too, as a secondary measure. This changes what
+counts as a win:
 
-## What we are actually building
+- **New tokens per call matter most.** History that stays byte-identical is re-read
+  from the cache cheaply. Smaller, fewer new tool results beat a shorter transcript.
+- **Rewriting earlier messages can cost more than it saves.** It invalidates the
+  cache from that point on. In PRS-1, v5 compaction raised cost by 61.6% this way.
+- **Overhead is paid on every call.** A graph harness wins only if its tool
+  definitions and routing text cost less than the reading they replace.
 
-A harness layer that \*\*routes the model away from re-derivation and toward
-pre-computed structure\*\*:
+## Where we stand (October 18, 2026)
 
-1. **Spatial economics — graph over grep.** Pre-index the repo into a queryable
-   structure (call graph / knowledge graph) so "who calls this, what breaks if I change
-   it, where does this inherit from" is *one bounded query*, not an unbounded
-   re-reading loop. This is where the 3.5–5× lives.
-2. **Temporal economics — recall over re-establishment.** Don't re-read history to
-   rebuild context across sessions. Read the harness's own memory of what was already
-   understood. (claude-mem's insight, collapsed to a thin layer because Copilot already
-   maintains the store.)
-3. **Routing as the load-bearing primitive.** A graph the model never queries saves
-   nothing — routing was 0/15 without an explicit nudge and 8/8 with it. The harness's
-   job is not to *offer* efficient tools but to \*make the efficient path the default
-   one.\* The routing layer is the product; the indexes are interchangeable suppliers.
+The evidence comes from pre-registered live studies on this repository:
+- Model `gpt-6-astra`, in a harness shaped like Copilot CLI.
+- Tasks written by agents that were not told the arms.
+- Code, tasks and analysis frozen by hash before any live call.
+- Every token recounted from raw captures.
 
-Graphify and CodeGraph supply the **graph structure** (point 1); claude-mem supplies the **memory-recall pattern** (point 2). We use these three concepts as building blocks for the routing layer — the economic discipline we impose at the harness level: the model should never pay twice to understand the same thing.
+| Study | Sessions | Finding |
+| --- | ---: | --- |
+| [PRS-1](token-master-plugin/docs/PRS1_RESULTS.md) | 252 | No configuration shipped at the time significantly cut tokens. v5 raised cost by 61.6%. |
+| [PRS-2](token-master-plugin/docs/PRS2_RESULTS.md) | 216 | v6 result shaping cut cost by 11.6%. The graph tools as shipped raised it by 12.9%. |
+| [PRS-3](token-master-plugin/docs/PRS3_RESULTS.md) | 480 | v7 cut cost by **22.0%** against stock (95% CI −35.4% to −8.9%); v6 cut it by 13.0%. Quality was 120/120 in every arm. v7 against v6 alone: −10.4%, not significant. |
+
+**The target of at least 30% savings at equal quality is not met yet.**
+
+Earlier claims are superseded:
+- **The October 17 savings figures are retracted.** See the retraction in the
+  [README](README.md).
+- **The Django pilot is unreplicated.** It reported −72% cumulative input tokens
+  ([research notes](token-efficient-harness-research.md) §7.10), but:
+  - it used 2 runs per cell;
+  - it counted raw tokens without the cache discount;
+  - it describes its own numbers as directional.
+
+  No pre-registered study has reproduced a saving of that size.
+
+## What we are building
+
+1. **Pay once per tool result (v6).** Shape each tool result once, deterministically,
+   when it enters the conversation.
+   - Search output and path lists are folded losslessly.
+   - Oversized results become digests that say how to fetch the rest.
+   - History is never rewritten, so the provider's cache stays valid.
+   - It is the default in the native Copilot route and in the Copilot output hook.
+2. **Graph over grep (v7).** Answer "where is X", "show me X" and "who calls X" from
+   pre-computed structure.
+   - The structure is an exact-range symbol index plus graphify's call graph, behind
+     three compact tools: `locate`, `read_symbol` and `impact`.
+   - Every result stays under 2,400 tokens.
+   - `setup.py` installs it as one MCP server, `tokenmaster-nav`.
+   - Its clearest gain is on "who calls X" tasks: 52% cheaper than v6 alone, an
+     exploratory result.
+3. **Routing as a short default.** A graph the model never queries saves nothing,
+   but routing text rides on every call.
+   - With v7's 66-token hint, the model used the new tools in 89 of 120 sessions.
+   - The 1,383-token routing prompt shipped before v7 helped make the graph tools
+     more expensive (PRS-2).
+4. **Recall over re-establishment (not yet measured).** Reusing what an earlier
+   session learned, instead of re-deriving it, remains an idea. No study has
+   measured it.
+
+## Open levers toward 30% (hypotheses, not results)
+
+1. **First-call caching across sessions.**
+   - Every PRS-3 session's first call wrote about 3,500 tokens to the cache and read
+     none. A hit across sessions would be worth about 14% of stock's cost.
+   - In a 5-call probe ([evidence](evidence/cache-probe-20261018/results.json)), 4
+     calls succeeded. None of the 4 read from the cache, even where two shared a
+     cache key and the same first 2,684 prompt tokens.
+   - Whether a byte-identical first prompt can hit is untested.
+2. **Edit tasks:** v7 cost 9% more than v6 on them.
+3. **Output tokens:** v7 already wrote 17% fewer than v6; terser final answers may
+   cut more.
 
 ## Principles
 
-- **Cumulative tokens, not per-turn tokens, not dollars.** We optimize the integral of
-  context size over a task. Billing proxies (premium requests, `total_tokens`) are
-  explicitly *not* the metric and have misled us before.
-- **Honest negatives are the proof of an honest method.** If a task doesn't need
-  traversal, the harness must come out neutral — and ours did (+4% on the control). A
-  harness that "wins everywhere" is measuring an artifact.
-- **Routing is mandatory, structure is fungible.** Whether structure comes from
-  Graphify, CodeGraph, or something we write next, the value is in reliably routing the
-  model to it. Treat indexes as swappable.
-- **The harness owns the context budget.** Every token the model sees is a decision the
-  harness made. We are accountable for that budget the way an operator is accountable
-  for spend.
+- **Real cost per finished task, at equal quality.** Not per-turn size, and not
+  premium requests.
+- **Pre-register, then measure.** Freeze code, tasks and analysis before any live
+  call. Use tasks written by someone who does not know the arms. Recount every token
+  from raw captures.
+- **Publish negatives.** PRS-1 found no win, and PRS-2 found the shipped graph tools
+  cost more; both are published. A harness that wins everywhere is measuring an
+  artifact.
+- **Never rewrite history.** Shape content once, as it enters, and keep earlier
+  messages byte-identical.
+- **Overhead is a cost.** Every tool definition and instruction is re-sent on every
+  call; keep them small.
+- **Structure is fungible.** Graphify, our symbol index or something better: the
+  value is in getting the model to the cheapest correct answer reliably.
 
 ## Non-goals
 
-- Not a billing/premium-request optimizer — token economics ≠ invoice economics.
-- Not a universal speedup — we explicitly do **not** claim wins on short structural
-  questions that grep answers in \~3 turns.
+- **Not a premium-request optimizer.** GitHub Copilot subscriptions bill requests,
+  not tokens, and our cost weights are assumptions.
+- **Not a universal speedup.** We claim no win where a short grep already answers the
+  question.
 
 ## How to read this repo through the mission
 
-- `token-efficient-harness-research.md` — the evidence base (§7.10 is the controlling
-  result that grounds every claim above).
-- `harness-command-design.md` — operationalizing the routing layer into a reusable
-  `/command`.
-- `evidence/` — the reproducible measurement of the cumulative-token reduction.
-- `sandbox-scale/` — where routing and scale were proven in isolation.
+- [`README.md`](README.md): current evidence, components and how to reproduce.
+- `token-master-plugin/docs/PRS*_PROTOCOL.md` and `PRS*_RESULTS.md`: each study's
+  pre-registration and results.
+- `evidence/prs*-20261018/`: committed study summaries and per-session results.
+- [`token-efficient-harness-research.md`](token-efficient-harness-research.md):
+  early pilots, including the §7.9 retraction and the §7.10 Django pilot. The PRS
+  studies supersede them.
+- [`harness-command-design.md`](harness-command-design.md): the original design of
+  the routing `/command`.
 
-**One line:** TokenMaster makes re-derivation economically illegal at the harness level —
-the model pays once to understand structure, then never again.
+**One line:** TokenMaster makes the cheapest correct path the default. It shapes each
+tool result once, answers structure from a graph, and measures the outcome as real
+cost per finished task.
