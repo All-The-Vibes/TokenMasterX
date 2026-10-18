@@ -53,5 +53,71 @@
       "cached": 0,
       "cache_write": 3439
     }
-  ]
+  ],
+  "followup": {
+    "date": "2026-10-18T20:39:11Z",
+    "question": "Does a byte-identical first request read the cache, and does the key matter?",
+    "rows": [
+      {
+        "call": "F1",
+        "note": "captured M01-stock-r1 first request, original key",
+        "body_sha256": "66d095be42f0ab99",
+        "status": 200,
+        "input": 3556,
+        "cached": 0,
+        "cache_write": 3553
+      },
+      {
+        "call": "F2",
+        "note": "byte-identical to F1",
+        "body_sha256": "66d095be42f0ab99",
+        "status": 200,
+        "input": 3556,
+        "cached": 3553,
+        "cache_write": 0
+      },
+      {
+        "call": "G",
+        "note": "F1 with a new prompt_cache_key",
+        "body_sha256": "ce5546e6d05943cf",
+        "status": 200,
+        "input": 3556,
+        "cached": 3553,
+        "cache_write": 0
+      }
+    ]
+  },
+  "breakpoint": {
+    "date": "2026-10-18T20:40:52Z",
+    "question": "Is there a cache entry at the end of the system message, and does a folder-free system message give a new session a cache hit?",
+    "rows": [
+      {
+        "call": "H1",
+        "note": "F1 with only the user message changed",
+        "body_sha256": "246278ac112aea01",
+        "status": 200,
+        "input": 3559,
+        "cached": 3430,
+        "cache_write": 126
+      },
+      {
+        "call": "H3a",
+        "note": "folder path moved to the user message; session s8",
+        "body_sha256": "499e115b8448e077",
+        "status": 200,
+        "input": 3561,
+        "cached": 0,
+        "cache_write": 3558
+      },
+      {
+        "call": "H3b",
+        "note": "same rewrite; session s9, other user text",
+        "body_sha256": "bdcb0039f58573c3",
+        "status": 200,
+        "input": 3564,
+        "cached": 3401,
+        "cache_write": 160
+      }
+    ]
+  }
 }

@@ -87,13 +87,22 @@ Earlier claims are superseded:
 
 ## Open levers toward 30% (hypotheses, not results)
 
-1. **First-call caching across sessions.**
+1. **First-call caching across sessions: confirmed mechanism, not yet a measured saving.**
    - Every PRS-3 session's first call wrote about 3,500 tokens to the cache and read
-     none. A hit across sessions would be worth about 14% of stock's cost.
-   - In a 5-call probe ([evidence](evidence/cache-probe-20261018/results.json)), 4
-     calls succeeded. None of the 4 read from the cache, even where two shared a
-     cache key and the same first 2,684 prompt tokens.
-   - Whether a byte-identical first prompt can hit is untested.
+     none. Cause: Copilot CLI puts each session's own folder path inside the system
+     message, so no two sessions share a system message.
+   - Probes on October 18, 2026 ([evidence](evidence/cache-probe-20261018/results.json)):
+     - A byte-identical first request read 3,553 of 3,556 tokens from the cache. A new
+       `prompt_cache_key` changed nothing; only the content decides.
+     - With only the user message changed, 3,430 tokens came from the cache, so the
+       provider keeps a cache entry at the end of the system message.
+     - With the folder path moved from the system message to the user message, a
+       second session's first call read 3,401 of 3,564 tokens from the cache.
+   - The provider's price table (`copilot_usage` in each response) bills a cache write
+     at 1.25×, a cache read at 0.1× and output at 5× the input price. At those prices a
+     hit saves about 3,900 units per session, about 21% of stock's cost.
+   - The saving applies only when another session used the same prefix within the
+     cache lifetime. That lifetime is being measured (`probe_ttl.py`, `ttl.jsonl`).
 2. **Edit tasks:** v7 cost 9% more than v6 on them.
 3. **Output tokens:** v7 already wrote 17% fewer than v6; terser final answers may
    cut more.
