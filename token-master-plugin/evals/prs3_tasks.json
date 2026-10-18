@@ -1,0 +1,693 @@
+{
+  "provenance": "Fresh confirmatory tasks M01-M24 for PRS-3, written by two separate agent sessions (M01-M12, then M13-M24) that were not told the arms or the purpose of the study. Every expected answer and edit oracle was re-verified by the assistant against git archive 703aa20 on 2026-10-18, after v7 was frozen. Corrections: M14 (d) reworded so brainspace_setup.py::main is not a second defensible answer; M16 footer_prefix expects 'full log:' because the grader strips answers, and the prompt now also assumes the compressor's own length check passes.",
+  "tasks": [
+    {
+      "id": "M01",
+      "category": "locate",
+      "prompt": "I'm consolidating our hand-rolled strict JSON readers into one shared helper. Outside the test suites, find every function whose `json.loads(...)` call installs BOTH an `object_pairs_hook` that raises when an object key repeats AND a `parse_constant` hook that raises on NaN/Infinity. Report the function that makes the `json.loads` call (not the nested hook helpers). Reply with ONLY a JSON object with exactly one key: \"functions\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<function>\"). List order does not matter.",
+      "expected": {
+        "functions": [
+          "brainspace/headroom_worker.py::parse",
+          "brainspace/ponytail.py::_parse_export",
+          "brainspace/runtime_io.py::parse_json",
+          "brainspace/transport.py::parse_json",
+          "hosts/config.py::parse"
+        ]
+      },
+      "unordered_list_keys": [
+        "functions"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime_io.py:27 - parse_json: json.loads(text, object_pairs_hook=unique, parse_constant=reject, parse_float=finite); unique raises 'duplicate JSON key' (lines 10-16), reject raises 'nonfinite JSON' (lines 18-19)",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:53 - parse_json: json.loads(text, parse_constant=reject_constant, object_pairs_hook=unique); both hooks raise ValueError (lines 44-52)",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:231 - parse: json.loads(text, object_pairs_hook=unique, parse_constant=reject); unique raises on duplicates (line 226), reject raises (line 230)",
+        "token-master-plugin/skills/token-master/brainspace/ponytail.py:90-91 - _parse_export: json.loads(..., object_pairs_hook=unique, parse_constant=nonfinite); unique raises (line 82), nonfinite raises (line 87)",
+        "token-master-plugin/skills/token-master/hosts/config.py:30-31 - parse: json.loads(text or '{}', object_pairs_hook=_object, parse_constant=invalid_constant); _object raises on duplicate key (lines 18-24), invalid_constant raises (lines 28-29)",
+        "token-master-plugin/skills/token-master/brainspace/jev.py:357 - JevClient.decide: json.loads with object_pairs_hook=_unique_object but NO parse_constant (excluded)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:190 - SourceReadInfo.matches: raising pairs hook but NO parse_constant (excluded)",
+        "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py:64-65 - compress_json uses json.JSONDecoder (not json.loads) and its object_pairs hook only records duplicates (excluded)",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:145 - _json: parse_constant only, no pairs hook (excluded); no other non-test json.loads call has both hooks"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M02",
+      "category": "locate",
+      "prompt": "I need to change the argument schema of the two model-facing recovery tools, `retrieve_original` and `headroom_retrieve`, everywhere they are declared. Locate (a) the module-level constant holding their Chat Completions-style function schemas (`{\"type\": \"function\", \"function\": {...}}`) that the task runtime adds to outgoing requests, (b) the function in which both tools are declared on the MCP server that native Copilot runs launch, and (c) the module-level dict that maps each canonical recovery tool name to its prefixed native tool name. Reply with ONLY a JSON object with exactly these keys, each a string \"<path relative to token-master-plugin/skills/token-master>::<Class.method, function or CONSTANT>\": \"runtime_schema_constant\", \"native_mcp_registration\", \"native_alias_map\". There are no list values.",
+      "expected": {
+        "runtime_schema_constant": "brainspace/runtime.py::_RECOVERY_TOOLS",
+        "native_mcp_registration": "brainspace/native_mcp.py::make_server",
+        "native_alias_map": "brainspace/native_runtime.py::RECOVERY_ALIASES"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:43-55 - _RECOVERY_TOOLS: {'type': 'function', 'function': {...}} schemas for retrieve_original and headroom_retrieve",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:523-534 - RuntimeSession._augment appends entries of _RECOVERY_TOOLS to the request's tools",
+        "token-master-plugin/skills/token-master/brainspace/native_mcp.py:65-80 - make_server creates FastMCP('tokenmaster-runtime') and declares retrieve_original and headroom_retrieve with @server.tool",
+        "token-master-plugin/skills/token-master/brainspace_native_mcp.py:15 - main runs make_server(client).run()",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:553-559 - native Copilot mcp-config launches brainspace_native_mcp.py with tools retrieve_original/headroom_retrieve",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:35-38 - RECOVERY_ALIASES = {'retrieve_original': 'tokenmaster-retrieve_original', 'headroom_retrieve': 'tokenmaster-headroom_retrieve'}",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:51 and brainspace/native_copilot.py:28 - other native-name occurrences are tuples, not canonical->native dicts"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M03",
+      "category": "locate",
+      "prompt": "Security review: where do we refuse a configured HTTP base URL unless it is a credential-free loopback address? I need (a) the function or method that validates the model-gateway base URL of the built-in Responses transport and (b) the one that validates the control URL used by the native recovery MCP client, plus whether each accepts the hostname `localhost`. Reply with ONLY a JSON object with exactly these keys: \"gateway_check\" (string, \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"), \"recovery_control_check\" (string, same format), \"gateway_accepts_localhost\" (bool), \"recovery_control_accepts_localhost\" (bool). There are no list values.",
+      "expected": {
+        "gateway_check": "brainspace/transport.py::ResponsesTransport.__post_init__",
+        "recovery_control_check": "brainspace/native_mcp.py::NativeRecoveryClient.__init__",
+        "gateway_accepts_localhost": true,
+        "recovery_control_accepts_localhost": false
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/transport.py:67-71 - ResponsesTransport.__post_init__: scheme must be http, hostname in ('localhost', '127.0.0.1', '::1'), no username/password/query/fragment",
+        "token-master-plugin/skills/token-master/brainspace/native_mcp.py:23-28 - NativeRecoveryClient.__init__: scheme http and hostname == '127.0.0.1' only, no credentials, path '' or '/', no query/fragment",
+        "token-master-plugin/skills/token-master/brainspace/native_transport.py:32 - NativeResponsesTransport delegates URL validation to ResponsesTransport(**configuration)",
+        "token-master-plugin/skills/token-master/brainspace_native_mcp.py:11-14 - the native recovery MCP builds NativeRecoveryClient from TOKENMASTER_NATIVE_CONTROL_URL",
+        "only two urlparse(...).hostname checks exist in non-test code: brainspace/transport.py:68-69 and brainspace/native_mcp.py:24-25"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M04",
+      "category": "logic",
+      "prompt": "In a `RuntimeSession` that uses the built-in loopback `ResponsesTransport`, some failed sends are treated as never submitted: the call reserved for that attempt is dropped and does not count toward `model_calls` in the session result. Which `Reply.reason` values that `ResponsesTransport` itself can return get this treatment (ignore reasons that `RuntimeSession` synthesizes itself)? And if the gateway answers HTTP 503 with a small UTF-8 body that is fully received, does that attempt count toward `model_calls`, and what `reason` does its reply carry? Reply with ONLY a JSON object with exactly these keys: \"dropped_reasons\" (list of strings; order does not matter), \"http_503_counted\" (bool), \"http_503_reason\" (string).",
+      "expected": {
+        "dropped_reasons": [
+          "invalid_request",
+          "network_not_allowed",
+          "request_too_large",
+          "transport_setup_error"
+        ],
+        "http_503_counted": true,
+        "http_503_reason": "http_error"
+      },
+      "unordered_list_keys": [
+        "dropped_reasons"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:39-41 - _NO_SUBMISSION = {'network_not_allowed', 'invalid_request', 'request_too_large', 'transport_setup_error'}",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:836 - submitted = reply.input_text is not None or reply.reason not in _NO_SUBMISSION",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:870-874 - when not submitted the reserved call_id is removed from _expected (and _missing/_usages)",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:955 - result 'model_calls' = len(self._expected)",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:161-176 - send() returns network_not_allowed / invalid_request / request_too_large with no input_text",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:186-203 - _send_validated_wire returns network_not_allowed / invalid_request / request_too_large / transport_setup_error with no input_text",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:212-226 - transport_error, response_too_large, invalid_utf8 and http_error all carry input_text=text; any non-200 status returns Reply(False, 'http_error', True, text, output, ...)",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:838-850,875-876 - a complete submitted failure is measured and its reservation stays in _expected (counted)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M05",
+      "category": "logic",
+      "prompt": "I ran `python brainspace_benchmark.py settings.json` with no other arguments on a pretty-printed JSON file well under 2 MiB. The verified local reference tokenizer is available, and removing the file's insignificant whitespace strictly lowers its reference-token count. What does that file's row report, and what exit code does the command return? Reply with ONLY a JSON object with exactly these keys: \"recovery_status\" (string), \"recovery_valid\" (bool), \"checked_references\" (int), \"exit_code\" (int). There are no list values.",
+      "expected": {
+        "recovery_status": "unverified",
+        "recovery_valid": false,
+        "checked_references": 0,
+        "exit_code": 1
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_benchmark.py:23-26 - launcher delegates to brainspace.benchmark.main",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:383 - default intent is 'conservative'; lines 440-441 use the file name as hint when --hint is absent",
+        "token-master-plugin/skills/token-master/brainspace/router.py:64-65 - a hint ending in '.json' is routed as ContentType.JSON",
+        "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py:67-69 - conservative intent returns the whitespace-compacted text without ever calling stash",
+        "token-master-plugin/skills/token-master/brainspace/router.py:190-198 and brainspace/tokens.py:137-150 - guard_replacement accepts a strictly smaller reference count, so the view is returned as transformed",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:144-169 - output differs from input but the recording stash minted nothing, so checked == 0 and status is 'unverified'",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:106-108 - recovery_valid is True only for 'unchanged', 'root_exact', 'fragments_exact'",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:447 - main returns 0 only if every row is recovery_valid, else 1"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M06",
+      "category": "logic",
+      "prompt": "Fresh registry: I ran `python token_efficiency.py --db reg.sqlite initialize-runtime --manifest tasks.json --output init --base-url http://127.0.0.1:8080/v1 --model m --allow-network`, leaving every other option at its default; tasks.json declares 32 valid tasks. Next I'll run the registry's first `learn-runtime` with the same common options, a new `--output` directory and N distinct `--task-id` values from that manifest. Which N get through the command's checks that run before any model or Jev request? Give the smallest such N, the largest without `--jev`, the largest with `--jev` (TYPESAFE_API_KEY is set), and the `reason` the CLI prints for N=8 and for N=17 without `--jev`. Reply with ONLY a JSON object with exactly these keys: \"min_n\" (int), \"max_n_without_jev\" (int), \"max_n_with_jev\" (int), \"reason_n_8\" (string), \"reason_n_17\" (string). There are no list values.",
+      "expected": {
+        "min_n": 9,
+        "max_n_without_jev": 16,
+        "max_n_with_jev": 15,
+        "reason_n_8": "plan_mathematically_impossible",
+        "reason_n_17": "call_budget_exhausted"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/token_efficiency.py:78-83 - defaults: --max-calls-per-arm 8, --token-cap 100000, --max-search-calls 256, --max-candidates 6",
+        "token-master-plugin/skills/token-master/token_efficiency.py:158-166 - OptimizerConfig(token_cap=100000, max_calls=256, calls_per_pair=2*8=16); alpha and minimum_token_reduction left at defaults",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:170-171 - OptimizerConfig defaults minimum_token_reduction=1, alpha=0.05",
+        "token-master-plugin/skills/token-master/token_efficiency.py:369-370 - initialize-runtime uses validation_call_limit=0 (no slots spent, no round started)",
+        "token-master-plugin/skills/token-master/token_efficiency.py:375-392 - order: declared unique task IDs, plan_feasibility_snapshot, config mismatch, 'plan_mathematically_impossible', 'plan_numerically_indeterminate', 'call_budget_exhausted', 'candidate_unavailable', 'typesafe_api_key_required'",
+        "token-master-plugin/skills/token-master/token_efficiency.py:512-514 - OptimizerError printed as {'ok': false, 'reason': str(error)}",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:434-435,453-460 - allocated = 0 after initialization; next round k = sqlite_sequence seq (0) + 1 = 1",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:483-499 - required = n*16 + int(screening); budget 'budget_exhausted' if allocated + required > 256 (n=17: 272; n=16 with --jev: 257; n=15 with --jev: 241)",
+        "token-master-plugin/skills/token-master/brainspace/plan_feasibility.py:68-112 and brainspace/certification.py:93-111 - r = sqrt(2*log(2/alpha_k)/n) with alpha_k = 6*0.05/pi^2; n=8 gives r=1.02306 > 1 (mathematically_impossible), n=9 gives r=0.96455 (not_ruled_out)",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:593-603 - preflight_learning: max_tasks = 256 // 16 = 16 and spent + n*16 + screening <= 256",
+        "token-master-plugin/docs/PLAN_FEASIBILITY.md:60-61 and token-master-plugin/docs/PROFILE_LEARNING.md:135-137 - alpha=.05, k=1, eta=1: eight pairs impossible (r=1.0230566646800021), nine not ruled out"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M07",
+      "category": "impact",
+      "prompt": "We're considering changing the per-round error allocation helper `round_alpha(alpha, k)` (returns 6*alpha/(pi^2*k^2)). Which non-test functions or methods call it directly? Reply with ONLY a JSON object with exactly one key: \"callers\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"). List order does not matter.",
+      "expected": {
+        "callers": [
+          "brainspace/certification.py::radius",
+          "brainspace/certification.py::CertificationRegistry.__init__",
+          "brainspace/certification.py::CertificationRegistry.start_round",
+          "brainspace/certification.py::CertificationRegistry.certify",
+          "brainspace/certification.py::CertificationRegistry.budget",
+          "brainspace/optimizer.py::OptimizerConfig.__post_init__",
+          "brainspace/optimizer.py::Optimizer._deployment_certificate",
+          "brainspace/optimizer.py::Optimizer.status",
+          "brainspace/plan_feasibility.py::fixed_plan_feasibility"
+        ]
+      },
+      "unordered_list_keys": [
+        "callers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/certification.py:93 - def round_alpha",
+        "token-master-plugin/skills/token-master/brainspace/certification.py:106 - radius calls round_alpha(alpha, k)",
+        "token-master-plugin/skills/token-master/brainspace/certification.py:274 - CertificationRegistry.__init__ calls round_alpha(alpha, 1)",
+        "token-master-plugin/skills/token-master/brainspace/certification.py:382 - CertificationRegistry.start_round calls round_alpha(self._alpha, k)",
+        "token-master-plugin/skills/token-master/brainspace/certification.py:558 - CertificationRegistry.certify calls round_alpha(self._alpha, k)",
+        "token-master-plugin/skills/token-master/brainspace/certification.py:593,598 - CertificationRegistry.budget calls round_alpha twice",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:186 - OptimizerConfig.__post_init__ calls round_alpha(self.alpha, 1)",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:1407 - Optimizer._deployment_certificate calls round_alpha",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:1555 - Optimizer.status calls round_alpha",
+        "token-master-plugin/skills/token-master/brainspace/plan_feasibility.py:59 - fixed_plan_feasibility calls round_alpha(alpha, round_index)",
+        "no other non-test file calls round_alpha (Optimizer.plan_feasibility_snapshot only calls fixed_plan_feasibility)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M08",
+      "category": "impact",
+      "prompt": "We plan to tighten validation inside `SourceReadInfo.from_dict`, the deserializer for trusted executor read receipts. Which non-test functions or methods call `SourceReadInfo.from_dict` directly and would therefore see the stricter behavior? Reply with ONLY a JSON object with exactly one key: \"callers\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"). List order does not matter.",
+      "expected": {
+        "callers": [
+          "brainspace_tools.py::execute",
+          "brainspace/exact_reuse.py::find_exact_reuses",
+          "brainspace/runtime.py::RuntimeSession._observe_source_read",
+          "brainspace/session_cli.py::run_session"
+        ]
+      },
+      "unordered_list_keys": [
+        "callers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:167-171 - SourceReadInfo.from_dict definition",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:191 - execute builds source_reads with SourceReadInfo.from_dict(row) for --source-reads",
+        "token-master-plugin/skills/token-master/brainspace/exact_reuse.py:117 - find_exact_reuses revalidates via SourceReadInfo.from_dict(info.to_dict())",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:406 - RuntimeSession._observe_source_read revalidates via SourceReadInfo.from_dict(info.to_dict())",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:239 - run_session handles 'observe-read' frames with SourceReadInfo.from_dict(value['receipt'])",
+        "no other non-test call sites (native_events.py:663 and exact_reuse.py:164,171 construct SourceReadInfo(...) directly instead)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M09",
+      "category": "docs",
+      "prompt": "From the plugin docs: on October 8, 2026 one authorized Jev screening call abstained, after which the deterministic fallback picked `keep_recent_tool_results: 1 -> 2` for the fresh retention holdout. For that screening call, give its reference-token input/output split and its vendor-reported total. For the fallback's replay audit, give how many incumbent request histories were replayed, how many recorded requests the single activating neighbor changed, and how many additional input reference tokens it retained on them. Reply with ONLY a JSON object with exactly these keys, all ints: \"reference_input_tokens\", \"reference_output_tokens\", \"vendor_total_tokens\", \"replayed_incumbent_requests\", \"changed_requests\", \"additional_input_reference_tokens\". There are no list values.",
+      "expected": {
+        "reference_input_tokens": 1163,
+        "reference_output_tokens": 97,
+        "vendor_total_tokens": 2065,
+        "replayed_incumbent_requests": 28,
+        "changed_requests": 5,
+        "additional_input_reference_tokens": 1314
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/JEV_CONTRACT.md:11-12 - sealed receipt: 1163 input + 97 output = 1260 reference tokens; 1992 input + 73 output = 2065 vendor tokens",
+        "token-master-plugin/docs/JEV_CONTRACT.md:17-19 - keeping two recent results was the only neighbor that changed any of the 28 recorded incumbent requests",
+        "token-master-plugin/docs/COMPARATOR_RESULTS.md:154-155 - screening call consumed 1,260 reference learning tokens and 2,065 vendor-reported tokens",
+        "token-master-plugin/docs/COMPARATOR_RESULTS.md:158-163 - fallback replayed all 28 incumbent request histories; only activating neighbor keep_recent_tool_results: 1 -> 2",
+        "token-master-plugin/docs/COMPARATOR_RESULTS.md:166-167 - it changed five recorded requests and retained 1,314 additional input reference tokens"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M10",
+      "category": "docs",
+      "prompt": "From the plugin docs on the October 5 black-box refinement experiment: what attempt and execution-second maxima were planned for the final V3 cross-model comparison, and how many attempts and execution seconds did V3 actually use? Also give the combined-maxima attempt count stated once actual V1 and V2 usage was known, the actual total attempts across all phases including readiness, and the total complete-body reference tokens. Reply with ONLY a JSON object with exactly these keys: \"v3_planned_max_attempts\" (int), \"v3_planned_max_seconds\" (int), \"v3_actual_attempts\" (int), \"v3_actual_seconds\" (number), \"combined_planned_max_attempts\" (int), \"total_actual_attempts\" (int), \"total_reference_tokens\" (int). There are no list values.",
+      "expected": {
+        "v3_planned_max_attempts": 26,
+        "v3_planned_max_seconds": 350,
+        "v3_actual_attempts": 22,
+        "v3_actual_seconds": 218.734,
+        "combined_planned_max_attempts": 103,
+        "total_actual_attempts": 99,
+        "total_reference_tokens": 563651
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/REFINEMENT_EXPERIMENT.md:68-71 - V1 used 71 attempts, V2 used 6; final planned V3 uses at most 26 attempts and 350 execution seconds; combined maxima are 103 attempts and 1,198.454 seconds",
+        "token-master-plugin/docs/REFINEMENT_EXPERIMENT.md:54-56 - earlier plan (v1 primary-only max 74 + 26 = at most 100) is the pre-usage figure, not the combined maxima",
+        "token-master-plugin/docs/REFINEMENT_RESULTS.md:129 - V3 cross-model comparison: 22 attempts, 218.734 seconds, 101,751 reference tokens",
+        "token-master-plugin/docs/REFINEMENT_RESULTS.md:130 - Total: 99 attempts, 1,067.188 seconds, 563,651 complete-body reference tokens",
+        "token-master-plugin/docs/VERIFICATION.md:423-424 - independently repeats 99 attempts / 1067.188 seconds / 563651 tokens"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M11",
+      "category": "edit",
+      "prompt": "`run_native_copilot` validates `reasoning_effort` against an allowlist that contains one value which the Responses transport it then builds always rejects, so that value only fails later with a less specific error. Delete that one value so the early allowlist tuple holds exactly the six effort strings `ResponsesTransport` accepts, in the same order; keep the `invalid_native_reasoning_effort` error and change nothing else. Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:477-478 - allowlist ('none', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max') -> invalid_native_reasoning_effort",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:81-83 - ResponsesTransport.__post_init__ rejects any non-None effort outside ('none', 'minimal', 'low', 'medium', 'high', 'xhigh')",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:503-512 - run_native_copilot constructs NativeRuntime(reasoning_effort=reasoning_effort)",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:71-77 - NativeRuntime builds NativeResponsesTransport(reasoning_effort=...)",
+        "token-master-plugin/skills/token-master/brainspace/native_transport.py:31-32 - NativeResponsesTransport constructs ResponsesTransport(**configuration), so 'max' always raises 'invalid reasoning effort'",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:127-128 - the native-copilot CLI choices already exclude 'max'"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/native_copilot.py"
+        ],
+        "change": "In run_native_copilot, replace the line `    if reasoning_effort not in (\"none\", \"minimal\", \"low\", \"medium\", \"high\", \"xhigh\", \"max\"):` with `    if reasoning_effort not in (\"none\", \"minimal\", \"low\", \"medium\", \"high\", \"xhigh\"):` (remove only the trailing \"max\" element). The following line `        raise ValueError(\"invalid_native_reasoning_effort\")` and the rest of the file are unchanged."
+      },
+      "set": "primary",
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/native_copilot.py",
+            "old": "(\"none\", \"minimal\", \"low\", \"medium\", \"high\", \"xhigh\", \"max\")",
+            "new": "(\"none\", \"minimal\", \"low\", \"medium\", \"high\", \"xhigh\")"
+          }
+        ]
+      }
+    },
+    {
+      "id": "M12",
+      "category": "edit",
+      "prompt": "The `native-copilot` subcommand loads its `--runtime-policy` file through `parse_json` plus `RuntimePolicy.from_dict`, which skips the 64 KiB `MAX_POLICY_JSON_BYTES` bound that the runtime-policy module's text decoder enforces. Load it with `RuntimePolicy.from_json(...)` applied to the same `_text(args.runtime_policy)` result instead, keeping the existing single conditional-expression assignment with its `RuntimePolicy()` fallback, and delete the import that becomes unused. Change nothing else. Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/native_cli.py:7 - `from .runtime_io import parse_json, safe_root`; parse_json is used only on line 37",
+        "token-master-plugin/skills/token-master/brainspace/native_cli.py:37-38 - `policy = RuntimePolicy.from_dict(parse_json(_text(args.runtime_policy))) if args.runtime_policy else RuntimePolicy()`",
+        "token-master-plugin/skills/token-master/brainspace/native_cli.py:10-16 - _text reads up to 1_048_576 bytes by default",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:31 - MAX_POLICY_JSON_BYTES = 65536",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:175-177,187-193 - RuntimePolicy.from_json -> _parse_policy enforces the byte bound and object type, then from_dict"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/native_cli.py"
+        ],
+        "change": "1) Import line: `from .runtime_io import parse_json, safe_root` becomes `from .runtime_io import safe_root`. 2) In run_native_cli, the assignment `policy = RuntimePolicy.from_dict(parse_json(_text(args.runtime_policy))) \\\n        if args.runtime_policy else RuntimePolicy()` becomes `policy = RuntimePolicy.from_json(_text(args.runtime_policy)) \\\n        if args.runtime_policy else RuntimePolicy()` (same conditional expression; only the call changes). No other changes."
+      },
+      "set": "primary",
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/native_cli.py",
+            "old": "from .runtime_io import parse_json, safe_root",
+            "new": "from .runtime_io import safe_root"
+          },
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/native_cli.py",
+            "old": "RuntimePolicy.from_dict(parse_json(_text(args.runtime_policy)))",
+            "new": "RuntimePolicy.from_json(_text(args.runtime_policy))"
+          }
+        ]
+      }
+    },
+    {
+      "id": "M13",
+      "category": "locate",
+      "prompt": "I'd like native document mode (`native-documents-v1`) to also admit AsciiDoc (`.adoc`) results. Outside the test suites, find every function or method that hard-codes the document-mode file-suffix allowlist, i.e. a tuple or list literal made of exactly the four suffixes `.md`, `.markdown`, `.rst` and `.txt` (any order, nothing else). If such a literal sits inside a nested helper function, report the enclosing top-level function or method. Also tell me which of those locations is part of the worker's strategy manifest, whose SHA-256 is returned to the parent with every prepared document request. Reply with ONLY a JSON object with exactly these keys: \"locations\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"; order does not matter) and \"manifest_location\" (string, same format).",
+      "expected": {
+        "locations": [
+          "brainspace/runtime.py::RuntimeSession._headroom_plan",
+          "brainspace/headroom_worker.py::document_indices",
+          "brainspace/headroom_worker.py::DocumentPipeline.__init__"
+        ],
+        "manifest_location": "brainspace/headroom_worker.py::DocumentPipeline.__init__"
+      },
+      "unordered_list_keys": [
+        "locations"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:537,547,560-563 - nested source_candidates() inside RuntimeSession._headroom_plan skips a source whose PureWindowsPath suffix is not in ('.md', '.markdown', '.rst', '.txt') when a document strategy is active",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:315,376-377 - document_indices raises 'ineligible document result' when the view path suffix is not in ('.md', '.markdown', '.rst', '.txt')",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:749,780,807,829 - DocumentPipeline.__init__ builds self.manifest whose guards include \"document_suffixes\": [\".md\", \".markdown\", \".rst\", \".txt\"] and hashes it into manifest_sha256",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:874-876 - DocumentPipeline.compress returns strategy_manifest and strategy_manifest_sha256 with each result",
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:386-401 - HeadroomContainer.prepare (parent) checks strategy_manifest_sha256 against the returned manifest",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:459-461 - preprotection_indices delegates to document_indices and has no literal of its own",
+        "excluded: brainspace/router.py:60 uses ('.md', '.markdown', '.rst', '.adoc') (different set); brainspace/benchmark.py:64-68 _BENCH_EXTS is a larger superset; all other matches are in tests"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M14",
+      "category": "locate",
+      "prompt": "I'm auditing how the pinned cl100k_base reference vocabulary gets onto a machine and into memory. Identify: (a) the only function that downloads it over the network; (b) the function that decides which local vocabulary file path is read, honoring environment-variable overrides; (c) the function that reads those local bytes, checks their SHA-256 against the pin and builds the in-memory encoder; (d) the installer-side helper (not the setup entry point) that reads an already-local vocabulary for host setup, verifies its SHA-256 against the pin and never downloads; (e) the CLI subcommand name that invokes (a); and (f) the environment variable that names an explicit vocabulary file. Reply with ONLY a JSON object with exactly these keys: \"download_function\", \"path_resolution_function\", \"encoder_loader_function\", \"installer_copy_function\" (each a string \"<path relative to token-master-plugin/skills/token-master>::<function>\"), \"cli_subcommand\" (string) and \"explicit_file_env_var\" (string). There are no list values.",
+      "expected": {
+        "download_function": "brainspace/tokens.py::prepare_tokenizer",
+        "path_resolution_function": "brainspace/tokens.py::_vocabulary_path",
+        "encoder_loader_function": "brainspace/tokens.py::_encoder",
+        "installer_copy_function": "hosts/tokenizer.py::read_tokenizer",
+        "cli_subcommand": "prepare-tokenizer",
+        "explicit_file_env_var": "BRAINSPACE_TOKENIZER_FILE"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/tokens.py:167-176 - prepare_tokenizer raises unless allow_download, then urlopen(VOCABULARY_URL) and checks VOCABULARY_SHA256; the only urlopen of the vocabulary in non-test code",
+        "token-master-plugin/skills/token-master/brainspace/tokens.py:33-43 - _vocabulary_path returns BRAINSPACE_TOKENIZER_FILE if set, otherwise a path under TIKTOKEN_CACHE_DIR / DATA_GYM_CACHE_DIR",
+        "token-master-plugin/skills/token-master/brainspace/tokens.py:46-71 - _encoder reads _vocabulary_path() bytes, compares sha256 with VOCABULARY_SHA256 and builds tiktoken.Encoding",
+        "token-master-plugin/skills/token-master/hosts/tokenizer.py:1,6-18 - read_tokenizer ('never acquire assets') reads the explicit/installed/_vocabulary_path file and verifies VOCABULARY_SHA256",
+        "token-master-plugin/skills/token-master/brainspace_setup.py:97,107,113 - installer calls read_tokenizer and writes the bytes to token-master/tokenizer/cl100k_base.tiktoken",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:61-63,168-169 - 'prepare-tokenizer' subcommand (with --allow-download) calls prepare_tokenizer"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M15",
+      "category": "locate",
+      "prompt": "We need to raise the memory limit of the Headroom worker container above its current 4 GiB. Find (a) the function or method that builds the `docker create` arguments carrying the memory limit, (b) the function that rejects an inspected container whose memory settings differ from the expected limit, and (c) every test module that hard-codes the current 4 GiB value, either as `4 * 1024**3` or as the `\"4g\"` CLI value. Reply with ONLY a JSON object with exactly these keys: \"create_args_builder\" (string, \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"), \"inspected_state_validator\" (string, same format), \"test_modules\" (list of strings, each a path relative to token-master-plugin/skills/token-master; order does not matter).",
+      "expected": {
+        "create_args_builder": "brainspace/headroom.py::HeadroomContainer._start",
+        "inspected_state_validator": "brainspace/headroom.py::validate_container",
+        "test_modules": [
+          "tests/test_headroom_product_boundary.py",
+          "tests/test_headroom_time_budget.py",
+          "tests/test_parity_runner.py"
+        ]
+      },
+      "unordered_list_keys": [
+        "test_modules"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:241,262-276 - HeadroomContainer._start builds the docker create args including '--memory', '4g', '--memory-swap', '4g'",
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:112,123-131 - validate_container raises 'container boundary mismatch' when HostConfig Memory or MemorySwap != 4 * 1024**3",
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:281-283 - _start inspects the created container and calls validate_container",
+        "token-master-plugin/skills/token-master/tests/test_headroom_product_boundary.py:55 - fixture HostConfig 'Memory': 4 * 1024**3",
+        "token-master-plugin/skills/token-master/tests/test_parity_runner.py:123 - fixture HostConfig 'Memory': 4 * 1024**3",
+        "token-master-plugin/skills/token-master/tests/test_headroom_time_budget.py:54 - asserts create[create.index('--memory') + 1] == '4g'",
+        "no other file (including brainspace/tests) contains 4 * 1024**3 or the '4g' memory value"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M16",
+      "category": "logic",
+      "prompt": "Question about the router's lossy log overview. Take a log of exactly 10 LF-terminated lines, each of the form `[INFO] <text>`, where the last line is `[INFO] build succeeded` and no line contains a warning/error/failure-style word or any of the words exit, exited, status, state, code or returncode. It is sent as `route_typed(text, \"ci.log\", stash=<a working recovery-store stash>, intent=\"overview\", diagnostics=d)` with no other options, and assume every length check (the compressor's own and the router's final size and reference-token guard) accepts the result. How many original lines are kept verbatim at the start and at the end, what number appears in the elision line, what text does the last line of the result start with before the recovery reference, and what does `d[\"reason\"]` end up as? With default options, what is the smallest line count for which such a log can get an overview at all, and what is it if `context=0` is also passed to `route_typed`? Finally, what is `d[\"reason\"]` (a) if the same 10-line log is sent with `intent=\"debug\"`, and (b) if, with `intent=\"overview\"`, line 5 is instead `[INFO] exit code 1`? Reply with ONLY a JSON object with exactly these keys: \"head_lines\" (int), \"tail_lines\" (int), \"elided_count\" (int), \"footer_prefix\" (string), \"accepted_reason\" (string), \"min_lines_default\" (int), \"min_lines_context_0\" (int), \"debug_intent_reason\" (string), \"nonzero_exit_reason\" (string). There are no list values.",
+      "expected": {
+        "head_lines": 3,
+        "tail_lines": 3,
+        "elided_count": 4,
+        "footer_prefix": "full log:",
+        "accepted_reason": "reference_token_reduction",
+        "min_lines_default": 8,
+        "min_lines_context_0": 6,
+        "debug_intent_reason": "protected_or_unknown_intent",
+        "nonzero_exit_reason": "unchanged_or_unsupported"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/router.py:66-67 - a hint ending in .log is ContentType.LOG",
+        "token-master-plugin/skills/token-master/brainspace/router.py:116-118 - LOG loads compress_logs",
+        "token-master-plugin/skills/token-master/brainspace/router.py:157-159 - diagnostics start with reason 'unchanged_or_unsupported'",
+        "token-master-plugin/skills/token-master/brainspace/router.py:166-168 - intents other than conservative/navigation/overview set reason 'protected_or_unknown_intent' and return before any handler",
+        "token-master-plugin/skills/token-master/brainspace/router.py:188-191 - handler called with stash, intent, diagnostics and **opts (so context=0 reaches it); unchanged output returns with the reason untouched",
+        "token-master-plugin/skills/token-master/brainspace/router.py:192-198 - after guard_replacement accepts, decision 'transformed' and reason 'reference_token_reduction'",
+        "token-master-plugin/skills/token-master/brainspace/compressors/logs_compressor.py:25-32 - context defaults to 2",
+        "token-master-plugin/skills/token-master/brainspace/compressors/logs_compressor.py:44-47 - window = max(1, context + 1); passthrough if len(lines) <= max(5, 2 * window + 1): context 2 needs >= 8 lines, context 0 needs >= 6",
+        "token-master-plugin/skills/token-master/brainspace/compressors/logs_compressor.py:58-61 - a record mentioning exit/exited/status/state/returncode/code that does not fully match _SUCCESS returns the original",
+        "token-master-plugin/skills/token-master/brainspace/compressors/logs_compressor.py:62-70 - omitted = len(lines) - 2 * window (10 - 6 = 4); view = first window lines + '... overview (lossy): {omitted} lines elided ...' + last window lines + 'full log: {reference}'"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M17",
+      "category": "logic",
+      "prompt": "Recovery-store retention question. `store = CCR(workspace_root=W, session_id=\"s1\")` (default database path) stashes two different non-empty texts: A with `kind=\"root\"` and the default reference style, and C with `kind=\"root\"` and `reference_style=\"compact-root-v1\"`. The same object then calls `store.release_session()` and afterwards `store.gc_report(ttl_seconds=0)` with the default `max_bytes`; nothing else touches the database. What does `release_session()` return, what are the report's `evicted`, `expired` and `quota_met` values, and which `error` does `store.retrieve_page(ref)` then return when `ref` is (1) A's full annotated `[[BR:...]]` reference, (2) the bare 64-hex SHA-256 of A, (3) the first 12 hex characters of that SHA-256, and (4) C's compact reference? Reply with ONLY a JSON object with exactly these keys: \"released_leases\" (int), \"evicted\" (int), \"expired\" (int), \"quota_met\" (bool), \"error_annotated_reference\" (string), \"error_full_digest\" (string), \"error_digest_prefix\" (string), \"error_compact_reference\" (string). There are no list values.",
+      "expected": {
+        "released_leases": 2,
+        "evicted": 2,
+        "expired": 2,
+        "quota_met": true,
+        "error_annotated_reference": "expired",
+        "error_full_digest": "expired",
+        "error_digest_prefix": "not_found",
+        "error_compact_reference": "not_found"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:330-376 - stash stores each distinct content once and pins it for the calling session (line 373); compact style inserts a ccr_references row keyed by the compact marker (366-369)",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:493-504 - release_session deletes this workspace/session's leases in the scope and returns the rowcount (two distinct hashes -> 2)",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:154,164-173 - PRAGMA foreign_keys=ON; ccr_references and ccr_leases rows are ON DELETE CASCADE with their ccr_v2 row",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:555-580 - gc_report: ttl_seconds=0 makes every row expired; unpinned rows are deleted with eviction reason 'expired', evicted and expired both incremented, quota_met = total <= max_bytes (default 500 MiB)",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:207-220 - _parse_ref accepts bare 6..64 lowercase hex, compact '|r=1' markers and same-scope V2 markers",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:233-241 - a compact ref needs its ccr_references row; after the cascade it returns 'not_found'",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:247-261 - other refs: no ccr_v2 row -> look up ccr_evictions WHERE hash = parsed key; full digest finds 'expired', a 12-hex prefix finds nothing -> 'not_found'",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:395-399 - retrieve_page returns the _load error",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:24-25 - docstring: GC removes compact reference rows, so an unavailable compact ref is not_found"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M18",
+      "category": "logic",
+      "prompt": "`python brainspace_tools.py --workspace W request ...` reads a request JSON from stdin. Assume stdin holds a well-formed Chat Completions-style request unless stated otherwise, and that the verified reference tokenizer is available. Which `plan.reason` is printed for: (1) no `--policy`, no `--conservative` and no `--protocol`; (2) `--conservative` without `--protocol`; (3) `--conservative --protocol chat-completions-v1` with a request whose `messages` list is empty; (4) `--policy '{\"version\":\"request-policy-v4\",\"enabled\":true}' --protocol chat-completions-v1 --intent edit`? What `plan.status` do all four print, and what exit code does the command return in these cases? Reply with ONLY a JSON object with exactly these keys: \"reason_1\" (string), \"reason_2\" (string), \"reason_3\" (string), \"reason_4\" (string), \"status\" (string), \"exit_code\" (int). There are no list values.",
+      "expected": {
+        "reason_1": "not_enabled",
+        "reason_2": "unsupported_protocol",
+        "reason_3": "invalid_envelope",
+        "reason_4": "no_eligible_transform",
+        "status": "unchanged",
+        "exit_code": 0
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_tools.py:38-49 - request options: --intent defaults to 'conservative', --protocol has no default (None), --policy and --conservative are mutually exclusive",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:181-184 - no flag -> RequestPolicy(); --conservative -> RequestPolicy(version='request-policy-v3', enabled=True, min_tool_chars=512); --policy JSON -> RequestPolicy.from_dict",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:192-198 - prepare_request(..., intent=args.intent, protocol=args.protocol) returned as {'plan': asdict(plan), 'measurement_identity': ...}",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:210-214 - exit code is 2 only when the result dict has ok False; otherwise 0",
+        "token-master-plugin/skills/token-master/brainspace/pipeline.py:76-84 - plan_request receives count=tokens.count_tokens",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:37,57-59 - PROTOCOL = 'chat-completions-v1'; default RequestPolicy is request-policy-v1 with enabled=False",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:411-419 - unchanged() plans have status 'unchanged'; disabled -> 'not_enabled' first, then protocol != PROTOCOL -> 'unsupported_protocol'",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:245-247,428-437 - empty messages raise ValueError('missing messages') in _tool_indices -> 'invalid_envelope'",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:444-448,351-361 - v4 accepts only conservative/navigation/overview/aggregate/task intents; otherwise 'no_eligible_transform' when _fits (no caps declared -> True)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M19",
+      "category": "impact",
+      "prompt": "We want to give `append_receipt`, the shared helper that appends one JSON line and fsyncs it, a new required parameter. Outside the test suites, which functions or methods call it directly? Also, which JSONL file names does `RuntimeSession` itself append to through it? Reply with ONLY a JSON object with exactly these keys: \"callers\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\") and \"runtime_session_journals\" (list of bare file names such as \"example.jsonl\"). Order does not matter in either list.",
+      "expected": {
+        "callers": [
+          "brainspace/headroom.py::HeadroomContainer._read",
+          "brainspace/headroom.py::HeadroomContainer.rpc",
+          "brainspace/native_events.py::NativeEventCollector._write",
+          "brainspace/native_runtime.py::NativeRuntime._http_record",
+          "brainspace/native_runtime.py::NativeRuntime.invoke",
+          "brainspace/runtime.py::RuntimeSession._observe_source_read",
+          "brainspace/runtime.py::RuntimeSession._tool_receipt",
+          "brainspace/runtime.py::RuntimeSession._prepare",
+          "brainspace/runtime.py::RuntimeSession.invoke"
+        ],
+        "runtime_session_journals": [
+          "captures.jsonl",
+          "invocations.jsonl",
+          "preparations.jsonl",
+          "source-reads.jsonl",
+          "tools.jsonl"
+        ]
+      },
+      "unordered_list_keys": [
+        "callers",
+        "runtime_session_journals"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime_io.py:49-55 - def append_receipt(path, value): write one JSON line, flush, fsync",
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:195,208 - HeadroomContainer._read appends received.jsonl",
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:305,314,338 - HeadroomContainer.rpc appends rpc.jsonl (pending and completed; not inside its nested send helper)",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:302,309 - NativeEventCollector._write appends to the journal path",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:137,139 - NativeRuntime._http_record appends native-http.jsonl",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:243,252,281,288 - NativeRuntime.invoke appends native-ingress.jsonl",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:402,411 - RuntimeSession._observe_source_read appends source-reads.jsonl",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:418,420 - RuntimeSession._tool_receipt appends tools.jsonl",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:665,764 - RuntimeSession._prepare appends preparations.jsonl",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:786,814,857,862 - RuntimeSession.invoke appends invocations.jsonl and captures.jsonl",
+        "no other non-test module imports or calls append_receipt (learning_runtime, readonly_learning_host, session_cli, native_copilot do not)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M20",
+      "category": "impact",
+      "prompt": "We're changing where `CCR` puts its SQLite database when the caller passes no explicit database path (today `<workspace>/.token-master/ccr.sqlite`, or `BRAINSPACE_CCR` for shared stores). Outside the test suites, which functions or methods construct a `CCR` directly without an explicit database path, and so would be affected, and which construct one with an explicit path? Reply with ONLY a JSON object with exactly these keys: \"affected\" (list of strings) and \"explicit_path\" (list of strings), each string \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\". Order does not matter in either list.",
+      "expected": {
+        "affected": [
+          "brainspace_mcp.py::_ccr",
+          "brainspace_posttooluse.py::main",
+          "brainspace_tools.py::execute"
+        ],
+        "explicit_path": [
+          "brainspace/benchmark.py::main",
+          "brainspace/runtime.py::RuntimeSession.__init__"
+        ]
+      },
+      "unordered_list_keys": [
+        "affected",
+        "explicit_path"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:86-94,146 - _resolve_db_path (<workspace>/.token-master/ccr.sqlite or BRAINSPACE_CCR when shared) is used only when db_path is None",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:36-44 - _ccr builds CCR(workspace_root=..., session_id=..., scope=..., shared=...) with no db_path",
+        "token-master-plugin/skills/token-master/brainspace_posttooluse.py:57-62 - main builds CCR(workspace_root=..., session_id=..., scope=..., shared=...) with no db_path (non-Copilot contracts)",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:170 - execute builds CCR(workspace_root=workspace, session_id=args.session) with no db_path",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:438-439 - main builds CCR(Path(sandbox) / 'ccr.sqlite', workspace_root=sandbox)",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:319-320 - RuntimeSession.__init__ builds CCR(self.output / 'recovery.sqlite', workspace_root=..., session_id=...)",
+        "no other non-test CCR( call exists; _resolve_db_path has no other caller"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M21",
+      "category": "docs",
+      "prompt": "From the plugin docs: in the October 9 real-model comparison of native document mode (`live-002`: optimizer off versus actual Ponytail plus Headroom with `headroom_strategy=\"native-documents-v1\"`, in which no candidate request was actually changed), how many gateway-reported tokens did each configuration use for the whole two-task workload, how many reported tokens did the separately counted readiness call use, how many calls and reported tokens did the experiment consume in total including readiness, and which runtime preparation reason was recorded for every candidate document-task preparation and for every candidate exact-code preparation? Reply with ONLY a JSON object with exactly these keys: \"off_reported_tokens\" (int), \"alternative_reported_tokens\" (int), \"readiness_reported_tokens\" (int), \"total_calls\" (int), \"total_reported_tokens\" (int), \"document_reason\" (string), \"exact_code_reason\" (string). There are no list values.",
+      "expected": {
+        "off_reported_tokens": 38127,
+        "alternative_reported_tokens": 37457,
+        "readiness_reported_tokens": 3433,
+        "total_calls": 15,
+        "total_reported_tokens": 79017,
+        "document_reason": "headroom_no_eligible_sources",
+        "exact_code_reason": "headroom_intent_bypass"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/NATIVE_DOCUMENT_RESULTS.md:3-5 - the document strategy changed none of the seven candidate requests",
+        "token-master-plugin/docs/NATIVE_DOCUMENT_RESULTS.md:31-35 - whole two-task workload: off 2/2 / 7 / 38,127; configured alternative 2/2 / 7 / 37,457",
+        "token-master-plugin/docs/NATIVE_DOCUMENT_RESULTS.md:42-44 - readiness: one call, 3,433 reported tokens (5,215 reference); experiment consumed 15 calls and 79,017 reported tokens",
+        "token-master-plugin/docs/NATIVE_DOCUMENT_RESULTS.md:56-58 - all four candidate document preparations recorded headroom_no_eligible_sources; all three exact-code preparations recorded headroom_intent_bypass",
+        "token-master-plugin/docs/ACTIVE_EVALUATION_GOAL.md:394-397,405 - live-002 totals 38,127 off vs 37,457 configured plus a 3,433-token readiness call; all 15 primary calls including readiness",
+        "token-master-plugin/docs/INTEGRATED_RUNTIME_SCORECARD.md:10-11 - no-op native comparison: 38,127 versus 37,457 reported tokens",
+        "token-master-plugin/docs/PRODUCT_RUNTIME.md:73-77 and token-master-plugin/skills/token-master/brainspace/runtime.py:541-542,582-583 - the reason strings come from RuntimeSession._headroom_plan"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M22",
+      "category": "docs",
+      "prompt": "From the plugin docs on the frozen `pilot-frozen-v2` real-model study (eight synthetic-workspace challenges, baseline arm versus combined arm): give each arm's model-call count, full API-body reference-token total, bridge-reported total tokens and recorded task wall time in seconds, plus the API-body reference tokens and bridge-reported tokens of the shared model-readiness call that was counted separately. Reply with ONLY a JSON object with exactly these keys: \"baseline_calls\" (int), \"combined_calls\" (int), \"baseline_body_reference_tokens\" (int), \"combined_body_reference_tokens\" (int), \"baseline_bridge_total_tokens\" (int), \"combined_bridge_total_tokens\" (int), \"baseline_wall_seconds\" (number), \"combined_wall_seconds\" (number), \"readiness_body_reference_tokens\" (int), \"readiness_bridge_tokens\" (int). There are no list values.",
+      "expected": {
+        "baseline_calls": 25,
+        "combined_calls": 27,
+        "baseline_body_reference_tokens": 104775,
+        "combined_body_reference_tokens": 101117,
+        "baseline_bridge_total_tokens": 45699,
+        "combined_bridge_total_tokens": 40776,
+        "baseline_wall_seconds": 74.234,
+        "combined_wall_seconds": 88.343,
+        "readiness_body_reference_tokens": 1138,
+        "readiness_bridge_tokens": 23
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/OBJECTIVE_SAVINGS.md:69-73 - frozen pilot-frozen-v2 study: eight synthetic-workspace challenges in two arms",
+        "token-master-plugin/docs/OBJECTIVE_SAVINGS.md:75-84 - bridge-reported totals 45,699 vs 40,776; full API-body reference 104,775 vs 101,117; model calls 25 vs 27; recorded task wall time 74.234s vs 88.343s",
+        "token-master-plugin/docs/OBJECTIVE_SAVINGS.md:211-212 - shared model-readiness call counted separately: 1,138 API-body reference tokens and 23 bridge-reported tokens",
+        "token-master-plugin/docs/VERIFICATION.md:347-358 - repeats 104775 vs 101117, 45699 vs 40776, calls 25 -> 27, wall time 74.234s -> 88.343s",
+        "token-master-plugin/docs/IMPLEMENTATION_PLAN.md:88-95,96-99 - repeats 104775 -> 101117 and 45699 -> 40776; 27 recorded combined-arm requests"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "M23",
+      "category": "edit",
+      "prompt": "`NativeRuntime._model_calls` decides whether a model-issued native tool call may be forwarded. For `view` it only checks that the argument keys are a subset of `path`, `view_range` and `forceReadLargeFiles` and that `path` is a string, so it forwards a non-boolean `forceReadLargeFiles` or a malformed `view_range` that the native event collector's validator and the Headroom worker's document check both reject. Reuse the existing helper `_valid_observed_view_arguments` from `native_events`: in that `_require(...)` call, replace only the key-subset operand with `_valid_observed_view_arguments(arguments)`, keeping the `and type(arguments.get(\"path\")) is str` operand after it and the `unsupported_native_view_arguments` code unchanged. Import the helper by extending the module's existing `from .native_events import ...` statement so it lists, in this order: `DEFAULT_SOURCE_CONTRACT`, `NativeEventCollector`, `_valid_observed_view_arguments`, `validate_source_contract`. Change nothing else. Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:25 - `from .native_events import DEFAULT_SOURCE_CONTRACT, NativeEventCollector, validate_source_contract`",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:196-198 - view calls only need keys <= {'path', 'view_range', 'forceReadLargeFiles'} and a str path",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:62-74 - _valid_observed_view_arguments requires a dict with 'path', allowed keys only, boolean forceReadLargeFiles and a 2-int view_range with 1 <= start and end == -1 or start <= end",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:372-375,382-389 - document_indices rejects non-boolean forceReadLargeFiles and malformed view_range",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:270-280 - a ValueError from _model_calls turns the reply into native_output_rejected instead of forwarding"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/native_runtime.py"
+        ],
+        "change": "1) The import `from .native_events import DEFAULT_SOURCE_CONTRACT, NativeEventCollector, validate_source_contract` becomes `from .native_events import DEFAULT_SOURCE_CONTRACT, NativeEventCollector, _valid_observed_view_arguments, validate_source_contract` (wrapping/parentheses irrelevant; imported names in exactly this order). 2) In NativeRuntime._model_calls, inside `if item[\"name\"] == \"view\":`, the statement `_require(set(arguments) <= {\"path\", \"view_range\", \"forceReadLargeFiles\"}\n                         and type(arguments.get(\"path\")) is str, \"unsupported_native_view_arguments\")` becomes `_require(_valid_observed_view_arguments(arguments)\n                         and type(arguments.get(\"path\")) is str, \"unsupported_native_view_arguments\")`. The following lexical/safe_root workspace checks and all other code are unchanged."
+      },
+      "set": "primary",
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/native_runtime.py",
+            "old": "from .native_events import DEFAULT_SOURCE_CONTRACT, NativeEventCollector, validate_source_contract",
+            "new": "from .native_events import DEFAULT_SOURCE_CONTRACT, NativeEventCollector, _valid_observed_view_arguments, validate_source_contract"
+          },
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/native_runtime.py",
+            "old": "_require(set(arguments) <= {\"path\", \"view_range\", \"forceReadLargeFiles\"}",
+            "new": "_require(_valid_observed_view_arguments(arguments)"
+          }
+        ]
+      }
+    },
+    {
+      "id": "M24",
+      "category": "edit",
+      "prompt": "The request planner's exact-content marker pattern `_EXACT_TEXT` in `brainspace/request_policy.py` misses marker spellings that `protected_text._EXACT` already treats as exact-answer markers: a standalone closing `</exact_answer>` tag, and `BEGIN`/`EXACT` separated by a tab, a newline or several spaces. Align it without dropping anything it matches today: in the pattern string, change the `<exact[-_]answer\\b` alternative to `</?exact[-_]answer\\b` and the literal `BEGIN EXACT` alternative to `BEGIN\\s+EXACT` (no trailing `\\b`). Keep the three-backtick and `~~~` alternatives first and in the same order, keep the raw-string literal and the `re.I` flag, and change nothing else. Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:41 - _EXACT_TEXT = re.compile(r\"```|~~~|<exact[-_]answer\\b|BEGIN EXACT\", re.I)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:341,471,524,583 - _EXACT_TEXT protects tool text in _protected and in the V4, V3 and V2 source paths of plan_request",
+        "token-master-plugin/skills/token-master/brainspace/protected_text.py:21,92,115 - _EXACT = re.compile(r\"</?exact[-_]answer\\b|BEGIN\\s+EXACT\\b\", re.IGNORECASE) forbids changed text containing these markers",
+        "token-master-plugin/skills/token-master/tests/test_protected_text.py:69-73 - markers include \"</exact_answer>\", \"BEGIN\\tEXACT\" and \"BEGIN\\nEXACT\""
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/request_policy.py"
+        ],
+        "change": "Line 41 `_EXACT_TEXT = re.compile(r\"```|~~~|<exact[-_]answer\\b|BEGIN EXACT\", re.I)` becomes `_EXACT_TEXT = re.compile(r\"```|~~~|</?exact[-_]answer\\b|BEGIN\\s+EXACT\", re.I)`. Only the pattern string changes (the third alternative gains `/?` after `<`, the fourth becomes `BEGIN\\s+EXACT` with no word boundary); no other edits."
+      },
+      "set": "primary",
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/request_policy.py",
+            "old": "r\"```|~~~|<exact[-_]answer\\b|BEGIN EXACT\"",
+            "new": "r\"```|~~~|</?exact[-_]answer\\b|BEGIN\\s+EXACT\""
+          }
+        ]
+      }
+    }
+  ]
+}

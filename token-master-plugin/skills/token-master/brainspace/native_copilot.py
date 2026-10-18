@@ -25,6 +25,9 @@ from .runtime_resources import RuntimeResources
 
 COPILOT_SHA256 = "dfa6ee7844950fdf9c13dea8b3f89a12922cdb50886038ef2f5cff0be05ff9c7"
 COPILOT_VERSION = "1.0.95-0"
+QUALIFIED_COPILOT_VERSIONS = {
+    "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54": "1.0.98",
+}
 _TOOLS = ("view", "tokenmaster-retrieve_original", "tokenmaster-headroom_retrieve")
 _PERMISSIONS = ("view", "tokenmaster(retrieve_original)", "tokenmaster(headroom_retrieve)")
 
@@ -487,7 +490,12 @@ def run_native_copilot(
     executable = safe_root(copilot_exe)
     if executable.suffix.lower() != ".exe" or not executable.is_file():
         raise ValueError("native_executable_required")
-    if _digest(executable) != COPILOT_SHA256:
+    exe_digest = _digest(executable)
+    if exe_digest == COPILOT_SHA256:
+        expected_version = COPILOT_VERSION
+    elif exe_digest in QUALIFIED_COPILOT_VERSIONS:
+        expected_version = QUALIFIED_COPILOT_VERSIONS[exe_digest]
+    else:
         raise ValueError("unqualified_native_executable_hash")
     python = safe_root(sys.executable)
     mcp_script = Path(__file__).resolve().parents[1] / "brainspace_native_mcp.py"
@@ -510,7 +518,9 @@ def run_native_copilot(
         learning_run_id=learning_run_id, task_id=task_id,
         source_contract=source_contract,
     )
-    receipt = {"executable_sha256": COPILOT_SHA256, "expected_version": COPILOT_VERSION,
+    if expected_version != COPILOT_VERSION:
+        runtime._copilot_version = expected_version
+    receipt = {"executable_sha256": exe_digest, "expected_version": expected_version,
                "python_sha256": python_digest, "source_contract": source_contract, "io_complete": False,
                "exit_code": None, "errors": []}
     capture = _Capture(callback=runtime.observe_event, line_limit=max_stdout_line_bytes,
@@ -533,9 +543,9 @@ def run_native_copilot(
         version["stderr"] = version_capture.stderr.decode("utf-8", errors="replace")
         receipt["version_probe"] = version
         if (not version["io_complete"] or version["exit_code"] != 0
-                or version["stdout"].splitlines()[:1] != [f"GitHub Copilot CLI {COPILOT_VERSION}."]):
+                or version["stdout"].splitlines()[:1] != [f"GitHub Copilot CLI {expected_version}."]):
             raise ValueError("unqualified_native_version")
-        receipt["verified_version"] = COPILOT_VERSION
+        receipt["verified_version"] = expected_version
         with NativeBridge(runtime) as bridge:
             secret_values = (bridge.primary_token, bridge.control_token)
             env.update({
@@ -561,7 +571,7 @@ def run_native_copilot(
             config_identity = (config_stat.st_dev, config_stat.st_ino)
             config_bytes = config_path.read_bytes()
             # Catch accidental executable replacement between version and prompt.
-            if _digest(executable) != COPILOT_SHA256:
+            if _digest(executable) != exe_digest:
                 raise ValueError("native_executable_changed")
             if _digest(python) != python_digest:
                 raise ValueError("native_python_changed")

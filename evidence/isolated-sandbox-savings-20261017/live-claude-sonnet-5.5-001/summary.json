@@ -1,0 +1,401 @@
+{
+  "protocol": "isolated-sandbox-v5-savings-study-v2",
+  "execution_mode": "real_live_llm",
+  "upstream_endpoint": "https://api.githubcopilot.com/chat/completions",
+  "observed_provider_models": [
+    "claude-sonnet-5.5"
+  ],
+  "recorded_at_utc": "2026-10-18T03:00:33.564669+00:00",
+  "sandbox_isolation": {
+    "isolated": true,
+    "sandbox_root": "C:\\Users\\shyamsridhar\\code\\Tokenmaster\\evidence\\isolated-sandbox-savings-20261017\\live-claude-sonnet-5.5-001\\sandbox-env",
+    "leaked_environment_variables": [],
+    "isolated_directories": {
+      "HOME": true,
+      "USERPROFILE": true,
+      "APPDATA": true,
+      "LOCALAPPDATA": true,
+      "CLAUDE_CONFIG_DIR": true,
+      "COPILOT_HOME": true,
+      "CODEX_HOME": true
+    },
+    "global_headroom_present_in_sandbox": false,
+    "global_ponytail_present_in_sandbox": false,
+    "global_headroom_port_8787_contacted": false
+  },
+  "tokenizer": {
+    "tokenizer_id": "cl100k_base",
+    "tokenizer_version": "0.14.0",
+    "vocabulary_id": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+    "protocol_id": "canonical-json-or-text/ordinary",
+    "protocol_version": "1",
+    "exact_reference": true,
+    "provider_native": false
+  },
+  "all_tasks_correct": true,
+  "by_arm": {
+    "baseline": {
+      "tasks": 6,
+      "correct": 6,
+      "model_calls": 30,
+      "gateway_input_tokens": 190799,
+      "gateway_output_tokens": 2422,
+      "gateway_reported_tokens": 193221,
+      "reference_input_tokens": 142814,
+      "reference_output_tokens": 3940,
+      "reference_total_tokens": 146754,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    "tokenmaster_v5": {
+      "tasks": 6,
+      "correct": 6,
+      "model_calls": 30,
+      "gateway_input_tokens": 107107,
+      "gateway_output_tokens": 2765,
+      "gateway_reported_tokens": 109872,
+      "reference_input_tokens": 75760,
+      "reference_output_tokens": 3925,
+      "reference_total_tokens": 79685,
+      "transformations": 18,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 36
+    }
+  },
+  "savings": {
+    "gateway_reported_tokens_saved": 83349,
+    "gateway_reported_savings_pct": 43.14,
+    "reference_total_tokens_saved": 67069,
+    "reference_total_savings_pct": 45.7,
+    "reference_input_tokens_saved": 67054,
+    "reference_input_savings_pct": 46.95,
+    "meets_30_percent_target": true
+  },
+  "per_task": [
+    {
+      "task_index": 1,
+      "task_id": "readonly:515074a0f0b2f0ec3cd22824a59cb23da7e51ef2b5fa8fdcd9f5836e818b53b4",
+      "arm": "baseline",
+      "policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+      "success": true,
+      "answer": {
+        "build_status": "succeeded",
+        "drain_grace": "15s",
+        "retries": 3,
+        "service": "tokenmaster-gateway"
+      },
+      "evidence_sha256": "aa563f9099fd343912fee15e48ce9320325d97c6f82bf903574015ecb45ff25a",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 32997,
+      "gateway_output_tokens": 447,
+      "gateway_reported_tokens": 33444,
+      "reference_input_tokens": 24643,
+      "reference_output_tokens": 665,
+      "reference_total_tokens": 25308,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_index": 1,
+      "task_id": "readonly:515074a0f0b2f0ec3cd22824a59cb23da7e51ef2b5fa8fdcd9f5836e818b53b4",
+      "arm": "tokenmaster_v5",
+      "policy_id": "runtime-policy-v1:e47358b4b9809877ede56d1ae181a898de842b3c6ca6b1be9a2f41512355c0f0",
+      "success": true,
+      "answer": {
+        "build_status": "succeeded",
+        "drain_grace": "15s",
+        "retries": 3,
+        "service": "tokenmaster-gateway"
+      },
+      "evidence_sha256": "3f221404a106abf52b74752f6e203fabad9f389287d6672ed239e026ed695471",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 16942,
+      "gateway_output_tokens": 447,
+      "gateway_reported_tokens": 17389,
+      "reference_input_tokens": 11909,
+      "reference_output_tokens": 661,
+      "reference_total_tokens": 12570,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_index": 2,
+      "task_id": "readonly:a263a47bf2815c1c2b07663c2f5d773281b03c3311863e7f9ce59cf2677ee1f2",
+      "arm": "baseline",
+      "policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "drain_grace": "15s",
+        "service": "tokenmaster-gateway"
+      },
+      "evidence_sha256": "c3c554d301612f6c1179fdb124af9c9c84df3eda4d49e24afb5473e751217c0c",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 32360,
+      "gateway_output_tokens": 497,
+      "gateway_reported_tokens": 32857,
+      "reference_input_tokens": 24185,
+      "reference_output_tokens": 661,
+      "reference_total_tokens": 24846,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_index": 2,
+      "task_id": "readonly:a263a47bf2815c1c2b07663c2f5d773281b03c3311863e7f9ce59cf2677ee1f2",
+      "arm": "tokenmaster_v5",
+      "policy_id": "runtime-policy-v1:e47358b4b9809877ede56d1ae181a898de842b3c6ca6b1be9a2f41512355c0f0",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "drain_grace": "15s",
+        "service": "tokenmaster-gateway"
+      },
+      "evidence_sha256": "4a894257926c93ed7bf70d660f1cfb9cc99cb1aeb9adab1510adc67debf3a6fd",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 18456,
+      "gateway_output_tokens": 497,
+      "gateway_reported_tokens": 18953,
+      "reference_input_tokens": 13078,
+      "reference_output_tokens": 656,
+      "reference_total_tokens": 13734,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_index": 3,
+      "task_id": "readonly:a2dec4f6b5d2b09f5e1ce3ba6e27930ebdbd20e35be90a2f5588add9cae73275",
+      "arm": "baseline",
+      "policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "first_step": "Verify local tokenizer SHA-256 digest.",
+        "schema_version": 4
+      },
+      "evidence_sha256": "b448aabd5d7a6095db71e3dd3020bb85b9bd0f8dcc0b9e777b0b7c3899683b43",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 30095,
+      "gateway_output_tokens": 454,
+      "gateway_reported_tokens": 30549,
+      "reference_input_tokens": 22940,
+      "reference_output_tokens": 662,
+      "reference_total_tokens": 23602,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_index": 3,
+      "task_id": "readonly:a2dec4f6b5d2b09f5e1ce3ba6e27930ebdbd20e35be90a2f5588add9cae73275",
+      "arm": "tokenmaster_v5",
+      "policy_id": "runtime-policy-v1:e47358b4b9809877ede56d1ae181a898de842b3c6ca6b1be9a2f41512355c0f0",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "first_step": "Verify local tokenizer SHA-256 digest.",
+        "schema_version": 4
+      },
+      "evidence_sha256": "a34e7218e3329fdb87a43fd27e18fad8c2cb7f4d3892da2891ebfcf9186d725f",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 17995,
+      "gateway_output_tokens": 454,
+      "gateway_reported_tokens": 18449,
+      "reference_input_tokens": 12823,
+      "reference_output_tokens": 655,
+      "reference_total_tokens": 13478,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_index": 4,
+      "task_id": "readonly:d5f85f54ee1de93e73f1104662f05f8b1e530181a9af3d3afa70388e157669ed",
+      "arm": "baseline",
+      "policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "max_connections": 256,
+        "rollout_window": "120s"
+      },
+      "evidence_sha256": "2c1af5eb52202da6d9365abf0c494ecc14d9ab7982c4d2530d2a892fd2bec35f",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 35746,
+      "gateway_output_tokens": 293,
+      "gateway_reported_tokens": 36039,
+      "reference_input_tokens": 27290,
+      "reference_output_tokens": 651,
+      "reference_total_tokens": 27941,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_index": 4,
+      "task_id": "readonly:d5f85f54ee1de93e73f1104662f05f8b1e530181a9af3d3afa70388e157669ed",
+      "arm": "tokenmaster_v5",
+      "policy_id": "runtime-policy-v1:e47358b4b9809877ede56d1ae181a898de842b3c6ca6b1be9a2f41512355c0f0",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "max_connections": 256,
+        "rollout_window": "120s"
+      },
+      "evidence_sha256": "3225b233f3c1d84b4eea6905a80632f9392efd3aab7df23840be8cec1a2d2670",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 17853,
+      "gateway_output_tokens": 293,
+      "gateway_reported_tokens": 18146,
+      "reference_input_tokens": 12722,
+      "reference_output_tokens": 648,
+      "reference_total_tokens": 13370,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_index": 5,
+      "task_id": "readonly:e7d4944a5e172e1c851f10454bfd7b03a2d786d2f5ce366e4b74577189b3c029",
+      "arm": "baseline",
+      "policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+      "success": true,
+      "answer": {
+        "build_status": "succeeded",
+        "retries": 3,
+        "rollout_window": "120s",
+        "timeout_seconds": 30
+      },
+      "evidence_sha256": "c38676c11e8e39a7c641e9326665084d5f3e844f7b8544cbda75e481f16b30b6",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 24952,
+      "gateway_output_tokens": 440,
+      "gateway_reported_tokens": 25392,
+      "reference_input_tokens": 17451,
+      "reference_output_tokens": 651,
+      "reference_total_tokens": 18102,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_index": 5,
+      "task_id": "readonly:e7d4944a5e172e1c851f10454bfd7b03a2d786d2f5ce366e4b74577189b3c029",
+      "arm": "tokenmaster_v5",
+      "policy_id": "runtime-policy-v1:e47358b4b9809877ede56d1ae181a898de842b3c6ca6b1be9a2f41512355c0f0",
+      "success": true,
+      "answer": {
+        "build_status": "succeeded",
+        "retries": 3,
+        "rollout_window": "120s",
+        "timeout_seconds": 30
+      },
+      "evidence_sha256": "db07fb9a87e6392a8e60c58105e37fec65808c74ff6e1b028b54d01ec03b4ec6",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 17619,
+      "gateway_output_tokens": 587,
+      "gateway_reported_tokens": 18206,
+      "reference_input_tokens": 12236,
+      "reference_output_tokens": 660,
+      "reference_total_tokens": 12896,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_index": 6,
+      "task_id": "readonly:ee4b6ee11e7b4f01d5107e4d9c19ab7c1a2ed2d0bb4bbe09685f8bc21cbbacc9",
+      "arm": "baseline",
+      "policy_id": "runtime-policy-v1:579bf9ab6972b791692d7e41fd7a33f2842c48ad830c377d41be357bf4a9d9b1",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "build_status": "succeeded",
+        "default_port": 9090,
+        "max_connections": 256
+      },
+      "evidence_sha256": "df178671c325a2deb9d7d9ac8bc7a6cf83d3ec479cbc4818b3c939c530638abf",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 34649,
+      "gateway_output_tokens": 291,
+      "gateway_reported_tokens": 34940,
+      "reference_input_tokens": 26305,
+      "reference_output_tokens": 650,
+      "reference_total_tokens": 26955,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_index": 6,
+      "task_id": "readonly:ee4b6ee11e7b4f01d5107e4d9c19ab7c1a2ed2d0bb4bbe09685f8bc21cbbacc9",
+      "arm": "tokenmaster_v5",
+      "policy_id": "runtime-policy-v1:e47358b4b9809877ede56d1ae181a898de842b3c6ca6b1be9a2f41512355c0f0",
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "build_status": "succeeded",
+        "default_port": 9090,
+        "max_connections": 256
+      },
+      "evidence_sha256": "967d556afda198a070efb9012f56682e1e36a27a513b9dbda4762be2ffac0e71",
+      "captures_recounted": 5,
+      "provider_models_observed": [
+        "claude-sonnet-5.5"
+      ],
+      "gateway_input_tokens": 18242,
+      "gateway_output_tokens": 487,
+      "gateway_reported_tokens": 18729,
+      "reference_input_tokens": 12992,
+      "reference_output_tokens": 645,
+      "reference_total_tokens": 13637,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    }
+  ]
+}

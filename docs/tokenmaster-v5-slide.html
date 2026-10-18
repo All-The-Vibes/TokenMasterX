@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenMaster PRS-3 results</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card: rgba(17, 23, 36, 0.85);
+      --border: rgba(255, 255, 255, 0.09);
+      --cyan: #00f2fe;
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --red: #f43f5e;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background: radial-gradient(circle at 15% 15%, rgba(0, 242, 254, 0.12), transparent 40%),
+                  radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.12), transparent 40%),
+                  var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .slide {
+      width: 100%;
+      max-width: 1280px;
+      background: rgba(11, 15, 25, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 44px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.65), 0 0 40px rgba(0, 242, 254, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    h1 span {
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      margin-top: 6px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .stat-value {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin: 6px 0 4px;
+      color: #fff;
+    }
+    .stat-value.accent {
+      color: var(--green);
+    }
+    .stat-value.cyan {
+      color: var(--cyan);
+    }
+    .stat-sub {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .middle-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1.15fr;
+      gap: 20px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px 24px;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--cyan);
+      margin-bottom: 16px;
+    }
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .step {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      color: #050811;
+      font-weight: 900;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-body strong {
+      display: block;
+      font-size: 15px;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+    .step-body p {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .chart-rows {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+    .chart-row {
+      display: grid;
+      grid-template-columns: 64px 1fr 118px;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .turn-label {
+      font-weight: 700;
+      color: #e2e8f0;
+    }
+    .bars {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .bar-base {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(244, 63, 94, 0.65);
+    }
+    .bar-v5 {
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+    }
+    .delta-pill {
+      text-align: right;
+      font-weight: 700;
+      font-size: 12px;
+      color: #34d399;
+    }
+    .delta-pill.neutral {
+      color: var(--muted);
+    }
+    .legend {
+      display: flex;
+      gap: 18px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .pills {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .stat-value.red { color: var(--red); }
+    .stat-value { font-size: clamp(26px, 3vw, 42px); }
+    .chart-row.arm { grid-template-columns: 1fr auto; row-gap: 4px; }
+    .chart-row.arm .turn-label { grid-row: 1; grid-column: 1; }
+    .chart-row.arm .delta-pill { grid-row: 1; grid-column: 2; }
+    .chart-row.arm .bars { grid-row: 2; grid-column: 1 / -1; }
+    .bar-muted { height: 10px; border-radius: 999px; background: rgba(148, 163, 184, 0.55); }
+    .legend.note { display: block; line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header">
+      <div>
+        <div class="badge">● PRS-3 · Pre-registered · 480 live sessions · 24 fresh blind tasks · gpt-6-astra</div>
+        <h1>TokenMaster v7 cuts real cost by 22%. <span>v6 replicated at 13%. The 30% goal is not met yet.</span></h1>
+        <p class="subtitle">Cost = uncached input + 0.1 × cached input + 8 × output. Same quality in every arm. Every token recounted from raw captures.</p>
+      </div>
+    </div>
+
+    <div class="hero-grid">
+      <div class="stat-card">
+        <div class="stat-label">v7 navigation · cost vs. stock</div>
+        <div class="stat-value accent">−22.0%</div>
+        <div class="stat-sub">95% CI −35.4% to −8.9% · Holm p = 0.006</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">v6 shaping · cost vs. stock</div>
+        <div class="stat-value cyan">−13.0%</div>
+        <div class="stat-sub">95% CI −19.3% to −6.7% · replicates PRS-2 (−11.6%)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">v7 vs. v6 alone</div>
+        <div class="stat-value">−10.4%</div>
+        <div class="stat-sub">95% CI −21.4% to +0.1% · not significant</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Task success · every arm</div>
+        <div class="stat-value accent">120/120</div>
+        <div class="stat-sub">Same as stock · no quality loss</div>
+      </div>
+    </div>
+
+    <div class="middle-grid">
+      <div class="panel">
+        <div class="panel-title">Why v7 is cheaper</div>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <strong>Exact answers, not whole files</strong>
+              <p>locate, read_symbol and impact return one symbol or one list of callers. Uncached input fell 27% against stock.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <strong>History is never rewritten</strong>
+              <p>v6 shapes each tool result once, so the provider's cache stays valid. Every call after the first read it.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <strong>Biggest win: "who calls X?"</strong>
+              <p>Impact tasks cost 64% less than stock (exploratory). Edit tasks gained nothing.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Cost per arm (120 sessions each)</div>
+        <div class="chart-rows">
+          <div class="chart-row arm">
+            <div class="turn-label">stock</div>
+            <div class="bars"><div class="bar-base" style="width: 100%"></div></div>
+            <div class="delta-pill neutral">2.03M</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">v6</div>
+            <div class="bars"><div class="bar-v5" style="width: 87.0%"></div></div>
+            <div class="delta-pill">1.76M · −13.0%</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">v6 + one sentence of advice</div>
+            <div class="bars"><div class="bar-muted" style="width: 82.8%"></div></div>
+            <div class="delta-pill neutral">1.68M · −17.2%</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">v7 (v6 + navigation tools)</div>
+            <div class="bars"><div class="bar-v5" style="width: 78.0%"></div></div>
+            <div class="delta-pill">1.58M · −22.0%</div>
+          </div>
+        </div>
+        <div class="legend note">Change vs. stock. v6 and v7 are significant after Holm correction. v7's edge over v6, and the advice-only arm, are not.</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>Evidence: <code>evidence/prs3-20261018/</code> · Protocol: <code>token-master-plugin/docs/PRS3_PROTOCOL.md</code></div>
+      <div class="pills">
+        <span class="pill">✓ Pre-registered, SHA-frozen</span>
+        <span class="pill">✓ v7 frozen before tasks were read</span>
+        <span class="pill">✗ 30% goal not met yet</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -63,8 +63,11 @@ class ResponsesTransport:
     max_response_bytes: int = 524288
     timeout: float = 45
     reasoning_effort: str | None = None
+    parallel_tool_calls: bool = False
 
     def __post_init__(self):
+        if type(self.parallel_tool_calls) is not bool:
+            raise ValueError("parallel_tool_calls must be boolean")
         url = urlparse(self.base_url)
         if (url.scheme != "http" or url.hostname not in ("localhost", "127.0.0.1", "::1")
                 or url.username or url.password or url.query or url.fragment):
@@ -142,7 +145,7 @@ class ResponsesTransport:
                     - {"name", "description", "parameters", "strict"}):
                 raise ValueError("unsupported function schema")
             tools.append({"type": "function", **function})
-        payload = {"input": items, "parallel_tool_calls": False}
+        payload = {"input": items, "parallel_tool_calls": self.parallel_tool_calls}
         if tools:
             payload["tools"] = tools
         return _json(self.request(payload))

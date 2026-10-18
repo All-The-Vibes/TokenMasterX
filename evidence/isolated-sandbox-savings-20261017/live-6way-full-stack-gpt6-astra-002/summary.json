@@ -1,0 +1,2153 @@
+{
+  "protocol": "isolated-sandbox-full-stack-6way-live-study-v1",
+  "recorded_at_utc": "2026-10-18T04:25:34.359882+00:00",
+  "model": "gpt-6-astra",
+  "upstream_endpoint": "https://api.githubcopilot.com/responses",
+  "sandbox_isolation": {
+    "isolated": true,
+    "sandbox_root": "C:\\Users\\shyamsridhar\\code\\Tokenmaster\\evidence\\isolated-sandbox-savings-20261017\\live-6way-full-stack-gpt6-astra-002\\sandbox-env",
+    "leaked_environment_variables": [],
+    "isolated_directories": {
+      "HOME": true,
+      "USERPROFILE": true,
+      "APPDATA": true,
+      "LOCALAPPDATA": true,
+      "CLAUDE_CONFIG_DIR": true,
+      "COPILOT_HOME": true,
+      "CODEX_HOME": true
+    },
+    "global_headroom_present_in_sandbox": false,
+    "global_ponytail_present_in_sandbox": false,
+    "global_headroom_port_8787_contacted": false
+  },
+  "graph_indexes": {
+    "graphify_nodes": 24,
+    "graphify_links": 28,
+    "graph_path": "C:\\Users\\shyamsridhar\\code\\Tokenmaster\\evidence\\isolated-sandbox-savings-20261017\\live-6way-full-stack-gpt6-astra-002\\workspace\\.token-master\\graph.json",
+    "codegraph_version": "1.6.2",
+    "codegraph_nodes": 28,
+    "codegraph_edges": 40
+  },
+  "total_live_api_calls": 440,
+  "total_study_gateway_tokens": 13364620,
+  "total_study_reference_tokens": 14415225,
+  "all_tasks_correct_in_all_arms": true,
+  "by_arm": {
+    "baseline": {
+      "tasks": 10,
+      "correct": 10,
+      "model_calls": 80,
+      "graph_calls": 0,
+      "file_reads": 70,
+      "gateway_input_tokens": 3536222,
+      "gateway_output_tokens": 1958,
+      "gateway_reported_tokens": 3538180,
+      "reference_input_tokens": 3639324,
+      "reference_output_tokens": 110144,
+      "reference_total_tokens": 3749468,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "wall_seconds": 246.486
+    },
+    "ponytail": {
+      "tasks": 10,
+      "correct": 10,
+      "model_calls": 80,
+      "graph_calls": 0,
+      "file_reads": 70,
+      "gateway_input_tokens": 3638782,
+      "gateway_output_tokens": 1930,
+      "gateway_reported_tokens": 3640712,
+      "reference_input_tokens": 3749010,
+      "reference_output_tokens": 110136,
+      "reference_total_tokens": 3859146,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "wall_seconds": 252.671
+    },
+    "headroom": {
+      "tasks": 10,
+      "correct": 10,
+      "model_calls": 80,
+      "graph_calls": 0,
+      "file_reads": 70,
+      "gateway_input_tokens": 3312792,
+      "gateway_output_tokens": 1951,
+      "gateway_reported_tokens": 3314743,
+      "reference_input_tokens": 3398300,
+      "reference_output_tokens": 110139,
+      "reference_total_tokens": 3508439,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "wall_seconds": 782.013
+    },
+    "v5_only": {
+      "tasks": 10,
+      "correct": 10,
+      "model_calls": 80,
+      "graph_calls": 0,
+      "file_reads": 70,
+      "gateway_input_tokens": 946647,
+      "gateway_output_tokens": 1923,
+      "gateway_reported_tokens": 948570,
+      "reference_input_tokens": 999956,
+      "reference_output_tokens": 110041,
+      "reference_total_tokens": 1109997,
+      "transformations": 60,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 210,
+      "wall_seconds": 227.518
+    },
+    "graph_only": {
+      "tasks": 10,
+      "correct": 10,
+      "model_calls": 60,
+      "graph_calls": 10,
+      "file_reads": 40,
+      "gateway_input_tokens": 1329674,
+      "gateway_output_tokens": 1509,
+      "gateway_reported_tokens": 1331183,
+      "reference_input_tokens": 1384350,
+      "reference_output_tokens": 86899,
+      "reference_total_tokens": 1471249,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "wall_seconds": 160.674
+    },
+    "tokenmaster_full": {
+      "tasks": 10,
+      "correct": 10,
+      "model_calls": 60,
+      "graph_calls": 10,
+      "file_reads": 40,
+      "gateway_input_tokens": 589744,
+      "gateway_output_tokens": 1488,
+      "gateway_reported_tokens": 591232,
+      "reference_input_tokens": 630190,
+      "reference_output_tokens": 86736,
+      "reference_total_tokens": 716926,
+      "transformations": 30,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 60,
+      "wall_seconds": 168.203
+    }
+  },
+  "comparisons": {
+    "ponytail_vs_baseline": {
+      "gateway_tokens_saved": -102532,
+      "gateway_savings_pct": -2.9,
+      "calls_delta": 0,
+      "file_reads_delta": 0
+    },
+    "headroom_vs_baseline": {
+      "gateway_tokens_saved": 223437,
+      "gateway_savings_pct": 6.32,
+      "calls_delta": 0,
+      "file_reads_delta": 0
+    },
+    "v5_only_vs_baseline": {
+      "gateway_tokens_saved": 2589610,
+      "gateway_savings_pct": 73.19,
+      "calls_delta": 0,
+      "file_reads_delta": 0
+    },
+    "graph_only_vs_baseline": {
+      "gateway_tokens_saved": 2206997,
+      "gateway_savings_pct": 62.38,
+      "calls_delta": -20,
+      "file_reads_delta": -30
+    },
+    "tokenmaster_full_vs_baseline": {
+      "gateway_tokens_saved": 2946948,
+      "gateway_savings_pct": 83.29,
+      "calls_delta": -20,
+      "file_reads_delta": -30
+    }
+  },
+  "per_task": [
+    {
+      "task_id": "task-01",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 27.11,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353624,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 353815,
+      "reference_input_tokens": 363914,
+      "reference_output_tokens": 11047,
+      "reference_total_tokens": 374961,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-01",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 35.36,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363880,
+      "gateway_output_tokens": 198,
+      "gateway_reported_tokens": 364078,
+      "reference_input_tokens": 374888,
+      "reference_output_tokens": 10989,
+      "reference_total_tokens": 385877,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-01",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 173.187,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 323473,
+      "gateway_output_tokens": 198,
+      "gateway_reported_tokens": 323671,
+      "reference_input_tokens": 332014,
+      "reference_output_tokens": 10990,
+      "reference_total_tokens": 343004,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-01",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 20.094,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94681,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 94872,
+      "reference_input_tokens": 99962,
+      "reference_output_tokens": 10950,
+      "reference_total_tokens": 110912,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-01",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 27.407,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 132929,
+      "gateway_output_tokens": 154,
+      "gateway_reported_tokens": 133083,
+      "reference_input_tokens": 138454,
+      "reference_output_tokens": 8675,
+      "reference_total_tokens": 147129,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-01",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "max_connections": 512
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 31.469,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 58923,
+      "gateway_output_tokens": 147,
+      "gateway_reported_tokens": 59070,
+      "reference_input_tokens": 63047,
+      "reference_output_tokens": 8686,
+      "reference_total_tokens": 71733,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-02",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 19.485,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353630,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 353822,
+      "reference_input_tokens": 363912,
+      "reference_output_tokens": 11020,
+      "reference_total_tokens": 374932,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-02",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 46.438,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363886,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 364078,
+      "reference_input_tokens": 374928,
+      "reference_output_tokens": 11012,
+      "reference_total_tokens": 385940,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-02",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 145.734,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 339066,
+      "gateway_output_tokens": 199,
+      "gateway_reported_tokens": 339265,
+      "reference_input_tokens": 347611,
+      "reference_output_tokens": 10985,
+      "reference_total_tokens": 358596,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-02",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 16.907,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94661,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 94853,
+      "reference_input_tokens": 100038,
+      "reference_output_tokens": 11022,
+      "reference_total_tokens": 111060,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-02",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 13.609,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 133013,
+      "gateway_output_tokens": 149,
+      "gateway_reported_tokens": 133162,
+      "reference_input_tokens": 138432,
+      "reference_output_tokens": 8649,
+      "reference_total_tokens": 147081,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-02",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 11.781,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 59014,
+      "gateway_output_tokens": 149,
+      "gateway_reported_tokens": 59163,
+      "reference_input_tokens": 63003,
+      "reference_output_tokens": 8662,
+      "reference_total_tokens": 71665,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-03",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 30.469,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353632,
+      "gateway_output_tokens": 199,
+      "gateway_reported_tokens": 353831,
+      "reference_input_tokens": 363968,
+      "reference_output_tokens": 11031,
+      "reference_total_tokens": 374999,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-03",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 26.14,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363888,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 364080,
+      "reference_input_tokens": 374894,
+      "reference_output_tokens": 11040,
+      "reference_total_tokens": 385934,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-03",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 124.297,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 335970,
+      "gateway_output_tokens": 199,
+      "gateway_reported_tokens": 336169,
+      "reference_input_tokens": 344484,
+      "reference_output_tokens": 11001,
+      "reference_total_tokens": 355485,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-03",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 16.312,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94696,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 94888,
+      "reference_input_tokens": 100080,
+      "reference_output_tokens": 10992,
+      "reference_total_tokens": 111072,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-03",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 15.156,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 132935,
+      "gateway_output_tokens": 155,
+      "gateway_reported_tokens": 133090,
+      "reference_input_tokens": 138472,
+      "reference_output_tokens": 8702,
+      "reference_total_tokens": 147174,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-03",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 20.391,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 58947,
+      "gateway_output_tokens": 148,
+      "gateway_reported_tokens": 59095,
+      "reference_input_tokens": 63021,
+      "reference_output_tokens": 8673,
+      "reference_total_tokens": 71694,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-04",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 16.5,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353622,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 353814,
+      "reference_input_tokens": 363876,
+      "reference_output_tokens": 10999,
+      "reference_total_tokens": 374875,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-04",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 31.547,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363878,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 364070,
+      "reference_input_tokens": 374942,
+      "reference_output_tokens": 11036,
+      "reference_total_tokens": 385978,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-04",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 101.718,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 332836,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 333028,
+      "reference_input_tokens": 341387,
+      "reference_output_tokens": 11043,
+      "reference_total_tokens": 352430,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-04",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 19.204,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94647,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 94839,
+      "reference_input_tokens": 99947,
+      "reference_output_tokens": 10988,
+      "reference_total_tokens": 110935,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-04",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 18.985,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 133007,
+      "gateway_output_tokens": 149,
+      "gateway_reported_tokens": 133156,
+      "reference_input_tokens": 138400,
+      "reference_output_tokens": 8668,
+      "reference_total_tokens": 147068,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-04",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "schema_version": 5
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 16.359,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 59017,
+      "gateway_output_tokens": 149,
+      "gateway_reported_tokens": 59166,
+      "reference_input_tokens": 62984,
+      "reference_output_tokens": 8663,
+      "reference_total_tokens": 71647,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-05",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 28.953,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353616,
+      "gateway_output_tokens": 198,
+      "gateway_reported_tokens": 353814,
+      "reference_input_tokens": 363966,
+      "reference_output_tokens": 11018,
+      "reference_total_tokens": 374984,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-05",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 18.109,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363872,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 364063,
+      "reference_input_tokens": 374856,
+      "reference_output_tokens": 11010,
+      "reference_total_tokens": 385866,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-05",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 98.797,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 329710,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 329901,
+      "reference_input_tokens": 338293,
+      "reference_output_tokens": 10998,
+      "reference_total_tokens": 349291,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-05",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 21.266,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94668,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 94859,
+      "reference_input_tokens": 99994,
+      "reference_output_tokens": 11034,
+      "reference_total_tokens": 111028,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-05",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 14.079,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 132923,
+      "gateway_output_tokens": 147,
+      "gateway_reported_tokens": 133070,
+      "reference_input_tokens": 138426,
+      "reference_output_tokens": 8704,
+      "reference_total_tokens": 147130,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-05",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "schema_version": 5
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 14.734,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 58943,
+      "gateway_output_tokens": 147,
+      "gateway_reported_tokens": 59090,
+      "reference_input_tokens": 63028,
+      "reference_output_tokens": 8663,
+      "reference_total_tokens": 71691,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-06",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 33.859,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353630,
+      "gateway_output_tokens": 199,
+      "gateway_reported_tokens": 353829,
+      "reference_input_tokens": 363972,
+      "reference_output_tokens": 11026,
+      "reference_total_tokens": 374998,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-06",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 18.406,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363886,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 364078,
+      "reference_input_tokens": 374906,
+      "reference_output_tokens": 11017,
+      "reference_total_tokens": 385923,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-06",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 57.547,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 329744,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 329936,
+      "reference_input_tokens": 338316,
+      "reference_output_tokens": 11028,
+      "reference_total_tokens": 349344,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-06",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 21.985,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94700,
+      "gateway_output_tokens": 192,
+      "gateway_reported_tokens": 94892,
+      "reference_input_tokens": 99986,
+      "reference_output_tokens": 11013,
+      "reference_total_tokens": 110999,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-06",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 14.672,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 133013,
+      "gateway_output_tokens": 156,
+      "gateway_reported_tokens": 133169,
+      "reference_input_tokens": 138442,
+      "reference_output_tokens": 8671,
+      "reference_total_tokens": 147113,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-06",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "max_connections": 512
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 13.203,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 59022,
+      "gateway_output_tokens": 149,
+      "gateway_reported_tokens": 59171,
+      "reference_input_tokens": 63028,
+      "reference_output_tokens": 8672,
+      "reference_total_tokens": 71700,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-07",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 17.282,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353624,
+      "gateway_output_tokens": 198,
+      "gateway_reported_tokens": 353822,
+      "reference_input_tokens": 363964,
+      "reference_output_tokens": 10985,
+      "reference_total_tokens": 374949,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-07",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 15.765,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363880,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 364071,
+      "reference_input_tokens": 374956,
+      "reference_output_tokens": 10958,
+      "reference_total_tokens": 385914,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-07",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 18.078,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 320385,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 320576,
+      "reference_input_tokens": 328927,
+      "reference_output_tokens": 11005,
+      "reference_total_tokens": 339932,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-07",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 23.937,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94642,
+      "gateway_output_tokens": 191,
+      "gateway_reported_tokens": 94833,
+      "reference_input_tokens": 99957,
+      "reference_output_tokens": 10991,
+      "reference_total_tokens": 110948,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-07",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 18.766,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 132929,
+      "gateway_output_tokens": 147,
+      "gateway_reported_tokens": 133076,
+      "reference_input_tokens": 138460,
+      "reference_output_tokens": 8708,
+      "reference_total_tokens": 147168,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-07",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "timeout_seconds": 45
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 12.25,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 58936,
+      "gateway_output_tokens": 147,
+      "gateway_reported_tokens": 59083,
+      "reference_input_tokens": 63015,
+      "reference_output_tokens": 8658,
+      "reference_total_tokens": 71673,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-08",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 16.844,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353638,
+      "gateway_output_tokens": 200,
+      "gateway_reported_tokens": 353838,
+      "reference_input_tokens": 363958,
+      "reference_output_tokens": 11026,
+      "reference_total_tokens": 374984,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-08",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 17.172,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363894,
+      "gateway_output_tokens": 193,
+      "gateway_reported_tokens": 364087,
+      "reference_input_tokens": 374848,
+      "reference_output_tokens": 10980,
+      "reference_total_tokens": 385828,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-08",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 25.14,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 332851,
+      "gateway_output_tokens": 193,
+      "gateway_reported_tokens": 333044,
+      "reference_input_tokens": 341441,
+      "reference_output_tokens": 11044,
+      "reference_total_tokens": 352485,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-08",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 41.375,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94631,
+      "gateway_output_tokens": 193,
+      "gateway_reported_tokens": 94824,
+      "reference_input_tokens": 99968,
+      "reference_output_tokens": 10986,
+      "reference_total_tokens": 110954,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-08",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 12.609,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 133019,
+      "gateway_output_tokens": 150,
+      "gateway_reported_tokens": 133169,
+      "reference_input_tokens": 138418,
+      "reference_output_tokens": 8662,
+      "reference_total_tokens": 147080,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-08",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "burst_capacity": 2048
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 12.766,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 59020,
+      "gateway_output_tokens": 150,
+      "gateway_reported_tokens": 59170,
+      "reference_input_tokens": 63030,
+      "reference_output_tokens": 8684,
+      "reference_total_tokens": 71714,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-09",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 17.375,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353600,
+      "gateway_output_tokens": 194,
+      "gateway_reported_tokens": 353794,
+      "reference_input_tokens": 363882,
+      "reference_output_tokens": 11000,
+      "reference_total_tokens": 374882,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-09",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 21.312,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363856,
+      "gateway_output_tokens": 194,
+      "gateway_reported_tokens": 364050,
+      "reference_input_tokens": 374908,
+      "reference_output_tokens": 11054,
+      "reference_total_tokens": 385962,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-09",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 16.89,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 335938,
+      "gateway_output_tokens": 194,
+      "gateway_reported_tokens": 336132,
+      "reference_input_tokens": 344468,
+      "reference_output_tokens": 10985,
+      "reference_total_tokens": 355453,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-09",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 29.36,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94707,
+      "gateway_output_tokens": 194,
+      "gateway_reported_tokens": 94901,
+      "reference_input_tokens": 100083,
+      "reference_output_tokens": 11025,
+      "reference_total_tokens": 111108,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-09",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 13.063,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 132911,
+      "gateway_output_tokens": 150,
+      "gateway_reported_tokens": 133061,
+      "reference_input_tokens": 138424,
+      "reference_output_tokens": 8719,
+      "reference_total_tokens": 147143,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-09",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "ledger_ttl": 900,
+        "payment_limit": 64,
+        "checkout_retries": 3,
+        "region": "us-east-1"
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 14.234,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 58915,
+      "gateway_output_tokens": 150,
+      "gateway_reported_tokens": 59065,
+      "reference_input_tokens": 63045,
+      "reference_output_tokens": 8676,
+      "reference_total_tokens": 71721,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    },
+    {
+      "task_id": "task-10",
+      "arm": "baseline",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 38.609,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 353606,
+      "gateway_output_tokens": 195,
+      "gateway_reported_tokens": 353801,
+      "reference_input_tokens": 363912,
+      "reference_output_tokens": 10992,
+      "reference_total_tokens": 374904,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-10",
+      "arm": "ponytail",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 22.422,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 363862,
+      "gateway_output_tokens": 195,
+      "gateway_reported_tokens": 364057,
+      "reference_input_tokens": 374884,
+      "reference_output_tokens": 11040,
+      "reference_total_tokens": 385924,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-10",
+      "arm": "headroom",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 20.625,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 332819,
+      "gateway_output_tokens": 202,
+      "gateway_reported_tokens": 333021,
+      "reference_input_tokens": 341359,
+      "reference_output_tokens": 11060,
+      "reference_total_tokens": 352419,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-10",
+      "arm": "v5_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "graph_calls": 0,
+      "file_reads": 7,
+      "wall_seconds": 17.078,
+      "captures_recounted": 8,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 94614,
+      "gateway_output_tokens": 195,
+      "gateway_reported_tokens": 94809,
+      "reference_input_tokens": 99941,
+      "reference_output_tokens": 11040,
+      "reference_total_tokens": 110981,
+      "transformations": 6,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 21
+    },
+    {
+      "task_id": "task-10",
+      "arm": "graph_only",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 12.328,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 132995,
+      "gateway_output_tokens": 152,
+      "gateway_reported_tokens": 133147,
+      "reference_input_tokens": 138422,
+      "reference_output_tokens": 8741,
+      "reference_total_tokens": 147163,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0
+    },
+    {
+      "task_id": "task-10",
+      "arm": "tokenmaster_full",
+      "success": true,
+      "answer": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "expected": {
+        "sku_capacity": 4096,
+        "inventory_lock_ms": 2500,
+        "shipment_depth": 128,
+        "region": "us-east-1"
+      },
+      "graph_calls": 1,
+      "file_reads": 4,
+      "wall_seconds": 21.016,
+      "captures_recounted": 6,
+      "provider_models_observed": [
+        "gpt-6-astra"
+      ],
+      "gateway_input_tokens": 59007,
+      "gateway_output_tokens": 152,
+      "gateway_reported_tokens": 59159,
+      "reference_input_tokens": 62989,
+      "reference_output_tokens": 8699,
+      "reference_total_tokens": 71688,
+      "transformations": 3,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 6
+    }
+  ]
+}

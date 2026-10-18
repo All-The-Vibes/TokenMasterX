@@ -1,0 +1,658 @@
+{
+  "provenance": {
+    "primary": "N01-N12 by separate agent session ses_eb0f304b5ffep8iEIih0AAIIg8, not told the arms or the purpose; every value re-derived on 2026-10-18 before any PRS-2 call (N04, N05, N06 by executing the snapshot code)",
+    "secondary": "T01-T12 from prs1_tasks.json (exposed: v6 budgets were tuned on PRS-1 data)",
+    "snapshot": "git archive 703aa20d3e0f1fc955302dc769a68b1801992150 token-master-plugin/skills/token-master token-master-plugin/docs"
+  },
+  "tasks": [
+    {
+      "id": "N01",
+      "category": "locate",
+      "prompt": "We need to bump the pinned Headroom upstream source commit and the pinned Headroom model revision. Where are those two pins defined as module-level string constants in production (non-test) code? List only the actual assignments, not imports or aliases. Also: which module does RuntimePolicy import its default Headroom source-commit pin from, and which module does RuntimeResources import COMMIT from? Reply with ONLY a JSON object with exactly these keys: \"definitions\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<CONSTANT>\"; list order does not matter), \"runtime_policy_commit_source\" (string: module path relative to token-master-plugin/skills/token-master), \"runtime_resources_commit_source\" (string: module path relative to token-master-plugin/skills/token-master).",
+      "expected": {
+        "definitions": [
+          "brainspace/headroom.py::COMMIT",
+          "brainspace/headroom.py::MODEL_REVISION",
+          "brainspace/headroom_worker.py::COMMIT",
+          "brainspace/headroom_worker.py::MODEL_REVISION"
+        ],
+        "runtime_policy_commit_source": "brainspace/headroom.py",
+        "runtime_resources_commit_source": "brainspace/headroom_worker.py"
+      },
+      "unordered_list_keys": [
+        "definitions"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:29 - COMMIT = \"1cf496612e781ef8d67ff87ee4f78037492f0bc7\"",
+        "token-master-plugin/skills/token-master/brainspace/headroom.py:30 - MODEL_REVISION = \"b1563631b35bfdcee37587ad530147497d820d4c\"",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:27 - second literal COMMIT definition (self-contained worker, no package imports)",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:28 - second literal MODEL_REVISION definition",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:19 - from .headroom import COMMIT as HEADROOM_COMMIT (alias, not a definition)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:75 - RuntimePolicy.headroom_source_commit defaults to HEADROOM_COMMIT",
+        "token-master-plugin/skills/token-master/brainspace/runtime_resources.py:19 - from .headroom_worker import COMMIT, MODEL_REVISION, MODEL_SHA256, TOKENIZER_REVISION",
+        "repo-wide literal search: the two pin values appear in no other production .py file (only tests/docs)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N02",
+      "category": "locate",
+      "prompt": "Every recoverable view (Python/Rust body-elided skeletons, JSON array overviews, log overviews) must abort when the injected stash callback returns anything other than a well-formed [[BR:...]] recovery reference. Where is that shared check implemented, what exact exception message does it raise, and which module-level constant holds the regex it validates against? Reply with ONLY a JSON object with exactly these keys: \"check_function\" (string), \"error_message\" (string), \"regex_constant\" (string). Give code locations as \"<path relative to token-master-plugin/skills/token-master>::<function or CONSTANT>\".",
+      "expected": {
+        "check_function": "brainspace/compressors/__init__.py::require_stash",
+        "error_message": "Storage did not return a recovery reference",
+        "regex_constant": "brainspace/ccr.py::PLACEHOLDER_RE"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/compressors/__init__.py:52 - def require_stash(content, *, stash, **metadata)",
+        "token-master-plugin/skills/token-master/brainspace/compressors/__init__.py:59 - from ..ccr import PLACEHOLDER_RE",
+        "token-master-plugin/skills/token-master/brainspace/compressors/__init__.py:62-63 - fullmatch check; raise ValueError(\"Storage did not return a recovery reference\")",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:60 - PLACEHOLDER_RE = re.compile(r\"\\[\\[BR:([0-9a-f]{6,64})(?:\\|[^\\]]*)?\\]\\]\")",
+        "token-master-plugin/skills/token-master/brainspace/compressors/code_compressor.py:63 - compress_code calls require_stash",
+        "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py:97 - compress_json (overview) calls require_stash",
+        "token-master-plugin/skills/token-master/brainspace/compressors/logs_compressor.py:62 - compress_logs calls require_stash"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N03",
+      "category": "locate",
+      "prompt": "We're qualifying a newer Copilot CLI build for the native Copilot route. Where are the pinned CLI version string and the pinned executable SHA-256 defined, which function compares the CLI's `--version` output against that version pin, and which function separately hard-codes \"1.0.95-0\" as a parameter default (it uses it to build the expected built-in skill paths)? Reply with ONLY a JSON object with exactly these keys: \"version_constant\", \"sha256_constant\", \"version_probe_function\", \"hardcoded_default_function\" (all strings, each \"<path relative to token-master-plugin/skills/token-master>::<function or CONSTANT>\").",
+      "expected": {
+        "version_constant": "brainspace/native_copilot.py::COPILOT_VERSION",
+        "sha256_constant": "brainspace/native_copilot.py::COPILOT_SHA256",
+        "version_probe_function": "brainspace/native_copilot.py::run_native_copilot",
+        "hardcoded_default_function": "brainspace/native_events.py::validate_native_skills"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:26 - COPILOT_SHA256 = \"dfa6ee78...\"",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:27 - COPILOT_VERSION = \"1.0.95-0\"",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:446 - def run_native_copilot(...)",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:528-537 - runs `--version` and compares first stdout line with f\"GitHub Copilot CLI {COPILOT_VERSION}.\"",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:490 - executable digest compared with COPILOT_SHA256",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:155 - def validate_native_skills(event, *, cache_root, version=\"1.0.95-0\")",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:199 - expected skill path built from version",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:113-117 - validate_bootstrap_event calls validate_native_skills without a version argument (default used)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N04",
+      "category": "logic",
+      "prompt": "We hand-write RuntimePolicy JSON files for `--runtime-policy`. Each of the five documents below makes `RuntimePolicy.from_dict(json.loads(doc))` raise ValueError. What is the exact message for each?\n(a) {\"version\": \"runtime-policy-v1\", \"backend\": \"local\"}\n(b) {\"version\": \"runtime-policy-v1\", \"backend\": \"headroom\", \"headroom_time_budget_seconds\": 0}\n(c) {\"version\": \"runtime-policy-v1\", \"require_nonexpanding_input\": true}\n(d) {\"version\": \"runtime-policy-v1\", \"backend\": \"headroom\", \"headroom_root_reference_style\": \"compact-root-v1\"}\n(e) {\"version\": \"runtime-policy-v1\", \"backend\": \"local\", \"request_policy\": {\"version\": \"request-policy-v4\", \"enabled\": true}}\nReply with ONLY a JSON object with exactly the keys \"a\", \"b\", \"c\", \"d\", \"e\", each a string holding that case's ValueError message.",
+      "expected": {
+        "a": "runtime_policy_reducer_conflict",
+        "b": "invalid_headroom_time_budget_seconds",
+        "c": "inactive_composition_guard",
+        "d": "compact_root_requires_nonexpanding_input",
+        "e": "v4_requires_nonexpanding_input"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:42-43 - _off_request() returns RequestPolicy(version=\"request-policy-v3\", enabled=False)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:68 - request_policy defaults to _off_request()",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:103-104 - nested enabled must equal (backend == \"local\") else runtime_policy_reducer_conflict (case a)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:107-108 - V4 without require_nonexpanding_input -> v4_requires_nonexpanding_input (case e; checked before budget/strategy)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:109-111 - budget must be int in 1..60 -> invalid_headroom_time_budget_seconds (case b)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:124-128 - non-annotated root style needs backend headroom AND guard -> compact_root_requires_nonexpanding_input (case d)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:140-145 - backend none: canonical nested policy passes, then instruction none + guard -> inactive_composition_guard (case c)",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:160-169 - from_dict converts nested request_policy via RequestPolicy.from_dict then calls cls(**values)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:57-60 - RequestPolicy defaults (enabled=False)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:97-106 - RequestPolicy.from_dict accepts {version: v4, enabled: true}"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N05",
+      "category": "logic",
+      "prompt": "The brainspace MCP server reads the BRAINSPACE_MAX_RETRIEVE environment variable once when the server module loads. Assume `ref` is a valid reference in the server's scope whose stored original is exactly 50,000 ASCII characters, and each scenario starts a fresh server process. What does the `brainspace_retrieve` tool return?\n(a) BRAINSPACE_MAX_RETRIEVE=0, call brainspace_retrieve(ref, offset=0, limit=500): length of `content` and value of `next_offset`.\n(b) BRAINSPACE_MAX_RETRIEVE=100000, call brainspace_retrieve(ref) with default offset/limit: length of `content`.\n(c) BRAINSPACE_MAX_RETRIEVE=abc, call brainspace_retrieve(ref, offset=40000, limit=20000): length of `content` and value of `complete`.\n(d) BRAINSPACE_MAX_RETRIEVE=100000, call brainspace_retrieve(ref, offset=0, limit=0): value of `error`.\nReply with ONLY a JSON object with exactly these keys: \"a_content_chars\" (int), \"a_next_offset\" (int), \"b_content_chars\" (int), \"c_content_chars\" (int), \"c_complete\" (bool), \"d_error\" (string).",
+      "expected": {
+        "a_content_chars": 1,
+        "a_next_offset": 1,
+        "b_content_chars": 32768,
+        "c_content_chars": 10000,
+        "c_complete": true,
+        "d_error": "invalid_bounds"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:24-28 - _env_limit = min(ceiling, max(1, int(env))); ValueError -> default",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:32 - MAX_RETRIEVE_CHARS = _env_limit(\"BRAINSPACE_MAX_RETRIEVE\", 32768, 32768) at import: \"0\"->1, \"100000\"->32768, \"abc\"->32768",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:96-98 - limit clamped to MAX_RETRIEVE_CHARS only when it is a positive int; limit 0 passed through unchanged",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:64 - _PAGE_LIMIT = 32768",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:97-98 - _valid_bounds requires limit > 0",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:395-396 - invalid bounds -> error=\"invalid_bounds\" (case d)",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:402-407 - page = content[offset:offset+min(limit,32768)]; complete when end == total_chars; next_offset = end otherwise (a: 1 char, next 1; c: 40000..50000 = 10000 chars, complete)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N06",
+      "category": "logic",
+      "prompt": "A user runs:\npython brainspace_tools.py --workspace D:/work/repo session --output D:/runs/run-001 --base-url http://127.0.0.1:8080/v1 --model test-model --backend local --allow-network --headroom-time-budget-seconds 30 --phase learning --max-frames 0\n(there is no global --session and no --learning-run-id). Several things are wrong with this invocation, but only the first failed check is reported. Assume all imports succeed. What `error` code appears in the JSON line written to stdout, how many JSON lines are written to stdout in total, what is the process exit code, and is the --output directory created? Reply with ONLY a JSON object with exactly these keys: \"error\" (string), \"stdout_lines\" (int), \"exit_code\" (int), \"output_dir_created\" (bool).",
+      "expected": {
+        "error": "unused_headroom_configuration",
+        "stdout_lines": 1,
+        "exit_code": 2,
+        "output_dir_created": false
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_tools.py:35-36 - global --workspace (required) and optional --session (None when omitted)",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:64-101 - session subparser: --allow-network, --backend, --max-frames, --phase, --headroom-time-budget-seconds (int) all parse",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:204-206 - main returns run_session(args) for the session command",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:56 - allow_network check passes",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:57-59 - profile-selection check passes (backend local, no --runtime-policy)",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:60-62 - time budget given with backend != headroom -> ProtocolError(\"unused_headroom_configuration\")",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:69-78 - later checks (session, frame limit, learning scope, output) never reached; no RuntimeSession/mkdir",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:209-214 - setup failure emits one {\"op\":\"error\",\"ok\":false,\"error\":code} line and returns 2 (no finish frame)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N07",
+      "category": "impact",
+      "prompt": "We want to introduce a third native source-contract id next to native-full-view-v1 and native-view-result-v2. Which production (non-test) functions or methods call the shared validator `validate_source_contract` (and would therefore accept or reject the new id), and which function separately hard-codes the two allowed ids as an argparse `choices` list? For calls inside nested functions report the enclosing top-level function or method. Reply with ONLY a JSON object with exactly these keys: \"validator_callers\" (list of strings; list order does not matter), \"cli_choices_function\" (string). Use the format \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\".",
+      "expected": {
+        "validator_callers": [
+          "brainspace/native_cli.py::run_native_cli",
+          "brainspace/native_copilot.py::run_native_copilot",
+          "brainspace/native_events.py::NativeEventCollector.__init__",
+          "brainspace/native_runtime.py::NativeRuntime.__init__"
+        ],
+        "cli_choices_function": "brainspace_tools.py::_parser"
+      },
+      "unordered_list_keys": [
+        "validator_callers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:57-59 - def validate_source_contract (allows DEFAULT/RANGED constants)",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:230 - NativeEventCollector.__init__ calls validate_source_contract",
+        "token-master-plugin/skills/token-master/brainspace/native_cli.py:20-22 - run_native_cli imports and calls it",
+        "token-master-plugin/skills/token-master/brainspace/native_copilot.py:466-468 - run_native_copilot imports and calls it",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:61 - NativeRuntime.__init__ calls it",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:116-118 - _parser: --source-contract choices=(\"native-full-view-v1\", \"native-view-result-v2\")"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N08",
+      "category": "impact",
+      "prompt": "I'm about to add a required keyword-only argument to RuntimeResources.__init__. Which production (non-test) functions or methods construct RuntimeResources directly, including places that build a fallback default instance when none was passed in? Reply with ONLY a JSON object with exactly one key: \"construction_sites\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"; list order does not matter).",
+      "expected": {
+        "construction_sites": [
+          "token_efficiency.py::_execute_runtime",
+          "brainspace/native_cli.py::run_native_cli",
+          "brainspace/native_runtime.py::NativeRuntime.__init__",
+          "brainspace/runtime.py::RuntimeSession.__init__",
+          "brainspace/session_cli.py::_session"
+        ]
+      },
+      "unordered_list_keys": [
+        "construction_sites"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime_resources.py:123,132 - class RuntimeResources; __init__(self, *, ponytail_export=None, headroom_cache=None, headroom_assets=None)",
+        "token-master-plugin/skills/token-master/token_efficiency.py:326 - _execute_runtime constructs RuntimeResources(...) for profile commands",
+        "token-master-plugin/skills/token-master/brainspace/native_cli.py:39 - run_native_cli constructs RuntimeResources(...)",
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py:81 - NativeRuntime.__init__: resources or RuntimeResources()",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:146-147 - RuntimeSession.__init__ builds default RuntimeResources() when runtime_resources is None",
+        "token-master-plugin/skills/token-master/brainspace/session_cli.py:88 - _session constructs RuntimeResources(...) for --backend profile",
+        "no other non-test RuntimeResources( call sites (native_copilot/learning_runtime only pass instances through)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N09",
+      "category": "docs",
+      "prompt": "I'm writing the changelog entry for the move from the retained-two V2 request policy to the conservative V3 policy. From the project's Markdown docs: (1) in the controlled token-efficiency scorecard's six source-reading tasks, how many original-content recovery requests did the \"TokenMaster updated\" (retained-two) configuration make, and by what percentage did its reported task tokens exceed baseline? (2) In the V3 repair write-up, how many gateway-reported tokens did V3 avoid on the four repeated-read probes, and how many saved baseline requests did its offline replay check? Reply with ONLY a JSON object with exactly these keys: \"updated_recovery_requests\" (int), \"updated_vs_baseline_pct\" (number), \"v3_probe_tokens_avoided\" (int), \"offline_replay_requests\" (int).",
+      "expected": {
+        "updated_recovery_requests": 10,
+        "updated_vs_baseline_pct": 33.0,
+        "v3_probe_tokens_avoided": 8876,
+        "offline_replay_requests": 69
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/CONTROLLED_SCORECARD.md:27 - TokenMaster updated | 18/18 | 79 | 466,336 | +33.0%",
+        "token-master-plugin/docs/CONTROLLED_SCORECARD.md:36 - Original-content recovery requests: old 15, updated 10, baseline 0, Ponytail 0",
+        "token-master-plugin/docs/CONSERVATIVE_POLICY_FIX.md:19-20 - V3 avoids 8,876 gateway-reported tokens on the probe workload",
+        "token-master-plugin/docs/CONSERVATIVE_POLICY_FIX.md:77-79 - scorecard showed 33.0% more tokens for the retained-two configuration",
+        "token-master-plugin/docs/CONSERVATIVE_POLICY_FIX.md:175 - offline replay checks all 69 baseline requests (also 197: 69/69)"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N10",
+      "category": "docs",
+      "prompt": "For the October 9 status update I need two live comparisons from the docs: (a) the V4 ordinary-workflow diagnostic (true off vs local V4 over the eight fixed tasks) and (b) the repaired native-profile real-model comparison (optimizer-off baseline vs the candidate profile on the two-task workload). Give the gateway-reported token totals for each arm, how many of the two tasks the native candidate completed correctly, and how many model requests the complete native experiment used including readiness. Reply with ONLY a JSON object with exactly these keys: \"v4_true_off_gateway_tokens\" (int), \"v4_local_gateway_tokens\" (int), \"native_baseline_gateway_tokens\" (int), \"native_candidate_gateway_tokens\" (int), \"native_candidate_correct_tasks\" (int), \"native_total_model_requests\" (int).",
+      "expected": {
+        "v4_true_off_gateway_tokens": 58156,
+        "v4_local_gateway_tokens": 57323,
+        "native_baseline_gateway_tokens": 37498,
+        "native_candidate_gateway_tokens": 37304,
+        "native_candidate_correct_tasks": 1,
+        "native_total_model_requests": 15
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/LEXICAL_JSON_RESULTS.md:11 - True off: 8/8, 32 requests, 58,156 gateway-reported tokens",
+        "token-master-plugin/docs/LEXICAL_JSON_RESULTS.md:12 - Local V4: 8/8, 32 requests, 57,323 gateway-reported tokens",
+        "token-master-plugin/docs/NATIVE_RANGED_LIVE_RESULTS.md:32 - entire two-task workload: baseline 2/2 / 7 / 37,498; candidate 1/2 / 7 / 37,304",
+        "token-master-plugin/docs/NATIVE_RANGED_LIVE_RESULTS.md:38-39 - readiness separate; complete experiment used 15 model requests and 78,240 reported tokens"
+      ],
+      "edit_spec": null,
+      "set": "primary"
+    },
+    {
+      "id": "N11",
+      "category": "edit",
+      "prompt": "With a local V3 request policy, duplicate native Copilot `view` reads never get the exact-read reuse marker. The V3 planner already admits successful `view` receipts (they are in QUALIFIED_SOURCE_TOOLS), but the exact-read reuse helper keeps its own module-level tool-name tuple containing only \"read_file\" and \"fetch_artifact\", so both reuse proposal and restoration skip `view`. Extend that tuple so \"view\" is accepted: append \"view\" as the last element, keep it a tuple literal, do not import QUALIFIED_SOURCE_TOOLS, and change nothing else. Make the change in the workspace. Reply with a one-sentence summary.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/exact_reuse.py:25 - _TOOLS = (\"read_file\", \"fetch_artifact\")",
+        "token-master-plugin/skills/token-master/brainspace/exact_reuse.py:112-115 - find_exact_reuses skips receipts whose tool_name not in _TOOLS",
+        "token-master-plugin/skills/token-master/brainspace/exact_reuse.py:162-163 - restore_exact_reuses rejects markers whose tool_name not in _TOOLS",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:202 - QUALIFIED_SOURCE_TOOLS = frozenset((\"read_file\", \"fetch_artifact\", \"view\"))",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:519-526 - V3 branch admits view receipts into `verified`",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:533 - V3 branch delegates to find_exact_reuses"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/exact_reuse.py"
+        ],
+        "change": "In token-master-plugin/skills/token-master/brainspace/exact_reuse.py replace the module-level line `_TOOLS = (\"read_file\", \"fetch_artifact\")` with `_TOOLS = (\"read_file\", \"fetch_artifact\", \"view\")`. No other change in this or any other file (QUALIFIED_SOURCE_TOOLS is not imported or modified)."
+      },
+      "set": "primary",
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/exact_reuse.py",
+            "old": "_TOOLS = (\"read_file\", \"fetch_artifact\")",
+            "new": "_TOOLS = (\"read_file\", \"fetch_artifact\", \"view\")"
+          }
+        ]
+      }
+    },
+    {
+      "id": "N12",
+      "category": "edit",
+      "prompt": "JSON overview sampling must refuse to sample when any item reports a nonzero exit status. `_has_alert` lowercases each key before matching, but its exit-status tuple lists only \"exit_code\", \"returncode\" and \"return_code\", so a nonzero camelCase `exitCode` (which the host-output adapter, the request planner and the Headroom worker all treat as a failure) is ignored and the failing row can be sampled away. Add the lowercased spelling \"exitcode\" to that tuple, immediately after \"exit_code\". Change nothing else. Make the change in the workspace. Reply with a one-sentence summary.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py:121 - field = key.lower()",
+        "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py:125 - if field in (\"exit_code\", \"returncode\", \"return_code\") and item != 0: (misses exitcode)",
+        "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py:73 - overview returns the original only when _has_alert(data) is true",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:68 - _failed checks (\"exitCode\", \"exit_code\", \"returncode\", \"return_code\")",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:317 - _protected strict check includes \"exitCode\"",
+        "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:303 - _successful_metadata includes \"exitCode\""
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py"
+        ],
+        "change": "In _has_alert in token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py replace `if field in (\"exit_code\", \"returncode\", \"return_code\") and item != 0:` with `if field in (\"exit_code\", \"exitcode\", \"returncode\", \"return_code\") and item != 0:`. Nothing else changes."
+      },
+      "set": "primary",
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/compressors/json_compressor.py",
+            "old": "if field in (\"exit_code\", \"returncode\", \"return_code\") and item != 0:",
+            "new": "if field in (\"exit_code\", \"exitcode\", \"returncode\", \"return_code\") and item != 0:"
+          }
+        ]
+      }
+    },
+    {
+      "id": "T01",
+      "category": "locate",
+      "prompt": "When a `.rs` or `.py` file read is turned into a body-elided navigation view, which function resolves the source language from the filename/tool hint, which constant holds the extension-to-language map that function consults, and which constant is the per-language table that says which tree-sitter node type gets its body elided? Also, which node type is elided for Rust? Reply with ONLY a JSON object with exactly these keys: \"resolver_function\" (string), \"extension_map\" (string), \"language_table\" (string), \"rust_elided_node_type\" (string). Give the first three as \"<path relative to token-master-plugin/skills/token-master>::<name>\", e.g. \"brainspace/ccr.py::CCR.stash\".",
+      "expected": {
+        "resolver_function": "brainspace/router.py::lang_from_hint",
+        "extension_map": "brainspace/router.py::_LANG_BY_EXT",
+        "language_table": "brainspace/compressors/code_compressor.py::_LANG_SPECS",
+        "rust_elided_node_type": "function_item"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/router.py:40 - _LANG_BY_EXT maps .py/.pyi to python and .rs to rust",
+        "token-master-plugin/skills/token-master/brainspace/router.py:89 - lang_from_hint(hint) returns the language for the first matching extension in _LANG_BY_EXT",
+        "token-master-plugin/skills/token-master/brainspace/router.py:174 - route_typed calls lang_from_hint(hint) and forwards lang to the code view",
+        "token-master-plugin/skills/token-master/brainspace/compressors/code_compressor.py:16 - _LANG_SPECS defines per-language tree-sitter module and the node type to elide",
+        "token-master-plugin/skills/token-master/brainspace/compressors/code_compressor.py:23 - the rust entry elides 'function_item'"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T02",
+      "category": "locate",
+      "prompt": "Uninstall must only remove host settings and agent files that our installer owns; ownership is tracked in sidecar receipts named `<file>.token-master-owned.json`. In non-test code, which functions build a receipt path (append that suffix), and which of those actually write or delete the receipt file? Also, what suffix is appended to a config file's name to form its lock file? Reply with ONLY a JSON object with exactly these keys: \"receipt_path_builders\" (list of strings, order does not matter), \"receipt_writers\" (list of strings, order does not matter), \"lock_suffix\" (string). Name functions as \"<path relative to token-master-plugin/skills/token-master>::<function>\", e.g. \"hosts/runtime.py::runtime_entry\".",
+      "expected": {
+        "receipt_path_builders": [
+          "hosts/config.py::transaction",
+          "hosts/files.py::owned_file",
+          "setup.py::main",
+          "hosts/__init__.py::copilot_hook_status"
+        ],
+        "receipt_writers": [
+          "hosts/config.py::transaction",
+          "hosts/files.py::owned_file"
+        ],
+        "lock_suffix": ".token-master.lock"
+      },
+      "unordered_list_keys": [
+        "receipt_path_builders",
+        "receipt_writers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/hosts/config.py:69 - config_lock names the lock file path.name + '.token-master.lock'",
+        "token-master-plugin/skills/token-master/hosts/config.py:96 - transaction builds the receipt path with '.token-master-owned.json'",
+        "token-master-plugin/skills/token-master/hosts/config.py:117 - transaction writes the receipt with atomic_write (line 125 unlinks it on rollback)",
+        "token-master-plugin/skills/token-master/hosts/files.py:10 - owned_file builds the agent-file receipt path",
+        "token-master-plugin/skills/token-master/hosts/files.py:26 - owned_file writes the receipt (line 23 unlinks it on removal)",
+        "token-master-plugin/skills/token-master/setup.py:304 - main (uninstall branch) builds the MCP-config receipt path and only parses it",
+        "token-master-plugin/skills/token-master/hosts/__init__.py:124 - copilot_hook_status builds and parses the settings.json receipt without writing it"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T03",
+      "category": "locate",
+      "prompt": "Product wants to reword the preamble the task runtime puts in front of optional execution guidance (the text starting \"Optional execution guidance; the user's actual task and requested depth take precedence.\"). Where is that preamble produced, where else in non-test code is the same text defined, which method checks inserted guidance against that second copy, and what error message does that check raise on a mismatch? Reply with ONLY a JSON object with exactly these keys: \"producer\" (string), \"duplicate_definition\" (string), \"validator\" (string), \"error_message\" (string). Give the first three as \"<path relative to token-master-plugin/skills/token-master>::<Class.method, function or CONSTANT>\", e.g. \"brainspace/ccr.py::PLACEHOLDER_RE\".",
+      "expected": {
+        "producer": "brainspace/runtime.py::RuntimeSession._augment",
+        "duplicate_definition": "brainspace/native_responses.py::_GUIDANCE",
+        "validator": "brainspace/native_responses.py::NativeResponsesEnvelope.render",
+        "error_message": "only marked runtime guidance may be inserted"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:519 - RuntimeSession._augment prefixes inserted guidance with the 'Optional execution guidance; ...' preamble",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:21 - _GUIDANCE duplicates the same preamble text",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:253 - NativeResponsesEnvelope.render requires guidance content to start with _GUIDANCE",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:255 - raises ValueError('only marked runtime guidance may be inserted')",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:283 - NativeResponsesEnvelope.encode goes through render()",
+        "token-master-plugin/skills/token-master/brainspace/native_transport.py:99 - NativeResponsesTransport.encode calls the envelope's encode, so the native route depends on the match"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T04",
+      "category": "logic",
+      "prompt": "In the offline synthetic demo, after `python token_efficiency.py --db demo.sqlite initialize --synthetic`, running `python token_efficiency.py --db demo.sqlite propose` lists the incumbent's neighbor policies. In what order are they listed, and which of them would actually rewrite the older tool result when the fixture plans its request (assume the verified reference tokenizer is available)? Identify each policy as \"<min_tool_chars>/<keep_recent_tool_results>/<max_transforms>\", e.g. \"512/1/4\". Reply with ONLY a JSON object with exactly these keys: \"proposal_order\" (list of strings, order matters), \"rewriting_candidates\" (list of strings, order does not matter).",
+      "expected": {
+        "proposal_order": [
+          "896/1/4",
+          "1024/1/5",
+          "1024/1/3",
+          "1024/2/4",
+          "1152/1/4"
+        ],
+        "rewriting_candidates": [
+          "896/1/4"
+        ]
+      },
+      "unordered_list_keys": [
+        "rewriting_candidates"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/token_efficiency.py:458 - synthetic initialize installs baseline_policy() as the incumbent",
+        "token-master-plugin/skills/token-master/token_efficiency.py:496 - propose prints candidates in optimizer.propose() order",
+        "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:146 - baseline_policy() is RequestPolicy(enabled=True)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:58 - RequestPolicy defaults: request-policy-v1, min_tool_chars 1024, keep_recent_tool_results 1, max_transforms 4 (lines 58-62)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:120 - policy_neighbors: +/-128 min_tool_chars, +/-1 keep_recent and max_transforms, dropping values equal to current (keep_recent 0 clamps to 1)",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:744 - propose sorts neighbors with controller_policy_sort_key",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:324 - RequestPolicy key is (min_tool_chars, keep_recent_tool_results, -max_transforms, policy_id)",
+        "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:42 - the older tool result is cut to exactly 960 characters",
+        "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:72 - fixture plans with intent='overview' (stable_prefix_messages=2 on line 74)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:568 - v1 loop only visits indices[:-keep_recent_tool_results]; keep 2 leaves no candidate",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:587 - results shorter than min_tool_chars are skipped (960 >= 896 only)"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T05",
+      "category": "logic",
+      "prompt": "When `setup.py` installs the routing agent and the optional codegraph backend is not available, the agent template is rewritten before it is written to the host. In that case: what exact front-matter `tools:` line ends up in the Copilot agent and in the Claude agent, which MCP server names remain declared under the Copilot agent's `mcp-servers:`, and which argv entries precede the script path in the rendered `args` of the Copilot agent's graphify-nav server? Reply with ONLY a JSON object with exactly these keys: \"copilot_tools_line\" (string, the full line without its newline), \"claude_tools_line\" (string, the full line without its newline), \"copilot_mcp_servers\" (list of strings, order does not matter), \"graphify_nav_args_prefix\" (list of strings, order matters).",
+      "expected": {
+        "copilot_tools_line": "tools: ['graphify-nav/*', 'read', 'search', 'execute']",
+        "claude_tools_line": "tools: graphify-nav, Read, Grep, Glob, Bash",
+        "copilot_mcp_servers": [
+          "graphify-nav"
+        ],
+        "graphify_nav_args_prefix": [
+          "-X",
+          "utf8"
+        ]
+      },
+      "unordered_list_keys": [
+        "copilot_mcp_servers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/setup.py:473 - template is stripped when node_path or shim_path is missing",
+        "token-master-plugin/skills/token-master/setup.py:236 - tools-line rewrite removes \"'codegraph/*', \" (Copilot form); line 240 removes \"codegraph, \" (Claude form)",
+        "token-master-plugin/skills/token-master/setup.py:250 - the '  codegraph:' block and its deeper-indented lines are dropped",
+        "token-master-plugin/skills/token-master/agent.template.copilot.md:4 - original Copilot tools line includes 'codegraph/*'",
+        "token-master-plugin/skills/token-master/agent.template.copilot.md:13 - codegraph mcp-server block (graphify-nav block at line 6 survives)",
+        "token-master-plugin/skills/token-master/agent.template.claude.md:4 - original Claude tools line 'graphify-nav, codegraph, Read, Grep, Glob, Bash'",
+        "token-master-plugin/skills/token-master/setup.py:477 - graphify-nav args line replaced with json.dumps(entry['args'])",
+        "token-master-plugin/skills/token-master/hosts/runtime.py:57 - runtime_entry args are ['-X', 'utf8', <resolved script>, ...]"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T06",
+      "category": "logic",
+      "prompt": "For the Claude PostToolUse path (the installed hook script plus the host-output adapter it calls), with no extra environment overrides: which field of a successful `Bash` tool_response is eligible to be rewritten, which field of a `Read` tool_response is eligible (as a dotted path), what are the default minimum eligible field length in characters and the default maximum emitted hook-output size in bytes, which environment variables override those two defaults, and is a `Bash` result whose `stderr` is a non-empty string ever rewritten? Reply with ONLY a JSON object with exactly these keys: \"bash_field\" (string), \"read_field\" (string), \"default_min_chars\" (int), \"default_max_output_bytes\" (int), \"min_chars_env\" (string), \"max_output_env\" (string), \"bash_with_stderr_rewritten\" (bool).",
+      "expected": {
+        "bash_field": "stdout",
+        "read_field": "file.content",
+        "default_min_chars": 800,
+        "default_max_output_bytes": 9000,
+        "min_chars_env": "BRAINSPACE_HOOK_MIN_CHARS",
+        "max_output_env": "BRAINSPACE_HOOK_STDOUT_CAP",
+        "bash_with_stderr_rewritten": false
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_posttooluse.py:69 - min_chars = int(BRAINSPACE_HOOK_MIN_CHARS, default '800')",
+        "token-master-plugin/skills/token-master/brainspace_posttooluse.py:70 - max_stdout_bytes = int(BRAINSPACE_HOOK_STDOUT_CAP, default '9000')",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:66 - _failed treats a truthy stderr as a failed result, so _leaves returns no paths",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:91 - Bash eligible leaf is ('stdout',)",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:96 - Read eligible leaf is ('file', 'content')",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:155 - leaves shorter than min_chars are skipped",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:169 - an envelope larger than max_stdout_bytes yields no output"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T07",
+      "category": "impact",
+      "prompt": "I'm considering changing `guard_replacement` so that when a caller does not pass `max_bytes`, it also requires the replacement's UTF-8 size to be no larger than the original's. Which non-test functions call it directly, and which of those call it without passing any `max_bytes` argument (so their behavior would change)? Reply with ONLY a JSON object with exactly these keys: \"direct_callers\" (list of strings, order does not matter), \"callers_without_max_bytes\" (list of strings, order does not matter). Name each as \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\", e.g. \"brainspace/ccr.py::CCR.stash\".",
+      "expected": {
+        "direct_callers": [
+          "brainspace/router.py::route_typed",
+          "brainspace/host_output.py::_copilot_output",
+          "brainspace/host_output.py::transform_output",
+          "brainspace_mcp.py::brainspace_compress"
+        ],
+        "callers_without_max_bytes": [
+          "brainspace/host_output.py::transform_output"
+        ]
+      },
+      "unordered_list_keys": [
+        "direct_callers",
+        "callers_without_max_bytes"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/tokens.py:137 - guard_replacement(before, after, *, max_bytes=None, max_tokens=None)",
+        "token-master-plugin/skills/token-master/brainspace/router.py:193 - route_typed calls guard_replacement(content, out, max_bytes=max_output_bytes)",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:55 - _copilot_output calls it with max_bytes=original_bytes - 1",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:163 - transform_output calls guard_replacement(original, replacement) with no max_bytes",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:67 - brainspace_compress calls tokens.guard_replacement(..., max_bytes=MAX_COMPRESS_BYTES)"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T08",
+      "category": "impact",
+      "prompt": "`_tool_indices`, the request planner's private helper that validates chat call/result pairing and returns the indices of tool-result messages, is also used outside its own module. If I change what it returns but keep its validation and raising behavior, which non-test call sites (including the defining module) actually consume the returned value, and which call it only for its validation side effect? Report the enclosing method or function; for a call inside a nested function, report the enclosing top-level function or method. Reply with ONLY a JSON object with exactly these keys: \"uses_return_value\" (list of strings, order does not matter), \"validation_only\" (list of strings, order does not matter). Name each as \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\", e.g. \"brainspace/ccr.py::CCR.stash\".",
+      "expected": {
+        "uses_return_value": [
+          "brainspace/request_policy.py::plan_request",
+          "brainspace/runtime.py::RuntimeSession._headroom_plan",
+          "brainspace/native_events.py::NativeEventCollector.source_reads"
+        ],
+        "validation_only": [
+          "brainspace/runtime.py::RuntimeSession._prepare",
+          "brainspace/transport.py::ResponsesTransport.encode",
+          "brainspace/native_responses.py::NativeResponsesEnvelope.__init__"
+        ]
+      },
+      "unordered_list_keys": [
+        "uses_return_value",
+        "validation_only"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:241 - _tool_indices returns the list of tool-result message indices",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:429 - plan_request assigns indices = _tool_indices(request) and iterates it",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:550 - nested source_candidates inside RuntimeSession._headroom_plan slices and iterates the indices",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:669 - RuntimeSession._prepare calls _tool_indices(original) and discards the result (also line 730)",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:112 - ResponsesTransport.encode calls _tool_indices(chat) only to validate",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:647 - NativeEventCollector.source_reads iterates the returned indices",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:228 - NativeResponsesEnvelope.__init__ calls it only to validate pairing"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T09",
+      "category": "docs",
+      "prompt": "I want to enable the document-structure guard (`headroom_structure_guard: \"document-structure-v1\"`) in a typed RuntimePolicy. According to the guard's own documentation, which backend, which headroom_strategy and what require_nonexpanding_input value must the policy also select, and what is the guard's default value? What reason is recorded when the guard rejects and no accepted result remains? And per the latest handoff notes, which newer, manual opt-in Headroom strategy makes this guard mandatory? Reply with ONLY a JSON object with exactly these keys: \"backend\" (string), \"headroom_strategy\" (string), \"require_nonexpanding_input\" (bool), \"default_value\" (string), \"rejection_reason\" (string), \"strategy_requiring_guard\" (string).",
+      "expected": {
+        "backend": "headroom",
+        "headroom_strategy": "native-documents-v1",
+        "require_nonexpanding_input": true,
+        "default_value": "none",
+        "rejection_reason": "headroom_structure_guard_reversion",
+        "strategy_requiring_guard": "native-documents-structure-tags-v1"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/DOCUMENT_STRUCTURE_GUARD.md:11 - opt-in setting headroom_structure_guard: document-structure-v1",
+        "token-master-plugin/docs/DOCUMENT_STRUCTURE_GUARD.md:15 - policy must also select Headroom, native-documents-v1 and require_nonexpanding_input=true; default \"none\" is omitted from serialization",
+        "token-master-plugin/docs/DOCUMENT_STRUCTURE_GUARD.md:38 - rejection records headroom_structure_guard_reversion when no accepted result remains",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.md:86 - native-documents-structure-tags-v1 requires headroom_structure_guard=\"document-structure-v1\""
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T10",
+      "category": "docs",
+      "prompt": "Before relying on the October 16 working handoff, pull the recorded check results from its JSON evidence index: ruff's exit code and how many files it was run on, mypy's exit code, the historical full regression's passed and skipped counts, and whether that full regression ran after the preprotection changes. Reply with ONLY a JSON object with exactly these keys: \"ruff_exit_code\" (int), \"ruff_files\" (int), \"mypy_exit_code\" (int), \"full_regression_passed\" (int), \"full_regression_skipped\" (int), \"full_regression_after_preprotection\" (bool).",
+      "expected": {
+        "ruff_exit_code": 0,
+        "ruff_files": 11,
+        "mypy_exit_code": 1,
+        "full_regression_passed": 4676,
+        "full_regression_skipped": 3,
+        "full_regression_after_preprotection": false
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:910 - ruff exit_code 0",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:911 - ruff files list has 11 entries (lines 912-922)",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:943 - mypy exit_code 1 (ModuleNotFoundError: No module named 'mypy')",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:996 - historical_full_regression passed 4676",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:998 - historical_full_regression skipped 3",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:1000 - applies_before_preprotection true",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.md:141 - the 4,676-test full regression ran before preprotection"
+      ],
+      "set": "secondary"
+    },
+    {
+      "id": "T11",
+      "category": "edit",
+      "prompt": "Python type stubs aren't treated as source: a `.pyi` hint such as `stubs.pyi` is not classified as code by the content router's hint check, even though the hint-to-language map already resolves `.pyi` to Python and the request planner already treats `.pyi` as a source suffix. The self-serve benchmark's directory walk also skips `.pyi` files. Insert `\".pyi\"` immediately after `\".py\"` in the router's code-extension tuple and in the benchmark's walked-extension tuple. Change nothing else (no other entries, tests or docstrings). Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/router.py:33 - _CODE_EXTS has .py but not .pyi",
+        "token-master-plugin/skills/token-master/brainspace/router.py:42 - _LANG_BY_EXT already maps .pyi to python",
+        "token-master-plugin/skills/token-master/brainspace/router.py:62 - detect() returns CODE only for hints ending in _CODE_EXTS",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:43 - _SOURCE_SUFFIXES includes .pyi",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:66 - _BENCH_EXTS has .py but not .pyi",
+        "token-master-plugin/docs/CODING_VALIDATION.md:228 - documents the .pyi routing gap"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/router.py",
+          "token-master-plugin/skills/token-master/brainspace/benchmark.py"
+        ],
+        "change": "router.py: the module-level assignment becomes _CODE_EXTS = (\".py\", \".pyi\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\", \".c\", \".cpp\", \".h\", \".hpp\", \".rb\", \".php\", \".cs\", \".kt\", \".swift\"). benchmark.py: the module-level assignment becomes _BENCH_EXTS = (\".json\", \".log\", \".txt\", \".md\", \".markdown\", \".rst\", \".py\", \".pyi\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\", \".c\", \".cpp\", \".h\", \".hpp\", \".rb\", \".php\", \".cs\", \".kt\", \".swift\"). No other AST changes in either file."
+      },
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/router.py",
+            "old": "_CODE_EXTS = (\".py\", \".js\",",
+            "new": "_CODE_EXTS = (\".py\", \".pyi\", \".js\","
+          },
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/benchmark.py",
+            "old": "    \".py\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\",",
+            "new": "    \".py\", \".pyi\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\","
+          }
+        ]
+      },
+      "set": "secondary"
+    },
+    {
+      "id": "T12",
+      "category": "edit",
+      "prompt": "The `search` subcommand of `brainspace_tools.py` always returns one context line per match, while the MCP search tool lets callers choose `context_lines`. Expose it on the CLI: inside the existing search-only branch of the retrieve/search subparser loop, directly after the `query` positional, add `command.add_argument(\"--context-lines\", type=int, default=1)`; then change the search dispatch to `return store.search(args.ref, args.query, args.offset, args.limit, context_lines=args.context_lines)`. Add no help text and change nothing else (no docstring, test or other edits). Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_tools.py:53 - search-only branch currently adds just the query positional (line 54)",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:174 - search dispatch passes ref, query, offset, limit only",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:409 - CCR.search(self, ref, query, offset=0, limit=_SEARCH_LIMIT, context_lines=1)",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:106 - MCP brainspace_search exposes context_lines and passes it through (line 113)"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace_tools.py"
+        ],
+        "change": "In _parser(), within the `for name, limit in ((\"retrieve\", 32768), (\"search\", 20)):` loop, the body of `if name == \"search\":` becomes exactly two statements: command.add_argument(\"query\") followed by command.add_argument(\"--context-lines\", type=int, default=1). In execute(), the body of `if args.command == \"search\":` becomes `return store.search(args.ref, args.query, args.offset, args.limit, context_lines=args.context_lines)`. No other AST changes."
+      },
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace_tools.py",
+            "old": "            command.add_argument(\"query\")\n",
+            "new": "            command.add_argument(\"query\")\n            command.add_argument(\"--context-lines\", type=int, default=1)\n"
+          },
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace_tools.py",
+            "old": "        return store.search(args.ref, args.query, args.offset, args.limit)\n",
+            "new": "        return store.search(args.ref, args.query, args.offset, args.limit, context_lines=args.context_lines)\n"
+          }
+        ]
+      },
+      "set": "secondary"
+    }
+  ]
+}

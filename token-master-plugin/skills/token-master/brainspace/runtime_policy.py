@@ -30,7 +30,7 @@ EXECUTION_CONTRACT = "runtime-execution-v1"
 MAX_CONTROLLER_NEIGHBORS = 12
 MAX_POLICY_JSON_BYTES = 65536
 _LEGACY_VERSIONS = ("request-policy-v1", "request-policy-v2", "request-policy-v3")
-_REQUEST_VERSIONS = (*_LEGACY_VERSIONS, "request-policy-v4")
+_REQUEST_VERSIONS = (*_LEGACY_VERSIONS, "request-policy-v4", "request-policy-v5", "request-policy-v6")
 _BACKENDS = ("none", "local", "headroom")
 _BUDGETS = (None, *range(1, 61))
 _HEADROOM_STRATEGIES = ("upstream-default-v1", "native-documents-v1",
@@ -104,8 +104,12 @@ The default annotated style is likewise omitted from serialized policies.
             raise ValueError("runtime_policy_reducer_conflict")
         if self.backend != "local" and self.request_policy.version != "request-policy-v3":
             raise ValueError("inactive_request_version")
-        if self.request_policy.version == "request-policy-v4" and not self.require_nonexpanding_input:
+        if (self.request_policy.version in ("request-policy-v4", "request-policy-v5", "request-policy-v6")
+                and not self.require_nonexpanding_input):
             raise ValueError("v4_requires_nonexpanding_input")
+        if self.request_policy.version == "request-policy-v6" and self.instruction != "none":
+            # Guidance inserted mid-session would shift every later message and miss the cache.
+            raise ValueError("v6_rejects_instruction_guidance")
         budget = self.headroom_time_budget_seconds
         if budget is not None and (type(budget) is not int or not 1 <= budget <= 60):
             raise ValueError("invalid_headroom_time_budget_seconds")
@@ -266,12 +270,13 @@ keys remain exactly as before. No-op IDs and duplicate IDs are excluded.
     assert isinstance(policy, RuntimePolicy)
     candidates = [_switch_backend(policy, backend) for backend in _BACKENDS if backend != policy.backend]
     instruction = "ponytail" if policy.instruction == "none" else "none"
-    candidates.append(replace(
-        policy, instruction=instruction,
-        require_nonexpanding_input=policy.require_nonexpanding_input
-        if policy.backend != "none" or instruction != "none" else False))
+    if policy.request_policy.version != "request-policy-v6":
+        candidates.append(replace(
+            policy, instruction=instruction,
+            require_nonexpanding_input=policy.require_nonexpanding_input
+            if policy.backend != "none" or instruction != "none" else False))
     if ((policy.backend != "none" or policy.instruction != "none")
-            and policy.request_policy.version != "request-policy-v4"
+            and policy.request_policy.version not in ("request-policy-v4", "request-policy-v5", "request-policy-v6")
             and policy.headroom_strategy == "upstream-default-v1"
             and policy.headroom_root_reference_style != "compact-root-v1"):
         candidates.append(replace(policy, require_nonexpanding_input=not policy.require_nonexpanding_input))

@@ -243,8 +243,8 @@ class RuntimeSession:
         if (type(policy) is not RequestPolicy or (backend != "local" and policy.enabled)
                 or (backend == "local" and not policy.enabled)):
             raise ValueError("choose_one_transform_backend")
-        if backend == "local" and policy.version == "request-policy-v4":
-            # V4's contract includes every wrapper/recovery/guidance token.
+        if backend == "local" and policy.version in ("request-policy-v4", "request-policy-v5", "request-policy-v6"):
+            # V4/V5/V6's contract includes every wrapper/recovery/guidance token.
             # Neither a raw-policy caller nor a registry selection can turn
             # that versioned guarantee off with the legacy optional flag.
             require_nonexpanding_input = True
@@ -307,6 +307,10 @@ class RuntimeSession:
             self._profile["headroom_structure_guard"] = self._headroom_structure_guard
         if backend == "local" and policy.version == "request-policy-v4":
             self._profile["json_projection_contract"] = "lexical-json-whitespace-with-root-footer-v1"
+        if backend == "local" and policy.version == "request-policy-v5":
+            self._profile["v5_projection_contract"] = "multi-format-compact-root-v1"
+        if backend == "local" and policy.version == "request-policy-v6":
+            self._profile["v6_projection_contract"] = "cache-native-content-deterministic-v1"
         if runtime_policy is not None:
             self._profile["runtime_policy"] = runtime_policy.to_dict()
             self._profile["runtime_resources_id"] = runtime_resources.identity
@@ -520,9 +524,11 @@ class RuntimeSession:
                 + guidance})
         # Headroom's pipeline owns fragment references. The runtime also exposes
         # exact whole-root recovery for every accepted changed source result.
+        # V6 hides nothing (lossless folds; digests name their own fetch path), so it
+        # adds no recovery schema.
         needed = (_RECOVERY_TOOLS if self.backend == "headroom" else
                   _RECOVERY_TOOLS[:1] if self.backend == "local"
-                  and self.policy.version != "request-policy-v3" else [])
+                  and self.policy.version not in ("request-policy-v3", "request-policy-v6") else [])
         if needed:
             tools = request.setdefault("tools", [])
             for recovery in needed:

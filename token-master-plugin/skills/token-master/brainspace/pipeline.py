@@ -73,6 +73,18 @@ def prepare_request(
             return TransformResult(content, "")
         return TransformResult(compact + "\n" + reference, reference)
 
+    def v5_transform(content: str, info: SourceReadInfo) -> TransformResult:
+        from .v5_reducer import transform_v5_content
+
+        return transform_v5_content(
+            content,
+            info,
+            stash_compact_root=lambda orig, src, ctype: ccr.stash(
+                orig, source=src, ctype=ctype, kind="root", reference_style="compact-root-v1"
+            ),
+            intent=intent or "conservative",
+        )
+
     return plan_request(
         request, policy=policy, protocol=protocol, intent=intent,
         transform=transform, recover=ccr.retrieve, count=tokens.count_tokens,
@@ -81,4 +93,5 @@ def prepare_request(
         source_reads=source_reads,
         source_transform=lambda content, info: transform(content, info.source_path),
         json_transform=json_transform,
+        v5_transform=v5_transform,
     )

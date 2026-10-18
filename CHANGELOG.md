@@ -7,6 +7,79 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Graph-first navigation (v7) and PRS-3 — October 18, 2026
+
+- Added `brainspace/symbol_index.py` (v7). It keeps a SQLite index of Python
+  symbols, Markdown sections and JSON keys with exact line ranges, and offers three
+  compact tools:
+  - `locate` finds a symbol, or returns a file's outline.
+  - `read_symbol` returns exactly one symbol, file or line range.
+  - `impact` lists callers. Call sites resolved by graphify come first; call sites it
+    missed are added from name matches and marked `[name]`; edges from files edited
+    since the graph was built are dropped.
+  - Every result stays under 2,400 tokens, and the three tool definitions cost 269
+    tokens.
+- Added `evals/run_prs3_study.py`, `evals/prs3_tasks.json`,
+  `docs/PRS3_PROTOCOL.md` and `docs/PRS3_RESULTS.md`.
+- PRS-3 (pre-registered, 480 live sessions, 24 fresh blind-authored tasks):
+  - v7 lowered cost by 22.0% against stock (95% CI −35.4% to −8.9%, Holm
+    p = 0.006). Quality was unchanged at 120/120.
+  - v6 replicated, at −13.0% against stock.
+  - v7 against v6 was −10.4%, which is not significant (p = 0.16). The goal of at
+    least 30% savings is not met.
+- v7 is not yet wired into host setup.
+
+### `request-policy-v6` and PRS-2 — October 18, 2026
+
+- Added `request-policy-v6` (`brainspace/v6_shaping.py`):
+  - Each tool result is shaped by a deterministic, position-independent function,
+    so earlier messages never change and provider prompt caches stay valid.
+  - Search and list output is folded losslessly.
+  - Oversized results become digests that state what was omitted and how to fetch it.
+  - Tool notices are kept verbatim.
+  - v6 adds no recovery tool and cannot be combined with prompt guidance.
+- `ResponsesTransport` gained a `parallel_tool_calls` flag (default unchanged).
+- PRS-2 (pre-registered, 216 live sessions):
+  - On 12 fresh tasks, v6 lowered cost by 11.6% (95% CI −20.8% to −3.8%) and raw
+    tokens by 17.2%, with quality unchanged at 36/36.
+  - On 12 older tasks, it lowered cost by 16.8%.
+  - Graph tools as shipped raised cost by 12.9%.
+
+### PRS-1 pre-registered study and retraction — October 18, 2026
+
+- Retracted the October 17 savings claims (−83.29%, −73.19%, −65.68%, −48.51%,
+  −44.20%, −43.14%). They came from synthetic padded modules, scripted file reads,
+  unused tools in the baseline, a misconfigured Headroom adapter, and ignored
+  prompt caching.
+- Added `evals/run_prs1_study.py`, `evals/prs1_tasks.json`,
+  `docs/PRS1_PROTOCOL.md` and `docs/PRS1_RESULTS.md`. Together they make up a
+  pre-registered 252-session live study on 12 blind-authored tasks from this
+  repository, with 7 arms and the real Copilot CLI system prompt.
+- Results:
+  - No TokenMaster configuration significantly reduced total tokens: v5 +7.8%,
+    graph −1.1%, graph + v5 +4.8%.
+  - v5 raised cache-weighted cost by 61.6% (95% CI +19.6% to +111.0%).
+  - Every TokenMaster arm passed 36/36.
+- Recorded product gaps, left unfixed:
+  - `parallel_tool_calls` is forced to `false`.
+  - v5 breaks the provider's prompt cache.
+  - `exact_reuse` skips `view` reads.
+  - The agent text names stale codegraph tools.
+
+### Experimental `request-policy-v5` — October 17, 2026
+
+- Added `request-policy-v5` (`brainspace/v5_reducer.py`). It is wired into
+  `request_policy.py`, `pipeline.py`, `runtime_policy.py` and `runtime.py`, and
+  preserves the `v1`–`v4` policy identities.
+- v5 keeps the newest tool result verbatim. It compacts older reads (code
+  skeletons, JSON overviews, Markdown and log summaries) behind one
+  `compact-root-v1` reference (`[[BR:<64-hex>|r=1]]`) backed by SQLite `CCR`.
+- Qualified GitHub Copilot CLI `1.0.98` in `native_copilot.py` and `native_runtime.py`.
+- Added synthetic sandbox harnesses (`run_isolated_sandbox_savings.py`,
+  `run_native_copilot_sandbox.py`, `run_2m_4way_sandbox_study.py`,
+  `run_full_stack_graph_v5_study.py`). Their savings figures are retracted; see
+  the October 18 entry.
+
 ### Conservative request-policy repair — October 8, 2026
 
 - Added opt-in V3 exact visible-read reuse: retain unique evidence, require

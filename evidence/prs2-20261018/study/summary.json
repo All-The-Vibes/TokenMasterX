@@ -1,0 +1,970 @@
+{
+  "study": "PRS-2",
+  "protocol_sha256": "450290656c9303f593ea205c78725db96858d8173fc034dc42f3f229fb359acd",
+  "harness_sha256": "a088b9147d0a74779a2949eeacba050b4f4bf3f5f96520c3f1e18f949e942793",
+  "tasks_sha256": "62f6a395b1ee22a4f8574ec44928f73cd9455c711633efad66b4eec570f85159",
+  "model": "gpt-6-astra",
+  "sessions_recorded": 217,
+  "sets": {
+    "primary": {
+      "tasks": [
+        "N01",
+        "N02",
+        "N03",
+        "N04",
+        "N05",
+        "N06",
+        "N07",
+        "N08",
+        "N09",
+        "N10",
+        "N11",
+        "N12"
+      ],
+      "arms": {
+        "stock": {
+          "graded": 36,
+          "passes": 36,
+          "success_ci95": [
+            0.9036,
+            1.0
+          ],
+          "infra_excluded": 0,
+          "estimated_token_calls": 0,
+          "failure_reasons": {},
+          "totals": {
+            "cost": 473611.3,
+            "cost_w0.25": 580825.8,
+            "cost_r4": 432139.3,
+            "cost_write1.25": 553280.1,
+            "raw_tokens": 1044322,
+            "uncached": 319191,
+            "calls": 172
+          },
+          "cached": 714763,
+          "tool_calls": {
+            "view": 102,
+            "grep": 44,
+            "glob": 26,
+            "edit": 6
+          }
+        },
+        "tm6": {
+          "graded": 36,
+          "passes": 36,
+          "success_ci95": [
+            0.9036,
+            1.0
+          ],
+          "infra_excluded": 0,
+          "estimated_token_calls": 0,
+          "failure_reasons": {},
+          "totals": {
+            "cost": 418706.2,
+            "cost_w0.25": 504478.0,
+            "cost_r4": 379538.2,
+            "cost_write1.25": 489383.5,
+            "raw_tokens": 864793,
+            "uncached": 283189,
+            "calls": 160
+          },
+          "cached": 571812,
+          "tool_calls": {
+            "view": 89,
+            "grep": 43,
+            "glob": 24,
+            "edit": 6
+          }
+        },
+        "tm6_graph": {
+          "graded": 36,
+          "passes": 36,
+          "success_ci95": [
+            0.9036,
+            1.0
+          ],
+          "infra_excluded": 0,
+          "estimated_token_calls": 0,
+          "failure_reasons": {},
+          "totals": {
+            "cost": 534682.9,
+            "cost_w0.25": 670632.2,
+            "cost_r4": 496758.9,
+            "cost_write1.25": 626608.9,
+            "raw_tokens": 1284012,
+            "uncached": 368202,
+            "calls": 166
+          },
+          "cached": 906329,
+          "tool_calls": {
+            "view": 85,
+            "graphify-nav-find": 26,
+            "grep": 22,
+            "glob": 10,
+            "codegraph-codegraph_explore": 10,
+            "graphify-nav-callers": 6,
+            "edit": 6
+          }
+        }
+      },
+      "comparisons": [
+        {
+          "arm": "tm6",
+          "reference": "stock",
+          "cost": {
+            "pairs": 36,
+            "arm_sum": 418706.2,
+            "ref_sum": 473611.3,
+            "change": -0.1159,
+            "change_ci95": [
+              -0.2082,
+              -0.0382
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.00684,
+            "paired_passes": [
+              36,
+              36
+            ],
+            "holm_p": 0.01368
+          },
+          "cost_w0.25": {
+            "pairs": 36,
+            "arm_sum": 504478.0,
+            "ref_sum": 580825.8,
+            "change": -0.1314,
+            "change_ci95": [
+              -0.2394,
+              -0.0381
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.00684,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_r4": {
+            "pairs": 36,
+            "arm_sum": 379538.2,
+            "ref_sum": 432139.3,
+            "change": -0.1217,
+            "change_ci95": [
+              -0.2169,
+              -0.041
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.00684,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_write1.25": {
+            "pairs": 36,
+            "arm_sum": 489383.5,
+            "ref_sum": 553280.1,
+            "change": -0.1155,
+            "change_ci95": [
+              -0.2062,
+              -0.0389
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.00684,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "raw_tokens": {
+            "pairs": 36,
+            "arm_sum": 864793,
+            "ref_sum": 1044322,
+            "change": -0.1719,
+            "change_ci95": [
+              -0.3179,
+              -0.033
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.01611,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "uncached": {
+            "pairs": 36,
+            "arm_sum": 283189,
+            "ref_sum": 319191,
+            "change": -0.1128,
+            "change_ci95": [
+              -0.1981,
+              -0.0352
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.00684,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "calls": {
+            "pairs": 36,
+            "arm_sum": 160,
+            "ref_sum": 172,
+            "change": -0.0698,
+            "change_ci95": [
+              -0.1538,
+              0.0059
+            ],
+            "tasks_lower": 4,
+            "tasks_higher": 1,
+            "wilcoxon_p": 0.1875,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "verdict": "lower cost"
+        },
+        {
+          "arm": "tm6_graph",
+          "reference": "stock",
+          "cost": {
+            "pairs": 36,
+            "arm_sum": 534682.9,
+            "ref_sum": 473611.3,
+            "change": 0.1289,
+            "change_ci95": [
+              0.0198,
+              0.2533
+            ],
+            "tasks_lower": 3,
+            "tasks_higher": 9,
+            "wilcoxon_p": 0.02686,
+            "paired_passes": [
+              36,
+              36
+            ],
+            "holm_p": 0.02686
+          },
+          "cost_w0.25": {
+            "pairs": 36,
+            "arm_sum": 670632.2,
+            "ref_sum": 580825.8,
+            "change": 0.1546,
+            "change_ci95": [
+              0.0332,
+              0.2903
+            ],
+            "tasks_lower": 2,
+            "tasks_higher": 10,
+            "wilcoxon_p": 0.021,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_r4": {
+            "pairs": 36,
+            "arm_sum": 496758.9,
+            "ref_sum": 432139.3,
+            "change": 0.1495,
+            "change_ci95": [
+              0.0306,
+              0.2884
+            ],
+            "tasks_lower": 2,
+            "tasks_higher": 10,
+            "wilcoxon_p": 0.01221,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_write1.25": {
+            "pairs": 36,
+            "arm_sum": 626608.9,
+            "ref_sum": 553280.1,
+            "change": 0.1325,
+            "change_ci95": [
+              0.0208,
+              0.2615
+            ],
+            "tasks_lower": 3,
+            "tasks_higher": 9,
+            "wilcoxon_p": 0.021,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "raw_tokens": {
+            "pairs": 36,
+            "arm_sum": 1284012,
+            "ref_sum": 1044322,
+            "change": 0.2295,
+            "change_ci95": [
+              0.0632,
+              0.4177
+            ],
+            "tasks_lower": 2,
+            "tasks_higher": 10,
+            "wilcoxon_p": 0.00488,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "uncached": {
+            "pairs": 36,
+            "arm_sum": 368202,
+            "ref_sum": 319191,
+            "change": 0.1535,
+            "change_ci95": [
+              0.024,
+              0.3192
+            ],
+            "tasks_lower": 3,
+            "tasks_higher": 9,
+            "wilcoxon_p": 0.02686,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "calls": {
+            "pairs": 36,
+            "arm_sum": 166,
+            "ref_sum": 172,
+            "change": -0.0349,
+            "change_ci95": [
+              -0.1272,
+              0.0764
+            ],
+            "tasks_lower": 6,
+            "tasks_higher": 4,
+            "wilcoxon_p": 0.48633,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "verdict": "higher cost"
+        },
+        {
+          "arm": "tm6_graph",
+          "reference": "tm6",
+          "cost": {
+            "pairs": 36,
+            "arm_sum": 534682.9,
+            "ref_sum": 418706.2,
+            "change": 0.277,
+            "change_ci95": [
+              0.1773,
+              0.3861
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ],
+            "holm_p": 0.00294
+          },
+          "cost_w0.25": {
+            "pairs": 36,
+            "arm_sum": 670632.2,
+            "ref_sum": 504478.0,
+            "change": 0.3294,
+            "change_ci95": [
+              0.213,
+              0.4535
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_r4": {
+            "pairs": 36,
+            "arm_sum": 496758.9,
+            "ref_sum": 379538.2,
+            "change": 0.3089,
+            "change_ci95": [
+              0.2035,
+              0.4232
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_write1.25": {
+            "pairs": 36,
+            "arm_sum": 626608.9,
+            "ref_sum": 489383.5,
+            "change": 0.2804,
+            "change_ci95": [
+              0.1804,
+              0.3896
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "raw_tokens": {
+            "pairs": 36,
+            "arm_sum": 1284012,
+            "ref_sum": 864793,
+            "change": 0.4848,
+            "change_ci95": [
+              0.307,
+              0.6818
+            ],
+            "tasks_lower": 0,
+            "tasks_higher": 12,
+            "wilcoxon_p": 0.00049,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "uncached": {
+            "pairs": 36,
+            "arm_sum": 368202,
+            "ref_sum": 283189,
+            "change": 0.3002,
+            "change_ci95": [
+              0.1906,
+              0.4302
+            ],
+            "tasks_lower": 0,
+            "tasks_higher": 12,
+            "wilcoxon_p": 0.00049,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "calls": {
+            "pairs": 36,
+            "arm_sum": 166,
+            "ref_sum": 160,
+            "change": 0.0375,
+            "change_ci95": [
+              -0.0769,
+              0.1702
+            ],
+            "tasks_lower": 5,
+            "tasks_higher": 6,
+            "wilcoxon_p": 0.62598,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "verdict": "higher cost"
+        }
+      ]
+    },
+    "secondary": {
+      "tasks": [
+        "T01",
+        "T02",
+        "T03",
+        "T04",
+        "T05",
+        "T06",
+        "T07",
+        "T08",
+        "T09",
+        "T10",
+        "T11",
+        "T12"
+      ],
+      "arms": {
+        "stock": {
+          "graded": 36,
+          "passes": 36,
+          "success_ci95": [
+            0.9036,
+            1.0
+          ],
+          "infra_excluded": 0,
+          "estimated_token_calls": 0,
+          "failure_reasons": {},
+          "totals": {
+            "cost": 629785.1,
+            "cost_w0.25": 780740.8,
+            "cost_r4": 577321.1,
+            "cost_write1.25": 735698.3,
+            "raw_tokens": 1443707,
+            "uncached": 424220,
+            "calls": 189
+          },
+          "cached": 1006371,
+          "tool_calls": {
+            "view": 112,
+            "grep": 67,
+            "glob": 31,
+            "edit": 12
+          }
+        },
+        "tm6": {
+          "graded": 36,
+          "passes": 36,
+          "success_ci95": [
+            0.9036,
+            1.0
+          ],
+          "infra_excluded": 0,
+          "estimated_token_calls": 0,
+          "failure_reasons": {},
+          "totals": {
+            "cost": 524276.3,
+            "cost_w0.25": 638209.2,
+            "cost_r4": 471588.3,
+            "cost_write1.25": 609877.6,
+            "raw_tokens": 1115670,
+            "uncached": 342945,
+            "calls": 180
+          },
+          "cached": 759553,
+          "tool_calls": {
+            "view": 119,
+            "grep": 59,
+            "glob": 28,
+            "edit": 12
+          }
+        },
+        "tm6_graph": {
+          "graded": 36,
+          "passes": 35,
+          "success_ci95": [
+            0.8583,
+            0.9951
+          ],
+          "infra_excluded": 0,
+          "estimated_token_calls": 0,
+          "failure_reasons": {
+            "wrong": 1
+          },
+          "totals": {
+            "cost": 653675.9,
+            "cost_w0.25": 848831.8,
+            "cost_r4": 602479.9,
+            "cost_write1.25": 758819.4,
+            "raw_tokens": 1735018,
+            "uncached": 421180,
+            "calls": 202
+          },
+          "cached": 1301039,
+          "tool_calls": {
+            "view": 84,
+            "grep": 47,
+            "codegraph-codegraph_explore": 32,
+            "graphify-nav-find": 22,
+            "glob": 18,
+            "edit": 12,
+            "graphify-nav-callers": 6
+          }
+        }
+      },
+      "comparisons": [
+        {
+          "arm": "tm6",
+          "reference": "stock",
+          "cost": {
+            "pairs": 36,
+            "arm_sum": 524276.3,
+            "ref_sum": 629785.1,
+            "change": -0.1675,
+            "change_ci95": [
+              -0.2471,
+              -0.0838
+            ],
+            "tasks_lower": 11,
+            "tasks_higher": 1,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ],
+            "holm_p": 0.00294
+          },
+          "cost_w0.25": {
+            "pairs": 36,
+            "arm_sum": 638209.2,
+            "ref_sum": 780740.8,
+            "change": -0.1826,
+            "change_ci95": [
+              -0.2673,
+              -0.0901
+            ],
+            "tasks_lower": 11,
+            "tasks_higher": 1,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_r4": {
+            "pairs": 36,
+            "arm_sum": 471588.3,
+            "ref_sum": 577321.1,
+            "change": -0.1831,
+            "change_ci95": [
+              -0.268,
+              -0.0931
+            ],
+            "tasks_lower": 11,
+            "tasks_higher": 1,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "cost_write1.25": {
+            "pairs": 36,
+            "arm_sum": 609877.6,
+            "ref_sum": 735698.3,
+            "change": -0.171,
+            "change_ci95": [
+              -0.2527,
+              -0.0862
+            ],
+            "tasks_lower": 11,
+            "tasks_higher": 1,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "raw_tokens": {
+            "pairs": 36,
+            "arm_sum": 1115670,
+            "ref_sum": 1443707,
+            "change": -0.2272,
+            "change_ci95": [
+              -0.3328,
+              -0.1028
+            ],
+            "tasks_lower": 10,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.00488,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "uncached": {
+            "pairs": 36,
+            "arm_sum": 342945,
+            "ref_sum": 424220,
+            "change": -0.1916,
+            "change_ci95": [
+              -0.2868,
+              -0.0953
+            ],
+            "tasks_lower": 11,
+            "tasks_higher": 1,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "calls": {
+            "pairs": 36,
+            "arm_sum": 180,
+            "ref_sum": 189,
+            "change": -0.0476,
+            "change_ci95": [
+              -0.1271,
+              0.041
+            ],
+            "tasks_lower": 6,
+            "tasks_higher": 2,
+            "wilcoxon_p": 0.24219,
+            "paired_passes": [
+              36,
+              36
+            ]
+          },
+          "verdict": "lower cost"
+        },
+        {
+          "arm": "tm6_graph",
+          "reference": "stock",
+          "cost": {
+            "pairs": 36,
+            "arm_sum": 653675.9,
+            "ref_sum": 629785.1,
+            "change": 0.0379,
+            "change_ci95": [
+              -0.123,
+              0.2312
+            ],
+            "tasks_lower": 4,
+            "tasks_higher": 8,
+            "wilcoxon_p": 0.42383,
+            "paired_passes": [
+              35,
+              36
+            ],
+            "holm_p": 0.42383
+          },
+          "cost_w0.25": {
+            "pairs": 36,
+            "arm_sum": 848831.8,
+            "ref_sum": 780740.8,
+            "change": 0.0872,
+            "change_ci95": [
+              -0.0836,
+              0.2967
+            ],
+            "tasks_lower": 4,
+            "tasks_higher": 8,
+            "wilcoxon_p": 0.26611,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "cost_r4": {
+            "pairs": 36,
+            "arm_sum": 602479.9,
+            "ref_sum": 577321.1,
+            "change": 0.0436,
+            "change_ci95": [
+              -0.1302,
+              0.2545
+            ],
+            "tasks_lower": 3,
+            "tasks_higher": 9,
+            "wilcoxon_p": 0.26611,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "cost_write1.25": {
+            "pairs": 36,
+            "arm_sum": 758819.4,
+            "ref_sum": 735698.3,
+            "change": 0.0314,
+            "change_ci95": [
+              -0.1328,
+              0.2287
+            ],
+            "tasks_lower": 4,
+            "tasks_higher": 8,
+            "wilcoxon_p": 0.42383,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "raw_tokens": {
+            "pairs": 36,
+            "arm_sum": 1735018,
+            "ref_sum": 1443707,
+            "change": 0.2018,
+            "change_ci95": [
+              -0.0085,
+              0.4808
+            ],
+            "tasks_lower": 4,
+            "tasks_higher": 8,
+            "wilcoxon_p": 0.06396,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "uncached": {
+            "pairs": 36,
+            "arm_sum": 421180,
+            "ref_sum": 424220,
+            "change": -0.0072,
+            "change_ci95": [
+              -0.1959,
+              0.2294
+            ],
+            "tasks_lower": 4,
+            "tasks_higher": 8,
+            "wilcoxon_p": 0.46973,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "calls": {
+            "pairs": 36,
+            "arm_sum": 202,
+            "ref_sum": 189,
+            "change": 0.0688,
+            "change_ci95": [
+              -0.0427,
+              0.1807
+            ],
+            "tasks_lower": 3,
+            "tasks_higher": 6,
+            "wilcoxon_p": 0.20703,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "verdict": "no significant cost difference"
+        },
+        {
+          "arm": "tm6_graph",
+          "reference": "tm6",
+          "cost": {
+            "pairs": 36,
+            "arm_sum": 653675.9,
+            "ref_sum": 524276.3,
+            "change": 0.2468,
+            "change_ci95": [
+              0.0554,
+              0.4519
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.021,
+            "paired_passes": [
+              35,
+              36
+            ],
+            "holm_p": 0.042
+          },
+          "cost_w0.25": {
+            "pairs": 36,
+            "arm_sum": 848831.8,
+            "ref_sum": 638209.2,
+            "change": 0.33,
+            "change_ci95": [
+              0.1163,
+              0.5606
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.01611,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "cost_r4": {
+            "pairs": 36,
+            "arm_sum": 602479.9,
+            "ref_sum": 471588.3,
+            "change": 0.2776,
+            "change_ci95": [
+              0.075,
+              0.5006
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.021,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "cost_write1.25": {
+            "pairs": 36,
+            "arm_sum": 758819.4,
+            "ref_sum": 609877.6,
+            "change": 0.2442,
+            "change_ci95": [
+              0.0524,
+              0.4524
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.021,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "raw_tokens": {
+            "pairs": 36,
+            "arm_sum": 1735018,
+            "ref_sum": 1115670,
+            "change": 0.5551,
+            "change_ci95": [
+              0.2629,
+              0.8857
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.00098,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "uncached": {
+            "pairs": 36,
+            "arm_sum": 421180,
+            "ref_sum": 342945,
+            "change": 0.2281,
+            "change_ci95": [
+              0.0266,
+              0.4557
+            ],
+            "tasks_lower": 1,
+            "tasks_higher": 11,
+            "wilcoxon_p": 0.02686,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "calls": {
+            "pairs": 36,
+            "arm_sum": 202,
+            "ref_sum": 180,
+            "change": 0.1222,
+            "change_ci95": [
+              0.0099,
+              0.2368
+            ],
+            "tasks_lower": 2,
+            "tasks_higher": 8,
+            "wilcoxon_p": 0.0332,
+            "paired_passes": [
+              35,
+              36
+            ]
+          },
+          "verdict": "higher cost"
+        }
+      ]
+    }
+  }
+}

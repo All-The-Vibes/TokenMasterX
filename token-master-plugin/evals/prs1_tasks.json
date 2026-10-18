@@ -1,0 +1,334 @@
+{
+  "provenance": {
+    "authored_by": "separate agent session ses_eb291845bffeJoSC6T1sQvos8O, not told the arms or the study purpose",
+    "snapshot": "git archive 703aa20d3e0f1fc955302dc769a68b1801992150 token-master-plugin/skills/token-master token-master-plugin/docs",
+    "verified": "every expected value re-derived from the snapshot on 2026-10-18 before any study call; T04 by executing the snapshot's own propose and fixture planner"
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "category": "locate",
+      "prompt": "When a `.rs` or `.py` file read is turned into a body-elided navigation view, which function resolves the source language from the filename/tool hint, which constant holds the extension-to-language map that function consults, and which constant is the per-language table that says which tree-sitter node type gets its body elided? Also, which node type is elided for Rust? Reply with ONLY a JSON object with exactly these keys: \"resolver_function\" (string), \"extension_map\" (string), \"language_table\" (string), \"rust_elided_node_type\" (string). Give the first three as \"<path relative to token-master-plugin/skills/token-master>::<name>\", e.g. \"brainspace/ccr.py::CCR.stash\".",
+      "expected": {
+        "resolver_function": "brainspace/router.py::lang_from_hint",
+        "extension_map": "brainspace/router.py::_LANG_BY_EXT",
+        "language_table": "brainspace/compressors/code_compressor.py::_LANG_SPECS",
+        "rust_elided_node_type": "function_item"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/router.py:40 - _LANG_BY_EXT maps .py/.pyi to python and .rs to rust",
+        "token-master-plugin/skills/token-master/brainspace/router.py:89 - lang_from_hint(hint) returns the language for the first matching extension in _LANG_BY_EXT",
+        "token-master-plugin/skills/token-master/brainspace/router.py:174 - route_typed calls lang_from_hint(hint) and forwards lang to the code view",
+        "token-master-plugin/skills/token-master/brainspace/compressors/code_compressor.py:16 - _LANG_SPECS defines per-language tree-sitter module and the node type to elide",
+        "token-master-plugin/skills/token-master/brainspace/compressors/code_compressor.py:23 - the rust entry elides 'function_item'"
+      ]
+    },
+    {
+      "id": "T02",
+      "category": "locate",
+      "prompt": "Uninstall must only remove host settings and agent files that our installer owns; ownership is tracked in sidecar receipts named `<file>.token-master-owned.json`. In non-test code, which functions build a receipt path (append that suffix), and which of those actually write or delete the receipt file? Also, what suffix is appended to a config file's name to form its lock file? Reply with ONLY a JSON object with exactly these keys: \"receipt_path_builders\" (list of strings, order does not matter), \"receipt_writers\" (list of strings, order does not matter), \"lock_suffix\" (string). Name functions as \"<path relative to token-master-plugin/skills/token-master>::<function>\", e.g. \"hosts/runtime.py::runtime_entry\".",
+      "expected": {
+        "receipt_path_builders": [
+          "hosts/config.py::transaction",
+          "hosts/files.py::owned_file",
+          "setup.py::main",
+          "hosts/__init__.py::copilot_hook_status"
+        ],
+        "receipt_writers": [
+          "hosts/config.py::transaction",
+          "hosts/files.py::owned_file"
+        ],
+        "lock_suffix": ".token-master.lock"
+      },
+      "unordered_list_keys": [
+        "receipt_path_builders",
+        "receipt_writers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/hosts/config.py:69 - config_lock names the lock file path.name + '.token-master.lock'",
+        "token-master-plugin/skills/token-master/hosts/config.py:96 - transaction builds the receipt path with '.token-master-owned.json'",
+        "token-master-plugin/skills/token-master/hosts/config.py:117 - transaction writes the receipt with atomic_write (line 125 unlinks it on rollback)",
+        "token-master-plugin/skills/token-master/hosts/files.py:10 - owned_file builds the agent-file receipt path",
+        "token-master-plugin/skills/token-master/hosts/files.py:26 - owned_file writes the receipt (line 23 unlinks it on removal)",
+        "token-master-plugin/skills/token-master/setup.py:304 - main (uninstall branch) builds the MCP-config receipt path and only parses it",
+        "token-master-plugin/skills/token-master/hosts/__init__.py:124 - copilot_hook_status builds and parses the settings.json receipt without writing it"
+      ]
+    },
+    {
+      "id": "T03",
+      "category": "locate",
+      "prompt": "Product wants to reword the preamble the task runtime puts in front of optional execution guidance (the text starting \"Optional execution guidance; the user's actual task and requested depth take precedence.\"). Where is that preamble produced, where else in non-test code is the same text defined, which method checks inserted guidance against that second copy, and what error message does that check raise on a mismatch? Reply with ONLY a JSON object with exactly these keys: \"producer\" (string), \"duplicate_definition\" (string), \"validator\" (string), \"error_message\" (string). Give the first three as \"<path relative to token-master-plugin/skills/token-master>::<Class.method, function or CONSTANT>\", e.g. \"brainspace/ccr.py::PLACEHOLDER_RE\".",
+      "expected": {
+        "producer": "brainspace/runtime.py::RuntimeSession._augment",
+        "duplicate_definition": "brainspace/native_responses.py::_GUIDANCE",
+        "validator": "brainspace/native_responses.py::NativeResponsesEnvelope.render",
+        "error_message": "only marked runtime guidance may be inserted"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:519 - RuntimeSession._augment prefixes inserted guidance with the 'Optional execution guidance; ...' preamble",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:21 - _GUIDANCE duplicates the same preamble text",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:253 - NativeResponsesEnvelope.render requires guidance content to start with _GUIDANCE",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:255 - raises ValueError('only marked runtime guidance may be inserted')",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:283 - NativeResponsesEnvelope.encode goes through render()",
+        "token-master-plugin/skills/token-master/brainspace/native_transport.py:99 - NativeResponsesTransport.encode calls the envelope's encode, so the native route depends on the match"
+      ]
+    },
+    {
+      "id": "T04",
+      "category": "logic",
+      "prompt": "In the offline synthetic demo, after `python token_efficiency.py --db demo.sqlite initialize --synthetic`, running `python token_efficiency.py --db demo.sqlite propose` lists the incumbent's neighbor policies. In what order are they listed, and which of them would actually rewrite the older tool result when the fixture plans its request (assume the verified reference tokenizer is available)? Identify each policy as \"<min_tool_chars>/<keep_recent_tool_results>/<max_transforms>\", e.g. \"512/1/4\". Reply with ONLY a JSON object with exactly these keys: \"proposal_order\" (list of strings, order matters), \"rewriting_candidates\" (list of strings, order does not matter).",
+      "expected": {
+        "proposal_order": [
+          "896/1/4",
+          "1024/1/5",
+          "1024/1/3",
+          "1024/2/4",
+          "1152/1/4"
+        ],
+        "rewriting_candidates": [
+          "896/1/4"
+        ]
+      },
+      "unordered_list_keys": [
+        "rewriting_candidates"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/token_efficiency.py:458 - synthetic initialize installs baseline_policy() as the incumbent",
+        "token-master-plugin/skills/token-master/token_efficiency.py:496 - propose prints candidates in optimizer.propose() order",
+        "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:146 - baseline_policy() is RequestPolicy(enabled=True)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:58 - RequestPolicy defaults: request-policy-v1, min_tool_chars 1024, keep_recent_tool_results 1, max_transforms 4 (lines 58-62)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:120 - policy_neighbors: +/-128 min_tool_chars, +/-1 keep_recent and max_transforms, dropping values equal to current (keep_recent 0 clamps to 1)",
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py:744 - propose sorts neighbors with controller_policy_sort_key",
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py:324 - RequestPolicy key is (min_tool_chars, keep_recent_tool_results, -max_transforms, policy_id)",
+        "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:42 - the older tool result is cut to exactly 960 characters",
+        "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:72 - fixture plans with intent='overview' (stable_prefix_messages=2 on line 74)",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:568 - v1 loop only visits indices[:-keep_recent_tool_results]; keep 2 leaves no candidate",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:587 - results shorter than min_tool_chars are skipped (960 >= 896 only)"
+      ]
+    },
+    {
+      "id": "T05",
+      "category": "logic",
+      "prompt": "When `setup.py` installs the routing agent and the optional codegraph backend is not available, the agent template is rewritten before it is written to the host. In that case: what exact front-matter `tools:` line ends up in the Copilot agent and in the Claude agent, which MCP server names remain declared under the Copilot agent's `mcp-servers:`, and which argv entries precede the script path in the rendered `args` of the Copilot agent's graphify-nav server? Reply with ONLY a JSON object with exactly these keys: \"copilot_tools_line\" (string, the full line without its newline), \"claude_tools_line\" (string, the full line without its newline), \"copilot_mcp_servers\" (list of strings, order does not matter), \"graphify_nav_args_prefix\" (list of strings, order matters).",
+      "expected": {
+        "copilot_tools_line": "tools: ['graphify-nav/*', 'read', 'search', 'execute']",
+        "claude_tools_line": "tools: graphify-nav, Read, Grep, Glob, Bash",
+        "copilot_mcp_servers": [
+          "graphify-nav"
+        ],
+        "graphify_nav_args_prefix": [
+          "-X",
+          "utf8"
+        ]
+      },
+      "unordered_list_keys": [
+        "copilot_mcp_servers"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/setup.py:473 - template is stripped when node_path or shim_path is missing",
+        "token-master-plugin/skills/token-master/setup.py:236 - tools-line rewrite removes \"'codegraph/*', \" (Copilot form); line 240 removes \"codegraph, \" (Claude form)",
+        "token-master-plugin/skills/token-master/setup.py:250 - the '  codegraph:' block and its deeper-indented lines are dropped",
+        "token-master-plugin/skills/token-master/agent.template.copilot.md:4 - original Copilot tools line includes 'codegraph/*'",
+        "token-master-plugin/skills/token-master/agent.template.copilot.md:13 - codegraph mcp-server block (graphify-nav block at line 6 survives)",
+        "token-master-plugin/skills/token-master/agent.template.claude.md:4 - original Claude tools line 'graphify-nav, codegraph, Read, Grep, Glob, Bash'",
+        "token-master-plugin/skills/token-master/setup.py:477 - graphify-nav args line replaced with json.dumps(entry['args'])",
+        "token-master-plugin/skills/token-master/hosts/runtime.py:57 - runtime_entry args are ['-X', 'utf8', <resolved script>, ...]"
+      ]
+    },
+    {
+      "id": "T06",
+      "category": "logic",
+      "prompt": "For the Claude PostToolUse path (the installed hook script plus the host-output adapter it calls), with no extra environment overrides: which field of a successful `Bash` tool_response is eligible to be rewritten, which field of a `Read` tool_response is eligible (as a dotted path), what are the default minimum eligible field length in characters and the default maximum emitted hook-output size in bytes, which environment variables override those two defaults, and is a `Bash` result whose `stderr` is a non-empty string ever rewritten? Reply with ONLY a JSON object with exactly these keys: \"bash_field\" (string), \"read_field\" (string), \"default_min_chars\" (int), \"default_max_output_bytes\" (int), \"min_chars_env\" (string), \"max_output_env\" (string), \"bash_with_stderr_rewritten\" (bool).",
+      "expected": {
+        "bash_field": "stdout",
+        "read_field": "file.content",
+        "default_min_chars": 800,
+        "default_max_output_bytes": 9000,
+        "min_chars_env": "BRAINSPACE_HOOK_MIN_CHARS",
+        "max_output_env": "BRAINSPACE_HOOK_STDOUT_CAP",
+        "bash_with_stderr_rewritten": false
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_posttooluse.py:69 - min_chars = int(BRAINSPACE_HOOK_MIN_CHARS, default '800')",
+        "token-master-plugin/skills/token-master/brainspace_posttooluse.py:70 - max_stdout_bytes = int(BRAINSPACE_HOOK_STDOUT_CAP, default '9000')",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:66 - _failed treats a truthy stderr as a failed result, so _leaves returns no paths",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:91 - Bash eligible leaf is ('stdout',)",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:96 - Read eligible leaf is ('file', 'content')",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:155 - leaves shorter than min_chars are skipped",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:169 - an envelope larger than max_stdout_bytes yields no output"
+      ]
+    },
+    {
+      "id": "T07",
+      "category": "impact",
+      "prompt": "I'm considering changing `guard_replacement` so that when a caller does not pass `max_bytes`, it also requires the replacement's UTF-8 size to be no larger than the original's. Which non-test functions call it directly, and which of those call it without passing any `max_bytes` argument (so their behavior would change)? Reply with ONLY a JSON object with exactly these keys: \"direct_callers\" (list of strings, order does not matter), \"callers_without_max_bytes\" (list of strings, order does not matter). Name each as \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\", e.g. \"brainspace/ccr.py::CCR.stash\".",
+      "expected": {
+        "direct_callers": [
+          "brainspace/router.py::route_typed",
+          "brainspace/host_output.py::_copilot_output",
+          "brainspace/host_output.py::transform_output",
+          "brainspace_mcp.py::brainspace_compress"
+        ],
+        "callers_without_max_bytes": [
+          "brainspace/host_output.py::transform_output"
+        ]
+      },
+      "unordered_list_keys": [
+        "direct_callers",
+        "callers_without_max_bytes"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/tokens.py:137 - guard_replacement(before, after, *, max_bytes=None, max_tokens=None)",
+        "token-master-plugin/skills/token-master/brainspace/router.py:193 - route_typed calls guard_replacement(content, out, max_bytes=max_output_bytes)",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:55 - _copilot_output calls it with max_bytes=original_bytes - 1",
+        "token-master-plugin/skills/token-master/brainspace/host_output.py:163 - transform_output calls guard_replacement(original, replacement) with no max_bytes",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:67 - brainspace_compress calls tokens.guard_replacement(..., max_bytes=MAX_COMPRESS_BYTES)"
+      ]
+    },
+    {
+      "id": "T08",
+      "category": "impact",
+      "prompt": "`_tool_indices`, the request planner's private helper that validates chat call/result pairing and returns the indices of tool-result messages, is also used outside its own module. If I change what it returns but keep its validation and raising behavior, which non-test call sites (including the defining module) actually consume the returned value, and which call it only for its validation side effect? Report the enclosing method or function; for a call inside a nested function, report the enclosing top-level function or method. Reply with ONLY a JSON object with exactly these keys: \"uses_return_value\" (list of strings, order does not matter), \"validation_only\" (list of strings, order does not matter). Name each as \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\", e.g. \"brainspace/ccr.py::CCR.stash\".",
+      "expected": {
+        "uses_return_value": [
+          "brainspace/request_policy.py::plan_request",
+          "brainspace/runtime.py::RuntimeSession._headroom_plan",
+          "brainspace/native_events.py::NativeEventCollector.source_reads"
+        ],
+        "validation_only": [
+          "brainspace/runtime.py::RuntimeSession._prepare",
+          "brainspace/transport.py::ResponsesTransport.encode",
+          "brainspace/native_responses.py::NativeResponsesEnvelope.__init__"
+        ]
+      },
+      "unordered_list_keys": [
+        "uses_return_value",
+        "validation_only"
+      ],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:241 - _tool_indices returns the list of tool-result message indices",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:429 - plan_request assigns indices = _tool_indices(request) and iterates it",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:550 - nested source_candidates inside RuntimeSession._headroom_plan slices and iterates the indices",
+        "token-master-plugin/skills/token-master/brainspace/runtime.py:669 - RuntimeSession._prepare calls _tool_indices(original) and discards the result (also line 730)",
+        "token-master-plugin/skills/token-master/brainspace/transport.py:112 - ResponsesTransport.encode calls _tool_indices(chat) only to validate",
+        "token-master-plugin/skills/token-master/brainspace/native_events.py:647 - NativeEventCollector.source_reads iterates the returned indices",
+        "token-master-plugin/skills/token-master/brainspace/native_responses.py:228 - NativeResponsesEnvelope.__init__ calls it only to validate pairing"
+      ]
+    },
+    {
+      "id": "T09",
+      "category": "docs",
+      "prompt": "I want to enable the document-structure guard (`headroom_structure_guard: \"document-structure-v1\"`) in a typed RuntimePolicy. According to the guard's own documentation, which backend, which headroom_strategy and what require_nonexpanding_input value must the policy also select, and what is the guard's default value? What reason is recorded when the guard rejects and no accepted result remains? And per the latest handoff notes, which newer, manual opt-in Headroom strategy makes this guard mandatory? Reply with ONLY a JSON object with exactly these keys: \"backend\" (string), \"headroom_strategy\" (string), \"require_nonexpanding_input\" (bool), \"default_value\" (string), \"rejection_reason\" (string), \"strategy_requiring_guard\" (string).",
+      "expected": {
+        "backend": "headroom",
+        "headroom_strategy": "native-documents-v1",
+        "require_nonexpanding_input": true,
+        "default_value": "none",
+        "rejection_reason": "headroom_structure_guard_reversion",
+        "strategy_requiring_guard": "native-documents-structure-tags-v1"
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/DOCUMENT_STRUCTURE_GUARD.md:11 - opt-in setting headroom_structure_guard: document-structure-v1",
+        "token-master-plugin/docs/DOCUMENT_STRUCTURE_GUARD.md:15 - policy must also select Headroom, native-documents-v1 and require_nonexpanding_input=true; default \"none\" is omitted from serialization",
+        "token-master-plugin/docs/DOCUMENT_STRUCTURE_GUARD.md:38 - rejection records headroom_structure_guard_reversion when no accepted result remains",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.md:86 - native-documents-structure-tags-v1 requires headroom_structure_guard=\"document-structure-v1\""
+      ]
+    },
+    {
+      "id": "T10",
+      "category": "docs",
+      "prompt": "Before relying on the October 16 working handoff, pull the recorded check results from its JSON evidence index: ruff's exit code and how many files it was run on, mypy's exit code, the historical full regression's passed and skipped counts, and whether that full regression ran after the preprotection changes. Reply with ONLY a JSON object with exactly these keys: \"ruff_exit_code\" (int), \"ruff_files\" (int), \"mypy_exit_code\" (int), \"full_regression_passed\" (int), \"full_regression_skipped\" (int), \"full_regression_after_preprotection\" (bool).",
+      "expected": {
+        "ruff_exit_code": 0,
+        "ruff_files": 11,
+        "mypy_exit_code": 1,
+        "full_regression_passed": 4676,
+        "full_regression_skipped": 3,
+        "full_regression_after_preprotection": false
+      },
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:910 - ruff exit_code 0",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:911 - ruff files list has 11 entries (lines 912-922)",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:943 - mypy exit_code 1 (ModuleNotFoundError: No module named 'mypy')",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:996 - historical_full_regression passed 4676",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:998 - historical_full_regression skipped 3",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.json:1000 - applies_before_preprotection true",
+        "token-master-plugin/docs/HANDOFF-2026-10-16.md:141 - the 4,676-test full regression ran before preprotection"
+      ]
+    },
+    {
+      "id": "T11",
+      "category": "edit",
+      "prompt": "Python type stubs aren't treated as source: a `.pyi` hint such as `stubs.pyi` is not classified as code by the content router's hint check, even though the hint-to-language map already resolves `.pyi` to Python and the request planner already treats `.pyi` as a source suffix. The self-serve benchmark's directory walk also skips `.pyi` files. Insert `\".pyi\"` immediately after `\".py\"` in the router's code-extension tuple and in the benchmark's walked-extension tuple. Change nothing else (no other entries, tests or docstrings). Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace/router.py:33 - _CODE_EXTS has .py but not .pyi",
+        "token-master-plugin/skills/token-master/brainspace/router.py:42 - _LANG_BY_EXT already maps .pyi to python",
+        "token-master-plugin/skills/token-master/brainspace/router.py:62 - detect() returns CODE only for hints ending in _CODE_EXTS",
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py:43 - _SOURCE_SUFFIXES includes .pyi",
+        "token-master-plugin/skills/token-master/brainspace/benchmark.py:66 - _BENCH_EXTS has .py but not .pyi",
+        "token-master-plugin/docs/CODING_VALIDATION.md:228 - documents the .pyi routing gap"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace/router.py",
+          "token-master-plugin/skills/token-master/brainspace/benchmark.py"
+        ],
+        "change": "router.py: the module-level assignment becomes _CODE_EXTS = (\".py\", \".pyi\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\", \".c\", \".cpp\", \".h\", \".hpp\", \".rb\", \".php\", \".cs\", \".kt\", \".swift\"). benchmark.py: the module-level assignment becomes _BENCH_EXTS = (\".json\", \".log\", \".txt\", \".md\", \".markdown\", \".rst\", \".py\", \".pyi\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\", \".c\", \".cpp\", \".h\", \".hpp\", \".rb\", \".php\", \".cs\", \".kt\", \".swift\"). No other AST changes in either file."
+      },
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/router.py",
+            "old": "_CODE_EXTS = (\".py\", \".js\",",
+            "new": "_CODE_EXTS = (\".py\", \".pyi\", \".js\","
+          },
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace/benchmark.py",
+            "old": "    \".py\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\",",
+            "new": "    \".py\", \".pyi\", \".js\", \".ts\", \".tsx\", \".jsx\", \".go\", \".rs\", \".java\","
+          }
+        ]
+      }
+    },
+    {
+      "id": "T12",
+      "category": "edit",
+      "prompt": "The `search` subcommand of `brainspace_tools.py` always returns one context line per match, while the MCP search tool lets callers choose `context_lines`. Expose it on the CLI: inside the existing search-only branch of the retrieve/search subparser loop, directly after the `query` positional, add `command.add_argument(\"--context-lines\", type=int, default=1)`; then change the search dispatch to `return store.search(args.ref, args.query, args.offset, args.limit, context_lines=args.context_lines)`. Add no help text and change nothing else (no docstring, test or other edits). Make the change in the workspace.",
+      "expected": null,
+      "unordered_list_keys": [],
+      "evidence": [
+        "token-master-plugin/skills/token-master/brainspace_tools.py:53 - search-only branch currently adds just the query positional (line 54)",
+        "token-master-plugin/skills/token-master/brainspace_tools.py:174 - search dispatch passes ref, query, offset, limit only",
+        "token-master-plugin/skills/token-master/brainspace/ccr.py:409 - CCR.search(self, ref, query, offset=0, limit=_SEARCH_LIMIT, context_lines=1)",
+        "token-master-plugin/skills/token-master/brainspace_mcp.py:106 - MCP brainspace_search exposes context_lines and passes it through (line 113)"
+      ],
+      "edit_spec": {
+        "files": [
+          "token-master-plugin/skills/token-master/brainspace_tools.py"
+        ],
+        "change": "In _parser(), within the `for name, limit in ((\"retrieve\", 32768), (\"search\", 20)):` loop, the body of `if name == \"search\":` becomes exactly two statements: command.add_argument(\"query\") followed by command.add_argument(\"--context-lines\", type=int, default=1). In execute(), the body of `if args.command == \"search\":` becomes `return store.search(args.ref, args.query, args.offset, args.limit, context_lines=args.context_lines)`. No other AST changes."
+      },
+      "edit_oracle": {
+        "replacements": [
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace_tools.py",
+            "old": "            command.add_argument(\"query\")\n",
+            "new": "            command.add_argument(\"query\")\n            command.add_argument(\"--context-lines\", type=int, default=1)\n"
+          },
+          {
+            "file": "token-master-plugin/skills/token-master/brainspace_tools.py",
+            "old": "        return store.search(args.ref, args.query, args.offset, args.limit)\n",
+            "new": "        return store.search(args.ref, args.query, args.offset, args.limit, context_lines=args.context_lines)\n"
+          }
+        ]
+      }
+    }
+  ]
+}

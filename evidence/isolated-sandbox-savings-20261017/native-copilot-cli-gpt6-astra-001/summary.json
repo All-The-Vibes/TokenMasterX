@@ -1,0 +1,319 @@
+{
+  "protocol": "native-copilot-cli-isolated-sandbox-ab-v1",
+  "recorded_at_utc": "2026-10-18T03:35:46.497245+00:00",
+  "native_cli": {
+    "executable": "C:\\Users\\shyamsridhar\\AppData\\Local\\Microsoft\\WinGet\\Packages\\GitHub.Copilot_Microsoft.Winget.Source_8wekyb3d8bbwe\\copilot.exe",
+    "verified_version": "1.0.98",
+    "executable_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+    "sandbox_isolation": "Windows Job Object + private native-home (COPILOT_HOME, HOME, USERPROFILE, APPDATA, LOCALAPPDATA isolated; hooks/skills/custom-instructions disabled; ProxyHandler({}))"
+  },
+  "model": "gpt-6-astra",
+  "all_tasks_correct": true,
+  "by_arm": {
+    "without_tokenmaster": {
+      "tasks": 4,
+      "correct": 4,
+      "model_calls": 24,
+      "gateway_input_tokens": 338898,
+      "gateway_output_tokens": 1525,
+      "gateway_reported_tokens": 340423,
+      "reference_input_tokens": 389040,
+      "reference_output_tokens": 36723,
+      "reference_total_tokens": 425763,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "api_elapsed_seconds": 60.938
+    },
+    "with_tokenmaster_v5": {
+      "tasks": 4,
+      "correct": 4,
+      "model_calls": 24,
+      "gateway_input_tokens": 188416,
+      "gateway_output_tokens": 1525,
+      "gateway_reported_tokens": 189941,
+      "reference_input_tokens": 214630,
+      "reference_output_tokens": 36729,
+      "reference_total_tokens": 251359,
+      "transformations": 16,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 40,
+      "api_elapsed_seconds": 61.701
+    }
+  },
+  "savings": {
+    "gateway_reported_tokens_saved": 150482,
+    "gateway_reported_savings_pct": 44.2,
+    "reference_input_tokens_saved": 174410,
+    "reference_input_savings_pct": 44.83,
+    "reference_total_tokens_saved": 174404,
+    "reference_total_savings_pct": 40.96,
+    "meets_30_percent_target": true
+  },
+  "per_task": [
+    {
+      "task_id": "task-01-architecture-limits",
+      "arm": "without_tokenmaster",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "max_connections": 256,
+        "rollout_window": "120s",
+        "build_status": "succeeded"
+      },
+      "expected": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "max_connections": 256,
+        "rollout_window": "120s",
+        "build_status": "succeeded"
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 88447,
+      "gateway_output_tokens": 380,
+      "gateway_reported_tokens": 88827,
+      "reference_input_tokens": 101321,
+      "reference_output_tokens": 9141,
+      "reference_total_tokens": 110462,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "api_elapsed_seconds": 15.172
+    },
+    {
+      "task_id": "task-01-architecture-limits",
+      "arm": "with_tokenmaster_v5",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "max_connections": 256,
+        "rollout_window": "120s",
+        "build_status": "succeeded"
+      },
+      "expected": {
+        "batch_limit": 64,
+        "default_port": 9090,
+        "max_connections": 256,
+        "rollout_window": "120s",
+        "build_status": "succeeded"
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 47101,
+      "gateway_output_tokens": 380,
+      "gateway_reported_tokens": 47481,
+      "reference_input_tokens": 53737,
+      "reference_output_tokens": 9165,
+      "reference_total_tokens": 62902,
+      "transformations": 4,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 10,
+      "api_elapsed_seconds": 15.344
+    },
+    {
+      "task_id": "task-02-rollout-verification",
+      "arm": "without_tokenmaster",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "service": "tokenmaster-gateway",
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "retries": 3,
+        "max_frame_bytes": 4096
+      },
+      "expected": {
+        "service": "tokenmaster-gateway",
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "retries": 3,
+        "max_frame_bytes": 4096
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 88007,
+      "gateway_output_tokens": 384,
+      "gateway_reported_tokens": 88391,
+      "reference_input_tokens": 103280,
+      "reference_output_tokens": 9198,
+      "reference_total_tokens": 112478,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "api_elapsed_seconds": 14.471
+    },
+    {
+      "task_id": "task-02-rollout-verification",
+      "arm": "with_tokenmaster_v5",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "service": "tokenmaster-gateway",
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "retries": 3,
+        "max_frame_bytes": 4096
+      },
+      "expected": {
+        "service": "tokenmaster-gateway",
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "retries": 3,
+        "max_frame_bytes": 4096
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 47292,
+      "gateway_output_tokens": 384,
+      "gateway_reported_tokens": 47676,
+      "reference_input_tokens": 53743,
+      "reference_output_tokens": 9216,
+      "reference_total_tokens": 62959,
+      "transformations": 4,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 10,
+      "api_elapsed_seconds": 16.343
+    },
+    {
+      "task_id": "task-03-protocol-audit",
+      "arm": "without_tokenmaster",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "default_port": 9090,
+        "retries": 3,
+        "build_status": "succeeded",
+        "schema_version": 4,
+        "rollout_window": "120s"
+      },
+      "expected": {
+        "default_port": 9090,
+        "retries": 3,
+        "build_status": "succeeded",
+        "schema_version": 4,
+        "rollout_window": "120s"
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 86874,
+      "gateway_output_tokens": 380,
+      "gateway_reported_tokens": 87254,
+      "reference_input_tokens": 98421,
+      "reference_output_tokens": 9189,
+      "reference_total_tokens": 107610,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "api_elapsed_seconds": 17.014
+    },
+    {
+      "task_id": "task-03-protocol-audit",
+      "arm": "with_tokenmaster_v5",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "default_port": 9090,
+        "retries": 3,
+        "build_status": "succeeded",
+        "schema_version": 4,
+        "rollout_window": "120s"
+      },
+      "expected": {
+        "default_port": 9090,
+        "retries": 3,
+        "build_status": "succeeded",
+        "schema_version": 4,
+        "rollout_window": "120s"
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 46530,
+      "gateway_output_tokens": 380,
+      "gateway_reported_tokens": 46910,
+      "reference_input_tokens": 53052,
+      "reference_output_tokens": 9166,
+      "reference_total_tokens": 62218,
+      "transformations": 4,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 10,
+      "api_elapsed_seconds": 13.157
+    },
+    {
+      "task_id": "task-04-full-stack-readiness",
+      "arm": "without_tokenmaster",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "default_port": 9090,
+        "timeout_seconds": 30,
+        "batch_limit": 64
+      },
+      "expected": {
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "default_port": 9090,
+        "timeout_seconds": 30,
+        "batch_limit": 64
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 75570,
+      "gateway_output_tokens": 381,
+      "gateway_reported_tokens": 75951,
+      "reference_input_tokens": 86018,
+      "reference_output_tokens": 9195,
+      "reference_total_tokens": 95213,
+      "transformations": 0,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 0,
+      "api_elapsed_seconds": 14.281
+    },
+    {
+      "task_id": "task-04-full-stack-readiness",
+      "arm": "with_tokenmaster_v5",
+      "copilot_version": "1.0.98",
+      "copilot_sha256": "23e44448b2589401081aa90ee04201fa4b17e4e36d2ac2a10f57e5e1a317cc54",
+      "complete": true,
+      "success": true,
+      "answer": {
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "default_port": 9090,
+        "timeout_seconds": 30,
+        "batch_limit": 64
+      },
+      "expected": {
+        "drain_grace": "15s",
+        "build_status": "succeeded",
+        "default_port": 9090,
+        "timeout_seconds": 30,
+        "batch_limit": 64
+      },
+      "model_calls": 6,
+      "gateway_input_tokens": 47493,
+      "gateway_output_tokens": 381,
+      "gateway_reported_tokens": 47874,
+      "reference_input_tokens": 54098,
+      "reference_output_tokens": 9182,
+      "reference_total_tokens": 63280,
+      "transformations": 4,
+      "recovery_tool_attempts": 0,
+      "verified_exact_root_recoveries": 10,
+      "api_elapsed_seconds": 16.857
+    }
+  ]
+}

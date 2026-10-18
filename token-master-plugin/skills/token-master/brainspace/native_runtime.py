@@ -68,6 +68,7 @@ class NativeRuntime:
                  and not self.output.is_relative_to(self.workspace), "new_private_output_required")
         self.output.mkdir(parents=True)
         self.intent, self.event_wait_seconds = intent, event_wait_seconds
+        self._copilot_version = "1.0.95-0"
         self.transport = NativeResponsesTransport(
             base_url=base_url, model=model, allow_network=allow_network,
             max_output_tokens=max_output_tokens, max_request_bytes=max_request_bytes,
@@ -114,6 +115,7 @@ class NativeRuntime:
         from .native_events import validate_native_skills
         return validate_native_skills(
             event, cache_root=self.output / "native-home" / "copilot-cache",
+            version=getattr(self, "_copilot_version", "1.0.95-0"),
         )
 
     def begin_http_request(self, route):

@@ -39,7 +39,8 @@ SERIALIZATION = "json-utf8-compact-v1"
 _PROTECTED_ROLES = ("system", "developer")
 _ERROR_TEXT = re.compile(r"\b(error|failed|denied|fatal|exception|traceback)\b", re.I)
 _EXACT_TEXT = re.compile(r"```|~~~|<exact[-_]answer\b|BEGIN EXACT", re.I)
-_VERSIONS = ("request-policy-v1", "request-policy-v2", "request-policy-v3", "request-policy-v4")
+_VERSIONS = ("request-policy-v1", "request-policy-v2", "request-policy-v3", "request-policy-v4", "request-policy-v5",
+             "request-policy-v6")
 _SOURCE_SUFFIXES = (".py", ".pyi", ".rs")
 
 
@@ -382,6 +383,7 @@ def plan_request(
     source_reads: tuple[SourceReadInfo, ...] = (),
     source_transform: Callable[[str, SourceReadInfo], TransformResult] | None = None,
     json_transform: Callable[[str, SourceReadInfo], TransformResult] | None = None,
+    v5_transform: Callable[[str, SourceReadInfo], TransformResult] | None = None,
 ) -> RequestPlan:
     """Return an unchanged input on any unsafe plan; never truncate by default.
 
@@ -418,7 +420,7 @@ def plan_request(
     if protocol != PROTOCOL:
         return unchanged("unsupported_protocol")
     source_by_call = {}
-    if policy.version in ("request-policy-v2", "request-policy-v3", "request-policy-v4"):
+    if policy.version in ("request-policy-v2", "request-policy-v3", "request-policy-v4", "request-policy-v5"):
         if type(source_reads) not in (tuple, list):
             return unchanged("invalid_source_reads")
         for info in source_reads:
@@ -441,6 +443,23 @@ def plan_request(
         before_tokens, before_bytes = _measure(original_wire, count)
     except Exception:
         return unchanged("measurement_unavailable")
+    if policy.version == "request-policy-v6":
+        from .v6_shaping import plan_v6_request
+
+        return plan_v6_request(
+            request, policy=policy, indices=indices, exact_message_indices=tuple(exact_message_indices),
+            original_wire=original_wire, before_tokens=before_tokens, before_bytes=before_bytes, count=count,
+        )
+    if policy.version == "request-policy-v5":
+        from .v5_reducer import plan_v5_request
+
+        return plan_v5_request(
+            request, policy=policy, intent=intent, indices=indices,
+            source_by_call=source_by_call, stable_prefix_messages=stable_prefix_messages,
+            exact_message_indices=exact_message_indices, original_wire=original_wire,
+            before_tokens=before_tokens, before_bytes=before_bytes,
+            count=count, recover=recover, v5_transform=v5_transform,
+        )
     if policy.version == "request-policy-v4":
         if (intent not in ("conservative", "navigation", "overview", "aggregate", "task")
                 or json_transform is None or recover is None):
