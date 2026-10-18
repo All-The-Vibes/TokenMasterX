@@ -1,0 +1,668 @@
+{
+ "provenance": "Fresh confirmatory tasks P01-P24 for PRS-4, written by two separate agent sessions (P01-P12, then P13-P24) that were not told the arms or the purpose of the study; they read only the 703aa20 snapshot, five format examples and the 60 earlier task prompts. AUTHOR NOTES: Written by an AI subagent (Claude Opus 5.5 in OpenCode) from a read-only study of the token-master-plugin snapshot limited to brainspace modules a-m and docs A-M, with every caller list confirmed by whole-snapshot search and every expected value re-checked against the source a second time (document-structure offsets and outcomes were also cross-checked with a small JavaScript port of the parser). | Written by an AI coding agent (Claude, running as a subagent) from a read-only review of the token-master-plugin snapshot, the five format examples and the 60 earlier task prompts; every expected answer was hand-traced through the cited source and docs lines and re-checked against them before writing, with no code execution against the snapshot, network access or LLM API use. | VERIFICATION: after the treatment code was frozen (commit 3ceebe5) two further agent sessions re-derived every answer from the snapshot, running the snapshot code for P02, P04-P06 and P16-P18 and walking the AST for every impact list; all 24 answers and edit oracles were confirmed. Correction: P03 now says to name the method that passes each file name to the shared _write helper (a literal '_write' answer was possible), and its evidence notes that one test writes learning-manifest.json.",
+ "tasks": [
+  {
+   "id": "P01",
+   "category": "locate",
+   "prompt": "I'm reviewing the resource limits of the Headroom container worker's structure-tag preprotection mode. Which module-level constants define (a) the maximum total number of structural span descriptors accepted in a single request, (b) the maximum number of distinct validated vendor handles one task may hold, and (c) the maximum total raw-fragment UTF-8 bytes one task may retain? What is (c)'s value in bytes? In the worker module, which function raises an error when a request's span descriptors, summed over all of its eligible messages, exceed (a)? And which method declines to retain a newly validated fragment when keeping it would push the task over (c)? Reply with ONLY a JSON object with exactly 6 keys: \"span_cap_constant\" (string), \"handle_cap_constant\" (string), \"retained_bytes_cap_constant\" (string), \"retained_bytes_cap_value\" (int), \"span_cap_enforcer\" (string), \"retained_bytes_enforcer\" (string). Give each code location as \"<path relative to token-master-plugin/skills/token-master>::<CONSTANT, function or Class.method>\". There are no list values.",
+   "expected": {
+    "span_cap_constant": "brainspace/headroom_worker.py::MAX_PREPROTECTION_SPANS",
+    "handle_cap_constant": "brainspace/headroom_worker.py::MAX_PREPROTECTION_HANDLES",
+    "retained_bytes_cap_constant": "brainspace/headroom_worker.py::MAX_PREPROTECTION_RETAINED_BYTES",
+    "retained_bytes_cap_value": 8388608,
+    "span_cap_enforcer": "brainspace/headroom_worker.py::preprotection_indices",
+    "retained_bytes_enforcer": "brainspace/headroom_worker.py::_PreprotectionState.validate"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:271-273 - MAX_PREPROTECTION_SPANS = 256 (total per RPC), MAX_PREPROTECTION_HANDLES = 128, MAX_PREPROTECTION_RETAINED_BYTES = 8 * 1024 * 1024 = 8388608 (exact raw fragment UTF-8 bytes)",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:447,477-480 - preprotection_indices adds len(entry['spans']) for each eligible entry and raises ValueError('preprotection span budget exceeded') once the running count > MAX_PREPROTECTION_SPANS",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:563-566 - _PreprotectionState.__init__ bounds: max_spans_per_rpc, max_handles and max_retained_bytes are taken from those three constants",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:631,634-636 - _PreprotectionState.validate returns 'handle_limit' when a new handle would exceed bounds['max_handles'] (fragments are keyed by handle)",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:671-676 - _PreprotectionState.validate returns the 'retained_byte_limit' rejection instead of storing a new fragment when retained_bytes + size > bounds['max_retained_bytes']",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:585-587 - the parent's RuntimeSession._headroom_plan only returns a bypass reason for the same span cap; it is outside the worker module and does not raise"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P02",
+   "category": "locate",
+   "prompt": "The recovery store class `CCR` refuses entry metadata whose source label, content-type label and summary are too long in total. Which module-level constant holds that combined-length cap, and what is its value? Which `CCR` methods compare a combined metadata length against that constant? And if a stored annotated reference's metadata fails that check when the reference is read back, which error code does the read path report? Reply with ONLY a JSON object with exactly 4 keys: \"cap_constant\" (string, \"<path relative to token-master-plugin/skills/token-master>::<CONSTANT>\"), \"cap_value\" (int), \"checking_methods\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method>\"; order does not matter), \"read_error_code\" (string).",
+   "expected": {
+    "cap_constant": "brainspace/ccr.py::_METADATA_LIMIT",
+    "cap_value": 4096,
+    "checking_methods": [
+     "brainspace/ccr.py::CCR._read",
+     "brainspace/ccr.py::CCR.stash"
+    ],
+    "read_error_code": "corrupt"
+   },
+   "unordered_list_keys": [
+    "checking_methods"
+   ],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/ccr.py:67 - _METADATA_LIMIT = 4096",
+    "token-master-plugin/skills/token-master/brainspace/ccr.py:264,277-289 - CCR._read: for '[['-prefixed references, sum(len(metadata[k]) for k in ('source', 'ctype', 'summary')) > _METADATA_LIMIT (line 281) makes it return None, 'corrupt' (line 289)",
+    "token-master-plugin/skills/token-master/brainspace/ccr.py:332-338 - CCR.stash returns None when sum(map(len, (ctype, source, summary))) > _METADATA_LIMIT (line 337)",
+    "whole-snapshot search: _METADATA_LIMIT appears only at ccr.py lines 67, 281 and 337"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P03",
+   "category": "locate",
+   "prompt": "I'm documenting the durable receipt files written by the learning-pair runtime adapter in `brainspace/learning_runtime.py` (the class that runs one incumbent/candidate pair through real runtime sessions and returns a paired observation). Every file goes through the shared `_write` helper, so for (a)-(d) name the method that passes that file name to `_write`, not the helper itself. Which method or function writes (a) `learning-manifest.json`, (b) `transport-declaration.json`, (c) each arm's `checked-outcome.json`, and (d) `attempt-failed.json`? Which method re-hashes the files from (a) and (b) to detect that either changed? And which module-level constant lists the transport attribute names recorded in each arm's declaration? Reply with ONLY a JSON object with exactly 6 keys, each a string \"<path relative to token-master-plugin/skills/token-master>::<Class.method, function or CONSTANT>\": \"manifest_writer\", \"transport_declaration_writer\", \"checked_outcome_writer\", \"failure_receipt_writer\", \"tamper_check_method\", \"transport_fields_constant\". There are no list values.",
+   "expected": {
+    "manifest_writer": "brainspace/learning_runtime.py::RuntimePairEvaluator.__init__",
+    "transport_declaration_writer": "brainspace/learning_runtime.py::RuntimePairEvaluator._evaluate",
+    "checked_outcome_writer": "brainspace/learning_runtime.py::RuntimePairEvaluator._arm",
+    "failure_receipt_writer": "brainspace/learning_runtime.py::RuntimePairEvaluator._evaluate",
+    "tamper_check_method": "brainspace/learning_runtime.py::RuntimePairEvaluator._guard",
+    "transport_fields_constant": "brainspace/learning_runtime.py::_TRANSPORT_FIELDS"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:47-50 - _TRANSPORT_FIELDS = ('model', 'allow_network', 'base_url', 'reasoning_effort', 'max_output_tokens', 'max_request_bytes', 'max_response_bytes', 'timeout')",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:296 - RuntimePairEvaluator._prepared builds each arm's declaration from _TRANSPORT_FIELDS",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:246 - RuntimePairEvaluator.__init__ writes learning-manifest.json via _write",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:612-615 - RuntimePairEvaluator._evaluate writes transport-declaration.json (first pair only)",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:543 - RuntimePairEvaluator._arm writes root / 'checked-outcome.json'",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:722 - the failure handler of RuntimePairEvaluator._evaluate writes attempt-failed.json",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:267-271 - RuntimePairEvaluator._guard compares _sha of learning-manifest.json and transport-declaration.json with the saved receipts ('frozen_manifest_changed' / 'frozen_transport_receipt_changed')",
+    "whole-snapshot search: no other non-test code writes these file names (one test also writes learning-manifest.json in a tamper test)"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P04",
+   "category": "logic",
+   "prompt": "Questions about `JevClient.decide` in `brainspace/jev.py`; assume the machine has no network access. Let q_ok = {\"route\": {\"type\": \"choice\", \"instructions\": \"Pick one\", \"criteria\": {\"keep\": \"Relevant\", \"skip\": None}}} and q_bad = {\"route\": {\"type\": \"score\", \"instructions\": \"Rate\", \"criteria\": [\"only level\"]}} (Python literals). What `reason` does the returned `Result` carry in each case? (a) JevClient(enabled=True).decide(\"state\", q_ok, data_classification=\"synthetic\"); (b) JevClient(enabled=True, allow_network=True).decide(\"state\", q_bad); (c) JevClient(enabled=True, allow_network=True).decide(\"state\", q_bad, data_classification=\"sanitized\") with TYPESAFE_API_KEY unset; (d) JevClient(enabled=True, allow_network=True, max_request_bytes=64).decide(\"state\", q_ok, data_classification=\"synthetic\") with TYPESAFE_API_KEY unset; (e) JevClient(enabled=True, allow_network=True).decide(\"state\", q_ok, data_classification=\"synthetic\") with TYPESAFE_API_KEY set to \"abc def\"; (f) JevClient(enabled=True, allow_network=True).decide(\"state\", q_ok, data_classification=\"sanitized\") with TYPESAFE_API_KEY set to the empty string. Also: is the result's `request_text` non-None in case (e), and what exception message does constructing JevClient(enabled=True, allow_network=True, timeout=0) raise? Reply with ONLY a JSON object with exactly 8 keys: \"reason_a\" (string), \"reason_b\" (string), \"reason_c\" (string), \"reason_d\" (string), \"reason_e\" (string), \"reason_f\" (string), \"e_request_text_present\" (bool), \"zero_timeout_error\" (string). There are no list values.",
+   "expected": {
+    "reason_a": "network_not_allowed",
+    "reason_b": "data_classification_required",
+    "reason_c": "invalid_request",
+    "reason_d": "request_too_large",
+    "reason_e": "invalid_api_key",
+    "reason_f": "missing_api_key",
+    "e_request_text_present": true,
+    "zero_timeout_error": "invalid_client_configuration"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/jev.py:280-287 - JevClient.__post_init__ requires 0 < timeout <= 60 and byte limits in 1..4 MiB, else ValueError('invalid_client_configuration'); timeout=0 fails, max_request_bytes=64 is accepted",
+    "token-master-plugin/skills/token-master/brainspace/jev.py:301-306 - decide checks enabled ('disabled'), then allow_network ('network_not_allowed'), then data_classification in ('synthetic', 'sanitized') ('data_classification_required') before validating the questions",
+    "token-master-plugin/skills/token-master/brainspace/jev.py:139-141 - a score question needs a list of 2..10 criteria; q_bad has one, so validate_request raises ValidationError",
+    "token-master-plugin/skills/token-master/brainspace/jev.py:307-312 - a validate_request failure returns Result(False, 'invalid_request') before any size or key check",
+    "token-master-plugin/skills/token-master/brainspace/jev.py:313-316 - a serialized body longer than max_request_bytes returns 'request_too_large' before TYPESAFE_API_KEY is read (the q_ok body is 147 bytes)",
+    "token-master-plugin/skills/token-master/brainspace/jev.py:317-321 - an unset or empty key returns 'missing_api_key'; a key containing a character with ord <= 32 (the space) returns 'invalid_api_key'; both Results carry request_text"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P05",
+   "category": "logic",
+   "prompt": "Consider the worker's ONNX activity ledger in `brainspace/headroom_worker.py`, used from one thread: ledger = ActivityLedger(max_events=2); a, b = object(), object(); ledger.context(\"rpc\", \"req-7\"); e1 = ledger.start(a, {}); e2 = ledger.start(a, {\"input_ids\": None}); e3 = ledger.start(b, {}); ledger.terminal(e1, \"completed\"); inv = ledger.inventory(); later = ledger.inventory(5). What is e2, and is e3 None? In inv, what are \"revision\", \"attempts\", \"omitted_events\", \"complete\" and \"incomplete_reasons\"? For the row of inv[\"events\"] whose \"event_id\" equals e2, what are its \"state\", \"session_id\" and \"metadata_complete\"? How many rows does later[\"events\"] contain? Reply with ONLY a JSON object with exactly 11 keys: \"second_event_id\" (string), \"third_start_returned_none\" (bool), \"revision\" (int), \"attempts\" (int), \"omitted_events\" (int), \"complete\" (bool), \"incomplete_reasons\" (list of strings in the order returned; order matters), \"second_event_state\" (string), \"second_event_session_id\" (string), \"second_event_metadata_complete\" (bool), \"events_since_revision_5\" (int).",
+   "expected": {
+    "second_event_id": "python-onnx-2",
+    "third_start_returned_none": true,
+    "revision": 6,
+    "attempts": 3,
+    "omitted_events": 1,
+    "complete": false,
+    "incomplete_reasons": [
+     "event_limit",
+     "pending_at_snapshot"
+    ],
+    "second_event_state": "pending",
+    "second_event_session_id": "python-session-1",
+    "second_event_metadata_complete": false,
+    "events_since_revision_5": 1
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:106-116 - ActivityLedger(max_events=2) keeps the limit; revision, attempts and omitted start at 0",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:126-152 - start bumps attempts and revision; when len(events) >= limit it bumps omitted and returns None before registering the session; otherwise the id is 'python-onnx-{attempts}', a new session object gets 'python-session-{n}', and revision is bumped again after metadata",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:66-95 - _feed_metadata: {} gives complete True; {'input_ids': None} fails on .shape, so complete is False",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:154-167 - terminal(e1, 'completed') bumps revision once more",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:169-176 - snapshot reports still-started events with state 'pending' and keeps only events whose revision > since_revision",
+    "token-master-plugin/skills/token-master/brainspace/headroom_worker.py:61-63,183-198 - complete needs zero omitted events and no pending IDs; incomplete_reasons = ['event_limit'] then ['pending_at_snapshot']",
+    "trace: e1 revisions 1 then 2, e2 3 then 4, e3 omitted at 5, terminal at 6; attempts 3, omitted 1, pending ('python-onnx-2',); inventory(5) keeps only e1 (revision 6)"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P06",
+   "category": "logic",
+   "prompt": "About the parser in `brainspace/document_structure.py`. Let T = \"Intro\\n| a | b |\\n|---|---|\\n| 1 | 2 |\\n\\n1. one\\n   more\\n2. two\\n\\nEnd\\n\" (a Python string literal with LF line endings). (1) What does document_structure_spans(T) return? Give each span as [kind, start, end], in the returned order. (2) What does document_structure_preserved(T, P) return for P1 = T with the first line \"Intro\" replaced by \"Overview\"; P2 = T with the empty line between \"2. two\" and \"End\" deleted; P3 = T with the last line \"End\" replaced by \"Fin\"; P4 = T with the continuation line \"   more\" (three leading spaces) changed to \"  more\" (two leading spaces)? (3) Let U = T + \"> note\\n\". Is document_structure_spans(U) None, and what do document_structure_preserved(U, U) and document_structure_preserved(T, U) return? Reply with ONLY a JSON object with exactly 8 keys: \"t_spans\" (list of [string, int, int] lists; order matters), \"p1_preserved\" (bool), \"p2_preserved\" (bool), \"p3_preserved\" (bool), \"p4_preserved\" (bool), \"u_spans_is_none\" (bool), \"u_identity_preserved\" (bool), \"t_to_u_preserved\" (bool).",
+   "expected": {
+    "t_spans": [
+     [
+      "table",
+      6,
+      36
+     ],
+     [
+      "ordered-list",
+      37,
+      60
+     ]
+    ],
+    "p1_preserved": true,
+    "p2_preserved": false,
+    "p3_preserved": true,
+    "p4_preserved": false,
+    "u_spans_is_none": true,
+    "u_identity_preserved": true,
+    "t_to_u_preserved": false
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/document_structure.py:99-121 - lines are LF slices with code-point offsets (line starts 0,6,16,26,36,37,44,52,59,60,64 for T); any line whose space-stripped start is a tab or '>' makes the whole text unsupported (None)",
+    "token-master-plugin/skills/token-master/brainspace/document_structure.py:131-157 - pipe table: header, delimiter of >=3 hyphens, same-width rows; the span runs from the header line start to the first non-pipe line, giving ('table', 6, 36)",
+    "token-master-plugin/skills/token-master/brainspace/document_structure.py:158-196 - ordered list: continuation lines need indent >= the content column (3 for '1. '); blank lines stay in the block; unindented non-list text ends the block only after a blank line, otherwise the parse is None; gives ('ordered-list', 37, 60)",
+    "token-master-plugin/skills/token-master/brainspace/document_structure.py:206-222 - document_structure_spans returns None when the parse is unsupported",
+    "token-master-plugin/skills/token-master/brainspace/document_structure.py:225-239 - document_structure_preserved: identical strings return True; otherwise both parses must succeed and their ordered (kind, text) lists must be equal",
+    "P1 and P3 change prose outside both blocks (True); P2 puts 'End' right after '2. two' with no blank line (None, False); P4 indents the continuation by 2 < 3 (None, False); U ends with a '>' line (None), so (U, U) is True by identity and (T, U) is False",
+    "token-master-plugin/skills/token-master/brainspace/protected_text.py:33-65 - _blocks finds no fences in these texts (no backticks or tildes), so no line is hidden from the parser"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P07",
+   "category": "impact",
+   "prompt": "We're considering letting `validate_time_budget_seconds` in `brainspace/headroom.py` accept Headroom time budgets above its current 60-second maximum. Which non-test functions or methods call it directly? Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"; order does not matter).",
+   "expected": {
+    "callers": [
+     "brainspace/headroom.py::_task_environment",
+     "brainspace/headroom.py::HeadroomContainer.__init__",
+     "brainspace/runtime.py::RuntimeSession.__init__"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/headroom.py:64-67 - def validate_time_budget_seconds(value): int 1..60, else ValueError('invalid_headroom_time_budget_seconds')",
+    "token-master-plugin/skills/token-master/brainspace/headroom.py:70-77 - _task_environment calls it (line 73) when time_budget_seconds is not None",
+    "token-master-plugin/skills/token-master/brainspace/headroom.py:143-150 - HeadroomContainer.__init__ calls it (line 149)",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:124,175-177 - RuntimeSession.__init__ imports it lazily and calls it on headroom_options['time_budget_seconds']",
+    "whole-snapshot search finds no other references; validate_environment and HeadroomContainer._start reach it only through _task_environment"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P08",
+   "category": "impact",
+   "prompt": "`CertificationRegistry._round(db, k, spec, *, require_open=False)` in `brainspace/certification.py` loads a confirmation round row and checks it against the supplied spec. We want to change its default to require_open=True. Which non-test functions or methods call `_round` directly, and which of those calls do not pass `require_open` at all (so the new default would change their behavior)? Reply with ONLY a JSON object with exactly 2 keys: \"callers\" (list of strings) and \"callers_using_default\" (list of strings), each string \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\". Order does not matter in either list.",
+   "expected": {
+    "callers": [
+     "brainspace/certification.py::CertificationRegistry.reserve_tasks",
+     "brainspace/certification.py::CertificationRegistry._consume_reported_calls",
+     "brainspace/certification.py::CertificationRegistry.submit",
+     "brainspace/certification.py::CertificationRegistry.certify",
+     "brainspace/optimizer.py::Optimizer._trial",
+     "brainspace/optimizer.py::Optimizer._deployment_certificate"
+    ],
+    "callers_using_default": [
+     "brainspace/certification.py::CertificationRegistry.certify",
+     "brainspace/optimizer.py::Optimizer._trial",
+     "brainspace/optimizer.py::Optimizer._deployment_certificate"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers",
+    "callers_using_default"
+   ],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/certification.py:348-359 - def _round(self, db, k, spec, *, require_open=False)",
+    "token-master-plugin/skills/token-master/brainspace/certification.py:405 - reserve_tasks: self._round(db, k, spec, require_open=True)",
+    "token-master-plugin/skills/token-master/brainspace/certification.py:425 - _consume_reported_calls: self._round(db, k, spec, require_open=True)",
+    "token-master-plugin/skills/token-master/brainspace/certification.py:498 - submit: self._round(db, k, spec, require_open=True)",
+    "token-master-plugin/skills/token-master/brainspace/certification.py:529 - certify: row = self._round(db, k, spec) (default)",
+    "token-master-plugin/skills/token-master/brainspace/optimizer.py:1147,1156 - Optimizer._trial: self._registry._round(db, row['round_id'], expected) (default)",
+    "token-master-plugin/skills/token-master/brainspace/optimizer.py:1371,1377 - Optimizer._deployment_certificate: row = self._registry._round(db, trial.round_id, spec) (default)",
+    "whole-snapshot search finds no other non-test reference to _round"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P09",
+   "category": "docs",
+   "prompt": "From the plugin docs on the October 9 guarded-runtime follow-up: its latest complete matched study compared true optimizer off with the actual components plus the repaired guard and an explicit 60-second local budget. How many runs did that study plan, how many calls did each of the two profiles make, and what did that study's independent audit verify (numbers of captures, source pins, installed files, and unique completed observed Python ONNX attempts)? Separately, the fixed chronological replay that verified actual fragment recovery returned a Root and an actual upstream fragment: how many bytes was each? Reply with ONLY a JSON object with exactly 9 keys, all ints: \"planned_runs\", \"off_calls\", \"repaired_calls\", \"audit_captures\", \"audit_source_pins\", \"audit_installed_files\", \"audit_unique_onnx_attempts\", \"root_bytes\", \"fragment_bytes\". There are no list values.",
+   "expected": {
+    "planned_runs": 12,
+    "off_calls": 26,
+    "repaired_calls": 27,
+    "audit_captures": 53,
+    "audit_source_pins": 62,
+    "audit_installed_files": 39,
+    "audit_unique_onnx_attempts": 25,
+    "root_bytes": 23925,
+    "fragment_bytes": 1818
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/docs/GUARDED_RUNTIME_RESULTS.md:5 - the optional-guidance-selection study completed all 12 planned runs",
+    "token-master-plugin/docs/GUARDED_RUNTIME_RESULTS.md:9-12 - calls: true optimizer off 26; actual components + repaired guard, explicit 60-second local budget 27",
+    "token-master-plugin/docs/GUARDED_RUNTIME_RESULTS.md:50-53 - its independent audit verified 53 captures, 62 source pins and 39 installed files, plus 25 unique completed observed Python ONNX attempts",
+    "token-master-plugin/docs/GUARDED_RUNTIME_RESULTS.md:119-127 - fixed chronological replay: Root 23,925 bytes; actual upstream fragment 1,818 bytes",
+    "token-master-plugin/docs/GUARDED_RUNTIME_RESULTS.md:45,81 - distractors: the 60/60 local run had 13 unique completed ONNX entries; the earlier three-profile audit verified 77 captures, 59 source pins, 39 installed files"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P10",
+   "category": "docs",
+   "prompt": "From the plugin's coding-validation write-up: (1) For the October 8 scoped-profile pilot, how many attempts including readiness did the study make, how many execution seconds did it record, and how many frozen source files did its independent offline pass verify? (2) For the repository runner's --timeout-seconds option, what are its allowed maximum and its default, and how many seconds does the hard deadline add? (3) For the earlier October 8 context-only comparison whose complete replication is live-v2, how many model calls did the baseline arm and the enabled arm make, and how many attempts including readiness and script-execution seconds did that replication use? Reply with ONLY a JSON object with exactly 10 keys: \"pilot_attempts_including_readiness\" (int), \"pilot_execution_seconds\" (number), \"pilot_verified_source_files\" (int), \"timeout_max_seconds\" (int), \"timeout_default_seconds\" (int), \"hard_deadline_extra_seconds\" (int), \"context_only_baseline_calls\" (int), \"context_only_enabled_calls\" (int), \"context_only_attempts_including_readiness\" (int), \"context_only_execution_seconds\" (number). There are no list values.",
+   "expected": {
+    "pilot_attempts_including_readiness": 25,
+    "pilot_execution_seconds": 117.687,
+    "pilot_verified_source_files": 37,
+    "timeout_max_seconds": 90,
+    "timeout_default_seconds": 60,
+    "hard_deadline_extra_seconds": 30,
+    "context_only_baseline_calls": 11,
+    "context_only_enabled_calls": 15,
+    "context_only_attempts_including_readiness": 27,
+    "context_only_execution_seconds": 151.297
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/docs/CODING_VALIDATION.md:69-74 - scoped-profile pilot: the independent offline pass verified all 37 frozen source files; 25 attempts including readiness; 117.687 execution seconds",
+    "token-master-plugin/docs/CODING_VALIDATION.md:91-93 - the runner accepts --timeout-seconds from 1 to 90 (default 60); the hard deadline adds 30 seconds",
+    "token-master-plugin/docs/CODING_VALIDATION.md:134-137 - earlier context-only result: model calls 11 (baseline) versus 15 (enabled arm)",
+    "token-master-plugin/docs/CODING_VALIDATION.md:172-177 - the complete replication live-v2 made 27 attempts including readiness and completed in 151.297 script-execution seconds"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P11",
+   "category": "edit",
+   "prompt": "`learn_once` in `brainspace/learning_runtime.py` checks an explicit `candidate_id` only for being a string, so an empty or whitespace-only ID still reaches `optimizer.propose(...)` (which permanently registers any search-task exclusions and stores neighbor policies) before failing with `explicit_candidate_not_proposed`. Reject such IDs up front with the existing `invalid_explicit_candidate_id` reason, mirroring the learning manifest's host-identity check: change that `_require(...)` call's condition from `type(candidate_id) is str` to `type(candidate_id) is str and bool(candidate_id.strip())`, keeping the call on its single existing line with the same reason string. Change nothing else. Make the change in the workspace.",
+   "expected": null,
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:759-762 - the explicit candidate check is only _require(type(candidate_id) is str, 'invalid_explicit_candidate_id') plus the screening-conflict check",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:768-772 - optimizer.propose(...) runs before the membership check that raises 'explicit_candidate_not_proposed'",
+    "token-master-plugin/skills/token-master/brainspace/optimizer.py:729-751 - propose calls exclude_search_tasks (permanent registry exclusion) and inserts neighbor policies into opt_policies",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:148 - the manifest's host check uses type(self.host_id) is str and bool(self.host_id.strip())"
+   ],
+   "edit_spec": {
+    "files": [
+     "token-master-plugin/skills/token-master/brainspace/learning_runtime.py"
+    ],
+    "change": "In learn_once, replace the line `        _require(type(candidate_id) is str, \"invalid_explicit_candidate_id\")` with `        _require(type(candidate_id) is str and bool(candidate_id.strip()), \"invalid_explicit_candidate_id\")` (same indentation, same position, still one line). Nothing else in the file changes."
+   },
+   "set": "primary",
+   "edit_oracle": {
+    "replacements": [
+     {
+      "file": "token-master-plugin/skills/token-master/brainspace/learning_runtime.py",
+      "old": "_require(type(candidate_id) is str, \"invalid_explicit_candidate_id\")",
+      "new": "_require(type(candidate_id) is str and bool(candidate_id.strip()), \"invalid_explicit_candidate_id\")"
+     }
+    ]
+   }
+  },
+  {
+   "id": "P12",
+   "category": "edit",
+   "prompt": "`HeadroomContainer.command` in `brainspace/headroom.py` records each Docker command in `docker-commands.json` with only its arguments and exit code, so a cleanup audit cannot tell which timeout a command ran under (for example, `stop` is given 20 seconds). Record it: add a `\"timeout\"` entry holding the method's `timeout` argument between the `\"arguments\"` and `\"exit_code\"` entries of the appended dict, so that line becomes `self.commands.append({\"arguments\": args, \"timeout\": timeout, \"exit_code\": result.returncode})`. Change nothing else. Make the change in the workspace.",
+   "expected": null,
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/headroom.py:184-190 - command(self, args, *, timeout=30, check=True) appends {'arguments': args, 'exit_code': result.returncode} and rewrites docker-commands.json",
+    "token-master-plugin/skills/token-master/brainspace/headroom.py:514 - the cleanup 'stop' command runs with timeout=20"
+   ],
+   "edit_spec": {
+    "files": [
+     "token-master-plugin/skills/token-master/brainspace/headroom.py"
+    ],
+    "change": "In HeadroomContainer.command, replace `        self.commands.append({\"arguments\": args, \"exit_code\": result.returncode})` with `        self.commands.append({\"arguments\": args, \"timeout\": timeout, \"exit_code\": result.returncode})` (same indentation, still one line). Nothing else in the file changes."
+   },
+   "set": "primary",
+   "edit_oracle": {
+    "replacements": [
+     {
+      "file": "token-master-plugin/skills/token-master/brainspace/headroom.py",
+      "old": "self.commands.append({\"arguments\": args, \"exit_code\": result.returncode})",
+      "new": "self.commands.append({\"arguments\": args, \"timeout\": timeout, \"exit_code\": result.returncode})"
+     }
+    ]
+   }
+  },
+  {
+   "id": "P13",
+   "category": "locate",
+   "prompt": "Security review of the pinned Windows launcher for native Copilot runs. Outside the test suites, find: (a) the module-level constant whose values are passed after `--available-tools`; (b) the module-level constant whose values are passed after `--allow-tool`; (c) the function that creates the per-run private folders, points HOME, APPDATA, COPILOT_HOME and similar variables at them, and writes the temporary settings.json that lists ignored skill locations; and (d) the function that refuses to delete the generated MCP config file when it was replaced, linked or modified. Also, which environment variable name is passed after `--secret-env-vars`? Reply with ONLY a JSON object with exactly 5 keys: \"available_tools_constant\" (string), \"allow_tool_constant\" (string), \"environment_builder\" (string) and \"config_remover\" (string), each of these four as \"<path relative to token-master-plugin/skills/token-master>::<function or CONSTANT>\", plus \"secret_env_var\" (string). There are no list values.",
+   "expected": {
+    "available_tools_constant": "brainspace/native_copilot.py::_TOOLS",
+    "allow_tool_constant": "brainspace/native_copilot.py::_PERMISSIONS",
+    "environment_builder": "brainspace/native_copilot.py::_environment",
+    "config_remover": "brainspace/native_copilot.py::_remove_owned_config",
+    "secret_env_var": "COPILOT_PROVIDER_API_KEY"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/native_copilot.py:28 - _TOOLS = (\"view\", \"tokenmaster-retrieve_original\", \"tokenmaster-headroom_retrieve\")",
+    "token-master-plugin/skills/token-master/brainspace/native_copilot.py:29 - _PERMISSIONS = (\"view\", \"tokenmaster(retrieve_original)\", \"tokenmaster(headroom_retrieve)\")",
+    "token-master-plugin/skills/token-master/brainspace/native_copilot.py:568-578 - run_native_copilot builds argv with \"--available-tools\", *_TOOLS, \"--allow-tool\", *_PERMISSIONS and \"--secret-env-vars\", \"COPILOT_PROVIDER_API_KEY\"",
+    "token-master-plugin/skills/token-master/brainspace/native_copilot.py:74-111 - _environment(root, real_home) mkdirs one folder per variable (HOME/USERPROFILE -> home, APPDATA -> appdata, COPILOT_HOME -> copilot, TEMP/TMP -> temp, ...) and writes COPILOT_HOME/settings.json with ignoredSkillsLocations and disableAllHooks (lines 102-110)",
+    "token-master-plugin/skills/token-master/brainspace/native_copilot.py:436-443 - _remove_owned_config raises native_mcp_config_ownership_changed if the path was relinked, replaced (dev/inode differ) or its bytes changed, otherwise unlinks it; called from run_native_copilot's finally block at line 602",
+    "no other non-test module passes --available-tools/--allow-tool or writes ignoredSkillsLocations (brainspace/exact_reuse.py::_TOOLS is an unrelated read-tool tuple)"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P14",
+   "category": "locate",
+   "prompt": "Our run logs contain the error codes `native_operation_in_progress`, `runtime_operation_in_progress` and `concurrent_runtime_invocation`. Outside the test suites: (a) which methods raise `native_operation_in_progress`; (b) which method raises `runtime_operation_in_progress`; (c) which methods call the method from (b) directly, i.e. the operations it serializes; and (d) which method raises `concurrent_runtime_invocation`? Reply with ONLY a JSON object with exactly 4 keys: \"native_busy_methods\" (list of strings), \"busy_helper\" (string), \"serialized_methods\" (list of strings) and \"concurrent_invoke_method\" (string). Name every method as \"<path relative to token-master-plugin/skills/token-master>::<Class.method>\". Order does not matter in either list.",
+   "expected": {
+    "native_busy_methods": [
+     "brainspace/native_runtime.py::NativeRuntime.invoke",
+     "brainspace/native_runtime.py::NativeRuntime.recover",
+     "brainspace/native_runtime.py::NativeRuntime.finish"
+    ],
+    "busy_helper": "brainspace/runtime.py::RuntimeSession._exclusive",
+    "serialized_methods": [
+     "brainspace/runtime.py::RuntimeSession.prepare_components",
+     "brainspace/runtime.py::RuntimeSession.observe_source_read",
+     "brainspace/runtime.py::RuntimeSession.execute_tool",
+     "brainspace/runtime.py::RuntimeSession.finish",
+     "brainspace/runtime.py::RuntimeSession.close"
+    ],
+    "concurrent_invoke_method": "brainspace/runtime.py::RuntimeSession.invoke"
+   },
+   "unordered_list_keys": [
+    "native_busy_methods",
+    "serialized_methods"
+   ],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/native_runtime.py:243-245 - NativeRuntime.invoke raises ValueError(\"native_operation_in_progress\") when its lock is busy",
+    "token-master-plugin/skills/token-master/brainspace/native_runtime.py:295-298 - NativeRuntime.recover raises native_operation_in_progress",
+    "token-master-plugin/skills/token-master/brainspace/native_runtime.py:326-329 - NativeRuntime.finish raises native_operation_in_progress",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:386-388 - RuntimeSession._exclusive raises ValueError(\"runtime_operation_in_progress\")",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:362-369,398-400,414-416,912-914,986-987 - prepare_components, observe_source_read, execute_tool, finish and close each return self._exclusive(...)",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:887-895 - RuntimeSession.recover calls self.execute_tool, not _exclusive (excluded)",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:786-790 - RuntimeSession.invoke acquires its own lock and raises ValueError(\"concurrent_runtime_invocation\")",
+    "no other non-test file contains these three codes or calls _exclusive"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P15",
+   "category": "locate",
+   "prompt": "I'm re-reviewing how the installer wires the Copilot postToolUse hook. Outside the test suites, find: (a) the module-level constant holding the Copilot hook contract metadata (a dict whose capability_id is `copilot-posttooluse-2026-10-09`); (b) the function that returns a host's capability dictionary containing a copy of that metadata; (c) the function that builds the exec/argv hook entry registered for Copilot; and (d) the top-level function containing the logic that inserts that entry into a settings file's `hooks.postToolUse` list while keeping neighbouring hooks and their order (report the top-level function, not a nested callback and not a wrapper that only delegates). Also give the `matcher` and `timeoutSec` values of the entry built in (c), and the replacement field declared by the metadata in (a). Reply with ONLY a JSON object with exactly 7 keys: \"contract_constant\" (string), \"capabilities_function\" (string), \"hook_entry_builder\" (string) and \"post_tool_use_merger\" (string), each of these four as \"<path relative to token-master-plugin/skills/token-master>::<function or CONSTANT>\", plus \"matcher\" (string), \"timeout_sec\" (int) and \"replacement_field\" (string). There are no list values.",
+   "expected": {
+    "contract_constant": "hosts/__init__.py::COPILOT_HOOK_CONTRACT",
+    "capabilities_function": "hosts/__init__.py::capabilities",
+    "hook_entry_builder": "hosts/runtime.py::copilot_hook_entry",
+    "post_tool_use_merger": "hosts/config.py::copilot_hook",
+    "matcher": "view",
+    "timeout_sec": 20,
+    "replacement_field": "modifiedResult.textResultForLlm"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/hosts/__init__.py:29-38 - COPILOT_HOOK_CONTRACT dict: capability_id \"copilot-posttooluse-2026-10-09\", replacement_field \"modifiedResult.textResultForLlm\"",
+    "token-master-plugin/skills/token-master/hosts/__init__.py:134-140 - capabilities(host) sets hook_output_contract to dict(COPILOT_HOOK_CONTRACT) for copilot",
+    "token-master-plugin/skills/token-master/hosts/runtime.py:68-76 - copilot_hook_entry returns {\"type\": \"command\", \"matcher\": \"view\", \"exec\": ..., \"args\": ..., \"timeoutSec\": 20}",
+    "token-master-plugin/skills/token-master/hosts/config.py:247-295 - copilot_hook's nested edit removes a previously owned entry and post.insert(position, entry) at its old position (or the end), keeping neighbours; the transaction is applied at line 295",
+    "token-master-plugin/skills/token-master/hosts/__init__.py:117-118 - wire_copilot_hook only delegates to copilot_hook (excluded)",
+    "token-master-plugin/skills/token-master/brainspace/host_output.py:18 - COPILOT_CONTRACT is only the plain contract-id string, not metadata with a capability_id"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P16",
+   "category": "logic",
+   "prompt": "Our graph navigation MCP module `graphify_mcp.py` has loaded a valid graph that has no provenance block. Code nodes with ids `t`, `a`, `b`, `c`, `d` and `hub` have distinct labels, and 75 further code nodes have ids `h01` through `h75`. The only edges are `calls` edges (source -> target): a -> t, b -> a, b -> t, c -> b, d -> c, plus exactly one edge hNN -> hub from each of the 75 `h` nodes. Calling the module's tool functions directly in Python: (1) for `impact(\"t\", depth=2)`, which node ids does the metadata `row_ids` list, in order, and what is `depth_boundary_has_more`? (2) for `impact(\"t\", depth=3)`, what are the metadata `returned` and `depth_boundary_has_more`? (3) for `callers(\"hub\", offset=0, limit=100)`, what are the metadata `limit`, `returned`, `next_offset` and `enumeration_complete`? (4) for `callers(\"hub\", offset=60)`, what are `returned` and `enumeration_complete`? Reply with ONLY a JSON object with exactly 10 keys: \"impact2_row_ids\" (list of strings; order matters), \"impact2_has_more\" (bool), \"impact3_returned\" (int), \"impact3_has_more\" (bool), \"page1_limit\" (int), \"page1_returned\" (int), \"page1_next_offset\" (int), \"page1_complete\" (bool), \"page2_returned\" (int), \"page2_complete\" (bool).",
+   "expected": {
+    "impact2_row_ids": [
+     "a",
+     "b",
+     "c"
+    ],
+    "impact2_has_more": true,
+    "impact3_returned": 4,
+    "impact3_has_more": false,
+    "page1_limit": 60,
+    "page1_returned": 60,
+    "page1_next_offset": 60,
+    "page1_complete": false,
+    "page2_returned": 15,
+    "page2_complete": true
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/graphify_mcp.py:24-25 - MAX_DEFS = 8, MAX_ROWS = 60",
+    "token-master-plugin/skills/token-master/graphify_mcp.py:144-146 - incoming[target] receives (relation, source, link), so IN[\"t\"] holds a and b, IN[\"a\"] holds b, IN[\"b\"] holds c, IN[\"c\"] holds d",
+    "token-master-plugin/skills/token-master/graphify_mcp.py:276-287 - impact BFS: hop 1 nxt = {a, b} appended in sorted order, hop 2 nxt = {c} (b already visited); depth 3 adds d at hop 3",
+    "token-master-plugin/skills/token-master/graphify_mcp.py:288-291 - depth_boundary_has_more is true if any calls-edge into the last frontier comes from an unvisited node: d -> c for depth 2 (true), nothing into d for depth 3 (false)",
+    "token-master-plugin/skills/token-master/graphify_mcp.py:237-253,256-259 - callers uses _direct with reverse=True: one row per distinct caller, 75 rows for hub",
+    "token-master-plugin/skills/token-master/graphify_mcp.py:187-198 - _render clamps limit = min(limit, MAX_ROWS) = 60; page rows[0:60] -> returned 60, next_offset 60 (< 75), enumeration_complete false; offset 60 with default limit 60 -> returned 15, next_offset None, enumeration_complete true; row_ids lists page ids in row order"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P17",
+   "category": "logic",
+   "prompt": "We're writing manifests for the fixed read-only learning host. Each case is `ReadonlyGatewayHost(manifest, base_url=\"http://127.0.0.1:8080/v1\", model=\"m\")` with every other argument at its default, where manifest is {\"schema_version\": 1, \"tasks\": [{\"prompt\": \"Answer from the files.\", \"files\": FILES, \"expected\": {\"answer\": 1}}]} and FILES is one of these maps (keys in the order shown): (a) {\"src/com10.py\": \"x\"}; (b) {\"con.d/settings.ini\": \"x\"}; (c) {\"notes/lpt³.txt\": \"x\"}; (d) {\"Data/a.json\": \"x\", \"data/b.json\": \"x\"}; (e) {\"lib\": \"x\", \"lib/util.py\": \"x\"}. For each case, does the constructor return, and if not, what exact ValueError message does it raise? Reply with ONLY a JSON object with exactly 5 keys: \"a\", \"b\", \"c\", \"d\" and \"e\", each a string: \"ok\" if the constructor returns, otherwise the exact ValueError message.",
+   "expected": {
+    "a": "ok",
+    "b": "unsafe_fixture_path",
+    "c": "unsafe_fixture_path",
+    "d": "colliding_fixture_paths",
+    "e": "file_directory_collision"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:188-209 - limits and the loopback ResponsesTransport pass, the manifest/task/prompt/intent/files checks pass, then _fixture_paths(files) runs",
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:97-98 - reserved names are CON, PRN, AUX, NUL, CONIN$, CONOUT$ plus COM0-COM9 and LPT0-LPT9 only",
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:99-104 - each path part's stem = part.split('.')[0].rstrip(' ').upper().translate(superscript 1/2/3 -> 1/2/3); a reserved stem raises unsafe_fixture_path: 'con.d' -> CON, 'lpt³.txt' -> LPT3, while 'com10.py' -> COM10 is not reserved",
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:115-117 - prefix 'data' casefolds to the key already spelled 'Data' -> colliding_fixture_paths",
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:118 - prefix 'lib' of 'lib/util.py' is already a file key from 'lib' -> file_directory_collision",
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:210-247 - case (a) then passes the size/oracle checks and the constructor completes"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P18",
+   "category": "logic",
+   "prompt": "In brainspace/request_policy.py, the private helper `_protected(value, *, strict_status=False)` decides whether a tool message's non-content metadata (or a string) forbids rewriting that message. For each Python value below, what does it return with the default `strict_status` and with `strict_status=True`? (a) `{\"return_code\": 2}`; (b) `{\"returncode\": False}`; (c) `{\"stderr\": \"\", \"exit_code\": 0}`; (d) `{\"meta\": {\"note\": \"0 errors, 0 warnings\"}}`; (e) `{\"ok\": True, \"status\": \"done\"}`. Reply with ONLY a JSON object with exactly 10 keys, all bool: \"a_default\", \"a_strict\", \"b_default\", \"b_strict\", \"c_default\", \"c_strict\", \"d_default\", \"d_strict\", \"e_default\", \"e_strict\".",
+   "expected": {
+    "a_default": false,
+    "a_strict": true,
+    "b_default": false,
+    "b_strict": true,
+    "c_default": false,
+    "c_strict": false,
+    "d_default": false,
+    "d_strict": false,
+    "e_default": true,
+    "e_strict": true
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/request_policy.py:316-319 - strict only: keys exit_code/exitCode/returncode/return_code protect unless type(item) is int and item == 0 -> (a) 2 and (b) bool False are protected; (c) int 0 is not",
+    "token-master-plugin/skills/token-master/brainspace/request_policy.py:332-333 - default exit check covers only exit_code/exitCode/returncode with item not in (None, 0): return_code is ignored (a) and False == 0 counts as in (None, 0) (b)",
+    "token-master-plugin/skills/token-master/brainspace/request_policy.py:325-326,329-331 - stderr protects only when truthy (default) or non-str/non-empty (strict): \"\" is neither (c)",
+    "token-master-plugin/skills/token-master/brainspace/request_policy.py:334-335 - status not in (success, ok, completed) protects in both modes (e)",
+    "token-master-plugin/skills/token-master/brainspace/request_policy.py:336-341 - nested values recurse and strings match _ERROR_TEXT/_EXACT_TEXT",
+    "token-master-plugin/skills/token-master/brainspace/request_policy.py:40-41 - _ERROR_TEXT = \\b(error|failed|denied|fatal|exception|traceback)\\b, so 'errors' has no word boundary after 'error' and '0 errors, 0 warnings' matches neither regex (d)"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P19",
+   "category": "impact",
+   "prompt": "We're about to change `reference_measurement()` in brainspace/optimizer.py, the factory that returns the pinned complete-JSON-body MeasurementIdentity used by the controller and the task runtime. Which non-test functions or methods call it directly? Only files under a `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "brainspace/learning_runtime.py::RuntimePairEvaluator.__init__",
+     "brainspace/learning_runtime.py::RuntimePairEvaluator._guard",
+     "brainspace/optimizer.py::Optimizer.__init__",
+     "brainspace/runtime.py::RuntimeSession.__init__",
+     "evals/synthetic_efficiency.py::synthetic_config",
+     "token_efficiency.py::_runtime_setup"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/optimizer.py:139 - def reference_measurement()",
+    "token-master-plugin/skills/token-master/brainspace/optimizer.py:286 - Optimizer.__init__: _require(config.measurement == reference_measurement(), ...)",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:227 - RuntimeSession.__init__: self.measurement = reference_measurement()",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:234 - RuntimePairEvaluator.__init__ compares manifest.config.measurement == reference_measurement()",
+    "token-master-plugin/skills/token-master/brainspace/learning_runtime.py:264 - RuntimePairEvaluator._guard calls reference_measurement() inside its _require",
+    "token-master-plugin/skills/token-master/token_efficiency.py:159 - _runtime_setup builds OptimizerConfig(measurement=reference_measurement(), ...)",
+    "token-master-plugin/skills/token-master/evals/synthetic_efficiency.py:30 - synthetic_config builds OptimizerConfig(measurement=reference_measurement(), ...)",
+    "all other occurrences are imports, the optimizer.py:267 docstring, or files under tests/ (e.g. tests/test_optimizer.py:24, tests/test_learning_runtime.py:32)"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P20",
+   "category": "impact",
+   "prompt": "I'm adding a required keyword-only parameter to `runtime_entry(python, script, extra=())` in hosts/runtime.py, the helper that renders a host launch entry (absolute interpreter, `-X utf8`, script path and a UTF-8 environment). Which non-test functions call it directly? Only files under a `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to token-master-plugin/skills/token-master>::<function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "hosts/runtime.py::hook_entry",
+     "hosts/runtime.py::copilot_hook_entry",
+     "brainspace_setup.py::_wire_claude_mcp",
+     "brainspace_setup.py::_wire_copilot_mcp",
+     "brainspace_setup.py::main",
+     "setup.py::_write_claude_mcp_servers",
+     "setup.py::main"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ],
+   "evidence": [
+    "token-master-plugin/skills/token-master/hosts/runtime.py:55-58 - def runtime_entry(python, script, extra=())",
+    "token-master-plugin/skills/token-master/hosts/runtime.py:64 - hook_entry calls runtime_entry(python, script, [\"--host\", host])",
+    "token-master-plugin/skills/token-master/hosts/runtime.py:71 - copilot_hook_entry calls runtime_entry(...)",
+    "token-master-plugin/skills/token-master/brainspace_setup.py:55 - _wire_claude_mcp calls runtime_entry(python, mcp_script)",
+    "token-master-plugin/skills/token-master/brainspace_setup.py:65 - _wire_copilot_mcp calls runtime_entry(python, mcp_script)",
+    "token-master-plugin/skills/token-master/brainspace_setup.py:116 - main calls runtime_entry(python, mcp_script)",
+    "token-master-plugin/skills/token-master/setup.py:268 - _write_claude_mcp_servers calls runtime_entry(python, mcp_script)",
+    "token-master-plugin/skills/token-master/setup.py:467 - main calls runtime_entry(python, str(mcp_target))",
+    "the only other call is in tests/test_host_setup.py:138 (excluded); no aliases of runtime_entry exist"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P21",
+   "category": "docs",
+   "prompt": "From the plugin docs on native ranged reads and compact Root references (October 9, 2026): (1) In the retained ranged-read run `native-002`, which reached real Headroom but submitted no change, how many UTF-8 bytes smaller than the original was the projection that carried the old verbose Root reference? (2) For the passing installed qualification `native-004`: how many canned primary requests did the whole protocol use, how many accepted changes and native recoveries did its overview cell record, and how many UTF-8 bytes did the accepted requests remove in total? (3) How many characters long is the compact reference marker? (4) What is the name of the versioned policy catalog? (5) How many canned calls did the earlier `native-003` run make? (6) For the frozen implementation used in the live study, how many tests passed (not counting subtests), and how many snapshotted Python source files remained unchanged? Reply with ONLY a JSON object with exactly 10 keys: \"native002_bytes_smaller\" (int), \"native004_canned_requests\" (int), \"overview_accepted_changes\" (int), \"overview_native_recoveries\" (int), \"removed_utf8_bytes\" (int), \"compact_marker_chars\" (int), \"policy_catalog\" (string), \"native003_canned_calls\" (int), \"suite_tests_passed\" (int), \"snapshotted_source_files\" (int).",
+   "expected": {
+    "native002_bytes_smaller": 245,
+    "native004_canned_requests": 8,
+    "overview_accepted_changes": 3,
+    "overview_native_recoveries": 2,
+    "removed_utf8_bytes": 1244,
+    "compact_marker_chars": 75,
+    "policy_catalog": "runtime-policy-neighbors-v4",
+    "native003_canned_calls": 7,
+    "suite_tests_passed": 4475,
+    "snapshotted_source_files": 201
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:35-44 - native-002: original 30,086 bytes vs 29,841 with the old Root reference; 'The request was 245 bytes smaller but 37 tokens larger.'",
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:53 - 'It is a 75-character opaque reference.'",
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:65-70 - native-004 table: overview cell 5 canned requests, 3 accepted changes, 2 native recoveries; exact cell 3, 0, 0",
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:72-74 - accepted requests remove 482, 381 and 381 UTF-8 bytes; line 141 confirms the 1,244-byte reduction",
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:88-91 - native-003: 'Seven canned calls plus one rejected native primary attempt'; native-004: 'full eight-call protocol passes'",
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:107 - 'The versioned policy catalog is now `runtime-policy-neighbors-v4`'",
+    "token-master-plugin/docs/NATIVE_RANGED_RESULTS.md:133-135 - frozen ranged/compact implementation passed 4,475 tests plus 19 subtests; all 201 snapshotted Python source files remained unchanged"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P22",
+   "category": "docs",
+   "prompt": "From the plugin docs on the read-only planning check that runs before calls are spent on a fixed-size trial: in its worked example (alpha = .05, k = 1, B = 100,000, eta = 1), what radius does it state for eight pairs, and how many pairs does it say are algebraically not ruled out? For the two existing registries it was run against (the V4 eight-pair registry and the earlier profile-learning registry), at which next round is the proposed eight-pair trial impossible, and how many slots are allocated out of how many? Also, which CLI subcommand runs the check? Reply with ONLY a JSON object with exactly 9 keys: \"radius_at_eight_pairs\" (number, as written in the doc), \"pairs_not_ruled_out\" (int), \"v4_next_round\" (int), \"v4_slots_allocated\" (int), \"v4_slots_total\" (int), \"profile_next_round\" (int), \"profile_slots_allocated\" (int), \"profile_slots_total\" (int), \"subcommand\" (string).",
+   "expected": {
+    "radius_at_eight_pairs": 1.02306,
+    "pairs_not_ruled_out": 9,
+    "v4_next_round": 2,
+    "v4_slots_allocated": 160,
+    "v4_slots_total": 160,
+    "profile_next_round": 3,
+    "profile_slots_allocated": 17,
+    "profile_slots_total": 17,
+    "subcommand": "plan-feasibility"
+   },
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/docs/PLAN_FEASIBILITY.md:8-12 - commands: python token_efficiency.py --db REGISTRY plan-feasibility ...",
+    "token-master-plugin/docs/PLAN_FEASIBILITY.md:60-62 - for alpha=.05, k=1, B=100,000, eta=1 eight pairs are impossible: r ~ 1.02306 > 1; 'Nine pairs are algebraically not ruled out.'",
+    "token-master-plugin/docs/PLAN_FEASIBILITY.md:130-133 - V4 eight-pair registry: 'Impossible at next round 2', 'Exhausted, 160/160 slots'; earlier profile-learning registry: 'Impossible at next round 3', 'Exhausted, 17/17 slots'",
+    "token-master-plugin/docs/HANDOFF-2026-10-16.md:201 - consistent: existing registries were 160/160 and 17/17 reserved slots consumed"
+   ],
+   "set": "primary"
+  },
+  {
+   "id": "P23",
+   "category": "edit",
+   "prompt": "In the session control channel (brainspace/session_cli.py), a `recover` frame for `headroom_retrieve` passes `_frame` validation even when its `hash` is empty or whitespace-only; it is only rejected later inside the runtime, and the session then reports the generic `operation_failed`. The read-only learning host already refuses blank hashes. Reject them during frame validation instead: in the `headroom_retrieve` branch of `_frame`, append ` and bool(args[\"hash\"].strip())` to the existing `type(args[\"hash\"]) is str` condition, keeping the whole `_require(...)` call on its one line with the unchanged `invalid_recovery_arguments` code. Change nothing else. Make the change in the workspace.",
+   "expected": null,
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/session_cli.py:194-195 - else-branch of _frame: _require(type(args[\"hash\"]) is str, \"invalid_recovery_arguments\") accepts \"\" and \"   \"",
+    "token-master-plugin/skills/token-master/brainspace/runtime.py:902-907 - RuntimeSession._recover_content later raises headroom_not_active_in_session or invalid_headroom_reference for a blank hash",
+    "token-master-plugin/skills/token-master/brainspace/session_cli.py:241-246 - run_session reports any non-ProtocolError from session.recover as \"operation_failed\"",
+    "token-master-plugin/skills/token-master/brainspace/readonly_learning_host.py:384-386 - the read-only host requires bool(arguments[\"hash\"].strip()) for headroom_retrieve"
+   ],
+   "edit_spec": {
+    "files": [
+     "token-master-plugin/skills/token-master/brainspace/session_cli.py"
+    ],
+    "change": "In _frame, replace the line `            _require(type(args[\"hash\"]) is str, \"invalid_recovery_arguments\")` with `            _require(type(args[\"hash\"]) is str and bool(args[\"hash\"].strip()), \"invalid_recovery_arguments\")` (same 12-space indentation, still one line). Nothing else in the file changes."
+   },
+   "set": "primary",
+   "edit_oracle": {
+    "replacements": [
+     {
+      "file": "token-master-plugin/skills/token-master/brainspace/session_cli.py",
+      "old": "_require(type(args[\"hash\"]) is str, \"invalid_recovery_arguments\")",
+      "new": "_require(type(args[\"hash\"]) is str and bool(args[\"hash\"].strip()), \"invalid_recovery_arguments\")"
+     }
+    ]
+   }
+  },
+  {
+   "id": "P24",
+   "category": "edit",
+   "prompt": "`NativeResponsesTransport.bind` in brainspace/native_transport.py rejects any native request key outside its module-level `_FIELDS` allowlist with `unsupported_native_request_fields`. The `NativeResponsesEnvelope` it constructs next already accepts `background` only when it is `false` and `truncation` only when it is `\"disabled\"`, and rejects any other value, but a request that states those defaults explicitly never gets that far. Admit both keys: inside the `_FIELDS` set literal, add one new line `    \"background\", \"truncation\",` (four-space indent, these two strings in this order, trailing comma) directly after the line that ends with `\"service_tier\",` and before the closing `}`. Change nothing else. Make the change in the workspace.",
+   "expected": null,
+   "unordered_list_keys": [],
+   "evidence": [
+    "token-master-plugin/skills/token-master/brainspace/native_transport.py:17-22 - _FIELDS set literal ends with the line `    \"max_output_tokens\", \"temperature\", \"top_p\", \"safety_identifier\", \"service_tier\",` then `}`",
+    "token-master-plugin/skills/token-master/brainspace/native_transport.py:50-51 - bind raises unsupported_native_request_fields for any key outside _FIELDS",
+    "token-master-plugin/skills/token-master/brainspace/native_transport.py:80-82 - bind then constructs NativeResponsesEnvelope(body, ...)",
+    "token-master-plugin/skills/token-master/brainspace/native_responses.py:131-137 - the envelope rejects background other than False and truncation other than \"disabled\"",
+    "token-master-plugin/skills/token-master/tests/test_native_runtime.py:81-92 - {\"background\": True} is still expected to raise ValueError from bind, which the envelope check preserves"
+   ],
+   "edit_spec": {
+    "files": [
+     "token-master-plugin/skills/token-master/brainspace/native_transport.py"
+    ],
+    "change": "In the _FIELDS set literal, insert the new line `    \"background\", \"truncation\",` between the existing line `    \"max_output_tokens\", \"temperature\", \"top_p\", \"safety_identifier\", \"service_tier\",` and the closing `}`. Nothing else in the file changes."
+   },
+   "set": "primary",
+   "edit_oracle": {
+    "replacements": [
+     {
+      "file": "token-master-plugin/skills/token-master/brainspace/native_transport.py",
+      "old": "    \"max_output_tokens\", \"temperature\", \"top_p\", \"safety_identifier\", \"service_tier\",\n}",
+      "new": "    \"max_output_tokens\", \"temperature\", \"top_p\", \"safety_identifier\", \"service_tier\",\n    \"background\", \"truncation\",\n}"
+     }
+    ]
+   }
+  }
+ ]
+}
