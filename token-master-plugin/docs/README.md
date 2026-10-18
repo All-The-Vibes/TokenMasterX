@@ -6,6 +6,8 @@ This directory contains the architecture specifications, mathematical contracts,
 
 ## 1. Start Here: Current Evidence
 
+- **[PRS-4 results](PRS4_RESULTS.md)**: v7 plus a cache-stable system prompt, 360 sessions, 3 arms; −49.8% per finished task under continuous use.
+- **[PRS-4 protocol](PRS4_PROTOCOL.md)**: the pre-registered design, goal rule and red-team fixes.
 - **[PRS-3 results](PRS3_RESULTS.md)**: a pre-registered live study on 24 fresh tasks (480 sessions, 4 arms).
   - v7 graph-first navigation lowered cost by 22.0% against stock (95% CI −35.4% to −8.9%), with 120/120 passed.
   - v6 replicated at −13.0%.
@@ -18,7 +20,7 @@ This directory contains the architecture specifications, mathematical contracts,
   - Every TokenMaster arm passed 36/36.
 - **[PRS-1 protocol](PRS1_PROTOCOL.md)**: the design, arms, endpoints and decision rules, frozen before the run, plus every change made before it.
 - **[Root README](../../README.md)**: overview, results table and reproduction commands.
-- **[Single-slide summary](../../docs/tokenmaster-v5-slide.html)**: a one-screen view of the PRS-3 results.
+- **[Single-slide summary](../../docs/tokenmaster-v5-slide.html)**: a one-screen view of the PRS-4 results.
 - **[Retracted: V5 isolated sandbox report](V5_ISOLATED_SANDBOX_SAVINGS_REPORT.md)**: why the October 17 numbers were withdrawn.
 - **[Mission & Thesis](../../MISSION.md)**: the spatial (graph routing) and temporal (context compaction) thesis.
 - **[Changelog](../../CHANGELOG.md)**: chronological release and engineering log.

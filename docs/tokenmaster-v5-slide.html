@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TokenMaster PRS-3 results</title>
+  <title>TokenMaster PRS-4 results</title>
   <style>
     :root {
       --bg: #07090e;
@@ -277,27 +277,27 @@
   <div class="slide">
     <div class="header">
       <div>
-        <div class="badge">● PRS-3 · Pre-registered · 480 live sessions · 24 fresh blind tasks · gpt-6-astra</div>
-        <h1>TokenMaster v7 cuts real cost by 22%. <span>v6 replicated at 13%. The 30% goal is not met yet.</span></h1>
-        <p class="subtitle">Cost = uncached input + 0.1 × cached input + 8 × output. Same quality in every arm. Every token recounted from raw captures.</p>
+        <div class="badge">● PRS-4 · Pre-registered · 360 live sessions · 24 fresh blind tasks · gpt-6-astra</div>
+        <h1>v7 + a cache-stable prompt cuts billed cost by 50%. <span>The 30% goal is met under continuous use.</span></h1>
+        <p class="subtitle">Billed cost per finished task at the provider's own prices: cache read 0.1, cache write 1.25, output 5. Same quality in every arm. Every token recounted and checked against the provider's bill.</p>
       </div>
     </div>
 
     <div class="hero-grid">
       <div class="stat-card">
-        <div class="stat-label">v7 navigation · cost vs. stock</div>
-        <div class="stat-value accent">−22.0%</div>
-        <div class="stat-sub">95% CI −35.4% to −8.9% · Holm p = 0.006</div>
+        <div class="stat-label">v7 + cache-stable prompt · vs. stock</div>
+        <div class="stat-value accent">−49.8%</div>
+        <div class="stat-sub">95% CI −57.1% to −42.9% · 24 of 24 tasks cheaper</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">v6 shaping · cost vs. stock</div>
-        <div class="stat-value cyan">−13.0%</div>
-        <div class="stat-sub">95% CI −19.3% to −6.7% · replicates PRS-2 (−11.6%)</div>
+        <div class="stat-label">v7 alone · vs. stock</div>
+        <div class="stat-value cyan">−18.2%</div>
+        <div class="stat-sub">95% CI −26.6% to −9.5% · replicates PRS-3</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">v7 vs. v6 alone</div>
-        <div class="stat-value">−10.4%</div>
-        <div class="stat-sub">95% CI −21.4% to +0.1% · not significant</div>
+        <div class="stat-label">Isolated sessions (&gt;30 min apart)</div>
+        <div class="stat-value">−18.9%</div>
+        <div class="stat-sub">first call re-priced as a cache miss</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Task success · every arm</div>
@@ -308,66 +308,66 @@
 
     <div class="middle-grid">
       <div class="panel">
-        <div class="panel-title">Why v7 is cheaper</div>
+        <div class="panel-title">Why it is cheaper</div>
         <div class="steps">
           <div class="step">
             <div class="step-num">1</div>
             <div class="step-body">
-              <strong>Exact answers, not whole files</strong>
-              <p>locate, read_symbol and impact return one symbol or one list of callers. Uncached input fell 27% against stock.</p>
+              <strong>One system prompt for every session</strong>
+              <p>Copilot CLI puts each session's folder in its system prompt. Moving that line to the first user message let 119 of 120 first calls read the prompt from the cache.</p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-body">
-              <strong>History is never rewritten</strong>
-              <p>v6 shapes each tool result once, so the provider's cache stays valid. Every call after the first read it.</p>
+              <strong>Exact answers, not whole files</strong>
+              <p>v7's locate, read_symbol and impact cut raw tokens by 14% against stock.</p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">3</div>
             <div class="step-body">
-              <strong>Biggest win: "who calls X?"</strong>
-              <p>Impact tasks cost 64% less than stock (exploratory). Edit tasks gained nothing.</p>
+              <strong>History is never rewritten</strong>
+              <p>v6 shapes each tool result once, so every later call still reads the history from the cache.</p>
             </div>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-title">Cost per arm (120 sessions each)</div>
+        <div class="panel-title">Billed cost per arm (120 sessions each)</div>
         <div class="chart-rows">
           <div class="chart-row arm">
             <div class="turn-label">stock</div>
             <div class="bars"><div class="bar-base" style="width: 100%"></div></div>
-            <div class="delta-pill neutral">2.03M</div>
-          </div>
-          <div class="chart-row arm">
-            <div class="turn-label">v6</div>
-            <div class="bars"><div class="bar-v5" style="width: 87.0%"></div></div>
-            <div class="delta-pill">1.76M · −13.0%</div>
-          </div>
-          <div class="chart-row arm">
-            <div class="turn-label">v6 + one sentence of advice</div>
-            <div class="bars"><div class="bar-muted" style="width: 82.8%"></div></div>
-            <div class="delta-pill neutral">1.68M · −17.2%</div>
+            <div class="delta-pill neutral">1.61M</div>
           </div>
           <div class="chart-row arm">
             <div class="turn-label">v7 (v6 + navigation tools)</div>
-            <div class="bars"><div class="bar-v5" style="width: 78.0%"></div></div>
-            <div class="delta-pill">1.58M · −22.0%</div>
+            <div class="bars"><div class="bar-v5" style="width: 81.8%"></div></div>
+            <div class="delta-pill">1.32M · −18.2%</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">v7, isolated sessions</div>
+            <div class="bars"><div class="bar-muted" style="width: 81.1%"></div></div>
+            <div class="delta-pill neutral">1.30M · −18.9%</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">v7 + cache-stable prompt</div>
+            <div class="bars"><div class="bar-v5" style="width: 50.2%"></div></div>
+            <div class="delta-pill">0.81M · −49.8%</div>
           </div>
         </div>
-        <div class="legend note">Change vs. stock. v6 and v7 are significant after Holm correction. v7's edge over v6, and the advice-only arm, are not.</div>
+        <div class="legend note">Continuous use: sessions of one repository back to back. The cached prompt lasts between 6.5 and 31 minutes. Only the experimental, read-only native Copilot route applies it today.</div>
       </div>
     </div>
 
     <div class="footer">
-      <div>Evidence: <code>evidence/prs3-20261018/</code> · Protocol: <code>token-master-plugin/docs/PRS3_PROTOCOL.md</code></div>
+      <div>Evidence: <code>evidence/prs4-20261018/</code> · Protocol: <code>token-master-plugin/docs/PRS4_PROTOCOL.md</code></div>
       <div class="pills">
         <span class="pill">✓ Pre-registered, SHA-frozen</span>
-        <span class="pill">✓ v7 frozen before tasks were read</span>
-        <span class="pill">✗ 30% goal not met yet</span>
+        <span class="pill">✓ Code frozen before tasks were read</span>
+        <span class="pill">✓ 30% goal met (continuous use)</span>
       </div>
     </div>
   </div>

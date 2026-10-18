@@ -46,8 +46,11 @@ The evidence comes from pre-registered live studies on this repository:
 | [PRS-1](token-master-plugin/docs/PRS1_RESULTS.md) | 252 | No configuration shipped at the time significantly cut tokens. v5 raised cost by 61.6%. |
 | [PRS-2](token-master-plugin/docs/PRS2_RESULTS.md) | 216 | v6 result shaping cut cost by 11.6%. The graph tools as shipped raised it by 12.9%. |
 | [PRS-3](token-master-plugin/docs/PRS3_RESULTS.md) | 480 | v7 cut cost by **22.0%** against stock (95% CI −35.4% to −8.9%); v6 cut it by 13.0%. Quality was 120/120 in every arm. v7 against v6 alone: −10.4%, not significant. |
+| [PRS-4](token-master-plugin/docs/PRS4_RESULTS.md) | 360 | v7 with a cache-stable system prompt cut billed cost per finished task by **49.8%** against stock (95% CI −57.1% to −42.9%), under continuous use. v7 alone: −18.2%. Quality was 120/120 in every arm. |
 
-**The target of at least 30% savings at equal quality is not met yet.**
+**The target of at least 30% savings at equal quality is met under continuous use (PRS-4).**
+Isolated sessions, more than about 30 minutes apart, save about 19%. Only the experimental,
+read-only native Copilot route applies the cache-stable prompt today.
 
 Earlier claims are superseded:
 - **The October 17 savings figures are retracted.** See the retraction in the
@@ -85,9 +88,9 @@ Earlier claims are superseded:
    session learned, instead of re-deriving it, remains an idea. No study has
    measured it.
 
-## Open levers toward 30% (hypotheses, not results)
+## Open levers (hypotheses, not results, unless marked measured)
 
-1. **First-call caching across sessions: confirmed mechanism, not yet a measured saving.**
+1. **First-call caching across sessions: measured in PRS-4 (−38.6% against v7 alone).**
    - Every PRS-3 session's first call wrote about 3,500 tokens to the cache and read
      none. Cause: Copilot CLI puts each session's own folder path inside the system
      message, so no two sessions share a system message.
@@ -102,7 +105,10 @@ Earlier claims are superseded:
      at 1.25×, a cache read at 0.1× and output at 5× the input price. At those prices a
      hit saves about 3,900 units per session, about 21% of stock's cost.
    - The saving applies only when another session used the same prefix within the
-     cache lifetime. That lifetime is being measured (`probe_ttl.py`, `ttl.jsonl`).
+     cache lifetime. That lifetime is at least 6.5 minutes and less than 31 minutes
+     ([evidence](evidence/cache-probe-20261018/ttl.jsonl)).
+   - Next step for this lever: bring the cache-stable prompt to a route that users can
+     install with full tools. Today only the experimental, read-only native route applies it.
 2. **Edit tasks:** v7 cost 9% more than v6 on them.
 3. **Output tokens:** v7 already wrote 17% fewer than v6; terser final answers may
    cut more.

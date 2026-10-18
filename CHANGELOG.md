@@ -7,6 +7,21 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Cache-stable system prompt and PRS-4 — October 18, 2026
+
+- The native Copilot route moves Copilot CLI's per-session `Session folder:` line from the
+  system prompt to the first user message (`stable_session_prefix` in
+  `brainspace/native_transport.py`; transport version `native-responses-transport-v2`).
+  The system prompt is then identical across sessions of a repository, so a new session's
+  first call reads it from the provider's cache. The rewrite is a no-op when the line is
+  absent or ambiguous, and it gives the same bytes on every call of a session.
+- PRS-4 (pre-registered, 360 live sessions, 24 fresh blind-authored tasks): v7 with the
+  cache-stable prompt cost 49.8% less than stock per finished task (95% CI −57.1% to
+  −42.9%), 120/120 passed. v7 alone: −18.2%. Isolated sessions: about −19%. See
+  `docs/PRS4_RESULTS.md`.
+- The cache-lifetime probe found that the cached prompt survives at least 6.5 minutes and
+  less than 31 minutes.
+
 ### v6 as the default for Copilot — October 18, 2026
 
 - The native Copilot route (`brainspace_tools.py native-copilot`) now defaults to
