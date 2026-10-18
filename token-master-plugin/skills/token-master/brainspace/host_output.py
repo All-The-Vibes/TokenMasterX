@@ -22,8 +22,8 @@ def _copilot_output(payload: dict, compress: Callable[[str, str], str],
                     min_chars: int, max_stdout_bytes: int) -> dict | None:
     """Only the observed successful, pure-text view schema is qualified.
 
-    The callback is trusted to preserve content semantics; the native CLI uses
-    conservative JSON only. Extra fields/range reads require new qualification,
+    The callback is trusted to preserve content semantics; the hook uses
+    request-policy-v6 shaping. Extra fields/range reads require new qualification,
     not guesses about whether an unknown field represents an error or media.
     """
     if (set(payload) != {"sessionId", "timestamp", "cwd", "toolName", "toolArgs", "toolResult"}

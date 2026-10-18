@@ -63,9 +63,12 @@ def test_parser_and_native_cli_forward_source_contract(tmp_path, monkeypatch, ca
     assert native_cli.run_native_cli(args) == 0
     assert len(calls) == 1 and calls[0]["source_contract"] == expected
     # Selection belongs to the adapter, not RuntimePolicy serialization/IDs.
+    from brainspace.request_policy import RequestPolicy
     from brainspace.runtime_policy import RuntimePolicy
-    assert calls[0]["policy"].to_dict() == RuntimePolicy().to_dict()
-    assert calls[0]["policy"].policy_id == RuntimePolicy().policy_id
+    default = RuntimePolicy(backend="local", require_nonexpanding_input=True,  # the native v6 default
+                            request_policy=RequestPolicy(version="request-policy-v6", enabled=True))
+    assert calls[0]["policy"].to_dict() == default.to_dict()
+    assert calls[0]["policy"].policy_id == default.policy_id
     assert json.loads(capsys.readouterr().out)["complete"] is True
     assert not (tmp_path / "output").exists()
 

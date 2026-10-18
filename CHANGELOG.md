@@ -7,6 +7,24 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### v6 as the default for Copilot — October 18, 2026
+
+- The native Copilot route (`brainspace_tools.py native-copilot`) now defaults to
+  `request-policy-v6`, the configuration measured in PRS-2 and PRS-3. Before, its
+  default turned the optimizer off. `--runtime-policy` still overrides it.
+- The native transport now keeps the client's `parallel_tool_calls` instead of
+  forcing it to `false`; when the client sends no value it defaults to on. Copilot
+  CLI sends `true`.
+- The Copilot output hook applies `request-policy-v6` to whole-file `view` results
+  instead of lossless JSON whitespace compaction. v6 does not compact JSON, and the
+  measured v6 configuration did not either.
+- `brainspace_setup.py --host copilot` installs the hook by default.
+  `--no-copilot-output-hook` skips it. If the user has set `disableAllHooks`, the
+  hook is skipped but the MCP server still installs; an explicit
+  `--copilot-output-hook` still fails in that case.
+- The v6 hook has offline contract tests only. It has not yet had a native Copilot
+  CLI lifecycle run.
+
 ### v7 navigation in host setup — October 18, 2026
 
 - `setup.py` now installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`),

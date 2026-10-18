@@ -176,6 +176,9 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
         settings = json.loads((host_home(host) / "settings.json").read_bytes())
         assert settings["env"]["BRAINSPACE_TOKENIZER_FILE"] == str(installed_vocab)
         assert settings["hooks"]["PostToolUse"][0]["hooks"][0]["args"][-2:] == ["--host", "claude"]
+    if host == "copilot":  # the v6 output hook is on by default
+        saved = json.loads((host_home(host) / "settings.json").read_bytes())["hooks"]["postToolUse"][0]
+        assert saved["matcher"] == "view" and "--contract" in saved["args"]
     # Invoke the actual installed offline tokenizer, not just the test source.
     code = ("import sys, json; sys.path.insert(0, sys.argv[1]); "
             "from brainspace.tokens import backend_info, count_tokens; "
@@ -194,6 +197,26 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
     if host == "claude":
         settings = json.loads((host_home(host) / "settings.json").read_bytes())
         assert "BRAINSPACE_TOKENIZER_FILE" not in settings.get("env", {})
+    if host == "copilot":
+        settings = json.loads((host_home(host) / "settings.json").read_bytes())
+        assert not settings.get("hooks", {}).get("postToolUse")
+
+
+@pytest.mark.parametrize("argv,disabled", [(["--no-copilot-output-hook"], False), ([], True)])
+def test_copilot_install_without_the_output_hook(homes, tokenizer_source, monkeypatch, argv, disabled):
+    from hosts import config_path, host_home
+    settings = host_home("copilot") / "settings.json"
+    if disabled:  # hooks the user turned off stay off; the MCP server still installs
+        settings.parent.mkdir(parents=True, exist_ok=True)
+        settings.write_text('{"disableAllHooks":true}', encoding="utf-8")
+    setup = load("brainspace_setup")
+    monkeypatch.setattr(sys, "argv", ["brainspace_setup.py", "--host", "copilot", "--python", sys.executable,
+                                      "--tokenizer-file", str(tokenizer_source), *argv])
+    assert setup.main() == 0
+    assert "brainspace" in json.loads(config_path("copilot").read_bytes())["mcpServers"]
+    saved = json.loads(settings.read_bytes()) if settings.is_file() else {}
+    assert not saved.get("hooks", {}).get("postToolUse")
+    assert saved.get("disableAllHooks", False) is disabled
 
 
 @pytest.mark.parametrize("corrupt", [False, True])

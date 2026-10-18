@@ -11,6 +11,10 @@ agents. It has two parts:
    result once, when it enters the conversation. It packs search output
    losslessly and turns oversized results into short digests. It never rewrites
    history, so the provider's prompt cache keeps working.
+   - It is the default policy of the native Copilot route, which keeps the
+     client's parallel tool calls.
+   - It also runs in the Copilot output hook, which is installed by default and
+     shapes whole-file `view` results.
 2. **Graph-first navigation (v7, `brainspace/symbol_index.py`):** three compact tools
    over graphify's call graph and an exact-range symbol index.
    - `locate` finds a symbol or a file's outline.
@@ -92,7 +96,7 @@ Protocol: [PRS1_PROTOCOL.md](token-master-plugin/docs/PRS1_PROTOCOL.md).
 | Graph routing (before v7) | `graphify-nav` (6 tools) and `codegraph` MCP servers on prebuilt indexes, plus a routing agent prompt. | Added about 2,100 tokens to every call; PRS-2: +12.9% cost. `setup.py` now removes these servers when TokenMaster owns them. |
 | `request-policy-v6` | Shapes each tool result once, deterministically, when it enters the conversation. Folds search and list output losslessly; turns oversized results into digests that name what was omitted and how to fetch it. | PRS-2: −11.6% cost; PRS-3: −13.0% cost on new tasks. Quality unchanged. Never rewrites history, so the provider's cache stays valid. |
 | `request-policy-v5` | Keeps the newest tool result verbatim. Compacts older `view` results (code skeletons, JSON overviews, Markdown and log summaries) behind one `[[BR:<sha256>\|r=1]]` reference with exact SQLite recovery. | Removed 15.7% of tokens on the requests it changed. Uncached input still rose 94.8%, because each rewrite invalidates the cached prefix. Superseded by v6. |
-| Runtime transport | Captures every request and reply for whole-task accounting. | Forces `parallel_tool_calls: false`, which the study suggests is costly. |
+| Runtime transport | Captures every request and reply for whole-task accounting. | The native route now keeps the client's parallel tool calls (default on). Earlier versions forced them off, which PRS-1 suggested was costly. |
 
 ## Version history
 

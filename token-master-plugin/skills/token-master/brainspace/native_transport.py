@@ -66,7 +66,8 @@ class NativeResponsesTransport:
         if type(cap) is not int or cap < 1:
             raise ValueError("invalid_native_output_limit")
         body["max_output_tokens"] = min(cap, self.max_output_tokens)
-        body.update(store=False, stream=False, parallel_tool_calls=False)
+        # Keep the client's parallel tool calls (default on); v6 was measured with them on.
+        body.update(store=False, stream=False, parallel_tool_calls=original.get("parallel_tool_calls", True))
         if self.reasoning_effort is not None:
             reasoning = body.get("reasoning", {})
             if type(reasoning) is not dict:

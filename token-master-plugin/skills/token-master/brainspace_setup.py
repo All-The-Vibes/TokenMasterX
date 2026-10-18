@@ -72,9 +72,9 @@ def main():
     parser.add_argument("--host", choices=HOSTS, default="")
     parser.add_argument("--python", default=sys.executable, help="pre-provisioned runtime interpreter")
     parser.add_argument("--tokenizer-file", help="copy an existing SHA-256-verified local vocabulary; never downloads")
-    parser.add_argument("--copilot-output-hook", action="store_true",
-                        help="Explicitly register the qualified native Copilot view-text contract; "
-                             "not a full-profile or task-savings certificate")
+    parser.add_argument("--copilot-output-hook", action=argparse.BooleanOptionalAction, default=None,
+                        help="Copilot only, on by default: shape whole-file view results with "
+                             "request-policy-v6 (--no-copilot-output-hook skips it); not a task-savings certificate")
     parser.add_argument("--uninstall", action="store_true")
     args = parser.parse_args()
     try:
@@ -82,15 +82,19 @@ def main():
         home = host_home(host)
         if args.copilot_output_hook and host != "copilot":
             raise ValueError("--copilot-output-hook requires --host copilot")
+        copilot_hook = host == "copilot" and args.copilot_output_hook is not False and not args.uninstall
         preflight(host, include_hook=host == "claude" or host == "copilot"
-                  and (args.copilot_output_hook or args.uninstall))
-        if host == "copilot" and (args.copilot_output_hook or args.uninstall) \
+                  and (copilot_hook or args.uninstall))
+        if host == "copilot" and (copilot_hook or args.uninstall) \
                 and copilot_hook_status(home) is None:
             raise ValueError("owned Copilot hook was edited; preserving hook and MCP configuration")
-        if host == "copilot" and args.copilot_output_hook and not args.uninstall:
+        if copilot_hook:
             settings = parse(read(home / "settings.json").decode("utf-8-sig"))
             if settings.get("disableAllHooks") is True:
-                raise ValueError("Copilot hooks are disabled in existing settings; preserving that choice")
+                if args.copilot_output_hook:
+                    raise ValueError("Copilot hooks are disabled in existing settings; preserving that choice")
+                copilot_hook = False
+                print("[brainspace] Copilot hooks are disabled in existing settings; skipping the output hook.")
         install_dir = home / "token-master"
         mcp_script = str(install_dir / "brainspace_mcp.py")
         hook_script = str(install_dir / "brainspace_posttooluse.py")
@@ -119,7 +123,7 @@ def main():
             if host == "claude":
                 wire_hook(home, command)
                 environment(home / "settings.json", "BRAINSPACE_TOKENIZER_FILE", str(tokenizer_path))
-            elif host == "copilot" and args.copilot_output_hook:
+            elif copilot_hook:
                 wire_copilot_hook(home, copilot_hook_entry(python, hook_script, tokenizer_path))
         print(f"[brainspace] {'uninstalled configuration' if args.uninstall else 'configured'}: {config_path(host)}")
         print(json.dumps({**capabilities(host),

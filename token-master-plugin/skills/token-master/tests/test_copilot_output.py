@@ -13,6 +13,7 @@ import brainspace_posttooluse as hook
 from brainspace import host_output, tokens
 from brainspace.compressors.json_compressor import compress_json
 from brainspace.router import route_typed
+from brainspace.v6_shaping import shape_tool_result
 
 
 CONTRACT = "copilot-posttooluse-2026-10-09"
@@ -81,6 +82,17 @@ def apply(payload=None, compress=conservative, **options):
 
 def never(*args, **kwargs):
     pytest.fail("unsupported input must bypass before compression")
+
+
+def listing_payload():
+    # A whole-directory view: v6 folds the repeated folder prefix losslessly.
+    payload = native_payload("\n".join(f"src/tokenmaster/handlers/module_{n:02}.py" for n in range(80)))
+    payload["toolArgs"]["path"] = "C:/fixture/src"
+    return payload
+
+
+def v6(text, hint):
+    return shape_tool_result("view", {"path": hint}, text, tokens.count_tokens)
 
 
 def test_native_success_changes_only_text_preserving_json_lexemes_and_metadata():
@@ -245,11 +257,13 @@ def run_cli(monkeypatch, argv, payload=None, *, raw=None):
     return output.getvalue()
 
 
-def test_cli_explicit_copilot_opt_in_uses_conservative_router_without_storage(monkeypatch):
+def test_cli_copilot_shapes_whole_file_views_with_v6_without_storage(monkeypatch):
     monkeypatch.setattr(hook, "CCR", never)
-    wire = run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT])
-    assert json.loads(wire) == apply()
-    assert wire == tokens.serialize(apply()).encode("utf-8")
+    monkeypatch.setattr(hook, "route_typed", never)  # the old JSON-only router is no longer used for Copilot
+    wire = run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT], listing_payload())
+    expected = apply(listing_payload(), v6)
+    assert expected is not None and json.loads(wire) == expected
+    assert wire == tokens.serialize(expected).encode("utf-8")
 
 
 def test_cli_installed_explicit_tokenizer_works_without_ambient_discovery(monkeypatch, tmp_path):
@@ -258,12 +272,13 @@ def test_cli_installed_explicit_tokenizer_works_without_ambient_discovery(monkey
     installed = tmp_path / "installed vocabulary" / "cl100k_base.tiktoken"
     installed.parent.mkdir()
     installed.write_bytes(source.read_bytes())
+    expected = apply(listing_payload(), v6)["modifiedResult"]["textResultForLlm"]
     monkeypatch.setenv("BRAINSPACE_TOKENIZER_FILE", str(tmp_path / "wrong-ambient-file"))
     monkeypatch.setenv("TIKTOKEN_CACHE_DIR", str(tmp_path / "empty-cache"))
     monkeypatch.setattr(hook, "CCR", never)
     wire = run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT,
-                                "--tokenizer-file", str(installed)])
-    assert json.loads(wire)["modifiedResult"]["textResultForLlm"] == COMPACT
+                                "--tokenizer-file", str(installed)], listing_payload())
+    assert json.loads(wire)["modifiedResult"]["textResultForLlm"] == expected
     assert tokens._vocabulary_path() == installed
 
 
@@ -276,15 +291,16 @@ def test_cli_invalid_explicit_tokenizer_cannot_use_previously_cached_encoder(mon
         bad.write_bytes(b"not-the-pinned-vocabulary")
     monkeypatch.setattr(hook, "CCR", never)
     assert run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT,
-                                "--tokenizer-file", str(bad)]) == b""
+                                "--tokenizer-file", str(bad)], listing_payload()) == b""
 
 
 @pytest.mark.parametrize("path,text", [
     ("source.py", "def example():\n    return 1\n"),
     ("guide.md", "# Heading\n\nKeep  this spacing.\n"),
     ("run.log", "[INFO] process succeeded\n"),
+    ("C:/fixture/??.json", TEXT),  # v6 does not compact JSON whitespace
 ])
-def test_cli_non_json_never_invokes_a_compressor(monkeypatch, path, text):
+def test_cli_small_views_stay_unchanged(monkeypatch, path, text):
     payload = native_payload(text)
     payload["toolArgs"]["path"] = path
     monkeypatch.setattr(hook, "route_typed", never)

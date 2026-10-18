@@ -22,6 +22,7 @@ def run_native_cli(args):
     validate_source_contract(args.source_contract)
     from . import tokens
     from .native_copilot import run_native_copilot
+    from .request_policy import RequestPolicy
     from .runtime_policy import RuntimePolicy
     from .runtime_resources import RuntimeResources
 
@@ -34,8 +35,11 @@ def run_native_cli(args):
     prompt = args.prompt if args.prompt is not None else _text(args.prompt_file, 65536)
     if type(prompt) is not str or len(prompt.encode("utf-8")) > 65536:
         raise ValueError("native_prompt_bound")
+    # Default: request-policy-v6, the configuration measured in PRS-2 and PRS-3.
     policy = RuntimePolicy.from_dict(parse_json(_text(args.runtime_policy))) \
-        if args.runtime_policy else RuntimePolicy()
+        if args.runtime_policy else RuntimePolicy(
+            backend="local", request_policy=RequestPolicy(version="request-policy-v6", enabled=True),
+            require_nonexpanding_input=True)
     resources = RuntimeResources(
         ponytail_export=args.ponytail_export, headroom_cache=args.headroom_cache,
         headroom_assets=args.headroom_assets,

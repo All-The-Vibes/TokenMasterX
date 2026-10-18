@@ -56,6 +56,13 @@ MCP is model-invoked, not transparent interception. The Claude PostToolUse adapt
 has a separate versioned schema and runtime-acceptance gate. Unknown hosts/shapes
 are not assumed compatible. No model-visible savings footer is required.
 
+For Copilot, `brainspace_setup.py --host copilot` also installs an output hook by
+default; `--no-copilot-output-hook` skips it. The hook applies `request-policy-v6`
+to whole-file `view` results: oversized files become outline digests, and folder
+listings are folded losslessly. A result that would not fit the hook's 9,000-byte
+output cap passes through unchanged. The native Copilot route defaults to the same
+policy.
+
 ## Scoped discipline
 
 For an explicitly requested task-local mode, state a compact contract:

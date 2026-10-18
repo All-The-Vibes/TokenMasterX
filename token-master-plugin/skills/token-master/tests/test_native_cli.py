@@ -51,7 +51,7 @@ def test_native_cli_missing_tokenizer_never_launches(tmp_path, monkeypatch):
 
 
 @pytest.mark.parametrize("complete,exit_code", [(True, 0), (False, 3)])
-def test_native_cli_default_true_off_and_compact_operational_output(
+def test_native_cli_default_v6_and_compact_operational_output(
     tmp_path, monkeypatch, capsys, complete, exit_code,
 ):
     monkeypatch.setattr(tokens, "backend_info", lambda: {"exact_reference": True})
@@ -66,9 +66,9 @@ def test_native_cli_default_true_off_and_compact_operational_output(
     monkeypatch.setattr(native_copilot, "run_native_copilot", run)
     args = arguments(tmp_path)
     assert native_cli.run_native_cli(args) == exit_code
-    assert calls[0]["policy"].backend == "none"
-    assert calls[0]["policy"].instruction == "none"
-    assert not calls[0]["policy"].request_policy.enabled
+    policy = calls[0]["policy"]  # the PRS-2/PRS-3 configuration
+    assert (policy.backend, policy.instruction, policy.require_nonexpanding_input) == ("local", "none", True)
+    assert policy.request_policy.version == "request-policy-v6" and policy.request_policy.enabled
     output = capsys.readouterr().out
     assert "PRIVATE_NATIVE_EVENT_CONTENT" not in output
     value = json.loads(output)

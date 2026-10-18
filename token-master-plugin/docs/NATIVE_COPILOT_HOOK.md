@@ -1,5 +1,14 @@
 # Native Copilot hook — October 9, 2026
 
+> **Update, October 18, 2026:**
+> - The hook now applies `request-policy-v6` to whole-file `view` results instead of
+>   JSON whitespace compaction.
+> - `brainspace_setup.py --host copilot` installs the hook by default.
+>   `--no-copilot-output-hook` skips it, and a user's `disableAllHooks` setting still
+>   wins.
+> - The native lifecycle run below verified the October 9 JSON hook. The v6 hook has
+>   offline contract tests only; it has not had a native Copilot CLI lifecycle run.
+
 **A real native integration slice, not a full-system savings result.**
 The installed conservative JSON `view` hook now runs through the actual
 Copilot CLI. This hook does **not** run the full Ponytail/Headroom/Jev profile,

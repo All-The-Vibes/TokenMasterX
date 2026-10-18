@@ -2,7 +2,8 @@
 """Opt-in versioned PostToolUse adapters. Unknown hosts/shapes pass through.
 
 Claude updatedToolOutput and Copilot modifiedResult retain the original schema.
-Copilot requires its explicit contract and conservative JSON; Codex is a no-op.
+Copilot requires its explicit contract; its whole-file view results get
+request-policy-v6 shaping. Codex is a no-op.
 Only safe text leaves change; errors, IDs, status and mixed media stay intact.
 The byte cap is a configurable local safety limit, not a claimed universal host
 limit. Actual host acceptance must be separately tested for the installed host.
@@ -21,9 +22,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from brainspace.ccr import CCR  # noqa: E402
 from brainspace import tokens  # noqa: E402
 from brainspace.host_output import CLAUDE_CONTRACT, COPILOT_CONTRACT, transform_output  # noqa: E402
-from brainspace.router import ContentType, detect, route_typed  # noqa: E402
+from brainspace.router import route_typed  # noqa: E402
 from brainspace.runtime_io import parse_json  # noqa: E402
 from brainspace.tokens import serialize  # noqa: E402
+from brainspace.v6_shaping import shape_tool_result  # noqa: E402
 
 
 def main(argv=None) -> int:
@@ -61,9 +63,9 @@ def main(argv=None) -> int:
             shared=os.environ.get("BRAINSPACE_SHARED") == "1",
         )
         def compress(text, hint):
-            if contract == COPILOT_CONTRACT and detect(text, hint) is not ContentType.JSON:
-                return text
-            return route_typed(text, hint, stash=ccr.stash if ccr is not None else None, intent=intent)[0]
+            if contract == COPILOT_CONTRACT:  # request-policy-v6 (PRS-2, PRS-3): shape a whole-file view once
+                return shape_tool_result("view", {"path": hint}, text, tokens.count_tokens)
+            return route_typed(text, hint, stash=ccr.stash, intent=intent)[0]
         result = transform_output(
             payload, compress, contract=contract,
             min_chars=int(os.environ.get("BRAINSPACE_HOOK_MIN_CHARS", "800")),

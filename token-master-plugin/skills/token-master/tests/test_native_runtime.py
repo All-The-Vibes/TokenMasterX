@@ -69,7 +69,8 @@ def test_transport_preserves_native_fields_and_records_common_controls(monkeypat
     assert result["reasoning"] == before["reasoning"]
     assert result["prompt_cache_key"] == before["prompt_cache_key"]
     assert result["max_output_tokens"] == 2048
-    assert result["parallel_tool_calls"] is result["store"] is result["stream"] is False
+    assert result["parallel_tool_calls"] is True  # the client's choice is kept; v6 was measured with parallel calls
+    assert result["store"] is result["stream"] is False
     assert adapter.controls["scope"] == "common_transport_controls_not_optimizer_savings"
     assert adapter.send(wire + " ").reason == "invalid_request"
     assert not sent
