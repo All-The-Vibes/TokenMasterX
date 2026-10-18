@@ -8,23 +8,87 @@ from __future__ import annotations
 
 from copy import deepcopy
 import json
+import re
 
 from .native_responses import NativeResponsesEnvelope
 from .transport import Reply, ResponsesTransport, parse_json
 
 
-VERSION = "native-responses-transport-v1"
+VERSION = "native-responses-transport-v2"
 _FIELDS = {
     "model", "input", "instructions", "tools", "tool_choice",
     "parallel_tool_calls", "reasoning", "include", "store", "stream",
     "prompt_cache_key", "prompt_cache_retention", "metadata", "text",
     "max_output_tokens", "temperature", "top_p", "safety_identifier", "service_tier",
 }
+_SESSION_FOLDER = re.compile(r"^Session folder: (.*session-state.*)$", re.MULTILINE)
+SESSION_FOLDER_MOVED = "Session folder: stated in the first user message"
 
 
 def _json(value):
     return json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True,
                       separators=(",", ":"))
+
+
+def _texts(item):
+    """(holder, key) for each text of a message, in order."""
+    content = item.get("content")
+    if type(content) is str:
+        return [(item, "content")]
+    if type(content) is list:
+        return [(block, "text") for block in content if type(block) is dict and type(block.get("text")) is str]
+    return []
+
+
+def _replace_span(parts, start, end, new):
+    """Replace characters start..end of the parts' joined text with ``new``; every part keeps its metadata."""
+    texts = [holder[key] for holder, key in parts]
+    joined = "".join(texts)
+    result, delta, cuts, offset = joined[:start] + new + joined[end:], len(new) - (end - start), [], 0
+    for text in texts[:-1]:
+        offset += len(text)
+        cuts.append(offset if offset <= start else offset + delta if offset >= end else start + len(new))
+    bounds = [0, *cuts, len(result)]
+    for (holder, key), low, high in zip(parts, bounds, bounds[1:]):
+        holder[key] = result[low:high]
+
+
+def stable_session_prefix(body):
+    """Move Copilot CLI's per-session folder line from the system prompt to the first user message.
+
+    The provider caches exact prompt prefixes. Copilot CLI writes each session's own folder into
+    its system prompt, so a new session never reuses another session's cached prefix. With the
+    line moved, the system prompt is the same for every session in a repository, and a new
+    session's first call can read it from the cache. Every call of a session gets the same
+    rewrite, so earlier messages stay byte-identical. The line is matched on each message's
+    joined text, because clients may split text blocks differently from call to call. Returns
+    ``body`` itself (unchanged) unless exactly one such line precedes the first user message.
+    """
+    items = body.get("input") if type(body) is dict else None
+    if type(items) is not list:
+        return body
+    sources, user = [], None
+    if type(body.get("instructions")) is str:
+        sources.append((None, [(body, "instructions")]))
+    for index, item in enumerate(items):
+        if type(item) is not dict:
+            continue
+        if item.get("role") == "user":
+            user = index
+            break
+        if item.get("role") in ("system", "developer"):
+            sources.append((index, _texts(item)))
+    found = [(index, match) for index, parts in sources
+             for match in _SESSION_FOLDER.finditer("".join(holder[key] for holder, key in parts))]
+    if user is None or len(found) != 1 or not _texts(items[user]):
+        return body
+    index, match = found[0]
+    moved = deepcopy(body)
+    parts = [(moved, "instructions")] if index is None else _texts(moved["input"][index])
+    _replace_span(parts, match.start(), match.end(), SESSION_FOLDER_MOVED)
+    holder, key = _texts(moved["input"][user])[0]
+    holder[key] = f"Session folder: {match.group(1).strip()}\n\n" + holder[key]
+    return moved
 
 
 class NativeResponsesTransport:
@@ -75,17 +139,19 @@ class NativeResponsesTransport:
             if "effort" in reasoning and reasoning["effort"] != self.reasoning_effort:
                 raise ValueError("native_reasoning_mismatch")
             body["reasoning"] = {**reasoning, "effort": self.reasoning_effort}
-        encoded = _json(body)
+        native = stable_session_prefix(body)
+        encoded = _json(native)
         if len(encoded.encode("utf-8")) > self.max_request_bytes:
             raise ValueError("native_request_too_large")
         self._envelope = NativeResponsesEnvelope(
-            body, recovery_aliases=self._aliases, recovery_tools=self._recovery_tools,
+            native, recovery_aliases=self._aliases, recovery_tools=self._recovery_tools,
         )
         self._controls = {
             "version": VERSION,
             "changed_common_fields": sorted(key for key in body if body.get(key) != original.get(key)
                                            or key not in original),
             "scope": "common_transport_controls_not_optimizer_savings",
+            "stable_session_prefix": native is not body,
         }
         self._used = False
         return self._envelope.canonical_request
