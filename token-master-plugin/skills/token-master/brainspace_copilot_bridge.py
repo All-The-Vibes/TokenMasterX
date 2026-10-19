@@ -40,7 +40,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from brainspace import tokens  # noqa: E402
-from brainspace.native_transport import stable_session_prefix  # noqa: E402
+from brainspace.native_transport import (  # noqa: E402
+    _SESSION_FOLDER, SESSION_FOLDER_MOVED, _replace_span, stable_session_prefix)
 from brainspace.v6_shaping import shape_tool_result, tool_kind  # noqa: E402
 
 MAX_BODY = 64 * 1024 * 1024
@@ -92,20 +93,86 @@ def rewrite_request(body: dict, count=None) -> tuple[dict, dict]:
                      "prefix_sha256": _prefix_digest(request)}
 
 
+def _blocks(holder: dict, key: str) -> list:
+    """(holder, key) for each text of an Anthropic content field, in order."""
+    value = holder.get(key)
+    if type(value) is str:
+        return [(holder, key)]
+    if type(value) is list:
+        return [(b, "text") for b in value if type(b) is dict and b.get("type", "text") == "text"
+                and type(b.get("text")) is str]
+    return []
+
+
+def rewrite_messages_request(body: dict, count=None) -> tuple[dict, dict]:
+    """The same two rewrites for Anthropic Messages requests (Copilot CLI with COPILOT_PROVIDER_TYPE=anthropic):
+    the session-folder line moves from `system` to the first user message, and v6 shapes tool_result blocks."""
+    request = copy.deepcopy(body)
+    messages = request["messages"] if type(request.get("messages")) is list else []
+    user = next((m for m in messages if type(m) is dict and m.get("role") == "user"), None)
+    system = _blocks(request, "system")
+    found = list(_SESSION_FOLDER.finditer("".join(h[k] for h, k in system)))
+    target = _blocks(user, "content") if user else []
+    moved = len(found) == 1 and bool(target)
+    if moved:
+        match = found[0]
+        _replace_span(system, match.start(), match.end(), SESSION_FOLDER_MOVED)
+        holder, key = target[0]
+        holder[key] = f"Session folder: {match.group(1).strip()}\n\n" + holder[key]
+    uses = {b.get("id"): b for m in messages if type(m) is dict and m.get("role") == "assistant"
+            and type(m.get("content")) is list for b in m["content"] if type(b) is dict and b.get("type") == "tool_use"}
+    shaped = outputs = 0
+    for message in messages:
+        if type(message) is not dict or message.get("role") != "user" or type(message.get("content")) is not list:
+            continue
+        for block in message["content"]:
+            if type(block) is not dict or block.get("type") != "tool_result":
+                continue
+            outputs += 1
+            use = uses.get(block.get("tool_use_id"))
+            name, arguments = (use or {}).get("name"), (use or {}).get("input")
+            texts = _blocks(block, "content")
+            if (count is None or block.get("is_error") or type(name) is not str or tool_kind(name) == "other"
+                    or type(arguments) is not dict or len(texts) != 1
+                    or (type(block["content"]) is list and len(block["content"]) != 1)):
+                continue
+            holder, key = texts[0]
+            result = shape_tool_result(name, arguments, holder[key], count)
+            if result != holder[key]:
+                holder[key] = result
+                shaped += 1
+    digest = hashlib.sha256(json.dumps([request.get("system"), request.get("tools")], sort_keys=True,
+                                       ensure_ascii=False).encode("utf-8")).hexdigest()[:16]
+    return request, {"stable_prefix": moved, "shaped": shaped, "tool_outputs": outputs, "prefix_sha256": digest}
+
+
 def _usage(tail: bytes) -> dict:
-    """Provider-reported usage from the end of a JSON or event-stream response; no content."""
+    """Provider-reported usage from a JSON or event-stream response, normalized: input counts every prompt token
+    (Anthropic's input_tokens excludes cache reads and writes); no content."""
     text = tail.decode("utf-8", "replace")
-    at = text.rfind('"usage":')
-    if at < 0:
-        return {}
-    start = at + len('"usage":')
-    while start < len(text) and text[start] in " \t\r\n":
-        start += 1
-    try:
-        usage = json.JSONDecoder().raw_decode(text, start)[0]
-    except ValueError:
-        return {}
-    if type(usage) is not dict:
+    found, at = [], text.find('"usage":')
+    while at >= 0:
+        start = at + len('"usage":')
+        while start < len(text) and text[start] in " \t\r\n":
+            start += 1
+        try:
+            value = json.JSONDecoder().raw_decode(text, start)[0]
+            if type(value) is dict:
+                found.append(value)
+        except ValueError:
+            pass
+        at = text.find('"usage":', start)
+    if any("cache_read_input_tokens" in u or "cache_creation_input_tokens" in u for u in found):
+        merged = {}
+        for usage in found:  # message_start carries the prompt numbers; the last message_delta the output total
+            merged.update({k: v for k, v in usage.items() if v is not None})
+        read, write = merged.get("cache_read_input_tokens") or 0, merged.get("cache_creation_input_tokens") or 0
+        if merged.get("input_tokens") is None:
+            return {}
+        return {"input": merged["input_tokens"] + read + write, "cached": read, "cache_write": write,
+                "output": merged.get("output_tokens")}
+    usage = next((u for u in reversed(found) if "input_tokens" in u), None)
+    if usage is None:
         return {}
     details = usage.get("input_tokens_details") or {}
     return {"input": usage.get("input_tokens"), "cached": details.get("cached_tokens"),
@@ -236,8 +303,9 @@ class Bridge:
         self.server.server_close()
 
     def prepare(self, path: str, body: bytes | None) -> tuple[bytes | None, dict]:
-        """Rewrite Responses requests; every other request passes through unchanged."""
-        if body is None or not urlsplit(path).path.endswith("/responses"):
+        """Rewrite Responses and Anthropic Messages requests; every other request passes through unchanged."""
+        route = urlsplit(path).path
+        if body is None or not route.endswith(("/responses", "/messages")):
             return body, {}
         try:
             parsed = json.loads(body)
@@ -245,7 +313,8 @@ class Bridge:
             return body, {}
         if type(parsed) is not dict:
             return body, {}
-        request, receipt = rewrite_request(parsed, self.count)
+        rewrite = rewrite_request if route.endswith("/responses") else rewrite_messages_request
+        request, receipt = rewrite(parsed, self.count)
         return json.dumps(request, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), receipt
 
     def upstream_headers(self, headers) -> dict:
@@ -269,9 +338,11 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     if not args.upstream:
         parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL")
-    if (os.environ.get("COPILOT_PROVIDER_TYPE") or "openai") != "openai" \
-            or (os.environ.get("COPILOT_PROVIDER_WIRE_API") or "responses") != "responses":
-        parser.error("the bridge supports COPILOT_PROVIDER_TYPE=openai with the responses wire API only")
+    provider = os.environ.get("COPILOT_PROVIDER_TYPE") or "openai"
+    if provider not in ("openai", "anthropic") or \
+            (provider == "openai" and (os.environ.get("COPILOT_PROVIDER_WIRE_API") or "responses") != "responses"):
+        parser.error("the bridge supports COPILOT_PROVIDER_TYPE=openai with the responses wire API, "
+                     "or COPILOT_PROVIDER_TYPE=anthropic")
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     installed = HERE / "tokenizer" / "cl100k_base.tiktoken"  # where brainspace_setup.py puts it
     if not os.environ.get("BRAINSPACE_TOKENIZER_FILE") and installed.is_file():
@@ -295,7 +366,9 @@ def main(argv=None) -> int:
                     time.sleep(3600)
             except KeyboardInterrupt:
                 return 0
-        env = {**os.environ, "COPILOT_PROVIDER_BASE_URL": bridge.url, "COPILOT_PROVIDER_WIRE_API": "responses"}
+        env = {**os.environ, "COPILOT_PROVIDER_BASE_URL": bridge.url}
+        if provider == "openai":
+            env["COPILOT_PROVIDER_WIRE_API"] = "responses"
         try:
             child = subprocess.Popen([shutil.which(command[0]) or command[0], *command[1:]], env=env)
         except OSError as error:

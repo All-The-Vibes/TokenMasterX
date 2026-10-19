@@ -197,13 +197,80 @@ def test_launcher_points_the_cli_at_the_bridge(upstream, monkeypatch):
     assert upstream.seen[-1][:2] == ("POST", "/v1/responses")
 
 
-@pytest.mark.parametrize("name, value", [("COPILOT_PROVIDER_TYPE", "anthropic"),
+@pytest.mark.parametrize("name, value", [("COPILOT_PROVIDER_TYPE", "azure"),
                                          ("COPILOT_PROVIDER_WIRE_API", "completions")])
 def test_launcher_refuses_wire_formats_it_cannot_rewrite(upstream, monkeypatch, name, value):
     monkeypatch.setenv(name, value)
     with pytest.raises(SystemExit):
         bridge_module.main(["--upstream", upstream.url, "--", sys.executable, "-c", "pass"])
     assert upstream.seen == []
+
+
+def messages_request(folder="abc", history=(), blocks=False):
+    system = SYSTEM.format(folder)
+    return {"model": "claude", "max_tokens": 100, "stream": True,
+            "system": [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}] if blocks else system,
+            "messages": [{"role": "user", "content": [{"type": "text", "text": "Find the bug."}] if blocks
+                          else "Find the bug."}, *history]}
+
+
+def tool_turn(use_id, name, arguments, output, **extra):
+    return [{"role": "assistant", "content": [{"type": "tool_use", "id": use_id, "name": name, "input": arguments}]},
+            {"role": "user", "content": [{"type": "tool_result", "tool_use_id": use_id, "content": output, **extra}]}]
+
+
+def test_messages_rewrite_moves_the_folder_and_shapes_measured_tools():
+    history = (tool_turn("1", "view", {"path": "a.py"}, BIG) + tool_turn("2", "powershell", {"command": "x"}, BIG)
+               + tool_turn("3", "view", {"path": "a.py"}, [{"type": "text", "text": BIG}])
+               + tool_turn("4", "view", {"path": "a.py"}, BIG, is_error=True))
+    for blocks in (False, True):
+        body = messages_request(history=history, blocks=blocks)
+        before = json.dumps(body)
+        out, receipt = bridge_module.rewrite_messages_request(body, count)
+        assert json.dumps(body) == before
+        assert receipt["stable_prefix"] is True and receipt["tool_outputs"] == 4 and receipt["shaped"] == 2
+        system = out["system"] if isinstance(out["system"], str) else out["system"][0]["text"]
+        assert "session-state" not in system and "Session folder: stated in the first user message" in system
+        first = out["messages"][0]["content"]
+        assert (first if isinstance(first, str) else first[0]["text"]).startswith("Session folder: C:/Users/dev/")
+        if blocks:
+            assert out["system"][0]["cache_control"] == {"type": "ephemeral"}
+        results = [b["content"] for m in out["messages"][1:] if m["role"] == "user" for b in m["content"]]
+        assert "[Outline only" in results[0] and results[1] == BIG and "[Outline only" in results[2][0]["text"]
+        assert results[3] == BIG  # errors pass through
+
+
+def test_messages_sessions_share_the_system_prompt_and_history_stays_stable():
+    one, a = bridge_module.rewrite_messages_request(messages_request("one", tool_turn("1", "rg", {"pattern": "x"}, BIG)), count)
+    two, b = bridge_module.rewrite_messages_request(messages_request("two"), count)
+    later, _ = bridge_module.rewrite_messages_request(
+        messages_request("one", tool_turn("1", "rg", {"pattern": "x"}, BIG) + tool_turn("2", "glob", {}, "a.py")), count)
+    assert one["system"] == two["system"] and a["prefix_sha256"] == b["prefix_sha256"]
+    assert later["messages"][:3] == one["messages"]
+
+
+def test_usage_reads_anthropic_streams_and_json():
+    stream = (b'event: message_start\ndata: {"type":"message_start","message":{"usage":{"input_tokens":120,'
+              b'"cache_creation_input_tokens":300,"cache_read_input_tokens":14000,"output_tokens":1}}}\n\n'
+              b'event: message_delta\ndata: {"type":"message_delta","usage":{"output_tokens":57}}\n\n')
+    assert bridge_module._usage(stream) == {"input": 14420, "cached": 14000, "cache_write": 300, "output": 57}
+    body = json.dumps({"usage": {"input_tokens": 5, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0,
+                                 "output_tokens": 2}}).encode()
+    assert bridge_module._usage(body) == {"input": 5, "cached": 0, "cache_write": 0, "output": 2}
+
+
+def test_launcher_runs_the_anthropic_type_without_a_wire_api(upstream, monkeypatch):
+    monkeypatch.setenv("COPILOT_PROVIDER_BASE_URL", upstream.url)
+    monkeypatch.setenv("COPILOT_PROVIDER_TYPE", "anthropic")
+    monkeypatch.delenv("COPILOT_PROVIDER_WIRE_API", raising=False)
+    script = ("import os, sys, urllib.request\n"
+              "assert 'COPILOT_PROVIDER_WIRE_API' not in os.environ\n"
+              "req = urllib.request.Request(os.environ['COPILOT_PROVIDER_BASE_URL'] + '/v1/messages', "
+              "data=b'{\"messages\": []}', method='POST')\n"
+              "opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))\n"
+              "try:\n    opener.open(req, timeout=10)\nexcept urllib.error.HTTPError as e:\n    sys.exit(7 if e.code == 400 else 1)\n")
+    assert bridge_module.main(["--", sys.executable, "-c", script]) == 7  # the fake upstream answers 400 off /responses
+    assert upstream.seen[-1][:2] == ("POST", "/v1/v1/messages")
 
 
 def test_launcher_reports_a_missing_command(upstream):
