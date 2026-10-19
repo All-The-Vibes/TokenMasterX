@@ -53,11 +53,16 @@ def main():
     parser.add_argument("--copilot-output-hook", action=argparse.BooleanOptionalAction, default=None,
                         help="Copilot only, on by default: shape whole-file view results with "
                              "request-policy-v6 (--no-copilot-output-hook skips it); not a task-savings certificate")
+    parser.add_argument("--brainspace-mcp", action=argparse.BooleanOptionalAction, default=None,
+                        help="install the brainspace MCP server (compress/retrieve tools). Default: on, except for "
+                             "Copilot, where live sessions never called its 5 tools and their definitions add about "
+                             "500 tokens to every model call")
     parser.add_argument("--uninstall", action="store_true")
     args = parser.parse_args()
     try:
         host = resolve_host(args.host)
         home = host_home(host)
+        brainspace_mcp = args.brainspace_mcp if args.brainspace_mcp is not None else host != "copilot"
         if args.copilot_output_hook and host != "copilot":
             raise ValueError("--copilot-output-hook requires --host copilot")
         copilot_hook = host == "copilot" and args.copilot_output_hook is not False and not args.uninstall
@@ -97,7 +102,13 @@ def main():
                          (json.dumps(receipt, indent=2) + "\n").encode("utf-8"))
             entry = runtime_entry(python, mcp_script)
             entry["env"]["BRAINSPACE_TOKENIZER_FILE"] = str(tokenizer_path)
-            wire_mcp(host, "brainspace", entry)
+            if brainspace_mcp:
+                wire_mcp(host, "brainspace", entry)
+            else:
+                try:  # an earlier install's server costs tokens on every call; remove it if it is ours
+                    wire_mcp(host, "brainspace", None)
+                except ValueError as exc:
+                    print(f"[brainspace] kept the existing brainspace MCP entry: {exc}")
             if host == "claude":
                 wire_hook(home, command)
                 environment(home / "settings.json", "BRAINSPACE_TOKENIZER_FILE", str(tokenizer_path))
@@ -107,7 +118,7 @@ def main():
         print(json.dumps({**capabilities(host),
                           "hook_installed": copilot_hook_status(home) if host == "copilot"
                               else host == "claude" and not args.uninstall,
-                          "mcp_installed": not args.uninstall}, indent=2))
+                          "mcp_installed": brainspace_mcp and not args.uninstall}, indent=2))
         print("Runtime acceptance is NOT verified by installation. Uninstall retains package files and data.")
         return 0
     except (OSError, ValueError) as exc:

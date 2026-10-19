@@ -717,16 +717,19 @@ class SymbolIndex:
 
 TOOL_SPECS = [
     {"type": "function", "name": "locate", "strict": False,
-     "description": "Find functions, classes, methods, constants, Markdown sections or JSON keys by name. Returns "
-                    "path:lines kind name ~tokens | signature. A file path returns its outline. Use before grep/view.",
+     "description": "Find a function, class, method, constant, Markdown section or JSON key by name, or pass a file "
+                    "path to get its outline. Returns path:lines and signatures. Use this first, instead of grep, "
+                    "rg, Select-String or reading whole files.",
      "parameters": {"type": "object", "required": ["query"], "properties": {"query": {"type": "string"}}}},
     {"type": "function", "name": "read_symbol", "strict": False,
-     "description": "Read one symbol, file or line range with line numbers. target: path::Name, Class.method, "
-                    "module.func, path or path:start-end.",
+     "description": "Read exactly one function, class, method, section or line range, with line numbers. target: "
+                    "path::Name, Class.method, module.func, path or path:start-end. Use this instead of Get-Content, "
+                    "cat or view to read specific code: it returns only that code.",
      "parameters": {"type": "object", "required": ["target"], "properties": {"target": {"type": "string"}}}},
     {"type": "function", "name": "impact", "strict": False,
-     "description": "Callers of a function, method or class as path:line caller | call: resolved call graph plus "
-                    "unresolved name matches. depth 1-4 (default 1) adds callers of callers.",
+     "description": "List who calls a function, method or class (path:line caller | call), from a resolved call graph "
+                    "plus name matches. depth 1-4 (default 1) adds callers of callers. Use this instead of grep or "
+                    "Select-String to find usages before changing code.",
      "parameters": {"type": "object", "required": ["symbol"],
                     "properties": {"symbol": {"type": "string"}, "depth": {"type": "integer"}}}},
 ]

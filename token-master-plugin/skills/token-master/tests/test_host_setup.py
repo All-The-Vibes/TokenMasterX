@@ -163,7 +163,8 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
     from hosts import config_path, host_home
     setup = load("brainspace_setup")
     monkeypatch.setattr(sys, "argv", ["brainspace_setup.py", "--host", host,
-                                    "--python", sys.executable, "--tokenizer-file", str(tokenizer_source)])
+                                    "--python", sys.executable, "--tokenizer-file", str(tokenizer_source),
+                                    *(["--brainspace-mcp"] if host == "copilot" else [])])  # opt-in for Copilot
     assert setup.main() == 0
     config = (tomllib.loads(config_path(host).read_text("utf-8")) if host == "codex"
               else json.loads(config_path(host).read_bytes()))
@@ -213,10 +214,25 @@ def test_copilot_install_without_the_output_hook(homes, tokenizer_source, monkey
     monkeypatch.setattr(sys, "argv", ["brainspace_setup.py", "--host", "copilot", "--python", sys.executable,
                                       "--tokenizer-file", str(tokenizer_source), *argv])
     assert setup.main() == 0
-    assert "brainspace" in json.loads(config_path("copilot").read_bytes())["mcpServers"]
+    servers = json.loads(config_path("copilot").read_bytes()).get("mcpServers", {}) \
+        if config_path("copilot").is_file() else {}
+    assert "brainspace" not in servers  # off for Copilot by default
     saved = json.loads(settings.read_bytes()) if settings.is_file() else {}
     assert not saved.get("hooks", {}).get("postToolUse")
     assert saved.get("disableAllHooks", False) is disabled
+
+
+def test_copilot_brainspace_mcp_is_opt_in_and_reinstall_removes_an_owned_one(homes, tokenizer_source, monkeypatch):
+    from hosts import config_path
+    setup = load("brainspace_setup")
+    base = ["brainspace_setup.py", "--host", "copilot", "--python", sys.executable, "--tokenizer-file",
+            str(tokenizer_source), "--no-copilot-output-hook"]
+    monkeypatch.setattr(sys, "argv", [*base, "--brainspace-mcp"])
+    assert setup.main() == 0
+    assert "brainspace" in json.loads(config_path("copilot").read_bytes())["mcpServers"]
+    monkeypatch.setattr(sys, "argv", base)
+    assert setup.main() == 0
+    assert "brainspace" not in json.loads(config_path("copilot").read_bytes()).get("mcpServers", {})
 
 
 @pytest.mark.parametrize("corrupt", [False, True])
