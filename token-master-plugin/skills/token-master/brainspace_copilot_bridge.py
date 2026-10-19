@@ -48,6 +48,21 @@ MAX_BODY = 64 * 1024 * 1024
 _HOP = frozenset({"host", "content-length", "connection", "keep-alive", "proxy-authorization",
                   "proxy-connection", "te", "trailer", "transfer-encoding", "upgrade", "accept-encoding"})
 _LOOPBACK = ("127.0.0.1", "localhost", "::1")
+# Built-in Copilot CLI tools that no measured session called (October 2026 runs, gpt-6-astra and claude-opus-5.5).
+# Excluding them removes their definitions and the system-prompt text about them from every model call.
+LEAN_EXCLUDED_TOOLS = ("session_store_sql", "task", "read_agent", "write_agent", "list_agents", "skill", "sql",
+                       "read_powershell", "stop_powershell", "list_powershell", "fetch_copilot_cli_documentation")
+_TOOL_FLAGS = ("--available-tools", "--excluded-tools")
+
+
+def lean_command(command: list[str]) -> list[str]:
+    """Copilot CLI sessions get --excluded-tools, unless the user already chose tools or runs a subcommand."""
+    if not command or Path(command[0]).stem.lower() != "copilot":
+        return command
+    rest = command[1:]
+    if (rest and not rest[0].startswith("-")) or any(arg.split("=")[0] in _TOOL_FLAGS for arg in rest):
+        return command
+    return [*command, "--excluded-tools", *LEAN_EXCLUDED_TOOLS]
 
 
 def _prefix_digest(request: dict) -> str:
@@ -328,22 +343,43 @@ class Bridge:
             handle.write(json.dumps(row) + "\n")
 
 
+def run_child(parser, command: list[str], env: dict) -> int:
+    try:
+        child = subprocess.Popen([shutil.which(command[0]) or command[0], *command[1:]], env=env)
+    except OSError as error:
+        parser.error(f"cannot run {command[0]}: {error.strerror or error}")
+    while True:
+        try:
+            return child.wait()
+        except KeyboardInterrupt:
+            continue  # Copilot CLI handles Ctrl+C itself; keep the bridge up until it exits
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--upstream", default=os.environ.get("COPILOT_PROVIDER_BASE_URL"),
-                        help="Responses API base URL (default: the current COPILOT_PROVIDER_BASE_URL)")
+                        help="Responses or Anthropic API base URL (default: the current COPILOT_PROVIDER_BASE_URL). "
+                             "Without one, Copilot CLI keeps its normal routing and only the lean tool set applies.")
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--log", help="append one JSON line per model request: usage numbers, no content")
+    parser.add_argument("--all-tools", action="store_true",
+                        help="keep every built-in Copilot CLI tool (default: exclude the ones no measured session used)")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
+    command = args.command[1:] if args.command[:1] == ["--"] else args.command
+    if command and not args.all_tools:
+        command = lean_command(command)
     if not args.upstream:
-        parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL")
+        if not command:
+            parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL to serve the bridge")
+        print("[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set "
+              f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
+        return run_child(parser, command, dict(os.environ))
     provider = os.environ.get("COPILOT_PROVIDER_TYPE") or "openai"
     if provider not in ("openai", "anthropic") or \
             (provider == "openai" and (os.environ.get("COPILOT_PROVIDER_WIRE_API") or "responses") != "responses"):
         parser.error("the bridge supports COPILOT_PROVIDER_TYPE=openai with the responses wire API, "
                      "or COPILOT_PROVIDER_TYPE=anthropic")
-    command = args.command[1:] if args.command[:1] == ["--"] else args.command
     installed = HERE / "tokenizer" / "cl100k_base.tiktoken"  # where brainspace_setup.py puts it
     if not os.environ.get("BRAINSPACE_TOKENIZER_FILE") and installed.is_file():
         os.environ["BRAINSPACE_TOKENIZER_FILE"] = str(installed)
@@ -358,7 +394,8 @@ def main(argv=None) -> int:
         parser.error(str(error))
     with bridge:
         print(f"[tokenmaster] bridge {bridge.url} -> {bridge.upstream}; cache-stable system prompt on; "
-              f"v6 shaping {'on' if count else 'off (verified tokenizer unavailable)'}", file=sys.stderr)
+              f"v6 shaping {'on' if count else 'off (verified tokenizer unavailable)'}; lean tool set "
+              f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
         if not command:
             print(f"COPILOT_PROVIDER_BASE_URL={bridge.url}", flush=True)
             try:
@@ -369,15 +406,7 @@ def main(argv=None) -> int:
         env = {**os.environ, "COPILOT_PROVIDER_BASE_URL": bridge.url}
         if provider == "openai":
             env["COPILOT_PROVIDER_WIRE_API"] = "responses"
-        try:
-            child = subprocess.Popen([shutil.which(command[0]) or command[0], *command[1:]], env=env)
-        except OSError as error:
-            parser.error(f"cannot run {command[0]}: {error.strerror or error}")
-        while True:
-            try:
-                return child.wait()
-            except KeyboardInterrupt:
-                continue  # Copilot CLI handles Ctrl+C itself; keep the bridge up until it exits
+        return run_child(parser, command, env)
 
 
 if __name__ == "__main__":

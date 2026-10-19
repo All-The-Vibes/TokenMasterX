@@ -30,6 +30,43 @@ import run_prs5_study as p5  # noqa: E402
 
 DEFAULT_TASKS = ("H01", "H04", "H06", "H07", "H08")
 SEED = 20261019
+# PRS-4 edit tasks carry exact replacements; the grader compares the edited files with the expected result.
+CHECK = """import ast, json, pathlib
+expected = pathlib.Path(r'{expected}')
+for name in {files!r}:
+    got = pathlib.Path(name).read_text(encoding='utf-8')
+    text = (expected / name).read_text(encoding='utf-8')
+    if name.endswith('.py'):
+        ok = ast.dump(ast.parse(got)) == ast.dump(ast.parse(text))
+    elif name.endswith('.json'):
+        ok = json.loads(got) == json.loads(text)
+    else:
+        ok = [line.rstrip() for line in got.strip().splitlines()] == [line.rstrip() for line in text.strip().splitlines()]
+    assert ok, name
+"""
+
+
+def load_tasks(task_ids: tuple, out: Path) -> list[dict]:
+    """PRS-5 heavy tasks (H..) and PRS-4 simple tasks (P..), both verified against the 703aa20 snapshot."""
+    known = {}
+    for name in ("prs4_tasks.json", "prs5_tasks.json"):
+        for task in json.loads((EVALS / name).read_text(encoding="utf-8"))["tasks"]:
+            known[task["id"]] = task
+    tasks = []
+    for task_id in task_ids:
+        task = dict(known[task_id])
+        if task["category"] == "edit" and task.get("edit_oracle") and not task.get("check"):
+            reps = task["edit_oracle"]["replacements"]
+            files = sorted({r["file"] for r in reps})
+            for name in files:
+                target = out / "expected" / task_id / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(p1.expected_source(out / "templates" / "stock", name, reps), encoding="utf-8")
+            task.update(check=CHECK.format(expected=str(out / "expected" / task_id), files=files), allowed_paths=files)
+        elif task["category"] not in ("investigate", "edit", "feature"):
+            task["category"] = "investigate"
+        tasks.append(task)
+    return tasks
 # GitHub Copilot models-and-pricing, USD per 1M tokens: new input, cached input, cache write, output.
 USD_PER_M = {"gpt-6-astra": (10.00, 1.00, 12.50, 50.00), "claude-opus-5.5": (4.00, 0.20, 5.00, 20.00)}
 ANTHROPIC = ("claude-",)
@@ -165,9 +202,7 @@ def main(argv=None) -> int:
     p5.git_snapshot(tm_repo, tar)
     install = p5.install_tm(p5.lane_root("tm") / "home", tm_repo)
     shutil.copytree(tm_repo, out / "templates" / "tm")
-    tasks = [t for t in json.loads((EVALS / "prs5_tasks.json").read_text(encoding="utf-8"))["tasks"] if t["id"] in task_ids]
-    if {t["id"] for t in tasks} != set(task_ids):
-        raise SystemExit(f"unknown task ids: {set(task_ids) - {t['id'] for t in tasks}}")
+    tasks = load_tasks(task_ids, out)
     jobs = []
     for repeat in range(1, args.repeats + 1):
         order = list(task_ids)

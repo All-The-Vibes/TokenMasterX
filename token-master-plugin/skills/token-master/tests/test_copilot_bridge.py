@@ -277,3 +277,22 @@ def test_launcher_reports_a_missing_command(upstream):
     with pytest.raises(SystemExit) as stopped:
         bridge_module.main(["--upstream", upstream.url, "--", "no-such-copilot-command-xyz"])
     assert stopped.value.code == 2
+
+
+def test_lean_command_excludes_unused_tools_unless_the_user_chose():
+    lean = bridge_module.lean_command(["C:/x/copilot.exe", "-p", "hi", "--model", "m"])
+    assert lean[:5] == ["C:/x/copilot.exe", "-p", "hi", "--model", "m"]
+    assert lean[5] == "--excluded-tools" and set(lean[6:]) == set(bridge_module.LEAN_EXCLUDED_TOOLS)
+    assert "view" not in lean and "powershell" not in lean and "apply_patch" not in lean
+    for kept in (["copilot", "--excluded-tools", "task"], ["copilot", "--available-tools=view"],
+                 ["copilot", "help"], ["python", "-c", "pass"]):
+        assert bridge_module.lean_command(kept) == kept
+    assert bridge_module.lean_command(["copilot"])[1] == "--excluded-tools"
+
+
+def test_without_a_provider_url_the_launcher_runs_the_command_directly(monkeypatch):
+    monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
+    script = "import os, sys; sys.exit(5 if 'COPILOT_PROVIDER_BASE_URL' not in os.environ else 1)"
+    assert bridge_module.main(["--", sys.executable, "-c", script]) == 5
+    with pytest.raises(SystemExit):
+        bridge_module.main([])  # nothing to run and nothing to serve
