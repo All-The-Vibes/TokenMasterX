@@ -48,9 +48,12 @@ Pre-registered live study:
   system prompt within the cache lifetime. One probe put that lifetime between 6.5 and 31
   minutes. Re-priced as if every first call missed the cache, the saving is 18.9%, close to
   v7 alone.
-- **Only the native Copilot route applies the cache-stable system prompt.** That route is
-  experimental and read-only. No PRS study measured the default install. We infer that it saves
-  no more than v7 alone.
+- **Two routes apply the cache-stable system prompt.** One is the native Copilot route, which is
+  experimental and read-only. The other is the opt-in Copilot CLI bridge, with the full tool set,
+  in bring-your-own-key mode only ([COPILOT_BRIDGE.md](token-master-plugin/docs/COPILOT_BRIDGE.md)).
+  A live check confirmed the bridge's cache hits with Copilot CLI 1.0.98; no study has measured
+  its savings. The default install cannot apply the cache-stable system prompt. No PRS study
+  measured the default install. We infer that it saves no more than v7 alone.
 
 Details: [PRS4_RESULTS.md](token-master-plugin/docs/PRS4_RESULTS.md).
 
@@ -169,7 +172,7 @@ $env:BRAINSPACE_TOKENIZER_FILE = "evidence/controlled-scorecard-20261008/batch-0
 .\.token-master-dev\Scripts\python.exe -B -m pytest -q token-master-plugin/skills/token-master/tests
 ```
 
-Status on October 18, 2026 (Windows): 4,396 passed, 4 skipped, 82 failed. The same 82
+Status on October 18, 2026 (Windows): 4,427 passed, 4 skipped, 82 failed. The same 82
 tests also fail on a clean checkout of commit `703aa20`, so they predate the v5 changes:
 
 - 76 need the trusted Linux sandbox runner, which is not available here.

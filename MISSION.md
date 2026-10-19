@@ -114,8 +114,12 @@ Earlier claims are superseded:
    - The saving applies only when another session sent the same system prompt within the cache
      lifetime. One probe found the cached prompt still there after 6.5 minutes and gone after
      31 minutes ([evidence](evidence/cache-probe-20261018/ttl.jsonl)).
-   - Next step for this lever: bring the cache-stable system prompt to a route that users can
-     install with full tools. Today only the experimental, read-only native route applies it.
+   - Since PRS-4, the opt-in Copilot CLI bridge applies the cache-stable system prompt with the
+     full tool set, in bring-your-own-key mode only
+     ([COPILOT_BRIDGE.md](token-master-plugin/docs/COPILOT_BRIDGE.md)). A live check with Copilot
+     CLI 1.0.98 confirmed the cache hits. No study has measured the bridge's savings. Copilot
+     CLI's default GitHub routing has no API URL setting, so the default install still cannot
+     apply the cache-stable system prompt.
 2. **Edit tasks:** v7 cost 9% more than v6 on them.
 3. **Output tokens:** v7 already wrote 17% fewer than v6; terser final answers may
    cut more.

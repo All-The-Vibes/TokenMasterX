@@ -30,7 +30,8 @@ def _install_files(home):
     atomic_write(install_dir / "THIRD_PARTY_NOTICES.txt",
                  (SKILL_DIR.parents[1] / "THIRD_PARTY_NOTICES.txt").read_bytes())
     for name in ("brainspace_mcp.py", "brainspace_posttooluse.py", "brainspace_benchmark.py",
-                 "brainspace_tools.py", "token_efficiency.py", "brainspace_native_mcp.py"):
+                 "brainspace_tools.py", "token_efficiency.py", "brainspace_native_mcp.py",
+                 "brainspace_copilot_bridge.py"):
         atomic_write(install_dir / name, (SKILL_DIR / name).read_bytes())
     for name in ("__init__.py", "synthetic_efficiency.py"):
         atomic_write(install_dir / "evals" / name, (SKILL_DIR / "evals" / name).read_bytes())

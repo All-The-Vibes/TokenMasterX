@@ -1,0 +1,56 @@
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 52476)
+{"label": "stock-1", "bridge": false, "exit": 0, "start": 1792368276.623, "end": 1792368300.242, "answer_found": true}
+Traceback (most recent call last):
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\http\server.py", line 442, in handle
+    self.handle_one_request()
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\http\server.py", line 408, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socket.py", line 720, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+----------------------------------------
+----------------------------------------
+Exception occurred during processing of request from ('127.0.0.1', 52492)
+Traceback (most recent call last):
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socketserver.py", line 697, in process_request_thread
+    self.finish_request(request, client_address)
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socketserver.py", line 362, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socketserver.py", line 766, in __init__
+    self.handle()
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\http\server.py", line 442, in handle
+    self.handle_one_request()
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\http\server.py", line 408, in handle_one_request
+    self.raw_requestline = self.rfile.readline(65537)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\socket.py", line 720, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
+----------------------------------------
+{"label": "stock-2", "bridge": false, "exit": 0, "start": 1792368300.242, "end": 1792368321.254, "answer_found": false}
+{"label": "bridge-1", "bridge": true, "exit": 0, "start": 1792368321.254, "end": 1792368333.94, "answer_found": true}
+{"label": "bridge-2", "bridge": true, "exit": 0, "start": 1792368333.94, "end": 1792368361.75, "answer_found": false}
+{"label": "bridge-edit", "bridge": true, "exit": 0, "start": 1792368361.75, "end": 1792368385.466}
+Traceback (most recent call last):
+  File "C:\Users\shyamsridhar\code\Tokenmaster\evidence\copilot-bridge-20261018\verify_bridge.py", line 205, in <module>
+    main()
+  File "C:\Users\shyamsridhar\code\Tokenmaster\evidence\copilot-bridge-20261018\verify_bridge.py", line 171, in main
+    "target_has_1600": "SEARCH_BUDGET = 1600" in (ws / TARGET).read_text(encoding="utf-8")}
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\shyamsridhar\AppData\Roaming\uv\python\cpython-3.12.15-windows-x86_64-none\Lib\pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\SHYAMS~1\\AppData\\Local\\Temp\\opencode\\bridge-live\\ws\\token-master-plugin\\skills\\token-master\\brainspace\\v6_shaping.py'

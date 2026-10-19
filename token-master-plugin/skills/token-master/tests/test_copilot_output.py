@@ -266,6 +266,22 @@ def test_cli_copilot_shapes_whole_file_views_with_v6_without_storage(monkeypatch
     assert wire == tokens.serialize(expected).encode("utf-8")
 
 
+def test_cli_accepts_copilot_1_0_98_string_tool_args(monkeypatch):
+    # Copilot CLI 1.0.98 sends toolArgs as a JSON string (live capture, evidence/copilot-bridge-20261018).
+    payload = listing_payload()
+    payload["toolArgs"] = json.dumps(payload["toolArgs"])
+    wire = run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT], payload)
+    assert json.loads(wire) == apply(listing_payload(), v6)
+
+
+@pytest.mark.parametrize("args", ['{"path": "C:/fixture/src", "forceReadLargeFiles": true}',
+                                  '{"path": "C:/fixture/src", "view_range": [1, 5]}', "not json", "[]"])
+def test_cli_string_tool_args_beyond_a_plain_path_stay_unchanged(monkeypatch, args):
+    payload = listing_payload()
+    payload["toolArgs"] = args
+    assert run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT], payload) == b""
+
+
 def test_cli_installed_explicit_tokenizer_works_without_ambient_discovery(monkeypatch, tmp_path):
     source = tokens._vocabulary_path()
     assert source is not None and source.is_file()

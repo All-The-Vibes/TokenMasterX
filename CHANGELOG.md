@@ -7,6 +7,23 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Copilot CLI bridge and a live fix for the v6 hook — October 18, 2026
+
+- New opt-in `brainspace_copilot_bridge.py` runs Copilot CLI in bring-your-own-key mode through
+  a local bridge. The bridge applies the cache-stable system prompt and v6 shaping (grep, glob
+  and whole-file view results) to every request. Copilot CLI keeps its full tool set. The bridge
+  never reads, stores or adds credentials. `brainspace_setup.py --host copilot` installs it.
+  See `docs/COPILOT_BRIDGE.md`.
+- Live checks with Copilot CLI 1.0.78-3 and 1.0.98: through the bridge, every later session's
+  first call read about 13,400 tokens from the cache. Without the bridge, no first call did.
+  One-line edits through the bridge were correct, and an interactive session worked.
+- Fix: Copilot CLI 1.0.78-3 and 1.0.98 send the hook's `toolArgs` as a JSON string, so the v6
+  `view` hook changed nothing. The hook now parses the string. In live sessions, the model then
+  received a 1,799-character digest instead of a 20,112-character view.
+- Finding: Copilot CLI refuses plain whole-file views of larger files. It refused a 22.4 KB file
+  and a 37.3 KB file. v6 read digests apply only below that limit. In both live hook sessions,
+  the model then read the file again with `forceReadLargeFiles`, so the hook saved nothing there.
+
 ### Cache-stable system prompt and PRS-4 — October 18, 2026
 
 - The native Copilot route moves Copilot CLI's per-session `Session folder:` line from the

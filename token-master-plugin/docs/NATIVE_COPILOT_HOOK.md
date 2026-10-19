@@ -6,8 +6,19 @@
 > - `brainspace_setup.py --host copilot` installs the hook by default.
 >   `--no-copilot-output-hook` skips it, and a user's `disableAllHooks` setting still
 >   wins.
-> - The native lifecycle run below verified the October 9 JSON hook. The v6 hook has
->   offline contract tests only; it has not had a native Copilot CLI lifecycle run.
+> - The native lifecycle run below verified the October 9 JSON hook with Copilot CLI 1.0.95.
+> - Live checks on October 18, 2026, with Copilot CLI 1.0.78-3 (the WinGet launcher's bundled
+>   build) and the installed 1.0.98 ([evidence](../../evidence/copilot-bridge-20261018/)):
+>   - Both versions send `toolArgs` as a JSON string. The hook accepted only an object, so it
+>     changed nothing. The hook now parses the string.
+>   - After the fix, a plain whole-file view of an 18.0 KB file reached the model as a
+>     1,799-character v6 digest instead of 20,112 characters, in both versions. Copilot CLI
+>     accepted the hook's result.
+>   - Both versions refuse plain whole-file views of larger files ("File too large to read at
+>     once"). Both versions refused a 22.4 KB file and a 37.3 KB file. v6 read digests
+>     therefore apply only to files between v6's 4,000-token read budget and that limit.
+>   - In both sessions, the model read the file again with `forceReadLargeFiles` after the
+>     digest. v6 never shapes forced reads. In these 2 sessions, the hook saved nothing.
 
 **A real native integration slice, not a full-system savings result.**
 The installed conservative JSON `view` hook now runs through the actual
