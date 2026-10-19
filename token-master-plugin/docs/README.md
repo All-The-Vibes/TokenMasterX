@@ -6,7 +6,10 @@ This directory contains the architecture specifications, mathematical contracts,
 
 ## 1. Start Here: Current Evidence
 
-- **[PRS-4 results](PRS4_RESULTS.md)**: v7 plus a cache-stable system prompt, 360 sessions, 3 arms; −49.8% per finished task under continuous use.
+- **[PRS-4 results](PRS4_RESULTS.md)**: a pre-registered live study on 24 fresh tasks (360 sessions, 3 arms).
+  - Under continuous use, v7 plus the cache-stable system prompt lowered billed cost per finished task by 49.8% against stock (95% CI −57.1% to −42.9%).
+  - v7 alone lowered it by 18.2%. Every arm passed 120/120.
+  - Only the experimental, read-only native Copilot route applies the cache-stable system prompt.
 - **[PRS-4 protocol](PRS4_PROTOCOL.md)**: the pre-registered design, goal rule and red-team fixes.
 - **[PRS-3 results](PRS3_RESULTS.md)**: a pre-registered live study on 24 fresh tasks (480 sessions, 4 arms).
   - v7 graph-first navigation lowered cost by 22.0% against stock (95% CI −35.4% to −8.9%), with 120/120 passed.

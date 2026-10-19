@@ -277,27 +277,27 @@
   <div class="slide">
     <div class="header">
       <div>
-        <div class="badge">● PRS-4 · Pre-registered · 360 live sessions · 24 fresh blind tasks · gpt-6-astra</div>
-        <h1>v7 + a cache-stable prompt cuts billed cost by 50%. <span>The 30% goal is met under continuous use.</span></h1>
-        <p class="subtitle">Billed cost per finished task at the provider's own prices: cache read 0.1, cache write 1.25, output 5. Same quality in every arm. Every token recounted and checked against the provider's bill.</p>
+        <div class="badge">● PRS-4 · Pre-registered · 360 live sessions · 24 fresh blind-authored tasks · gpt-6-astra</div>
+        <h1>Under continuous use, v7 + a cache-stable system prompt cut billed cost by 49.8%. <span>The 30% goal is met.</span></h1>
+        <p class="subtitle">Billed cost per finished task at the provider's own prices: cache read 0.1, cache write 1.25, output 5. One model, one repository. Every token recounted and checked against the provider's bill.</p>
       </div>
     </div>
 
     <div class="hero-grid">
       <div class="stat-card">
-        <div class="stat-label">v7 + cache-stable prompt · vs. stock</div>
+        <div class="stat-label">v7 + cache-stable system prompt · vs. stock</div>
         <div class="stat-value accent">−49.8%</div>
         <div class="stat-sub">95% CI −57.1% to −42.9% · 24 of 24 tasks cheaper</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">v7 alone · vs. stock</div>
         <div class="stat-value cyan">−18.2%</div>
-        <div class="stat-sub">95% CI −26.6% to −9.5% · replicates PRS-3</div>
+        <div class="stat-sub">95% CI −26.6% to −9.5% · significant again on new tasks</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Isolated sessions (&gt;30 min apart)</div>
+        <div class="stat-label">v7 + cache-stable, cold cache · vs. stock</div>
         <div class="stat-value">−18.9%</div>
-        <div class="stat-sub">first call re-priced as a cache miss</div>
+        <div class="stat-sub">every first call re-priced as a cache miss</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Task success · every arm</div>
@@ -314,14 +314,14 @@
             <div class="step-num">1</div>
             <div class="step-body">
               <strong>One system prompt for every session</strong>
-              <p>Copilot CLI puts each session's folder in its system prompt. Moving that line to the first user message let 119 of 120 first calls read the prompt from the cache.</p>
+              <p>Copilot CLI puts each session's folder in its system prompt. With that line moved to the first user message, 119 of 120 back-to-back sessions read the prompt from the cache.</p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-body">
-              <strong>Exact answers, not whole files</strong>
-              <p>v7's locate, read_symbol and impact cut raw tokens by 14% against stock.</p>
+              <strong>Smaller tool results</strong>
+              <p>v6 shaping plus v7's locate, read_symbol and impact cut raw tokens by 14% to 15% against stock.</p>
             </div>
           </div>
           <div class="step">
@@ -348,17 +348,17 @@
             <div class="delta-pill">1.32M · −18.2%</div>
           </div>
           <div class="chart-row arm">
-            <div class="turn-label">v7, isolated sessions</div>
+            <div class="turn-label">v7 + cache-stable system prompt, cold (re-priced)</div>
             <div class="bars"><div class="bar-muted" style="width: 81.1%"></div></div>
             <div class="delta-pill neutral">1.30M · −18.9%</div>
           </div>
           <div class="chart-row arm">
-            <div class="turn-label">v7 + cache-stable prompt</div>
+            <div class="turn-label">v7 + cache-stable system prompt</div>
             <div class="bars"><div class="bar-v5" style="width: 50.2%"></div></div>
             <div class="delta-pill">0.81M · −49.8%</div>
           </div>
         </div>
-        <div class="legend note">Continuous use: sessions of one repository back to back. The cached prompt lasts between 6.5 and 31 minutes. Only the experimental, read-only native Copilot route applies it today.</div>
+        <div class="legend note">Continuous use: sessions of one repository ran back to back. In one probe, the cached prompt survived 6.5 minutes but not 31. Only the experimental, read-only native Copilot route applies the cache-stable system prompt.</div>
       </div>
     </div>
 
@@ -366,7 +366,7 @@
       <div>Evidence: <code>evidence/prs4-20261018/</code> · Protocol: <code>token-master-plugin/docs/PRS4_PROTOCOL.md</code></div>
       <div class="pills">
         <span class="pill">✓ Pre-registered, SHA-frozen</span>
-        <span class="pill">✓ Code frozen before tasks were read</span>
+        <span class="pill">✓ Tasks written blind to the arms</span>
         <span class="pill">✓ 30% goal met (continuous use)</span>
       </div>
     </div>

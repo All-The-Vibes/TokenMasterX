@@ -27,24 +27,30 @@ agents. It has two parts:
    codegraph servers plus a 1,383-token routing prompt), which PRS-2 measured as more
    expensive.
 
-## Current evidence: PRS-4 (October 18, 2026) — v7 + cache-stable prompt cuts cost by 50%
+## Current evidence: PRS-4 (October 18, 2026) — v7 + cache-stable system prompt cuts billed cost by 50% under continuous use
 
 Pre-registered live study:
 - 360 sessions on 24 fresh tasks, written by agents that were not told the arms.
 - Model: `gpt-6-astra`. Primary endpoint: billed cost per finished task, at the provider's own
   prices (cache read 0.1, cache write 1.25, output 5, relative to uncached input).
-- Every token was recounted from raw captures and checked against the provider's bill.
+- Every token was recounted from raw captures. Every graded session was checked against the
+  provider's bill.
 
 | Configuration | Passed | Change per finished task vs. stock (95% CI) | Holm p |
 | --- | ---: | ---: | ---: |
 | v7 (v6 + navigation tools) | 120/120 | −18.2% (−26.6%, −9.5%) | 0.00049 |
 | **v7 + cache-stable system prompt** | **120/120** | **−49.8% (−57.1%, −42.9%)** | **< 0.00001** |
 
-- **The 30% goal is met** under continuous use: sessions of one repository back to back,
-  so 119 of 120 first calls read the system prompt from the cache.
-- Isolated sessions (more than about 30 minutes apart) save about 19%, as v7 alone does.
-- Only the native Copilot route applies the cache-stable prompt today. It is experimental
-  and read-only; the default install gets the v7 result at most.
+- **The 30% goal is met under continuous use.** In the study, the sessions of one repository
+  ran back to back. In that regime, 119 of 120 first calls with the cache-stable system prompt
+  read the prompt from the cache.
+- **Cold sessions save less.** A session starts cold if no other session sent the same
+  system prompt within the cache lifetime. One probe put that lifetime between 6.5 and 31
+  minutes. Re-priced as if every first call missed the cache, the saving is 18.9%, close to
+  v7 alone.
+- **Only the native Copilot route applies the cache-stable system prompt.** That route is
+  experimental and read-only. No PRS study measured the default install. We infer that it saves
+  no more than v7 alone.
 
 Details: [PRS4_RESULTS.md](token-master-plugin/docs/PRS4_RESULTS.md).
 
@@ -64,7 +70,8 @@ Pre-registered live study:
 - **v7's extra saving over v6 alone is not established:** −10.4%, p = 0.16. It is
   concentrated on "who calls X" tasks: −52% against v6, an exploratory result. One
   sentence of advice without the tools saved 4.8% (not significant).
-- **The goal of at least 30% savings was not met by PRS-3.** PRS-4 met it (above).
+- **The goal of at least 30% savings was not met by PRS-3.** PRS-4 met it under continuous
+  use, with the cache-stable system prompt (above).
 
 Details: [PRS3_RESULTS.md](token-master-plugin/docs/PRS3_RESULTS.md).
 

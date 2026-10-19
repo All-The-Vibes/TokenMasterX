@@ -12,15 +12,21 @@ and the project aims to follow semantic versioning.
 - The native Copilot route moves Copilot CLI's per-session `Session folder:` line from the
   system prompt to the first user message (`stable_session_prefix` in
   `brainspace/native_transport.py`; transport version `native-responses-transport-v2`).
-  The system prompt is then identical across sessions of a repository, so a new session's
-  first call reads it from the provider's cache. The rewrite is a no-op when the line is
-  absent or ambiguous, and it gives the same bytes on every call of a session.
-- PRS-4 (pre-registered, 360 live sessions, 24 fresh blind-authored tasks): v7 with the
-  cache-stable prompt cost 49.8% less than stock per finished task (95% CI −57.1% to
-  −42.9%), 120/120 passed. v7 alone: −18.2%. Isolated sessions: about −19%. See
-  `docs/PRS4_RESULTS.md`.
-- The cache-lifetime probe found that the cached prompt survives at least 6.5 minutes and
-  less than 31 minutes.
+  - The system prompt is then the same for every session of a repository.
+  - A new session's first call can then read that prompt from the provider's cache. This
+    works only if another session sent the same prompt within the cache lifetime.
+  - The rewrite is a no-op when the line is absent or ambiguous. It gives the same bytes on
+    every call of a session.
+- PRS-4 (pre-registered, 360 live sessions, 24 fresh blind-authored tasks) measured billed
+  cost per finished task against stock. Every arm passed 120/120.
+  - Under continuous use, v7 with the cache-stable system prompt cost 49.8% less (95% CI
+    −57.1% to −42.9%).
+  - v7 alone cost 18.2% less.
+  - Re-priced as if every first call missed the cache, v7 with the cache-stable system prompt
+    cost 18.9% less.
+  - See `docs/PRS4_RESULTS.md`.
+- In one cache-lifetime probe, the cached prompt was still in the cache after 6.5 minutes. It
+  was gone after 31 minutes.
 
 ### v6 as the default for Copilot — October 18, 2026
 
