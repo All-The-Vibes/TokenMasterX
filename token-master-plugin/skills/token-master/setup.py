@@ -27,6 +27,8 @@ from graphify_mcp import stamp_graph
 
 SKILL_DIR = Path(__file__).resolve().parent
 GITIGNORE_LINE = ".token-master/"
+# graphify's own output (a multi-megabyte graph.json). Unignored, every agent grep searches it.
+GRAPHIFY_OUTPUT_LINE = "graphify-out/"
 NAV_SERVER = "tokenmaster-nav"
 # Graph servers installed before v7; removed on install and uninstall when TokenMaster owns them.
 LEGACY_SERVERS = ("graphify-nav", "codegraph")
@@ -202,7 +204,7 @@ def main() -> int:
     # Keep supplier output: never recursively delete a potentially pre-existing directory.
 
     # Gitignore the per-repo build artifacts (best effort).
-    _ensure_gitignore_lines(repo / ".gitignore", [GITIGNORE_LINE])
+    _ensure_gitignore_lines(repo / ".gitignore", [GITIGNORE_LINE, GRAPHIFY_OUTPUT_LINE])
 
     # Install the navigation server and the modules it imports to a stable location.
     install_dir = home / "token-master"

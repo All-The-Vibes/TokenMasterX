@@ -386,6 +386,8 @@ def test_graph_setup_fake_supplier_real_installer_in_temp_home(homes, monkeypatc
         assert setup.main() == 0
         saved = json.loads((repo / ".token-master" / "graph.json").read_bytes())
         assert saved["token_master_index"]["supplier"]["name"] == "fixture-graphify"
+        ignored = (repo / ".gitignore").read_text("utf-8").splitlines()
+        assert ".token-master/" in ignored and ignored.count("graphify-out/") == 1  # agents' grep skips the graph
         config = config_path(host).read_text("utf-8")
         assert "tokenmaster-nav" in config and "graphify-nav" not in config
         install = host_home(host) / "token-master"
