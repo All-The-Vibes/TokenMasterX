@@ -1,0 +1,206 @@
+{
+ "kind": "exploratory, not pre-registered",
+ "django_commit": "9e7cc2b628fe8fd3895986af9b7fc9525034c1b0",
+ "seed": 20261019,
+ "python_files": 2818,
+ "unparseable": [
+  "tests/test_runner_apps/tagged/tests_syntax_error.py"
+ ],
+ "pool_size": 225,
+ "heavy_cutoff_grep_tokens": 281,
+ "pool_grep_tokens": {
+  "max": 1681,
+  "median": 147
+ },
+ "tasks": [
+  {
+   "id": "D01",
+   "category": "investigate",
+   "stratum": "grep-top-fifth",
+   "symbol": "django/contrib/auth/password_validation.py::validate_password",
+   "grep_tokens": 308,
+   "prompt": "We're about to change the signature of the function `validate_password()` in django/contrib/auth/password_validation.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/auth/forms.py::SetPasswordMixin.validate_password_for_user",
+     "django/contrib/auth/management/commands/changepassword.py::Command.handle",
+     "django/contrib/auth/management/commands/createsuperuser.py::Command.handle"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D02",
+   "category": "investigate",
+   "stratum": "grep-top-fifth",
+   "symbol": "django/views/generic/list.py::MultipleObjectMixin.get_allow_empty",
+   "grep_tokens": 443,
+   "prompt": "We're about to change the signature of the method `MultipleObjectMixin.get_allow_empty` in django/views/generic/list.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/views/generic/dates.py::BaseDateListView.get_date_list",
+     "django/views/generic/dates.py::BaseDateListView.get_dated_queryset",
+     "django/views/generic/dates.py::_get_next_prev",
+     "django/views/generic/list.py::BaseListView.get",
+     "django/views/generic/list.py::MultipleObjectMixin.paginate_queryset"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D03",
+   "category": "investigate",
+   "stratum": "grep-top-fifth",
+   "symbol": "django/db/migrations/graph.py::MigrationGraph.forwards_plan",
+   "grep_tokens": 683,
+   "prompt": "We're about to change the signature of the method `MigrationGraph.forwards_plan` in django/db/migrations/graph.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/core/management/commands/makemigrations.py::Command.handle_merge",
+     "django/core/management/commands/showmigrations.py::Command.show_list",
+     "django/core/management/commands/showmigrations.py::Command.show_plan",
+     "django/core/management/commands/squashmigrations.py::Command.handle",
+     "django/db/migrations/executor.py::MigrationExecutor.migration_plan",
+     "django/db/migrations/graph.py::MigrationGraph._generate_plan"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D04",
+   "category": "investigate",
+   "stratum": "grep-top-fifth",
+   "symbol": "django/contrib/admin/options.py::ModelAdmin.message_user",
+   "grep_tokens": 537,
+   "prompt": "We're about to change the signature of the method `ModelAdmin.message_user` in django/contrib/admin/options.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/admin/actions.py::delete_selected",
+     "django/contrib/admin/options.py::ModelAdmin._get_obj_does_not_exist_redirect",
+     "django/contrib/admin/options.py::ModelAdmin.changelist_view",
+     "django/contrib/admin/options.py::ModelAdmin.response_action",
+     "django/contrib/admin/options.py::ModelAdmin.response_add",
+     "django/contrib/admin/options.py::ModelAdmin.response_change",
+     "django/contrib/admin/options.py::ModelAdmin.response_delete"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D05",
+   "category": "investigate",
+   "stratum": "grep-top-fifth",
+   "symbol": "django/contrib/sessions/backends/base.py::SessionBase.aget_expiry_age",
+   "grep_tokens": 371,
+   "prompt": "We're about to change the signature of the method `SessionBase.aget_expiry_age` in django/contrib/sessions/backends/base.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/sessions/backends/cache.py::SessionStore.asave",
+     "django/contrib/sessions/backends/cached_db.py::SessionStore.aload",
+     "django/contrib/sessions/backends/cached_db.py::SessionStore.asave"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D06",
+   "category": "investigate",
+   "stratum": "grep-rest",
+   "symbol": "django/db/models/sql/query.py::Query.clear_select_clause",
+   "grep_tokens": 83,
+   "prompt": "We're about to change the signature of the method `Query.clear_select_clause` in django/db/models/sql/query.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/db/models/lookups.py::Exact.get_prep_lookup",
+     "django/db/models/lookups.py::In.get_prep_lookup",
+     "django/db/models/sql/compiler.py::SQLDeleteCompiler.as_sql",
+     "django/db/models/sql/query.py::Query.exists"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D07",
+   "category": "investigate",
+   "stratum": "grep-rest",
+   "symbol": "django/contrib/admin/utils.py::build_q_object_from_lookup_parameters",
+   "grep_tokens": 138,
+   "prompt": "We're about to change the signature of the function `build_q_object_from_lookup_parameters()` in django/contrib/admin/utils.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/admin/filters.py::FieldListFilter.queryset",
+     "django/contrib/admin/views/main.py::ChangeList.get_queryset"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D08",
+   "category": "investigate",
+   "stratum": "grep-rest",
+   "symbol": "django/db/backends/postgresql/operations.py::DatabaseOperations.compose_sql",
+   "grep_tokens": 144,
+   "prompt": "We're about to change the signature of the method `DatabaseOperations.compose_sql` in django/db/backends/postgresql/operations.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/postgres/search.py::SearchHeadline.as_sql",
+     "django/db/backends/postgresql/base.py::DatabaseWrapper._configure_role",
+     "django/db/backends/postgresql/operations.py::DatabaseOperations.last_executed_query",
+     "django/db/backends/postgresql/schema.py::DatabaseSchemaEditor.execute"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D09",
+   "category": "investigate",
+   "stratum": "grep-rest",
+   "symbol": "django/db/models/options.py::Options._expire_cache",
+   "grep_tokens": 259,
+   "prompt": "We're about to change the signature of the method `Options._expire_cache` in django/db/models/options.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/apps/registry.py::Apps.clear_cache",
+     "django/db/models/options.py::Options.add_field",
+     "django/db/models/options.py::Options.add_manager"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D10",
+   "category": "investigate",
+   "stratum": "grep-rest",
+   "symbol": "django/core/management/utils.py::parse_apps_and_model_labels",
+   "grep_tokens": 122,
+   "prompt": "We're about to change the signature of the function `parse_apps_and_model_labels()` in django/core/management/utils.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/core/management/commands/dumpdata.py::Command.handle",
+     "django/core/management/commands/loaddata.py::Command.handle"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  }
+ ]
+}
