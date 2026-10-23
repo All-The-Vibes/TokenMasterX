@@ -1,0 +1,446 @@
+{
+ "kind": "exploratory, not pre-registered",
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 20261022
+ },
+ "models": {
+  "gpt-6-astra": {
+   "all": {
+    "tasks": 45,
+    "raw_tokens": {
+     "stock": 2417452,
+     "lean": 1331990,
+     "tm": 1127277
+    },
+    "passes": {
+     "stock": 45,
+     "lean": 44,
+     "tm": 44
+    },
+    "tm_vs_stock": {
+     "raw": {
+      "change": -0.5337,
+      "ci95": [
+       -0.5711,
+       -0.4912
+      ]
+     },
+     "usd": {
+      "change": -0.7986,
+      "ci95": [
+       -0.8197,
+       -0.7762
+      ]
+     },
+     "tasks_lower_raw": "45/45"
+    },
+    "lean_vs_stock": {
+     "raw": {
+      "change": -0.449,
+      "ci95": [
+       -0.4972,
+       -0.3915
+      ]
+     },
+     "usd": {
+      "change": -0.7084,
+      "ci95": [
+       -0.7297,
+       -0.6863
+      ]
+     },
+     "tasks_lower_raw": "44/45"
+    },
+    "tm_vs_lean": {
+     "raw": {
+      "change": -0.1537,
+      "ci95": [
+       -0.217,
+       -0.0814
+      ]
+     },
+     "usd": {
+      "change": -0.3092,
+      "ci95": [
+       -0.3762,
+       -0.2386
+      ]
+     },
+     "tasks_lower_raw": "32/45"
+    }
+   },
+   "rare names (D01-D10, D16-D30)": {
+    "tasks": 25,
+    "raw_tokens": {
+     "stock": 1187455,
+     "lean": 672014,
+     "tm": 520971
+    },
+    "passes": {
+     "stock": 25,
+     "lean": 25,
+     "tm": 24
+    },
+    "tm_vs_stock": {
+     "raw": {
+      "change": -0.5613,
+      "ci95": [
+       -0.5954,
+       -0.5269
+      ]
+     },
+     "usd": {
+      "change": -0.839,
+      "ci95": [
+       -0.859,
+       -0.8109
+      ]
+     },
+     "tasks_lower_raw": "25/25"
+    },
+    "lean_vs_stock": {
+     "raw": {
+      "change": -0.4341,
+      "ci95": [
+       -0.4803,
+       -0.3864
+      ]
+     },
+     "usd": {
+      "change": -0.718,
+      "ci95": [
+       -0.7499,
+       -0.6828
+      ]
+     },
+     "tasks_lower_raw": "25/25"
+    },
+    "tm_vs_lean": {
+     "raw": {
+      "change": -0.2248,
+      "ci95": [
+       -0.2961,
+       -0.1457
+      ]
+     },
+     "usd": {
+      "change": -0.429,
+      "ci95": [
+       -0.5013,
+       -0.3488
+      ]
+     },
+     "tasks_lower_raw": "21/25"
+    }
+   },
+   "common names (D11-D15, D31-D45)": {
+    "tasks": 20,
+    "raw_tokens": {
+     "stock": 1229997,
+     "lean": 659976,
+     "tm": 606306
+    },
+    "passes": {
+     "stock": 20,
+     "lean": 19,
+     "tm": 20
+    },
+    "tm_vs_stock": {
+     "raw": {
+      "change": -0.5071,
+      "ci95": [
+       -0.5722,
+       -0.4276
+      ]
+     },
+     "usd": {
+      "change": -0.7554,
+      "ci95": [
+       -0.7799,
+       -0.7288
+      ]
+     },
+     "tasks_lower_raw": "20/20"
+    },
+    "lean_vs_stock": {
+     "raw": {
+      "change": -0.4634,
+      "ci95": [
+       -0.5398,
+       -0.3579
+      ]
+     },
+     "usd": {
+      "change": -0.6982,
+      "ci95": [
+       -0.7212,
+       -0.6703
+      ]
+     },
+     "tasks_lower_raw": "19/20"
+    },
+    "tm_vs_lean": {
+     "raw": {
+      "change": -0.0813,
+      "ci95": [
+       -0.1733,
+       0.0285
+      ]
+     },
+     "usd": {
+      "change": -0.1894,
+      "ci95": [
+       -0.2724,
+       -0.0925
+      ]
+     },
+     "tasks_lower_raw": "11/20"
+    }
+   },
+   "failures": [
+    {
+     "task": "D28",
+     "arm": "tm",
+     "why": "wrong:callers",
+     "missing": [
+      "django/contrib/admin/options.py::ModelAdmin._changeform_view",
+      "django/contrib/admin/options.py::ModelAdmin._delete_view"
+     ],
+     "extra": [
+      "django/contrib/admin/options.py::ModelAdmin.changeform_view",
+      "django/contrib/admin/options.py::ModelAdmin.delete_view"
+     ]
+    },
+    {
+     "task": "D45",
+     "arm": "lean",
+     "why": "wrong:callers",
+     "missing": [
+      "django/contrib/admin/options.py::ModelAdmin.get_preserved_filters",
+      "django/contrib/admin/templatetags/admin_urls.py::add_preserved_filters",
+      "django/contrib/admin/views/main.py::ChangeList.get_query_string",
+      "django/contrib/admin/widgets.py::ForeignKeyRawIdWidget.get_context"
+     ],
+     "extra": []
+    }
+   ]
+  },
+  "claude-opus-5.5": {
+   "all": {
+    "tasks": 45,
+    "raw_tokens": {
+     "stock": 3457179,
+     "lean": 1855563,
+     "tm": 1673646
+    },
+    "passes": {
+     "stock": 45,
+     "lean": 44,
+     "tm": 44
+    },
+    "tm_vs_stock": {
+     "raw": {
+      "change": -0.5159,
+      "ci95": [
+       -0.5574,
+       -0.472
+      ]
+     },
+     "usd": {
+      "change": -0.6081,
+      "ci95": [
+       -0.6464,
+       -0.5689
+      ]
+     },
+     "tasks_lower_raw": "45/45"
+    },
+    "lean_vs_stock": {
+     "raw": {
+      "change": -0.4633,
+      "ci95": [
+       -0.5095,
+       -0.4076
+      ]
+     },
+     "usd": {
+      "change": -0.5519,
+      "ci95": [
+       -0.5888,
+       -0.5117
+      ]
+     },
+     "tasks_lower_raw": "44/45"
+    },
+    "tm_vs_lean": {
+     "raw": {
+      "change": -0.098,
+      "ci95": [
+       -0.1835,
+       -0.008
+      ]
+     },
+     "usd": {
+      "change": -0.1253,
+      "ci95": [
+       -0.2091,
+       -0.0361
+      ]
+     },
+     "tasks_lower_raw": "21/45"
+    }
+   },
+   "rare names (D01-D10, D16-D30)": {
+    "tasks": 25,
+    "raw_tokens": {
+     "stock": 1753890,
+     "lean": 882075,
+     "tm": 898417
+    },
+    "passes": {
+     "stock": 25,
+     "lean": 24,
+     "tm": 25
+    },
+    "tm_vs_stock": {
+     "raw": {
+      "change": -0.4878,
+      "ci95": [
+       -0.5355,
+       -0.437
+      ]
+     },
+     "usd": {
+      "change": -0.6122,
+      "ci95": [
+       -0.6621,
+       -0.5584
+      ]
+     },
+     "tasks_lower_raw": "25/25"
+    },
+    "lean_vs_stock": {
+     "raw": {
+      "change": -0.4971,
+      "ci95": [
+       -0.5453,
+       -0.4387
+      ]
+     },
+     "usd": {
+      "change": -0.6006,
+      "ci95": [
+       -0.6365,
+       -0.5603
+      ]
+     },
+     "tasks_lower_raw": "25/25"
+    },
+    "tm_vs_lean": {
+     "raw": {
+      "change": 0.0185,
+      "ci95": [
+       -0.0653,
+       0.1009
+      ]
+     },
+     "usd": {
+      "change": -0.029,
+      "ci95": [
+       -0.1224,
+       0.0548
+      ]
+     },
+     "tasks_lower_raw": "5/25"
+    }
+   },
+   "common names (D11-D15, D31-D45)": {
+    "tasks": 20,
+    "raw_tokens": {
+     "stock": 1703289,
+     "lean": 973488,
+     "tm": 775229
+    },
+    "passes": {
+     "stock": 20,
+     "lean": 20,
+     "tm": 19
+    },
+    "tm_vs_stock": {
+     "raw": {
+      "change": -0.5449,
+      "ci95": [
+       -0.6141,
+       -0.4739
+      ]
+     },
+     "usd": {
+      "change": -0.6036,
+      "ci95": [
+       -0.6609,
+       -0.5459
+      ]
+     },
+     "tasks_lower_raw": "20/20"
+    },
+    "lean_vs_stock": {
+     "raw": {
+      "change": -0.4285,
+      "ci95": [
+       -0.5052,
+       -0.336
+      ]
+     },
+     "usd": {
+      "change": -0.4987,
+      "ci95": [
+       -0.5547,
+       -0.4356
+      ]
+     },
+     "tasks_lower_raw": "19/20"
+    },
+    "tm_vs_lean": {
+     "raw": {
+      "change": -0.2037,
+      "ci95": [
+       -0.326,
+       -0.0597
+      ]
+     },
+     "usd": {
+      "change": -0.2092,
+      "ci95": [
+       -0.3268,
+       -0.0726
+      ]
+     },
+     "tasks_lower_raw": "16/20"
+    }
+   },
+   "failures": [
+    {
+     "task": "D06",
+     "arm": "lean",
+     "why": "wrong:callers",
+     "missing": [
+      "django/db/models/sql/compiler.py::SQLDeleteCompiler.as_sql"
+     ],
+     "extra": [
+      "django/db/models/sql/compiler.py::SQLDeleteCompiler._as_sql"
+     ]
+    },
+    {
+     "task": "D45",
+     "arm": "tm",
+     "why": "wrong:callers",
+     "missing": [],
+     "extra": [
+      "django/utils/html.py::smart_urlquote"
+     ]
+    }
+   ]
+  }
+ }
+}
