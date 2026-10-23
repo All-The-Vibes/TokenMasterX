@@ -34,7 +34,7 @@
    - `tokenomics` is listed under "Personal skills".
    - The table shows 4 rehearsal sessions from this morning. Tell the audience that they are rehearsal runs.
 4. Optional: run Step 4 once, so that the folder and permission questions do not surprise you live.
-5. Optional: open `docs/tokenmaster-v5-slide.html` in a browser for the results slide.
+5. Open `docs/tokenomics-demo-slide.html` in a browser (4 tabs: Math, Architecture, Live Runbook with Copy buttons, and Dashboard Output & Q&A). `docs/tokenmaster-v5-slide.html` has the single-slide A/B summary.
 
 ## Part 1: The math (3 minutes)
 

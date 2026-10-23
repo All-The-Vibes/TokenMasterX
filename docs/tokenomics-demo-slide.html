@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TokenMaster &amp; /tokenomics — Math, Architecture &amp; Live Demo</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card: rgba(17, 23, 36, 0.88);
+      --card-soft: rgba(255, 255, 255, 0.03);
+      --border: rgba(255, 255, 255, 0.10);
+      --cyan: #00f2fe;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #f43f5e;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background:
+        radial-gradient(circle at 12% 12%, rgba(0, 242, 254, 0.11), transparent 38%),
+        radial-gradient(circle at 88% 88%, rgba(16, 185, 129, 0.11), transparent 38%),
+        var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      padding: 20px 24px 36px;
+    }
+    .deck {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      background: rgba(11, 15, 25, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px 18px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tab {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tab:hover { color: var(--text); border-color: rgba(0, 242, 254, 0.4); }
+    .tab.active {
+      background: linear-gradient(90deg, rgba(0, 242, 254, 0.18), rgba(16, 185, 129, 0.18));
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .nav-help {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .slide {
+      display: none;
+      width: 100%;
+      background: rgba(11, 15, 25, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 38px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.65), 0 0 40px rgba(0, 242, 254, 0.05);
+      flex-direction: column;
+      gap: 22px;
+    }
+    .slide.active, body.all-slides .slide { display: flex; }
+    body.all-slides .deck { gap: 28px; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: clamp(26px, 2.7vw, 36px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+    h1 span {
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 15px;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .stat-card, .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .stat-value {
+      font-size: clamp(24px, 2.5vw, 36px);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin: 6px 0 4px;
+      color: #fff;
+    }
+    .stat-value.green { color: var(--green); }
+    .stat-value.cyan { color: var(--cyan); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-sub { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
+    .panel-title {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--cyan);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 700;
+    }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+    tr:last-child td { border-bottom: none; }
+    .hl-green { color: #34d399; font-weight: 700; }
+    .hl-cyan { color: var(--cyan); font-weight: 700; }
+    .hl-red { color: var(--red); font-weight: 700; }
+    .formula-box {
+      background: rgba(0, 242, 254, 0.06);
+      border: 1px solid rgba(0, 242, 254, 0.25);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: #e2e8f0;
+      margin-top: 10px;
+    }
+    .steps { display: flex; flex-direction: column; gap: 11px; }
+    .step {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--card-soft);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 12px;
+      padding: 11px 13px;
+    }
+    .step-num {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      color: #050811;
+      font-weight: 900;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-body { flex: 1; min-width: 0; }
+    .step-body strong {
+      display: block;
+      font-size: 14px;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .step-body p {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.42;
+    }
+    pre.cmd {
+      background: #05070b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.5;
+      color: #e2e8f0;
+      overflow-x: auto;
+      margin-top: 6px;
+      position: relative;
+    }
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      float: right;
+      margin-left: 8px;
+    }
+    .copy-btn:hover { border-color: var(--cyan); color: #fff; }
+    .arch-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1.25fr auto 1.35fr;
+      align-items: stretch;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .arch-node {
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(0, 242, 254, 0.28);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .arch-node.green { border-color: rgba(16, 185, 129, 0.4); }
+    .arch-node h3 { font-size: 14px; color: #fff; }
+    .arch-node p, .arch-node li { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+    .arch-node ul { padding-left: 16px; display: flex; flex-direction: column; gap: 4px; }
+    .arch-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: var(--cyan);
+      font-weight: 900;
+    }
+    code {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #e2e8f0;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .say-box {
+      background: rgba(16, 185, 129, 0.08);
+      border-left: 3px solid var(--green);
+      padding: 8px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12.5px;
+      color: #d1fae5;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12.5px;
+      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    @media (max-width: 1024px) {
+      .grid-4, .grid-3, .grid-2, .arch-flow { grid-template-columns: 1fr; }
+      .arch-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <div class="topbar">
+      <div class="tabs">
+        <button class="tab active" onclick="showSlide(0)">1. The Tokenomics Math</button>
+        <button class="tab" onclick="showSlide(1)">2. Architecture</button>
+        <button class="tab" onclick="showSlide(2)">3. Live Demo Runbook</button>
+        <button class="tab" onclick="showSlide(3)">4. Dashboard Output &amp; Q&amp;A</button>
+      </div>
+      <div class="nav-help">
+        <span>Keys: <code>1–4</code> or <code>&larr;</code> <code>&rarr;</code></span>
+        <button class="tab" id="allBtn" onclick="toggleAll()">Show All Slides</button>
+      </div>
+    </div>
+
+    <!-- ========================================== SLIDE 1: THE MATH ========================================== -->
+    <section class="slide active">
+      <div>
+        <div class="badge">&#9679; Part 1 &middot; The Math in Plain Terms &middot; Measured vs. Estimated</div>
+        <h1>Every model call re-sends a fixed prompt. <span>TokenMaster cuts it in half.</span></h1>
+        <p class="subtitle">A model has no memory between calls. On every call, Copilot CLI sends the system prompt, every tool definition, and the conversation so far. Removing 11 unused built-in tools shrinks every call, and Graphify answers call-graph questions in one lookup instead of a grep loop.</p>
+      </div>
+
+      <div class="grid-4">
+        <div class="stat-card">
+          <div class="stat-label">1-Word Prompt &middot; Stock vs. tmc</div>
+          <div class="stat-value green">&minus;40.6%</div>
+          <div class="stat-sub">15,185 &rarr; 9,016 tokens ($0.0380 &rarr; $0.0226) on your machine today (<code>gpt-6.1-sol</code>, 1.0.98)</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Django Lookup (D31) &middot; Stock vs. tmc+Graph</div>
+          <div class="stat-value green">&minus;65.6%</div>
+          <div class="stat-sub">62,484 &rarr; 21,495 tokens (4 calls &rarr; 2 calls). Stock answered wrong; <code>impact</code> answered right.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">45-Task Django A/B &middot; Raw Tokens</div>
+          <div class="stat-value cyan">&minus;53.4%</div>
+          <div class="stat-sub"><code>gpt-6-astra</code> (2.42M &rarr; 1.13M). <code>claude-opus-5.5</code>: &minus;51.6% (3.46M &rarr; 1.67M). Lower on 45/45 tasks.</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">45-Task Django A/B &middot; Cold Cost</div>
+          <div class="stat-value amber">&minus;49.5%</div>
+          <div class="stat-sub">$11.55 &rarr; $5.83 cold ($2.33 back-to-back). Opus: &minus;46.0% cold. Correct answers: 88/90 vs. 90/90.</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-title"><span>1. How GitHub Prices Every Call (Measured)</span><span>From <code>session-store.db</code></span></div>
+          <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 10px;">Copilot CLI writes the exact token counts and GitHub's charge (<code>total_nano_aiu</code>; 10<sup>9</sup> nano = 1 AI credit = $0.01) after every call. Prices for <code>gpt-6.1-sol</code> / <code>claude-sonnet-5.5</code>:</p>
+          <table>
+            <thead>
+              <tr><th>Token Type</th><th class="num">Price / 1M</th><th>What It Means</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>New input</strong></td><td class="num">$2.00</td><td>Input tokens not in GitHub's prompt cache</td></tr>
+              <tr><td><strong>Cache write</strong></td><td class="num">$2.50</td><td>Input tokens written into the cache (1.25&times;)</td></tr>
+              <tr><td><strong>Cache read</strong></td><td class="num">$0.10</td><td>Input tokens read from the cache (0.05&times;)</td></tr>
+              <tr><td><strong>Output</strong></td><td class="num">$10.00</td><td>Tokens the model writes (reasoning included)</td></tr>
+            </tbody>
+          </table>
+          <div class="formula-box">
+            <strong>Measured Call Cost</strong> = (New &times; $2.00 + Write &times; $2.50 + Read &times; $0.10 + Out &times; $10.00) &divide; 1,000,000<br/>
+            <span style="color: var(--muted);">Total Tokens and Cost (USD) in <code>/tokenomics</code> are 100% measured from GitHub's own records.</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><span>2. How <code>/tokenomics</code> Estimates Savings (&approx;)</span><span>Worked Example</span></div>
+          <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 10px;">We do not run a hidden stock session. For each TokenMaster session, <code>tokenomics.py</code> estimates what stock would have spent on the <strong>same calls</strong>:</p>
+          <div class="steps">
+            <div class="step">
+              <div class="step-num">A</div>
+              <div class="step-body">
+                <strong>Every call: fixed tokens removed &times; cache-read price</strong>
+                <p>The lean tool set removes <code>5,558</code> fixed tokens per call on 1.0.98 (<code>9,727</code> on Anthropic). After call 1, stock reads its fixed prompt from cache: <code>5,558 &times; $0.10 / 1M = $0.0006</code>.</p>
+              </div>
+            </div>
+            <div class="step">
+              <div class="step-num">B</div>
+              <div class="step-body">
+                <strong>First call of a session: extra cache write avoided</strong>
+                <p>Your stock sessions read <code>0</code> tokens from cache on call 1. So stock would write <code>9,008 + 5,558 = 14,566</code> tokens instead of <code>9,008</code>: <code>5,558 &times; ($2.50 &minus; $0.10) / 1M = $0.0133</code>.</p>
+              </div>
+            </div>
+          </div>
+          <div class="formula-box">
+            <strong>Worked check (1-word session):</strong> $0.0006 + $0.0133 = <span class="hl-green">$0.0139 estimated</span> vs. <span class="hl-cyan">$0.0154 measured</span> ($0.0380 &minus; $0.0226) &rarr; captures <strong>90%</strong> of the actual difference. Across 6 A/B runs, the estimator gave <strong>72% to 125%</strong> of the measured token saving.
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>Say to the room: <em>&ldquo;Total Tokens and Cost are GitHub's own numbers. Saved columns marked &approx; estimate the fixed prompt removed; they do not even count the extra calls that Graphify saves.&rdquo;</em></div>
+      </div>
+    </section>
+
+    <!-- ========================================== SLIDE 2: ARCHITECTURE ========================================== -->
+    <section class="slide">
+      <div>
+        <div class="badge">&#9679; Part 2 &middot; Architecture &middot; Zero Changes to Normal Copilot</div>
+        <h1>How <code>tmc</code>, Graphify, and <code>/tokenomics</code> fit together.</h1>
+        <p class="subtitle">Plain <code>copilot</code> stays untouched. Starting Copilot with <code>tmc</code> wraps the launch, trims unused tools, records a prompt-free launch timestamp, and lets <code>/tokenomics</code> join launch windows with Copilot's SQLite store.</p>
+      </div>
+
+      <div class="arch-flow">
+        <div class="arch-node">
+          <div class="stat-label">1. Entrypoint (PowerShell 7)</div>
+          <h3><code>tmc</code> &rarr; TokenMaster Launcher</h3>
+          <p><code>~/.copilot/token-master/brainspace_copilot_bridge.py</code></p>
+          <ul>
+            <li>Passes <code>--excluded-tools</code> for 11 unused built-in tools (16 &rarr; 5 tools sent).</li>
+            <li>Appends start/end millisecond timestamps + folder to <code>launches.jsonl</code> (<strong>never</strong> logs prompt text).</li>
+            <li>In BYOK mode only: also starts the local cache-stable prompt &amp; v6 bridge.</li>
+          </ul>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node">
+          <div class="stat-label">2. Live Session</div>
+          <h3>GitHub Copilot CLI 1.0.98</h3>
+          <ul>
+            <li><strong>Lean tool set:</strong> sends ~5.6K–9.7K fewer tokens on every call.</li>
+            <li><strong>v6 view hook</strong> (<code>settings.json</code>): turns large whole-file views into bounded digests.</li>
+            <li><strong>Graphify MCP</strong> (<code>tokenmaster-nav</code>): <code>locate</code>, <code>read_symbol</code>, <code>impact</code> (&le;2,400 tokens/call).</li>
+            <li><strong>Personal skill:</strong> typing <code>/tokenomics</code> runs <code>tokenomics.py --compact</code>.</li>
+          </ul>
+        </div>
+        <div class="arch-arrow">&rarr;</div>
+        <div class="arch-node green">
+          <div class="stat-label">3. Local Accounting (Read-Only)</div>
+          <h3><code>tokenomics.py</code> Dashboard</h3>
+          <ul>
+            <li>Reads <code>~/.copilot/session-store.db</code> (<code>assistant_usage_events</code> + <code>sessions</code>).</li>
+            <li>Matches sessions whose folder and first call fall inside a <code>launches.jsonl</code> window.</li>
+            <li>Prints <code>ccusage</code>-style tables: <code>daily</code>, <code>weekly</code>, <code>monthly</code>, <code>session</code>, <code>--full</code>, <code>--json</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span>The 6 Components on Your Machine</span><span>All Local</span></div>
+        <table>
+          <thead>
+            <tr><th>Component</th><th>What It Does</th><th>Where It Lives</th><th>Default GitHub Routing?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. <code>tmc</code> function</strong></td>
+              <td>One-word command that runs Copilot through the launcher</td>
+              <td><code>Documents\PowerShell\profile.ps1</code></td>
+              <td><span class="hl-green">Yes</span></td>
+            </tr>
+            <tr>
+              <td><strong>2. Lean tool set</strong></td>
+              <td>Excludes <code>task</code>, <code>skill</code>, <code>sql</code>, <code>session_store_sql</code>, 3 bg-pwsh tools, 3 agent tools, <code>fetch_copilot_cli_documentation</code></td>
+              <td><code>~/.copilot/token-master/brainspace_copilot_bridge.py</code></td>
+              <td><span class="hl-green">Yes</span> (<code>--all-tools</code> keeps all 11)</td>
+            </tr>
+            <tr>
+              <td><strong>3. v6 <code>view</code> hook</strong></td>
+              <td>Replaces oversized whole-file <code>view</code> output with a compact digest (e.g. 29.8 KB &rarr; 5.2 KB)</td>
+              <td><code>~/.copilot/settings.json</code> (<code>postToolUse</code>)</td>
+              <td><span class="hl-green">Yes</span></td>
+            </tr>
+            <tr>
+              <td><strong>4. Graph navigation (v7)</strong></td>
+              <td>Prebuilt Graphify call graph + SQLite symbol index behind <code>locate</code>, <code>read_symbol</code>, <code>impact</code></td>
+              <td><code>navigation_mcp.py</code> + repo <code>.token-master/</code></td>
+              <td><span class="hl-green">Yes</span> (per-repo or per-session)</td>
+            </tr>
+            <tr>
+              <td><strong>5. Request bridge</strong></td>
+              <td>Moves <code>Session folder:</code> out of the system prompt so sessions in the same folder share cache</td>
+              <td>Inside <code>brainspace_copilot_bridge.py</code></td>
+              <td><span class="hl-cyan">BYOK mode only</span></td>
+            </tr>
+            <tr>
+              <td><strong>6. <code>/tokenomics</code></strong></td>
+              <td>Joins <code>session-store.db</code> + <code>launches.jsonl</code> into measured + estimated savings tables</td>
+              <td><code>~/.copilot/skills/tokenomics/SKILL.md</code></td>
+              <td><span class="hl-green">Yes</span> (interactive + CLI)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ========================================== SLIDE 3: LIVE DEMO RUNBOOK ========================================== -->
+    <section class="slide">
+      <div>
+        <div class="badge">&#9679; Part 3 &middot; Step-by-Step Live Walkthrough &middot; ~8 Minutes</div>
+        <h1>Live Demo Runbook: <span>Click Copy, Paste, and Narrate.</span></h1>
+        <p class="subtitle">Open two PowerShell 7 windows side by side: <strong>Window A (Stock Copilot)</strong> on the left, <strong>Window B (TokenMaster <code>tmc</code>)</strong> on the right.</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span>Pre-Flight (Paste in Both Windows Before You Start)</span></div>
+        <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy</button>cd C:\Users\shyamsridhar\code\Tokenmaster
+$django = "$env:TEMP\opencode\django-g091"
+$nav = "@$env:USERPROFILE\.copilot\token-master\demo-nav-mcp.json"
+function tokenomics { & "C:\Users\shyamsridhar\code\Tokenmaster\.token-master-dev\Scripts\python.exe" "$env:USERPROFILE\.copilot\token-master\tokenomics.py" @args }</pre>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <div class="panel-title"><span>Step 1 &middot; Show What Is Installed (30 sec, 0 tokens)</span><span>Window B</span></div>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy</button>copilot skill list
+(Get-Command tmc).Definition</pre>
+          <div class="say-box"><strong>Say:</strong> &ldquo;<code>tokenomics</code> is registered as a personal Copilot skill, and <code>tmc</code> is a one-line wrapper that launches Copilot through TokenMaster.&rdquo;</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><span>Step 2 &middot; Same 1-Word Prompt: Stock vs. <code>tmc</code> (2 min)</span><span>Windows A &amp; B</span></div>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win A: Stock)</button>copilot -p "Reply with the single word OK."</pre>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win B: tmc)</button>tmc -p "Reply with the single word OK."
+tokenomics session --since 20261023</pre>
+          <div class="say-box"><strong>Point out:</strong> Stock sent <strong>15,185 tokens ($0.04)</strong> just to say OK. <code>tmc</code> sent <strong>9,016 tokens ($0.02)</strong> and <code>tokenomics</code> attributes it as <code>lean</code> with <code>5,558</code> saved tokens &approx;.</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><span>Step 3 &middot; Graphify vs. Grep on Django 5.2 (3 min)</span><span>2,818 Python Files</span></div>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win A: Stock Grep)</button>cd $django
+copilot -p "List the non-test functions that call format() in django/utils/dateformat.py. Answer with the list only." --allow-all-tools</pre>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win B: tmc + Graphify)</button>cd $django
+tmc --additional-mcp-config $nav -p "Use the impact tool to list the non-test functions that call format() in django/utils/dateformat.py. Answer with the list only." --allow-all-tools</pre>
+          <div class="say-box"><strong>Point out:</strong> Correct callers are <code>defaultfilters.date</code> and <code>formats.date_format</code>. In rehearsal, stock spent <strong>62,484 tokens across 4 calls</strong> (<code>glob</code>, <code>rg</code>, <code>view</code>) and answered wrong. <code>tmc</code> called <code>impact</code> once, spent <strong>21,495 tokens across 2 calls (&minus;65.6%)</strong>, and answered right.</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title"><span>Step 4 &middot; Interactive <code>/tokenomics</code> &amp; Free <code>!</code> Mode (2.5 min)</span><span>Window B</span></div>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Start Interactive)</button>cd C:\Users\shyamsridhar\code\Tokenmaster
+tmc</pre>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Inside Copilot)</button>/tokenomics
+/tokenomics session --since 20261023</pre>
+          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Zero-Token ! Form)</button>! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "C:/Users/shyamsridhar/code/Tokenmaster/.token-master-dev/Scripts/python.exe" "C:/Users/shyamsridhar/.copilot/token-master/tokenomics.py" session --since 20261023 --full</pre>
+          <div class="say-box"><strong>Point out:</strong> Notice the startup banner lists the 11 disabled tools. Typing <code>/tokenomics</code> works even with the <code>skill</code> tool excluded (costs ~16K tokens). Prefixing with <code>!</code> runs it directly in PowerShell for <strong>0 model tokens</strong>.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== SLIDE 4: REAL OUTPUT & Q&A ========================================== -->
+    <section class="slide">
+      <div>
+        <div class="badge">&#9679; Part 4 &middot; Live Rehearsal Output &amp; Tough Q&amp;A</div>
+        <h1>What the audience sees in <code>/tokenomics</code> &mdash; <span>and how to answer questions.</span></h1>
+        <p class="subtitle">Below is the actual table from your machine after rehearsing Steps 2 and 3 today (<code>tokenomics session --since 20261023 --full</code>).</p>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title"><span>Actual Rehearsal Output on Your Machine (October 23, 2026)</span><span><code>~/.copilot/session-store.db</code></span></div>
+        <pre class="cmd" style="font-size: 11.5px; line-height: 1.42;">┌────────────────────────────┬───────────────┬──────────────────┬───────┬───────┬────────┬─────────────┬────────────┬──────────────┬────────────┬──────────────┬────────────────┬───────────────┐
+│ Session                    │ Models        │ Started          │ Calls │ Input │ Output │ Cache Write │ Cache Read │ Total Tokens │ Cost (USD) │ TokenMaster  │ Saved Tokens ≈ │ Saved (USD) ≈ │
+├────────────────────────────┼───────────────┼──────────────────┼───────┼───────┼────────┼─────────────┼────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ 2db20280 (Stock: "OK")     │ • gpt-6.1-sol │ 2026-10-23 09:07 │     1 │     3 │      5 │      15,177 │          0 │       15,185 │      $0.04 │ -            │              - │             - │
+│ 228cd45d (tmc: "OK")       │ • gpt-6.1-sol │ 2026-10-23 09:07 │     1 │     3 │      5 │       9,008 │          0 │        9,016 │      $0.02 │ lean         │  5,558 (38.1%) │ $0.01 (38.1%) │
+│ 0c4d1fe3 (tmc+Graph D31)   │ • gpt-6.1-sol │ 2026-10-23 09:07 │     2 │   413 │     74 │      11,617 │      9,391 │       21,495 │      $0.03 │ lean         │ 11,116 (34.1%) │ $0.01 (31.4%) │
+│ 024cbb23 (Stock D31)       │ • gpt-6.1-sol │ 2026-10-23 09:09 │     4 │    12 │    156 │      16,393 │     45,923 │       62,484 │      $0.05 │ -            │              - │             - │
+├────────────────────────────┼───────────────┼──────────────────┼───────┼───────┼────────┼─────────────┼────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ Total                      │               │                  │     8 │   431 │    240 │      52,195 │     55,314 │      108,180 │      $0.14 │ 2/4 sessions │ 16,674 (35.3%) │ $0.03 (34.4%) │
+└────────────────────────────┴───────────────┴──────────────────┴───────┴───────┴────────┴─────────────┴────────────┴──────────────┴────────────┴──────────────┴────────────────┴───────────────┘</pre>
+      </div>
+
+      <div class="grid-3">
+        <div class="panel">
+          <div class="panel-title"><span>Q: Measured or Estimated?</span></div>
+          <p style="font-size: 12.5px; color: var(--muted); line-height: 1.45;"><strong>Both, clearly separated.</strong> The 45-task Django A/B (&minus;53.4% / &minus;51.6% tokens) is measured against real stock runs. In <code>/tokenomics</code>, <code>Total Tokens</code> and <code>Cost (USD)</code> are GitHub's exact per-call records; <code>Saved &approx;</code> is a formula estimate for your daily work where no stock twin ran.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span>Q: Does Dropping 11 Tools Hurt?</span></div>
+          <p style="font-size: 12.5px; color: var(--muted); line-height: 1.45;">In our October 18 runs, <strong>0 sessions called any of the 11 tools</strong>. In the October 19 27-task run, 1 stock session called <code>task</code> (subagent); TokenMaster still passed that task in 38K tokens vs. stock's 124K. Need subagents or background PowerShell? Run <code>tmc --all-tools</code> or plain <code>copilot</code>.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><span>Q: What About CLI Versions?</span></div>
+          <p style="font-size: 12.5px; color: var(--muted); line-height: 1.45;">Our A/B harness passed <code>--no-auto-update</code>, which made the WinGet launcher run its bundled <strong>1.0.78-3</strong> build. We caught that, disclosed it in the docs, and probed <strong>1.0.98</strong>: the fixed prompt is smaller on 1.0.98, and the lean tool set still removes <strong>50.1% to 53.7%</strong> of the first call.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const tabs = document.querySelectorAll('.topbar .tabs .tab');
+    function showSlide(index) {
+      document.body.classList.remove('all-slides');
+      document.getElementById('allBtn').classList.remove('active');
+      current = (index + slides.length) % slides.length;
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      tabs.forEach((t, i) => t.classList.toggle('active', i === current));
+    }
+    function toggleAll() {
+      const on = document.body.classList.toggle('all-slides');
+      document.getElementById('allBtn').classList.toggle('active', on);
+    }
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key >= '1' && e.key <= '4') showSlide(Number(e.key) - 1);
+      else if (e.key === 'ArrowRight') showSlide(current + 1);
+      else if (e.key === 'ArrowLeft') showSlide(current - 1);
+    });
+    function copyCmd(btn) {
+      const pre = btn.parentElement;
+      const clone = pre.cloneNode(true);
+      clone.querySelector('button')?.remove();
+      navigator.clipboard.writeText(clone.innerText.trim());
+      const old = btn.innerText;
+      btn.innerText = 'Copied!';
+      setTimeout(() => { btn.innerText = old; }, 1200);
+    }
+  </script>
+</body>
+</html>

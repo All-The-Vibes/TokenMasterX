@@ -374,7 +374,7 @@ commit `703aa20`, so they predate the v5 changes:
 - [Documentation index](token-master-plugin/docs/README.md)
 - [Real Copilot CLI results](token-master-plugin/docs/COPILOT_CLI_RESULTS.md) and the
   [launcher and bridge](token-master-plugin/docs/COPILOT_BRIDGE.md)
-- [/tokenomics dashboard](token-master-plugin/docs/TOKENOMICS.md) and a [15-minute demo script](docs/DEMO_SCRIPT.md)
+- [/tokenomics dashboard](token-master-plugin/docs/TOKENOMICS.md), [15-minute demo script](docs/DEMO_SCRIPT.md) and [HTML demo slide deck](docs/tokenomics-demo-slide.html)
 - [PRS-4 results](token-master-plugin/docs/PRS4_RESULTS.md) and [protocol](token-master-plugin/docs/PRS4_PROTOCOL.md)
 - [PRS-3 results](token-master-plugin/docs/PRS3_RESULTS.md) and [protocol](token-master-plugin/docs/PRS3_PROTOCOL.md)
 - [PRS-2 results](token-master-plugin/docs/PRS2_RESULTS.md) and [protocol](token-master-plugin/docs/PRS2_PROTOCOL.md)
