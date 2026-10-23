@@ -27,6 +27,13 @@ installed. Against stock Copilot CLI, they used about half the raw tokens
 3. Start Copilot CLI through the launcher:
    `python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot [args...]`.
    Plain `copilot` stays unchanged.
+4. Optional: type `/tokenomics` in an interactive session for the usage and savings dashboard
+   ([TOKENOMICS.md](TOKENOMICS.md)).
+
+The launcher appends a start record and an end record for each Copilot CLI launch to
+`<COPILOT_HOME>/token-master/launches.jsonl`: time, folder, and whether the lean tool set, the bridge and the
+navigation tools were on. The records hold no prompt text. `/tokenomics` uses them to tell TokenMaster sessions from
+stock sessions.
 
 ## Lean tool set
 
@@ -42,8 +49,8 @@ installed. Against stock Copilot CLI, they used about half the raw tokens
   - You already pass `--available-tools` or `--excluded-tools` to Copilot CLI.
   - You run a Copilot CLI subcommand.
   - The command's program is not named `copilot`, for example `-- npx @github/copilot`.
-- In a probe with one lookup task per model, the lean tool set cut the system prompt from 7,216
-  to 5,117 cl100k tokens (`gpt-6-astra`). The session used 27,255 → 13,702 raw tokens
+- In a probe with one lookup task per model on Copilot CLI 1.0.78-3, the lean tool set cut the
+  system prompt from 7,216 to 5,117 cl100k tokens (`gpt-6-astra`). The session used 27,255 → 13,702 raw tokens
   (`gpt-6-astra`) and 42,544 → 19,434 (`claude-opus-5.5`).
 - **Trade-off:** a workload that needs subagents (`task`), skills, session-store search, SQL or
   background PowerShell loses those tools. Use `--all-tools` for it. No run measured such a
@@ -62,8 +69,9 @@ installed. Against stock Copilot CLI, they used about half the raw tokens
   - `COPILOT_PROVIDER_TYPE=anthropic` (Anthropic Messages).
 - The bridge changes each model request in two ways:
   1. **Cache-stable system prompt.** The bridge moves Copilot CLI's `Session folder:` line from
-     the system prompt to the first user message. Every session in a repository then sends the
-     same system prompt. A new session's first call can read it from the provider's cache.
+     the system prompt to the first user message. Every session in the same working folder then
+     sends the same system prompt; the system prompt also names that folder. A new session's first
+     call there can read the prompt from the provider's cache.
   2. **v6 shaping.** The bridge shapes grep, glob and whole-file view results with
      request-policy-v6. Other tool results, such as shell output, pass through unchanged.
 - Both changes are deterministic. The bridge applies them again on every call, so each call of a

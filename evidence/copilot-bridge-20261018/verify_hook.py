@@ -1,4 +1,6 @@
-"""Live check of the default install's v6 view hook with Copilot CLI 1.0.98. A functional check, not a savings study.
+"""Live check of the default install's v6 view hook with Copilot CLI. A functional check, not a savings study.
+
+Labeled 1.0.98 when it ran; it ran 1.0.78-3, because its sessions pass --no-auto-update (corrected 2026-10-23).
 
 Run 2's hook check chose a 37.3 KB file. Copilot CLI's view tool refused to read that file whole, so the hook had no
 result to shape. This check asks for whole-file views of two smaller files that are still above v6's read budget.

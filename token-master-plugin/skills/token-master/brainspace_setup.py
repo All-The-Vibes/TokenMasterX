@@ -17,11 +17,54 @@ from hosts.runtime import copilot_hook_entry, hook_entry, runtime_entry, validat
 from hosts.tokenizer import read_tokenizer
 
 SKILL_DIR = Path(__file__).resolve().parent
+TOKENOMICS_MARKER = "<!-- Installed by TokenMaster (brainspace_setup.py)"
 
 
 def _fail(msg):
     print(f"[brainspace] ERROR: {msg}")
     return 1
+
+
+def tokenomics_skill(home, python):
+    """Copilot CLI personal skill for /tokenomics: the model runs tokenomics.py and shows its output unchanged."""
+    from tokenomics import shell_command
+    tool, command = shell_command(python, home / "token-master" / "tokenomics.py")
+    return f"""---
+name: tokenomics
+description: TokenMaster tokenomics dashboard. Shows Copilot CLI token usage, GitHub's charges and the estimated TokenMaster savings by day, week, month or session, like ccusage. Use only when the user runs /tokenomics.
+argument-hint: "[daily|weekly|monthly|session] [--since YYYYMMDD] [--until YYYYMMDD] [--project TEXT] [--only tokenmaster|stock] [--breakdown] [--full] [--json]"
+disable-model-invocation: true
+---
+
+{TOKENOMICS_MARKER}; a reinstall rewrites this file and --uninstall removes it. -->
+
+Run this one command with the {tool} tool. Append any arguments that the user typed after /tokenomics
+(`--full` shows every column):
+
+{command} --compact
+
+Then reply with the command's complete output, unchanged, inside one ```text code block. Do not summarize,
+reformat or recompute it, and add nothing else.
+"""
+
+
+def _wire_tokenomics_skill(home, python):
+    """Install (python set) or remove (python None) the /tokenomics skill; never touch a skill TokenMaster did not write."""
+    path = home / "skills" / "tokenomics" / "SKILL.md"
+    owned = not path.exists() or TOKENOMICS_MARKER in path.read_text(encoding="utf-8", errors="replace")
+    if not owned:
+        print(f"[brainspace] kept {path}: it was not written by TokenMaster.")
+        return None
+    if python is None:
+        if path.exists():
+            path.unlink()
+            try:
+                path.parent.rmdir()
+            except OSError:
+                pass
+        return None
+    atomic_write(path, tokenomics_skill(home, python).encode("utf-8"))
+    return str(path)
 
 
 def _install_files(home):
@@ -31,7 +74,7 @@ def _install_files(home):
                  (SKILL_DIR.parents[1] / "THIRD_PARTY_NOTICES.txt").read_bytes())
     for name in ("brainspace_mcp.py", "brainspace_posttooluse.py", "brainspace_benchmark.py",
                  "brainspace_tools.py", "token_efficiency.py", "brainspace_native_mcp.py",
-                 "brainspace_copilot_bridge.py"):
+                 "brainspace_copilot_bridge.py", "tokenomics.py"):
         atomic_write(install_dir / name, (SKILL_DIR / name).read_bytes())
     for name in ("__init__.py", "synthetic_efficiency.py"):
         atomic_write(install_dir / "evals" / name, (SKILL_DIR / "evals" / name).read_bytes())
@@ -82,6 +125,7 @@ def main():
         mcp_script = str(install_dir / "brainspace_mcp.py")
         hook_script = str(install_dir / "brainspace_posttooluse.py")
         tokenizer_path = install_dir / "tokenizer" / "cl100k_base.tiktoken"
+        tokenomics = None
         if args.uninstall:
             wire_mcp(host, "brainspace", None)
             if host == "claude":
@@ -89,6 +133,7 @@ def main():
                 environment(home / "settings.json", "BRAINSPACE_TOKENIZER_FILE", None)
             elif host == "copilot":
                 wire_copilot_hook(home, None)
+                _wire_tokenomics_skill(home, None)
         else:
             receipt = validate_runtime(args.python)
             vocabulary, tokenizer_receipt = read_tokenizer(args.tokenizer_file, tokenizer_path)
@@ -114,11 +159,14 @@ def main():
                 environment(home / "settings.json", "BRAINSPACE_TOKENIZER_FILE", str(tokenizer_path))
             elif copilot_hook:
                 wire_copilot_hook(home, copilot_hook_entry(python, hook_script, tokenizer_path))
+            if host == "copilot":
+                tokenomics = _wire_tokenomics_skill(home, python)
         print(f"[brainspace] {'uninstalled configuration' if args.uninstall else 'configured'}: {config_path(host)}")
         print(json.dumps({**capabilities(host),
                           "hook_installed": copilot_hook_status(home) if host == "copilot"
                               else host == "claude" and not args.uninstall,
-                          "mcp_installed": brainspace_mcp and not args.uninstall}, indent=2))
+                          "mcp_installed": brainspace_mcp and not args.uninstall,
+                          "tokenomics_skill": tokenomics}, indent=2))
         print("Runtime acceptance is NOT verified by installation. Uninstall retains package files and data.")
         return 0
     except (OSError, ValueError) as exc:

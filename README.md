@@ -14,8 +14,9 @@ It has four parts:
    the October 18 runs used to choose them. Their definitions and the system-prompt text about
    them then leave every call.
 2. **Copilot CLI bridge (bring-your-own-model mode only).** A local bridge makes the system
-   prompt the same for every session, so later sessions read it from the provider's cache. It
-   also shapes grep, glob and whole-file view results with `request-policy-v6`.
+   prompt the same for every session in the same working folder, so later sessions there read it
+   from the provider's cache. It also shapes grep, glob and whole-file view results with
+   `request-policy-v6`.
 3. **Graph-first navigation (v7, `brainspace/symbol_index.py`).** Three compact tools over
    graphify's call graph and an exact-range symbol index.
    - `locate` finds a symbol or a file's outline.
@@ -31,11 +32,14 @@ It has four parts:
 
 ## Current evidence: the real Copilot CLI (October 18–22, 2026)
 
-These runs used the real Copilot CLI 1.0.98 with `gpt-6-astra` and `claude-opus-5.5` on
-GitHub's Copilot API. They are exploratory: no protocol was pre-registered.
+These runs used the real Copilot CLI 1.0.78-3 with `gpt-6-astra` and `claude-opus-5.5` on
+GitHub's Copilot API. They are exploratory: no protocol was pre-registered. Until October 23 this
+page said 1.0.98. The harness's `--no-auto-update` flag had selected the WinGet launcher's bundled
+build instead of the installed 1.0.98
+([version note](token-master-plugin/docs/COPILOT_CLI_RESULTS.md#copilot-cli-version)).
 
 **Test parameters** (full table: [COPILOT_CLI_RESULTS.md](token-master-plugin/docs/COPILOT_CLI_RESULTS.md#test-parameters)):
-- **Client:** Copilot CLI 1.0.98 in non-interactive mode (`-p`), reasoning effort `low`, built-in
+- **Client:** Copilot CLI 1.0.78-3 in non-interactive mode (`-p`), reasoning effort `low`, built-in
   MCP servers off.
 - **Routing:** offline bring-your-own-model mode, through a local relay that forwarded each request
   unchanged to `api.githubcopilot.com`.
@@ -82,6 +86,9 @@ call cold. Stock passed 27/27 with each model; TokenMaster passed 27/27 and 26/2
 
 **Limits:**
 - 1 run per task and 2 repositories. The Django run has one task type.
+- All runs used Copilot CLI 1.0.78-3. On 1.0.98, a probe found a smaller fixed prompt; the lean tool
+  set still removed about half of the first call. Stock 1.0.98 can also read part of its prompt
+  from the cache when another session ran shortly before. No A/B run has used 1.0.98.
 - All runs used bring-your-own-model mode through an evaluation relay. With Copilot CLI's
   default GitHub routing, the launcher applies only the lean tool set; graph navigation and the
   v6 `view` hook also work there, but the bridge does not. No run measured that configuration.
@@ -105,6 +112,8 @@ python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot
 - In bring-your-own-model mode (`COPILOT_PROVIDER_BASE_URL` set), the same command also starts
   the bridge.
 - `--all-tools` keeps every built-in tool.
+- In an interactive session, type `/tokenomics` for a ccusage-style dashboard of your Copilot CLI tokens, GitHub's
+  charges and the estimated TokenMaster savings ([TOKENOMICS.md](token-master-plugin/docs/TOKENOMICS.md)).
 
 Details: [COPILOT_BRIDGE.md](token-master-plugin/docs/COPILOT_BRIDGE.md).
 
@@ -116,9 +125,9 @@ PRS-1 to PRS-4 were pre-registered live studies with `gpt-6-astra`:
 - Every token was recounted from raw captures.
 
 They ran a Copilot-CLI-shaped agent, not the real Copilot CLI. The PRS-4 agent's fixed prompt was
-about 3,600 tokens. The real Copilot CLI 1.0.98 sends about 13,500 tokens of system prompt and
-tool definitions with `gpt-6-astra`. So the PRS numbers do not carry over directly to the real
-CLI.
+about 3,600 tokens. The real Copilot CLI sends about 13,500 tokens of system prompt and tool
+definitions with `gpt-6-astra` (1.0.78-3; about 11,100 with 1.0.98). So the PRS numbers do not
+carry over directly to the real CLI.
 
 ### PRS-4 (October 18, 2026): v7 + cache-stable system prompt cut billed cost by 50% under continuous use
 
@@ -208,7 +217,7 @@ Protocol: [PRS1_PROTOCOL.md](token-master-plugin/docs/PRS1_PROTOCOL.md).
 
 | Component | Mechanism | Measured limits |
 | --- | --- | --- |
-| Lean tool set (launcher) | Adds `--excluded-tools` for 11 built-in Copilot CLI tools that no session called in the October 18 runs. Removes their definitions and the system-prompt text about them from every call. | Real-CLI probe: system prompt 7,216 → 5,117 tokens; one lookup task 27,255 → 13,702 raw tokens (`gpt-6-astra`). Most of the real-CLI saving came with it. Removes subagents, skills, session-store search and background PowerShell; one later stock session called `task`. `--all-tools` keeps them. |
+| Lean tool set (launcher) | Adds `--excluded-tools` for 11 built-in Copilot CLI tools that no session called in the October 18 runs. Removes their definitions and the system-prompt text about them from every call. | Real-CLI probe (Copilot CLI 1.0.78-3): system prompt 7,216 → 5,117 tokens; one lookup task 27,255 → 13,702 raw tokens (`gpt-6-astra`). Most of the real-CLI saving came with it. Removes subagents, skills, session-store search and background PowerShell; one later stock session called `task`. `--all-tools` keeps them. |
 | Copilot CLI bridge | Local bridge for bring-your-own-model mode. Cache-stable system prompt and v6 shaping of grep, glob and view results, for OpenAI Responses and Anthropic Messages. | Real CLI, Django: 44 of 45 `gpt-6-astra` first calls read the system prompt from the cache, against 0 of 45 for stock. Copilot CLI's default GitHub routing cannot use the bridge. |
 | Graph-first navigation (v7) | `locate`, `read_symbol` and `impact` over a SQLite symbol index with exact line ranges and graphify's call graph. Every result is capped at 2,400 tokens. | Real CLI, Django: −15.4% (`gpt-6-astra`) and −9.8% (`claude-opus-5.5`) raw tokens on top of the lean tool set, by saving model calls. PRS-3 (replica): −22.0% cost against stock. Misses calls through an import alias, such as `login` imported as `auth_login`. Installed by `setup.py` as the `tokenmaster-nav` MCP server. |
 | Graph routing (before v7) | `graphify-nav` (6 tools) and `codegraph` MCP servers on prebuilt indexes, plus a routing agent prompt. | Added about 2,100 tokens to every call; PRS-2: +12.9% cost. `setup.py` now removes these servers when TokenMaster owns them. |
@@ -266,7 +275,7 @@ $env:BRAINSPACE_TOKENIZER_FILE = "evidence/controlled-scorecard-20261008/batch-0
 .\.token-master-dev\Scripts\python.exe -B -m pytest -q token-master-plugin/skills/token-master/tests
 ```
 
-Status on October 22, 2026 (Windows): 4,434 passed, 4 skipped, 82 failed. The same 82 tests
+Status on October 23, 2026 (Windows): 4,443 passed, 4 skipped, 82 failed. The same 82 tests
 failed on October 18 (4,427 passed then). On October 18, they also failed on a clean checkout of
 commit `703aa20`, so they predate the v5 changes:
 

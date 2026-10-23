@@ -1,4 +1,5 @@
-"""Exploratory A/B (not pre-registered): "who calls X?" questions on Django 5.2, real Copilot CLI 1.0.98.
+"""Exploratory A/B (not pre-registered): "who calls X?" questions on Django 5.2, real Copilot CLI (1.0.78-3 in the
+October 2026 runs; run_prs5_study.cli_version checks the version that the sessions run).
 
 Variant "ab": stock Copilot vs the full TokenMaster install (lean tool set, bridge and graphify navigation tools).
 Variant "lean": TokenMaster without graphify (brainspace_setup.py only: lean tool set and bridge, no navigation

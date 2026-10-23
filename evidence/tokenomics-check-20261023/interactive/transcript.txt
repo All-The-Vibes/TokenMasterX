@@ -1,0 +1,38 @@
+Interactive /tokenomics check, October 23, 2026, 05:02-05:06 UTC.
+Copilot CLI 1.0.78-3: the banner said "Copilot v1.0.78-3", and the captured system prompt says "Version number:
+1.0.78-3". The launch command passed --no-auto-update, which makes the WinGet launcher run its bundled build even
+though the 1.0.98 package was installed. The 1.0.98 check is in ../interactive-1.0.98/.
+Copilot CLI started through the TokenMaster launcher (lean tool set on, bridge on, no navigation tools), model
+gpt-6-astra, bring-your-own-model mode through the evaluation relay, --allow-all-tools. Typed: /tokenomics
+
+The terminal user interface showed at start-up:
+  Disabled tools: fetch_copilot_cli_documentation, list_agents, list_powershell, read_agent, read_powershell,
+  session_store_sql, skill, sql, stop_powershell, task, write_agent
+
+Copilot CLI then asked: "Allow directory access ... C:\Users\shyamsridhar\AppData\Local\Temp\tokenomics-interactive-
+anrtm7ce\home\copilot\token-master\tokenomics.py ... 2. Yes, and add these directories to the allowed list"; option 2
+was chosen.
+
+The model's reply, as the terminal showed it (escape codes removed; the interface wrapped lines at 120 columns,
+and the table here was the full layout from before /tokenomics defaulted to --compact):
+
+  │ 2026-10-23 │ • gpt-6-astra │     1 │     3 │    107 │       7,595 │          0 │        7,705 │      $0.10 │ 1/1
+     sessions │  6,760 (46.7%) │ $0.08 (43.0%) │
+  │ Total      │               │     1 │     3 │    107 │       7,595 │          0 │        7,705 │      $0.10 │ 1/1
+     sessions │  6,760 (46.7%) │ $0.08 (43.0%) │
+
+  TokenMaster savings (estimated, conservative)
+    TokenMaster sessions          1 of 1  1 model calls
+    Tokens, actual                 7,705  GitHub's token counts
+    Tokens without TokenMaster ≈  14,465  saved 6,760 (46.7%)
+    Cost, actual                   $0.10  GitHub's own charge per call
+    Cost without TokenMaster ≈     $0.18  saved $0.08 (43.0%)
+      of which lean tool set       $0.01  6,760 fewer fixed tokens, priced as cache reads
+      of which first calls         $0.07  less written to GitHub's prompt cache
+
+The panel title still said "conservative" in this run; it was changed to "estimated" after the validation in
+../tokenomics-validation-20261023 showed one case where the estimate exceeded the measured saving. The first-call
+formula and the calibration also changed later (docs/TOKENOMICS.md, ../interactive-1.0.98/transcript.txt).
+
+Relay records (interactive/calls.jsonl): 2 model calls, 7,598 + 8,507 input tokens and 107 + 785 output tokens.
+Launch records (interactive/launches.jsonl): one start and one end record, no prompt text.

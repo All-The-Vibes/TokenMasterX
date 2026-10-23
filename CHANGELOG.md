@@ -7,14 +7,56 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Correction: the real-CLI runs used Copilot CLI 1.0.78-3, not 1.0.98 — October 23, 2026
+
+- Every real-CLI A/B run, PRS-5 and the bridge checks passed `--no-auto-update`. With that flag, the WinGet
+  launcher runs its bundled build, 1.0.78-3, even when the installed 1.0.98 package is present. The harnesses
+  recorded `copilot --version` without the flag, which printed 1.0.98. All 403 local session captures from the
+  Django runs say "Version number: 1.0.78-3". The documents now say 1.0.78-3. The evidence records that said 1.0.98
+  now carry a correction note; the frozen protocol `PRS5_PROTOCOL.md` keeps its text.
+- `run_prs5_study.cli_version` now checks the version with the same flags as the sessions. With the October flags,
+  the version check stops `django_ab.py` and `quick_copilot_ab.py`, because `CLI_VERSION` names 1.0.98.
+- A probe compared the two versions (`evidence/copilot-version-probe-20261023/`). On 1.0.98, stock Copilot CLI's
+  first call is smaller (11,083 tokens with `gpt-6-astra`, 18,104 with `claude-opus-5.5`, against 13,507 and
+  20,723). The lean tool set still removes about half of it: 5,558 and 9,727 tokens, against 6,775 and 11,552.
+  When another 1.0.98 session ran shortly before, stock 1.0.98 read 6,450 and 11,226 tokens from the cache on its
+  first call, in both folders tested.
+- The bridge makes the system prompt the same only for sessions in the same working folder: the system prompt
+  also names that folder. The documents now say so.
+- With `claude-opus-5.5`, 1.0.98 asked for 32,000 output tokens and stopped when the provider limit was 16,000
+  (`evidence/copilot-version-probe-20261023/opus-1.0.98-output-limit.txt`).
+- No A/B run has used 1.0.98. The published savings are for 1.0.78-3.
+
+### `/tokenomics` dashboard for Copilot CLI — October 23, 2026
+
+- New `tokenomics.py`: a ccusage-style report (daily, weekly, monthly, session) of Copilot CLI usage. It reads
+  Copilot CLI's own per-call records in `<COPILOT_HOME>/session-store.db`: tokens, cache reads and writes, and
+  GitHub's charge for each call. It opens the database read-only, or reads a copy if Copilot CLI holds it.
+- It estimates TokenMaster's savings for each TokenMaster call: fewer fixed tokens per call (lean tool set, less the
+  navigation tools), and the first call's prompt-cache write against stock's. The estimate assumes the same model
+  calls as stock. It uses Copilot CLI 1.0.98 values from the probe. With the 1.0.78-3 values, on the measured A/B
+  runs, it gave 72% to 125% of the measured token saving (`evidence/tokenomics-validation-20261023/`). See
+  `docs/TOKENOMICS.md`.
+- The launcher appends a start and an end record for each Copilot CLI launch to
+  `<COPILOT_HOME>/token-master/launches.jsonl` (time, folder, lean tool set, bridge, navigation tools; no prompt
+  text).
+- `brainspace_setup.py --host copilot` installs `tokenomics.py` and a personal skill,
+  `<COPILOT_HOME>/skills/tokenomics/SKILL.md`. Uninstall removes the skill only if TokenMaster wrote it. The skill
+  pre-approves no tool: Copilot CLI asks before it runs the command, unless it started with `--allow-all-tools`.
+- Live checks (`evidence/tokenomics-check-20261023/`): typed in an interactive session, `/tokenomics` works on
+  Copilot CLI 1.0.78-3 and 1.0.98, although the lean tool set removes the `skill` tool. It took 2 model calls,
+  16,445 tokens and $0.16 on 1.0.98. The `!` shell form needs no model call. With `-p`, Copilot CLI passes
+  `/tokenomics` to the model as text and does not run the skill.
+
 ### Real Copilot CLI: 45-task Django run, graphify 0.9.91 and documentation — October 22, 2026
 
 - Documentation now leads with the real Copilot CLI results. The new
   `docs/COPILOT_CLI_RESULTS.md` gives their method, numbers and limits. README, MISSION,
   `docs/COPILOT_BRIDGE.md`, the documentation index, the skill guide and the slide were updated.
   PRS-1 to PRS-4 are now labeled as studies in a replica harness.
-- A 45-task Django 5.2 run measured stock Copilot CLI 1.0.98, TokenMaster without graphify and
-  full TokenMaster, with `gpt-6-astra` and `claude-opus-5.5` (270 sessions, exploratory).
+- A 45-task Django 5.2 run measured stock Copilot CLI, TokenMaster without graphify and
+  full TokenMaster, with `gpt-6-astra` and `claude-opus-5.5` (270 sessions, exploratory). The client was
+  Copilot CLI 1.0.78-3; this entry said 1.0.98 until October 23 (see that day's entry).
   - Raw tokens, full TokenMaster against stock: −53.4% (95% CI −57.1% to −49.1%) and −51.6%
     (−55.7% to −47.2%). Fewer raw tokens on all 45 tasks with each model.
   - Cost with sessions back to back: $11.55 → $2.33 (`gpt-6-astra`) and $3.31 → $1.30
@@ -53,7 +95,8 @@ and the project aims to follow semantic versioning.
     `fetch_copilot_cli_documentation`. One later stock session (P13, October 19) called `task`.
   - It skips this when the user passes `--all-tools`, chooses tools, or runs a subcommand.
   - Without a provider URL, it runs Copilot CLI with its normal routing and the lean tool set.
-  - In a one-task probe, the `gpt-6-astra` system prompt fell from 7,216 to 5,117 tokens, and
+  - In a one-task probe (Copilot CLI 1.0.78-3), the `gpt-6-astra` system prompt fell from 7,216 to
+    5,117 tokens, and
     the session from 27,255 to 13,702 raw tokens.
 - A 27-task A/B on this repository (`c5681a7`, October 19, exploratory): full TokenMaster used
   44.8% (`gpt-6-astra`) and 53.5% (`claude-opus-5.5`) fewer raw tokens than stock. Cost fell
@@ -77,12 +120,13 @@ and the project aims to follow semantic versioning.
   and whole-file view results) to every request. Copilot CLI keeps its full tool set. The bridge
   never reads, stores or adds credentials. `brainspace_setup.py --host copilot` installs it.
   See `docs/COPILOT_BRIDGE.md`.
-- Live checks with Copilot CLI 1.0.78-3 and 1.0.98: through the bridge, every later session's
-  first call read about 13,400 tokens from the cache. Without the bridge, no first call did.
-  One-line edits through the bridge were correct, and an interactive session worked.
-- Fix: Copilot CLI 1.0.78-3 and 1.0.98 send the hook's `toolArgs` as a JSON string, so the v6
+- Live checks with Copilot CLI 1.0.78-3: through the bridge, every later session's first call
+  read about 13,400 tokens from the cache. Without the bridge, no first call did. One-line edits
+  through the bridge were correct, and an interactive session worked. (Corrected October 23: the
+  later checks were labeled 1.0.98, but `--no-auto-update` ran the bundled 1.0.78-3 there too.)
+- Fix: Copilot CLI 1.0.78-3 sends the hook's `toolArgs` as a JSON string, so the v6
   `view` hook changed nothing. The hook now parses the string. In live sessions, the model then
-  received a 1,799-character digest instead of a 20,112-character view.
+  received a 1,799-character digest instead of a 20,112-character view. 1.0.98 was not checked.
 - Finding: Copilot CLI refuses plain whole-file views of larger files. It refused a 22.4 KB file
   and a 37.3 KB file. v6 read digests apply only below that limit. In both live hook sessions,
   the model then read the file again with `forceReadLargeFiles`, so the hook saved nothing there.
@@ -92,7 +136,7 @@ and the project aims to follow semantic versioning.
 - The native Copilot route moves Copilot CLI's per-session `Session folder:` line from the
   system prompt to the first user message (`stable_session_prefix` in
   `brainspace/native_transport.py`; transport version `native-responses-transport-v2`).
-  - The system prompt is then the same for every session of a repository.
+  - The system prompt is then the same for every session in the same working folder.
   - A new session's first call can then read that prompt from the provider's cache. This
     works only if another session sent the same prompt within the cache lifetime.
   - The rewrite is a no-op when the line is absent or ambiguous. It gives the same bytes on

@@ -124,7 +124,10 @@ def cli_env(home: Path, base_url: str) -> dict:
 
 
 def cli_version(home: Path) -> str:
-    out = subprocess.run([COPILOT, "--version"], env=cli_env(home, "http://127.0.0.1:9"), capture_output=True,
+    """The version that the sessions run. With --no-auto-update, the WinGet launcher runs its bundled build (1.0.78-3)
+    even when a newer package is installed; `copilot --version` without the flag reports the package instead."""
+    flags = [flag for flag in FLAGS if flag == "--no-auto-update"]
+    out = subprocess.run([COPILOT, *flags, "--version"], env=cli_env(home, "http://127.0.0.1:9"), capture_output=True,
                          text=True, timeout=180, stdin=subprocess.DEVNULL).stdout
     return out.splitlines()[0].strip() if out else ""
 

@@ -180,6 +180,10 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
     if host == "copilot":  # the v6 output hook is on by default
         saved = json.loads((host_home(host) / "settings.json").read_bytes())["hooks"]["postToolUse"][0]
         assert saved["matcher"] == "view" and "--contract" in saved["args"]
+        skill = (host_home(host) / "skills" / "tokenomics" / "SKILL.md").read_text("utf-8")
+        assert setup.TOKENOMICS_MARKER in skill and "name: tokenomics" in skill
+        assert str(Path(sys.executable).resolve()) in skill and "tokenomics.py" in skill
+        assert (host_home(host) / "token-master" / "tokenomics.py").is_file()
     # Invoke the actual installed offline tokenizer, not just the test source.
     code = ("import sys, json; sys.path.insert(0, sys.argv[1]); "
             "from brainspace.tokens import backend_info, count_tokens; "
@@ -201,6 +205,20 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
     if host == "copilot":
         settings = json.loads((host_home(host) / "settings.json").read_bytes())
         assert not settings.get("hooks", {}).get("postToolUse")
+        assert not (host_home(host) / "skills" / "tokenomics").exists()
+
+
+def test_copilot_tokenomics_skill_never_replaces_a_user_skill(homes, tokenizer_source, monkeypatch):
+    from hosts import host_home
+    mine = host_home("copilot") / "skills" / "tokenomics" / "SKILL.md"
+    mine.parent.mkdir(parents=True)
+    mine.write_text("---\nname: tokenomics\ndescription: my own\n---\n", encoding="utf-8")
+    setup = load("brainspace_setup")
+    for extra in ([], ["--uninstall"]):
+        monkeypatch.setattr(sys, "argv", ["brainspace_setup.py", "--host", "copilot", "--python", sys.executable,
+                                          "--tokenizer-file", str(tokenizer_source), *extra])
+        assert setup.main() == 0
+        assert mine.read_text("utf-8").endswith("description: my own\n---\n")
 
 
 @pytest.mark.parametrize("argv,disabled", [(["--no-copilot-output-hook"], False), ([], True)])

@@ -277,9 +277,9 @@
   <div class="slide">
     <div class="header">
       <div>
-        <div class="badge">&#9679; Real Copilot CLI 1.0.98 &middot; gpt-6-astra and claude-opus-5.5 &middot; Django 5.2 &middot; 45 tasks per model &middot; 270 sessions &middot; exploratory</div>
+        <div class="badge">&#9679; Real Copilot CLI 1.0.78-3 &middot; gpt-6-astra and claude-opus-5.5 &middot; Django 5.2 &middot; 45 tasks per model &middot; 270 sessions &middot; exploratory</div>
         <h1>On the real Copilot CLI, TokenMaster used about half the raw tokens. <span>Every task used fewer.</span></h1>
-        <p class="subtitle">Raw tokens: input plus output, as GitHub's API reported them. Cost: GitHub's prices; GitHub's own per-call charges match. Test: Copilot CLI 1.0.98 in bring-your-own-model mode through a relay to GitHub's API, reasoning effort low, 1 run per task and version, all versions at the same time with sessions back to back. Exploratory, not pre-registered; one task type ("who calls X?").</p>
+        <p class="subtitle">Raw tokens: input plus output, as GitHub's API reported them. Cost: GitHub's prices; GitHub's own per-call charges match. Test: Copilot CLI 1.0.78-3 (the WinGet launcher's bundled build; labeled 1.0.98 until October 23) in bring-your-own-model mode through a relay to GitHub's API, reasoning effort low, 1 run per task and version, all versions at the same time with sessions back to back. Exploratory, not pre-registered; one task type ("who calls X?").</p>
       </div>
     </div>
 
@@ -327,8 +327,8 @@
           <div class="step">
             <div class="step-num">3</div>
             <div class="step-body">
-              <strong>One system prompt for every session</strong>
-              <p>In bring-your-own-model mode, the bridge keeps the prompt prefix identical. With sessions back to back, 44 of 45 gpt-6-astra sessions started from the cache; stock: 0 of 45. This saves cost only while the cache lasts (6.5 to 31 minutes in one probe).</p>
+              <strong>One system prompt for every session in a folder</strong>
+              <p>In bring-your-own-model mode, the bridge keeps the prompt prefix identical for sessions in the same working folder. With sessions back to back, 44 of 45 gpt-6-astra sessions started from the cache; stock: 0 of 45. This saves cost only while the cache lasts (6.5 to 31 minutes in one probe).</p>
             </div>
           </div>
         </div>

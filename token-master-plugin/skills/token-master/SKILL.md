@@ -73,6 +73,11 @@ that applies the cache-stable system prompt and v6 shaping. See
 `docs/COPILOT_BRIDGE.md` and `docs/COPILOT_CLI_RESULTS.md` for the measured effect
 and its limits.
 
+Setup also installs a personal Copilot skill, `/tokenomics`. In an interactive
+session it shows Copilot CLI's token usage, GitHub's charges and the estimated
+TokenMaster savings by day, week, month or session (`docs/TOKENOMICS.md`). The
+savings are estimates; report them as such.
+
 ## Scoped discipline
 
 For an explicitly requested task-local mode, state a compact contract:

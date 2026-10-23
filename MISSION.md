@@ -36,13 +36,17 @@ This changes what counts as a win:
 - **A graph wins only if it saves more than it adds.** Its tool definitions ride on every call.
   It pays off when it replaces model calls.
 
-## Where we stand (October 22, 2026)
+## Where we stand (October 23, 2026)
 
-**The real Copilot CLI (exploratory, not pre-registered).** Copilot CLI 1.0.98, `gpt-6-astra`
+**The real Copilot CLI (exploratory, not pre-registered).** Copilot CLI 1.0.78-3, `gpt-6-astra`
 and `claude-opus-5.5`, GitHub's Copilot API, reasoning effort `low`. Each run used offline
 bring-your-own-model mode through a relay, 1 run per task and version, and back-to-back
 sessions. The full parameter table and method are in
 [COPILOT_CLI_RESULTS.md](token-master-plugin/docs/COPILOT_CLI_RESULTS.md#test-parameters).
+Until October 23, the documents named 1.0.98: the harness's `--no-auto-update` flag had selected
+the WinGet launcher's bundled build. A probe on 1.0.98 found a smaller fixed prompt; the lean tool
+set still removed about half of the first call. No A/B run has used 1.0.98
+([version note](token-master-plugin/docs/COPILOT_CLI_RESULTS.md#copilot-cli-version)).
 
 | Run | Sessions | Finding |
 | --- | ---: | --- |
@@ -82,15 +86,19 @@ Earlier claims are superseded:
 1. **Send less fixed overhead (lean tool set).** The TokenMaster launcher removes 11 built-in
    Copilot CLI tools that no session called in the October 18 runs.
    - Their definitions and the system-prompt text about them leave every call.
-   - In a probe, the `gpt-6-astra` system prompt fell from 7,216 to 5,117 tokens.
+   - In a probe on Copilot CLI 1.0.78-3, the `gpt-6-astra` system prompt fell from 7,216 to
+     5,117 tokens.
    - Most of the real-CLI saving came with this change.
    - One later stock session called `task`, one of the removed tools. `--all-tools` keeps every
      tool for work that needs subagents, skills or background PowerShell.
-2. **One system prompt for every session (bridge).** Copilot CLI writes each session's folder
-   into its system prompt, so no two sessions send the same system prompt.
-   - In bring-your-own-model mode, the bridge moves that line to the first user message.
-   - On Django with `gpt-6-astra`, 44 of 45 TokenMaster first calls then read the prompt from
-     the cache. No stock first call did.
+2. **One system prompt for every session in a folder (bridge).** Copilot CLI writes each session's
+   folder into its system prompt, so no two sessions send the same system prompt.
+   - In bring-your-own-model mode, the bridge moves that line to the first user message. The
+     system prompt still names the working folder, so only sessions in the same folder share it.
+   - On Django with `gpt-6-astra` (Copilot CLI 1.0.78-3, one folder per version), 44 of 45
+     TokenMaster first calls then read the prompt from the cache. No stock first call did.
+   - On 1.0.98, stock first calls read part of the prompt from the cache when another stock
+     session ran shortly before, so this lever saves less there.
    - This lowers cost, not raw tokens.
 3. **Graph over grep (v7).** Answer "where is X", "show me X" and "who calls X" from
    pre-computed structure.

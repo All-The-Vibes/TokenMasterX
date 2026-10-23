@@ -1,0 +1,286 @@
+{
+ "kind": "exploratory probe",
+ "prompt": "Reply with the single word OK. Do not use any tools.",
+ "summary": [
+  {
+   "model": "gpt-6-astra",
+   "build": "bundled",
+   "version_in_system_prompt": "1.0.78-3",
+   "stock_first_call_input": 13507,
+   "lean_first_call_input": 6732,
+   "removed_by_lean": 6775,
+   "stock_tools": 16,
+   "lean_tools": 5
+  },
+  {
+   "model": "gpt-6-astra",
+   "build": "installed",
+   "version_in_system_prompt": "1.0.98",
+   "stock_first_call_input": 11083,
+   "lean_first_call_input": 5525,
+   "removed_by_lean": 5558,
+   "stock_tools": 16,
+   "lean_tools": 5
+  },
+  {
+   "model": "claude-opus-5.5",
+   "build": "bundled",
+   "version_in_system_prompt": "1.0.78-3",
+   "stock_first_call_input": 20723,
+   "lean_first_call_input": 9171,
+   "removed_by_lean": 11552,
+   "stock_tools": 17,
+   "lean_tools": 6
+  },
+  {
+   "model": "claude-opus-5.5",
+   "build": "installed",
+   "version_in_system_prompt": "1.0.98",
+   "stock_first_call_input": 18104,
+   "lean_first_call_input": 8377,
+   "removed_by_lean": 9727,
+   "stock_tools": 17,
+   "lean_tools": 6
+  }
+ ],
+ "runs": [
+  {
+   "model": "gpt-6-astra",
+   "build": "bundled",
+   "arm": "stock",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.78-3",
+   "first_call": {
+    "input": 13507,
+    "cached": 0,
+    "cache_write": 13504,
+    "output": 5
+   },
+   "calls": 1,
+   "tools_sent": [
+    "apply_patch",
+    "fetch_copilot_cli_documentation",
+    "glob",
+    "list_agents",
+    "list_powershell",
+    "powershell",
+    "read_agent",
+    "read_powershell",
+    "rg",
+    "session_store_sql",
+    "skill",
+    "sql",
+    "stop_powershell",
+    "task",
+    "view",
+    "write_agent"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "gpt-6-astra",
+   "build": "bundled",
+   "arm": "lean",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.78-3",
+   "first_call": {
+    "input": 6732,
+    "cached": 0,
+    "cache_write": 6729,
+    "output": 5
+   },
+   "calls": 1,
+   "tools_sent": [
+    "apply_patch",
+    "glob",
+    "powershell",
+    "rg",
+    "view"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "gpt-6-astra",
+   "build": "installed",
+   "arm": "stock",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.98",
+   "first_call": {
+    "input": 11083,
+    "cached": 6450,
+    "cache_write": 4630,
+    "output": 5
+   },
+   "calls": 1,
+   "tools_sent": [
+    "apply_patch",
+    "fetch_copilot_cli_documentation",
+    "glob",
+    "list_agents",
+    "list_powershell",
+    "powershell",
+    "read_agent",
+    "read_powershell",
+    "rg",
+    "session_store_sql",
+    "skill",
+    "sql",
+    "stop_powershell",
+    "task",
+    "view",
+    "write_agent"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "gpt-6-astra",
+   "build": "installed",
+   "arm": "lean",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.98",
+   "first_call": {
+    "input": 5525,
+    "cached": 2659,
+    "cache_write": 2863,
+    "output": 5
+   },
+   "calls": 1,
+   "tools_sent": [
+    "apply_patch",
+    "glob",
+    "powershell",
+    "rg",
+    "view"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "gpt-6-astra",
+   "version_flag_check": {
+    "copilot --version": "GitHub Copilot CLI 1.0.98.\nOffline mode is enabled. Run 'copilot version' after reconnecting to check for updates.",
+    "copilot --no-auto-update --version": "GitHub Copilot CLI 1.0.78-3.\nRun 'copilot update' to check for updates."
+   }
+  },
+  {
+   "model": "claude-opus-5.5",
+   "build": "bundled",
+   "arm": "stock",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.78-3",
+   "first_call": {
+    "input": 20723,
+    "cached": 13393,
+    "cache_write": 7326,
+    "output": 4
+   },
+   "calls": 1,
+   "tools_sent": [
+    "create",
+    "edit",
+    "fetch_copilot_cli_documentation",
+    "glob",
+    "grep",
+    "list_agents",
+    "list_powershell",
+    "powershell",
+    "read_agent",
+    "read_powershell",
+    "session_store_sql",
+    "skill",
+    "sql",
+    "stop_powershell",
+    "task",
+    "view",
+    "write_agent"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "claude-opus-5.5",
+   "build": "bundled",
+   "arm": "lean",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.78-3",
+   "first_call": {
+    "input": 9171,
+    "cached": 4930,
+    "cache_write": 4237,
+    "output": 4
+   },
+   "calls": 1,
+   "tools_sent": [
+    "create",
+    "edit",
+    "glob",
+    "grep",
+    "powershell",
+    "view"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "claude-opus-5.5",
+   "build": "installed",
+   "arm": "stock",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.98",
+   "first_call": {
+    "input": 18104,
+    "cached": 0,
+    "cache_write": 18100,
+    "output": 4
+   },
+   "calls": 1,
+   "tools_sent": [
+    "create",
+    "edit",
+    "fetch_copilot_cli_documentation",
+    "glob",
+    "grep",
+    "list_agents",
+    "list_powershell",
+    "powershell",
+    "read_agent",
+    "read_powershell",
+    "session_store_sql",
+    "skill",
+    "sql",
+    "stop_powershell",
+    "task",
+    "view",
+    "write_agent"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "claude-opus-5.5",
+   "build": "installed",
+   "arm": "lean",
+   "exit": 0,
+   "version_in_system_prompt": "1.0.98",
+   "first_call": {
+    "input": 8377,
+    "cached": 0,
+    "cache_write": 8373,
+    "output": 4
+   },
+   "calls": 1,
+   "tools_sent": [
+    "create",
+    "edit",
+    "glob",
+    "grep",
+    "powershell",
+    "view"
+   ],
+   "stderr_tail": ""
+  },
+  {
+   "model": "claude-opus-5.5",
+   "version_flag_check": {
+    "copilot --version": "GitHub Copilot CLI 1.0.98.\nOffline mode is enabled. Run 'copilot version' after reconnecting to check for updates.",
+    "copilot --no-auto-update --version": "GitHub Copilot CLI 1.0.78-3.\nRun 'copilot update' to check for updates."
+   }
+  }
+ ]
+}

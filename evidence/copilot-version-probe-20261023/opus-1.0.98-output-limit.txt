@@ -1,0 +1,13 @@
+Copilot CLI 1.0.98 with claude-opus-5.5 and a provider output limit of 16,000 tokens, October 23, 2026.
+
+The first probe run (version-probe-1, not kept) used the A/B harness environment, which sets
+COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=16000. Its 1.0.98 claude-opus-5.5 stock session sent no model request. A re-run of
+that session with the same environment (`copilot -p "Reply with the single word OK." --model claude-opus-5.5
+--reasoning-effort low --allow-all-tools --no-ask-user --disable-builtin-mcps --output-format json`, no
+--no-auto-update) exited with code 1 and printed this event in its JSON output:
+
+  "data":{"errorType":"query","message":"Output token limit 32000 exceeds the advertised maximum of 16000 tokens"}
+
+The relay saw no request. probe.py then set COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=32000 for claude-opus-5.5 with both
+builds, and every session ran (probe-results.json, cache-probe-results.json). The October A/B runs used 16,000 with
+1.0.78-3, which accepted it. Only 16,000 and 32,000 were tried.

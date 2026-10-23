@@ -10,8 +10,9 @@ Protocol: [PRS4_PROTOCOL.md](PRS4_PROTOCOL.md). Evidence: `evidence/prs4-2026101
   difference was 0.0 units.
 
 > **Harness (note added October 22, 2026).** PRS-4 ran a Copilot-CLI-shaped agent, not the real
-> Copilot CLI. Its fixed prompt was about 3,600 tokens. The real Copilot CLI 1.0.98 sends about
-> 13,500 tokens of system prompt and tool definitions with `gpt-6-astra`. For results with the
+> Copilot CLI. Its fixed prompt was about 3,600 tokens. The real Copilot CLI sends about
+> 13,500 tokens of system prompt and tool definitions with `gpt-6-astra` (1.0.78-3; about 11,100
+> with 1.0.98). For results with the
 > real Copilot CLI, see [COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md).
 
 ## Result

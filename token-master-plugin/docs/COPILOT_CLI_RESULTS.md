@@ -1,9 +1,10 @@
 # Real Copilot CLI results (October 18–22, 2026)
 
-These runs used the real GitHub Copilot CLI 1.0.98 and GitHub's Copilot API. They are
-exploratory: no protocol was pre-registered. The pre-registered studies PRS-1 to PRS-4 used a
-Copilot-CLI-shaped harness instead, with a fixed prompt of about 3,600 tokens
-([PRS4_RESULTS.md](PRS4_RESULTS.md)).
+These runs used the real GitHub Copilot CLI and GitHub's Copilot API. The client was Copilot CLI
+1.0.78-3, the bundled build of the WinGet launcher, not the installed 1.0.98 that this page named
+until October 23, 2026 ([Copilot CLI version](#copilot-cli-version)). The runs are exploratory: no
+protocol was pre-registered. The pre-registered studies PRS-1 to PRS-4 used a Copilot-CLI-shaped
+harness instead, with a fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
 
@@ -22,13 +23,16 @@ Copilot-CLI-shaped harness instead, with a fixed prompt of about 3,600 tokens
 - **Where the saving comes from:** most of it came with the lean tool set. On Django, graphify
   navigation cut a further 15.4% (`gpt-6-astra`) and 9.8% (`claude-opus-5.5`) of the raw tokens
   that TokenMaster without graphify used. That is 8.5 and 5.3 percentage points of stock's tokens.
+- **Copilot CLI version:** all these runs used 1.0.78-3. On 1.0.98, a probe found a smaller fixed
+  prompt, but the lean tool set still removed about half of the first call. No A/B run has used
+  1.0.98 yet ([Copilot CLI version](#copilot-cli-version)).
 
 ## Test parameters
 
 | Parameter | Django run | Repository run |
 | --- | --- | --- |
 | Session start times | October 23, 2026, 03:10–03:47 UTC (October 22, 22:10–22:47 local time, UTC−5) | October 19, 2026, 19:38–19:45 UTC (14:38–14:45 local time) |
-| Client | Copilot CLI 1.0.98, the real binary | Same |
+| Client | Copilot CLI 1.0.78-3, the real binary: the WinGet launcher's bundled build, which `--no-auto-update` selects. The installed package was 1.0.98 ([Copilot CLI version](#copilot-cli-version)). | Same |
 | Models and API format | `gpt-6-astra` over OpenAI Responses; `claude-opus-5.5` over Anthropic Messages | Same |
 | Copilot CLI command | `copilot -p <task> --model <model> --reasoning-effort low --allow-all-tools --no-ask-user --no-auto-update --disable-builtin-mcps --output-format json`. The TokenMaster versions ran the same command through the launcher, which adds `--excluded-tools` (the lean tool set). Every version ran with Copilot CLI's built-in MCP servers off. | Same |
 | Routing | Offline bring-your-own-model mode (`COPILOT_OFFLINE=true`, `COPILOT_PROVIDER_BASE_URL`). Copilot CLI sent each request to a local evaluation relay. The relay forwarded it unchanged to `api.githubcopilot.com`. Provider limits: 200,000 prompt tokens and 16,000 output tokens. | Same |
@@ -61,6 +65,47 @@ Definitions:
 For the Django run, a separate recount from the raw per-call records gave the same token totals.
 GitHub's own per-call charges added up to the same costs.
 
+## Copilot CLI version
+
+The real-CLI runs on this page used Copilot CLI **1.0.78-3**. Until October 23, 2026, this page said
+1.0.98. That was wrong.
+
+- The harness passed `--no-auto-update`. With that flag, the WinGet launcher runs its bundled build,
+  1.0.78-3, even when a newer package is installed. Without the flag, it runs the newest installed
+  package, 1.0.98.
+- The harness checked the version with `copilot --version`, without the flag. That printed 1.0.98.
+- Copilot CLI writes its version into its own system prompt. All 403 local session captures from the
+  Django runs of October 19 and 22 say "Version number: 1.0.78-3". The repository run, PRS-5 and the
+  bridge checks of October 18–19 used the same flag.
+- The harness now checks the version with the same flags as its sessions (`cli_version` in
+  `evals/run_prs5_study.py`). With the October flags, the check stops the harness, because
+  `CLI_VERSION` names 1.0.98.
+
+A probe on October 23 sent one short prompt per model, version and tool set
+(`evidence/copilot-version-probe-20261023/`):
+
+| Model | Copilot CLI | Stock first call | Lean tool set first call | Removed by the lean tool set |
+| --- | --- | ---: | ---: | ---: |
+| `gpt-6-astra` | 1.0.78-3 | 13,507 | 6,732 | 6,775 (50.2%) |
+| `gpt-6-astra` | 1.0.98 | 11,083 | 5,525 | 5,558 (50.1%) |
+| `claude-opus-5.5` | 1.0.78-3 | 20,723 | 9,171 | 11,552 (55.7%) |
+| `claude-opus-5.5` | 1.0.98 | 18,104 | 8,377 | 9,727 (53.7%) |
+
+- On both versions, the lean tool set removes the same 11 tools: 16 tools become 5 with
+  `gpt-6-astra`, and 17 become 6 with `claude-opus-5.5`. It removes about half of the first call.
+- On 1.0.98, stock first calls can read part of the prompt from GitHub's cache. When another 1.0.98
+  stock session ran shortly before, they read 6,450 tokens (`gpt-6-astra`) and 11,226
+  (`claude-opus-5.5`), in both folders tested. On 1.0.78-3, stock `gpt-6-astra` first calls read
+  nothing. So the bridge saves less on 1.0.98.
+- The bridge makes a new session warm only in the same working folder. On 1.0.98, a TokenMaster
+  session in the same folder as the one before wrote 99 tokens (`gpt-6-astra`) and 207
+  (`claude-opus-5.5`) to the cache on its first call. In another folder, it wrote 2,874 and 4,034.
+  Stock sessions after another stock session wrote about 4,632 and 6,879.
+- With `claude-opus-5.5`, 1.0.98 asked for 32,000 output tokens and stopped when the provider limit
+  was 16,000, the value of the October runs
+  (`evidence/copilot-version-probe-20261023/opus-1.0.98-output-limit.txt`). The probe used 32,000.
+- No A/B run has used 1.0.98. The savings on this page are for 1.0.78-3.
+
 ## How to read the cost numbers
 
 - **Raw tokens do not depend on timing.** Cost does, because GitHub's prompt cache prices tokens
@@ -69,12 +114,14 @@ GitHub's own per-call charges added up to the same costs.
   - `claude-opus-5.5`: a cache read costs 0.05× and a cache write 1.25×.
 - **In these runs, sessions ran back to back.** A new session could read an earlier session's
   prompt from GitHub's cache if the prompt was identical.
-  - Stock Copilot CLI writes each session's folder into its system prompt. With `gpt-6-astra`, no
-    stock first call read from the cache (0 of 45 in the Django run). Each stock session wrote
-    its prompt to the cache again, at 1.25×. Those first-call writes cost $7.65 of the $11.55
-    stock total; all stock cache writes cost $9.33.
-  - The TokenMaster bridge makes the prompt identical for every session. In each TokenMaster
-    version, 44 of 45 `gpt-6-astra` first calls read it from the cache.
+  - Stock Copilot CLI 1.0.78-3 writes each session's folder into its system prompt. With
+    `gpt-6-astra`, no stock first call read from the cache (0 of 45 in the Django run). Each stock
+    session wrote its prompt to the cache again, at 1.25×. Those first-call writes cost $7.65 of
+    the $11.55 stock total; all stock cache writes cost $9.33.
+  - The TokenMaster bridge moves the session-folder line, so every session in the same working
+    folder sends the same prompt. The system prompt also names the working folder, and the bridge
+    leaves that line in place. In the Django run, all sessions of a version used the same folder.
+    In each TokenMaster version, 44 of 45 `gpt-6-astra` first calls read the prompt from the cache.
   - With `claude-opus-5.5`, 44 of 45 stock first calls also read part of the prompt from the
     cache, because Anthropic's layout puts the tool definitions before the system prompt. Stock
     first calls still wrote the system prompt to the cache: a median of 7,474 tokens. Full
@@ -271,6 +318,9 @@ tokens. Their costs are as run, with sessions back to back.
   TokenMaster.
 - **Scope.** 1 run per task, 2 repositories and 2 models. The Django run has one task type,
   "who calls X?". The run on this repository has mostly short tasks.
+- **Copilot CLI version.** All runs used 1.0.78-3. Copilot CLI 1.0.98 sends a smaller fixed prompt,
+  and its stock first call can read part of the prompt from the cache when another session ran
+  shortly before. So its savings can differ ([Copilot CLI version](#copilot-cli-version)).
 - **Cost depends on timing.** The as-run costs come from back-to-back sessions. See
   [How to read the cost numbers](#how-to-read-the-cost-numbers).
 - **Excluded tools.** The 11 tools were chosen because no session called them in the October 18
@@ -314,5 +364,8 @@ cd token-master-plugin\evals
 & $py -B quick_copilot_ab.py --model gpt-6-astra --tasks <ids> --repeats 1 --lanes <name> --output <new folder>
 ```
 
-Live runs need an active GitHub Copilot sign-in in OpenCode and Copilot CLI 1.0.98. The
-harness reads the credential in memory and never writes it.
+Live runs need an active GitHub Copilot sign-in in OpenCode and an installed Copilot CLI. The
+harness reads the credential in memory and never writes it. It stops unless the Copilot CLI
+version that its sessions run equals `CLI_VERSION` in `run_prs5_study.py`. With the October flags,
+which include `--no-auto-update`, that version is 1.0.78-3, so a re-run needs a change to the
+flags or to `CLI_VERSION`.

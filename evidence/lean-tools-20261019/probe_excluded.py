@@ -1,6 +1,7 @@
 """Probe: does Copilot CLI's --excluded-tools shrink every request, and does a simple task still succeed?
 
-Real Copilot CLI 1.0.98 (isolated, BYOK through the PRS-5 relay), models gpt-6-astra and claude-opus-5.5.
+Real Copilot CLI (isolated, BYOK through the PRS-5 relay), models gpt-6-astra and claude-opus-5.5. Labeled 1.0.98
+when it ran; it ran 1.0.78-3, because p5.FLAGS pass --no-auto-update (corrected 2026-10-23).
 One simple lookup task per model, run with the default tools and with 11 built-in tools excluded that no
 session called in the A/B runs. Records usage numbers, tool counts and system-prompt size; no content.
 """

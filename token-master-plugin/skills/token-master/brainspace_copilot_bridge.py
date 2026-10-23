@@ -72,6 +72,43 @@ def lean_command(command: list[str]) -> list[str]:
     return [*command, "--excluded-tools", *LEAN_EXCLUDED_TOOLS]
 
 
+def launch_registry() -> Path:
+    """Where the launcher records Copilot CLI launches for tokenomics.py: <COPILOT_HOME>/token-master/launches.jsonl."""
+    return Path(os.environ.get("COPILOT_HOME") or Path.home() / ".copilot") / "token-master" / "launches.jsonl"
+
+
+def _record_launch(event: dict) -> None:
+    try:  # bookkeeping only: never fail or delay a launch over it
+        path = launch_registry()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(event) + "\n")
+    except OSError:
+        pass
+
+
+def _nav_installed() -> bool:
+    try:
+        config = json.loads((launch_registry().parents[1] / "mcp-config.json").read_text(encoding="utf-8-sig"))
+        return "tokenmaster-nav" in (config.get("mcpServers") or {})
+    except (OSError, ValueError, AttributeError):
+        return False
+
+
+def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool) -> int:
+    """run_child, plus a start and an end record (folder, lean tool set, bridge, navigation tools; no prompt text)."""
+    if Path(command[0]).stem.lower() != "copilot":
+        return run_child(parser, command, env)
+    launch_id = hashlib.sha256(f"{time.time_ns()}-{os.getpid()}".encode()).hexdigest()[:16]
+    now = lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())  # noqa: E731
+    _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": os.getcwd(), "lean": lean,
+                    "bridge": bridge, "nav": _nav_installed()})
+    try:
+        return run_child(parser, command, env)
+    finally:
+        _record_launch({"event": "end", "id": launch_id, "at": now()})
+
+
 def _prefix_digest(request: dict) -> str:
     """Hash of everything before the first user message: the part that sessions can share."""
     head = []
@@ -376,14 +413,16 @@ def main(argv=None) -> int:
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
+    original = list(command)
     if command and not args.all_tools:
         command = lean_command(command)
+    lean = command != original
     if not args.upstream:
         if not command:
             parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL to serve the bridge")
         print("[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set "
               f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
-        return run_child(parser, command, dict(os.environ))
+        return run_recorded(parser, command, dict(os.environ), lean=lean, bridge=False)
     provider = os.environ.get("COPILOT_PROVIDER_TYPE") or "openai"
     if provider not in ("openai", "anthropic") or \
             (provider == "openai" and (os.environ.get("COPILOT_PROVIDER_WIRE_API") or "responses") != "responses"):
@@ -415,7 +454,7 @@ def main(argv=None) -> int:
         env = {**os.environ, "COPILOT_PROVIDER_BASE_URL": bridge.url}
         if provider == "openai":
             env["COPILOT_PROVIDER_WIRE_API"] = "responses"
-        return run_child(parser, command, env)
+        return run_recorded(parser, command, env, lean=lean, bridge=True)
 
 
 if __name__ == "__main__":

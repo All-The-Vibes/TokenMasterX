@@ -266,8 +266,8 @@ def test_cli_copilot_shapes_whole_file_views_with_v6_without_storage(monkeypatch
     assert wire == tokens.serialize(expected).encode("utf-8")
 
 
-def test_cli_accepts_copilot_1_0_98_string_tool_args(monkeypatch):
-    # Copilot CLI 1.0.98 sends toolArgs as a JSON string (live capture, evidence/copilot-bridge-20261018).
+def test_cli_accepts_copilot_string_tool_args(monkeypatch):
+    # Copilot CLI 1.0.78-3 sends toolArgs as a JSON string (live capture, evidence/copilot-bridge-20261018).
     payload = listing_payload()
     payload["toolArgs"] = json.dumps(payload["toolArgs"])
     wire = run_cli(monkeypatch, ["--host", "copilot", "--contract", CONTRACT], payload)

@@ -2,7 +2,7 @@
   "date": "2026-10-19T00:10:08Z",
   "run": "run2",
   "copilot_version": "GitHub Copilot CLI 1.0.98.",
-  "copilot_version_correction": "Wrong for these sessions. That value came from a --version call outside the isolated environment. Inside it, the WinGet launcher found no installed package and ran its bundled build: copilot --version there prints 'GitHub Copilot CLI 1.0.78-3.' (checked on 2026-10-19). See results-run3.json for the same check on 1.0.98.",
+  "copilot_version_correction": "Wrong for these sessions (corrected 2026-10-23). The sessions passed --no-auto-update, and with that flag the WinGet launcher runs its bundled build, 1.0.78-3, even when the installed 1.0.98 package is present. The value above came from `copilot --version` without the flag. See evidence/copilot-version-probe-20261023.",
   "model": "gpt-6-astra",
   "kind": "functional live check, not a savings study",
   "sessions": [

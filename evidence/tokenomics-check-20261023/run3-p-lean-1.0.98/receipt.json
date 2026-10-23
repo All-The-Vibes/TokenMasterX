@@ -1,0 +1,128 @@
+{
+ "model": "gpt-6-astra",
+ "all_tools": false,
+ "prompt": "/tokenomics",
+ "build": "installed",
+ "setup_exit": 0,
+ "skill_installed": true,
+ "exit": 0,
+ "seconds": 21.5,
+ "version_in_system_prompt": "1.0.98",
+ "tool_calls": [
+  [
+   "glob",
+   "{\"pattern\": \"**/*\"}"
+  ],
+  [
+   "view",
+   "{\"path\": \"C:\\\\Users\\\\SHYAMS~1\\\\AppData\\\\Local\\\\Temp\\\\tokenomics-check-ecl8oesz\\\\repo\\\\hello.py\"}"
+  ]
+ ],
+ "event_types": [
+  "assistant.idle",
+  "assistant.message",
+  "assistant.message_delta",
+  "assistant.message_start",
+  "assistant.reasoning",
+  "assistant.tool_call_delta",
+  "assistant.turn_end",
+  "assistant.turn_start",
+  "model.call_final_result",
+  "model.call_finished",
+  "model.call_start",
+  "result",
+  "session.info",
+  "session.mcp_servers_loaded",
+  "session.skills_loaded",
+  "session.tools_updated",
+  "tool.execution_complete",
+  "tool.execution_start",
+  "user.message"
+ ],
+ "skills_loaded": [
+  {
+   "skills": [
+    {
+     "name": "cua-driver",
+     "commandName": "cua-driver",
+     "description": "Drive a native GUI app (macOS, Windows, Linux) via the cua-driver CLI (default) or MCP server; snapshot its accessibility tree, act through snapshot-bound element tokens, native menu paths, exact window geometry, or pixel coordinates, and verify from fresh state. Use when the user asks you to operate, drive, automate, or perform a GUI task in a real application on the host, or to continue, resume, or recall recent Cua activity.",
+     "source": "inherited",
+     "userInvocable": true,
+     "enabled": true,
+     "path": "C:\\Users\\SHYAMS~1\\.agents\\skills\\cua-driver\\SKILL.md"
+    },
+    {
+     "name": "tokenomics",
+     "commandName": "tokenomics",
+     "description": "TokenMaster tokenomics dashboard. Shows Copilot CLI token usage, GitHub's charges and the estimated TokenMaster savings by day, week, month or session, like ccusage. Use only when the user runs /tokenomics.",
+     "source": "personal-copilot",
+     "userInvocable": true,
+     "enabled": true,
+     "path": "C:\\Users\\SHYAMS~1\\AppData\\Local\\Temp\\tokenomics-check-ecl8oesz\\home\\copilot\\skills\\tokenomics\\SKILL.md"
+    },
+    {
+     "name": "customize-cloud-agent",
+     "commandName": "customize-cloud-agent",
+     "description": "Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.",
+     "source": "builtin",
+     "userInvocable": false,
+     "enabled": true,
+     "path": "C:\\Users\\SHYAMS~1\\AppData\\Local\\Temp\\tokenomics-check-ecl8oesz\\home\\profile\\AppData\\Local\\copilot\\pkg\\win32-x64\\1.0.98\\builtin\\customize-cloud-agent\\SKILL.md"
+    },
+    {
+     "name": "github-pr-media",
+     "commandName": "github-pr-media",
+     "description": "Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment.",
+     "source": "builtin",
+     "userInvocable": false,
+     "enabled": true,
+     "path": "C:\\Users\\SHYAMS~1\\AppData\\Local\\Temp\\tokenomics-check-ecl8oesz\\home\\profile\\AppData\\Local\\copilot\\pkg\\win32-x64\\1.0.98\\builtin\\github-pr-media\\SKILL.md"
+    }
+   ]
+  }
+ ],
+ "ran_tokenomics": false,
+ "dashboard_in_answer": false,
+ "tools_sent_to_model": [
+  "apply_patch",
+  "glob",
+  "powershell",
+  "rg",
+  "view"
+ ],
+ "launch_records": [
+  "{\"event\": \"start\", \"id\": \"c33291a6feaea2fa\", \"at\": \"2026-10-23T05:40:08Z\", \"cwd\": \"C:\\\\Users\\\\SHYAMS~1\\\\AppData\\\\Local\\\\Temp\\\\tokenomics-check-ecl8oesz\\\\repo\", \"lean\": true, \"bridge\": true, \"nav\": false}",
+  "{\"event\": \"end\", \"id\": \"c33291a6feaea2fa\", \"at\": \"2026-10-23T05:40:28Z\"}"
+ ],
+ "usage": {
+  "calls": 3,
+  "input": 16703,
+  "cached": 13732,
+  "cache_write": 2962,
+  "output": 147,
+  "http_errors": 0,
+  "infra_statuses": 0,
+  "missing_usage": 0,
+  "bill_units": 5819.7,
+  "bill_ratios": [
+   [
+    [
+     "cache_read",
+     0.1
+    ],
+    [
+     "cache_write",
+     1.25
+    ],
+    [
+     "input",
+     1.0
+    ],
+    [
+     "output",
+     5.0
+    ]
+   ]
+  ]
+ }
+}

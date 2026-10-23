@@ -39,7 +39,8 @@ MODEL = "gpt-6-astra"
 COPILOT = shutil.which("copilot") or str(Path(os.environ["LOCALAPPDATA"]) / "Microsoft/WinGet/Links/copilot.exe")
 # The WinGet copilot.exe runs the newest package under %LOCALAPPDATA%\copilot\pkg; without one it runs its bundled
 # build, 1.0.78-3. These runs isolated LOCALAPPDATA without the package, so they ran 1.0.78-3. Later runs copy the
-# installed package into the isolated profile and run it.
+# installed package into the isolated profile, but every run passes --no-auto-update, which also makes the launcher run
+# the bundled build. So all runs here used 1.0.78-3 (corrected 2026-10-23; cli_version below omits that flag).
 INSTALLED_PKG = Path(os.environ["LOCALAPPDATA"]) / "copilot" / "pkg"
 BUNDLED_RUNS = {"run1", "run2", "hook3", "hook4", "hook5", "hook6", "tui"}
 TARGET = "token-master-plugin/skills/token-master/brainspace/ccr.py"

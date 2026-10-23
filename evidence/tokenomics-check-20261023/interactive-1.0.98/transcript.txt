@@ -1,0 +1,45 @@
+Interactive /tokenomics check on Copilot CLI 1.0.98, October 23, 2026, 05:31-05:36 UTC.
+interactive.py --build installed --ask: the newest installed package, without --allow-all-tools and without
+COPILOT_ALLOW_ALL, so Copilot CLI asked for every permission. The banner said "Copilot v1.0.98", and the captured system
+prompt says "Version number: 1.0.98". Copilot CLI started through the TokenMaster launcher (lean tool set on, bridge on,
+no navigation tools), model gpt-6-astra, bring-your-own-model mode through the evaluation relay.
+
+Start-up showed "Disabled tools: fetch_copilot_cli_documentation, list_agents, list_powershell, read_agent,
+read_powershell, session_store_sql, skill, sql, stop_powershell, task, write_agent", then "Confirm folder trust"
+(answered: 1. Yes).
+
+Typing /tokenomics showed the skill in the command list: "/tokenomics  TokenMaster tokenomics dashboard. Shows Copilot
+CLI token usage, GitHub's charg...". After Enter, Copilot CLI asked:
+  1. "Allow path access ... C:\Users\shyamsridhar\AppData\Local\Temp\tokenomics-interactive-mwm5f0eb\home\copilot\
+     token-master\tokenomics.py" (answered: 2. Yes, and remember this path for this session)
+  2. "Display tokenomics usage ... [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "...\python.exe"
+     "...\token-master\tokenomics.py" --compact ... Do you want to run this command?" (answered: 1. Yes)
+
+The model's reply, as the terminal showed it (escape codes removed; the compact table fit the 120-column terminal):
+
+  │ Date       │ Models        │ Total Tokens │ Cost (USD) │ TokenMaster  │ Saved Tokens ≈ │ Saved (USD) ≈ │
+  │ 2026-10-23 │ • gpt-6-astra │        7,427 │      $0.10 │ 1/1 sessions │          5,558 │         $0.01 │
+  │ Total      │               │        7,427 │      $0.10 │ 1/1 sessions │          5,558 │         $0.01 │
+
+  TokenMaster savings (estimated)
+    TokenMaster sessions          1 of 1  1 model calls
+    Tokens, actual                 7,427  GitHub's token counts
+    Tokens without TokenMaster ≈  12,985  saved 5,558 (42.8%)
+    Cost, actual                   $0.10  GitHub's own charge per call
+    Cost without TokenMaster ≈     $0.10  saved $0.01 (5.4%)
+      of which lean tool set       $0.01  5,558 fewer fixed tokens, priced as cache reads
+      of which first calls         $0.00  less written to GitHub's prompt cache
+
+This run used the first-call formula from before the change to "stock_first_cached" (docs/TOKENOMICS.md). The current
+formula, run on the same session store afterwards (2 model calls, 16,445 tokens, $0.155): saved 11,116 tokens (40.3%)
+and $0.0009 (0.6%). Of that, the lean tool set saved $0.0111, and the cold first call cost $0.0103 more than a stock
+first call that reads its usual cached prefix.
+
+Zero-token form: typed in the same session (paths with forward slashes, because the terminal driver turned "\t" into a
+tab in the first attempt):
+  ! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "C:/.../python.exe" "C:/.../token-master/tokenomics.py" --compact
+Copilot CLI ran it in PowerShell without a model call and showed the dashboard, now with both model calls of the
+/tokenomics session: 16,445 tokens, $0.16.
+
+Relay records (calls.jsonl): 2 model calls, 7,317 + 8,231 input tokens and 110 + 787 output tokens.
+Launch records (launches.jsonl): one start and one end record, no prompt text.

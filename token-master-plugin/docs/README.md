@@ -6,11 +6,12 @@ This directory contains the architecture specifications, mathematical contracts,
 
 ## 1. Start Here: Current Evidence
 
-- **[Real Copilot CLI results](COPILOT_CLI_RESULTS.md)**: exploratory runs of the real Copilot CLI 1.0.98 with `gpt-6-astra` and `claude-opus-5.5`, October 18–22, 2026.
+- **[Real Copilot CLI results](COPILOT_CLI_RESULTS.md)**: exploratory runs of the real Copilot CLI 1.0.78-3 with `gpt-6-astra` and `claude-opus-5.5`, October 18–22, 2026.
   - Django, 45 "who calls X?" tasks: full TokenMaster used 53.4% and 51.6% fewer raw tokens than stock. Cost fell 79.9% and 60.8% with sessions back to back, and 49.5% and 46.0% with every first call re-priced as cold. Correct answers: stock 90/90, TokenMaster 88/90.
   - This repository, 27 tasks: 44.8% and 53.5% fewer raw tokens.
   - Most of the saving came with the lean tool set; on Django, graphify cut a further 15.4% and 9.8% on top of it.
 - **[Copilot CLI launcher and bridge](COPILOT_BRIDGE.md)**: how to start Copilot CLI with the lean tool set, and what the bridge adds in bring-your-own-model mode.
+- **[/tokenomics dashboard](TOKENOMICS.md)**: a ccusage-style report of Copilot CLI tokens, GitHub's charges and estimated TokenMaster savings; its estimate and how it compares with measured A/B results.
 - **Pre-registered studies in a replica harness.** PRS-1 to PRS-4 ran a Copilot-CLI-shaped agent with `gpt-6-astra`, not the real Copilot CLI. The PRS-4 agent's fixed prompt was about 3,600 tokens; the real CLI sends about 13,500.
 - **[PRS-4 results](PRS4_RESULTS.md)**: a pre-registered live study on 24 fresh tasks (360 sessions, 3 arms).
   - Under continuous use, v7 plus the cache-stable system prompt lowered billed cost per finished task by 49.8% against stock (95% CI −57.1% to −42.9%).

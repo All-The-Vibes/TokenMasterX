@@ -1,4 +1,5 @@
-"""Exploratory A/B (not pre-registered): real Copilot CLI 1.0.98, stock vs the fixed TokenMaster install.
+"""Exploratory A/B (not pre-registered): real Copilot CLI (1.0.78-3 in the October 2026 runs), stock vs the fixed
+TokenMaster install.
 
 Fixes under test (October 19, 2026), after PRS-5's first 10 sessions:
   1. brainspace_setup.py --host copilot no longer installs the brainspace MCP server (its 5 tools were never

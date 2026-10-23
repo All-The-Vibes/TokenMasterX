@@ -1,0 +1,161 @@
+# /tokenomics: the TokenMaster usage and savings dashboard
+
+`/tokenomics` shows how many tokens and dollars your Copilot CLI sessions used, and how much TokenMaster saved. It
+works like [ccusage](https://github.com/ryoppippi/ccusage) does for Claude Code: it reads local usage records and
+prints daily, weekly, monthly or per-session tables.
+
+- **Actual tokens and cost are measured.** They come from Copilot CLI's own record of each model call, including
+  GitHub's charge for that call.
+- **Savings are estimated.** Nothing can measure the stock session that did not run. The estimate and its
+  check against measured A/B results are below.
+
+## Use it
+
+1. Install TokenMaster for Copilot (see [COPILOT_BRIDGE.md](COPILOT_BRIDGE.md)). `brainspace_setup.py --host copilot`
+   installs `tokenomics.py` and a personal Copilot skill, `<COPILOT_HOME>/skills/tokenomics/SKILL.md`.
+2. Start Copilot CLI through the TokenMaster launcher. The launcher records each launch, so the dashboard can tell
+   TokenMaster sessions from stock sessions.
+3. In an interactive Copilot CLI session, type `/tokenomics`. Add a report and options after it, for example
+   `/tokenomics session --since 20261020`.
+4. Approve the two questions that Copilot CLI asks:
+   - access to `<COPILOT_HOME>/token-master/tokenomics.py`, which is outside the session's folder;
+   - permission to run the command, unless you started Copilot CLI with `--allow-all-tools`.
+
+| Report | One row per |
+| --- | --- |
+| `daily` (default) | Day, in local time |
+| `weekly` | Week, starting on Monday |
+| `monthly` | Month |
+| `session` | Copilot CLI session, with its folder, start time and TokenMaster mode |
+
+| Option | Effect |
+| --- | --- |
+| `--since YYYYMMDD`, `--until YYYYMMDD` | Limit the days (local time) |
+| `--project TEXT` | Only sessions whose folder or repository contains TEXT |
+| `--only tokenmaster` or `--only stock` | Only TokenMaster calls, or only stock calls |
+| `--breakdown` | One sub-row per model |
+| `--full`, `--compact` | All columns, or the narrow table that `/tokenomics` uses by default |
+| `--json` | Machine-readable output |
+| `--order desc`, `--ascii`, `--no-color`, `--copilot-home PATH` | Order, plain characters, no colors, another Copilot home |
+
+**Cost of the command itself.** `/tokenomics` asks the model to run the script and repeat its output. In the live
+check on Copilot CLI 1.0.98, that took 2 model calls, 16,445 tokens and $0.16 with `gpt-6-astra`. To spend no model
+tokens, run the script as a shell command in Copilot CLI with `!`. The dashboard prints the exact command. On Windows
+it is `! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "<python>" "<COPILOT_HOME>/token-master/tokenomics.py"`.
+
+## What the columns mean
+
+| Column | Meaning |
+| --- | --- |
+| Calls | Model calls |
+| Input | New input tokens: neither read from nor written to GitHub's prompt cache |
+| Output | Output tokens, reasoning included |
+| Cache Write, Cache Read | Input tokens written to or read from GitHub's prompt cache |
+| Total Tokens | Raw tokens: all input plus output |
+| Cost (USD) | GitHub's own charge for the calls (`total_nano_aiu`; 10<sup>9</sup> nano = 1 AI credit = $0.01) |
+| TokenMaster | Sessions that ran through the launcher, or the session's mode: `lean`, `nav`, `bridge` |
+| Saved Tokens ≈, Saved (USD) ≈ | Estimated savings of the TokenMaster calls in the row |
+
+## Data sources
+
+| Source | Written by | What the dashboard uses |
+| --- | --- | --- |
+| `<COPILOT_HOME>/session-store.db`, table `assistant_usage_events` | Copilot CLI, for every model call | Model, API, token counts, cache reads and writes, GitHub's charge and price per token type |
+| `<COPILOT_HOME>/session-store.db`, table `sessions` | Copilot CLI | Session folder and repository |
+| `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, and whether the lean tool set, the bridge and the navigation tools were on |
+
+- The dashboard opens the database read-only. If Copilot CLI holds it, the dashboard reads a private copy.
+- The launch records hold no prompt text. A call counts as a TokenMaster call if its session's folder matches a
+  launch that was running at the time of the call.
+- Sessions that did not start through the launcher count as stock, with no savings.
+
+## How the savings are estimated
+
+The estimate covers the two effects that each call's own record can show. It assumes that stock Copilot CLI would
+have made the same model calls.
+
+1. **Lean tool set, per call.** Stock Copilot CLI sends more fixed tokens on every call: the definitions of the 11
+   removed tools and the system-prompt text about them. The navigation tools add some back.
+   - Fixed tokens saved per main-agent call = `lean` (when the lean tool set was on) − `nav` (when the
+     navigation tools were installed).
+   - Cost saved per call = those tokens × the call's own cache-read price. Stock reads its fixed prefix from the cache
+     after its first call.
+2. **First call, per session.** The first call of a session writes most of its prompt to GitHub's cache.
+   - Stock's first call would send the same prompt plus the fixed tokens. It would read its usual cached prefix
+     (`stock_first_cached` tokens) and write the rest.
+   - Cost saved = (stock's write − the actual write) × (cache-write price − cache-read price).
+   - The result can be negative. Example: a TokenMaster session starts cold, while stock's prefix is warm.
+   - This term changes only cost, not raw tokens.
+
+The fixed prompt depends on the Copilot CLI version. The dashboard uses the 1.0.98 values: the launcher runs the
+installed Copilot CLI, which was 1.0.98 on October 23, 2026.
+
+| Copilot CLI | API | Model | `lean` | `nav` | `stock_first_cached` | Source |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| 1.0.98 | OpenAI Responses | `gpt-6-astra` | 5,558 | 252 | 6,450 | Probe, October 23 |
+| 1.0.98 | Anthropic Messages | `claude-opus-5.5` | 9,727 | 531 | 11,226 | Probe, October 23 |
+| 1.0.78-3 | OpenAI Responses | `gpt-6-astra` | 6,760 | 252 | 0 | 45-task Django A/B, October 22 |
+| 1.0.78-3 | Anthropic Messages | `claude-opus-5.5` | 11,540 | 531 | 13,393 | 45-task Django A/B, October 22 |
+
+- **1.0.98:** `evidence/copilot-version-probe-20261023/`. `lean` is the difference between the first calls of a stock
+  session and a lean-tool-set session with the same prompt. `stock_first_cached` is what three back-to-back stock
+  sessions read from the cache, in two different folders.
+- **`nav`** was measured on 1.0.78-3 only. It is the size of TokenMaster's own navigation-tool definitions.
+- **1.0.78-3:** medians from the Django A/B ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)). Stock
+  `gpt-6-astra` sessions on 1.0.78-3 read nothing from the cache on their first call.
+- **Not counted:** model calls that graph navigation saved, v6 shaping of tool results, and any other change in what
+  the model did.
+- **Not estimated:** subagent calls, and calls over an API without calibration (for example Chat Completions). The
+  dashboard reports how many TokenMaster calls had no estimate.
+
+## Check against measured results
+
+`evidence/tokenomics-validation-20261023/validate.py` ran the estimate on the TokenMaster sessions of the real-CLI A/B
+runs. It compared the estimated "without TokenMaster" totals with the stock sessions that ran on the same tasks at the
+same time. Those runs used Copilot CLI 1.0.78-3, so the check uses the 1.0.78-3 values.
+
+| Model | Run | Token saving, estimated | Token saving, measured | Cost saving, estimated | Cost saving, measured |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `gpt-6-astra` | Django, full TokenMaster | 45.2% | 53.4% | 77.0% | 79.9% |
+| `gpt-6-astra` | Django, without graphify | 45.1% | 44.9% | 70.3% | 70.8% |
+| `gpt-6-astra` | This repository, full TokenMaster | 39.5% | 44.8% | 59.1% | 62.8% |
+| `claude-opus-5.5` | Django, full TokenMaster | 49.7% | 51.6% | 58.5% | 60.8% |
+| `claude-opus-5.5` | Django, without graphify | 52.0% | 46.3% | 56.2% | 55.2% |
+| `claude-opus-5.5` | This repository, full TokenMaster | 47.4% | 53.5% | 45.4% | 51.2% |
+
+- In 5 of 6 runs, the estimate gave 72% to 101% of the measured token saving.
+- In one run (`claude-opus-5.5` without graphify), it gave 125%. There, TokenMaster made 174 model calls and stock
+  made 157. The estimate assumes that stock would have made the same calls, so it counts TokenMaster's 17 extra calls,
+  and the tokens they sent, as calls that stock would also have made.
+- The check reuses the run that set the 1.0.78-3 values, so it is not independent. These runs had sessions back to
+  back; see [How to read the cost numbers](COPILOT_CLI_RESULTS.md#how-to-read-the-cost-numbers).
+- No A/B run has measured the 1.0.98 values against stock sessions yet.
+
+## Live checks in Copilot CLI (October 23, 2026)
+
+`evidence/tokenomics-check-20261023/` holds the scripts and records.
+
+| Check | Copilot CLI | Result |
+| --- | --- | --- |
+| `copilot -p "/tokenomics"`, lean tool set | 1.0.78-3 and 1.0.98 | The model got the text and did not run the skill |
+| `copilot -p "/tokenomics"`, all tools | 1.0.78-3 | The same |
+| Typed in an interactive session, lean tool set, `--allow-all-tools` | 1.0.78-3 | The skill ran after one path question; the dashboard printed |
+| Typed in an interactive session, lean tool set, no pre-approval | 1.0.98 | The skill ran after a path question and a command question; the dashboard printed |
+| `!` shell command in the same 1.0.98 session | 1.0.98 | The dashboard printed without a model call |
+
+- The lean tool set removes Copilot CLI's `skill` tool. Typed `/tokenomics` still loaded the skill.
+- The launcher wrote one start record and one end record for each interactive session.
+- The 1.0.78-3 checks ran that version by mistake. The scripts passed `--no-auto-update`, which makes the WinGet
+  launcher run its bundled build. See [COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md#copilot-cli-version).
+
+## Limits
+
+- The savings are an estimate. The 1.0.98 values come from a probe with one short prompt, two models and no A/B
+  run. A different Copilot CLI version, more MCP servers or custom instructions change the fixed prompt, and the
+  values do not follow.
+- `stock_first_cached` assumes that another session of the same version ran shortly before, so stock's prefix is warm.
+  After a long pause, stock's first call is colder, and the real first-call saving is larger.
+- Copilot CLI's `session-store.db` is an internal file. A future Copilot CLI version can change its tables. The
+  dashboard reads only the columns it finds.
+- Cost is GitHub's charge for each call. It does not count premium requests or plan allowances.
+- Only Copilot CLI is covered. Claude Code keeps its usage in other files, and ccusage already reads them.

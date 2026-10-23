@@ -48,7 +48,7 @@ def main(argv=None) -> int:
         payload = (parse_json(raw.decode("utf-8")) if contract == COPILOT_CONTRACT
                    else json.loads(raw.decode("utf-8")))
         if contract == COPILOT_CONTRACT and isinstance(payload, dict) and isinstance(payload.get("toolArgs"), str):
-            # Copilot CLI 1.0.98 sends toolArgs as a JSON string; the build observed on 2026-10-09 sent an object.
+            # Copilot CLI 1.0.78-3 sends toolArgs as a JSON string; the build observed on 2026-10-09 sent an object.
             payload["toolArgs"] = parse_json(payload["toolArgs"])
         intent = os.environ.get("BRAINSPACE_INTENT", "conservative")
         if contract == COPILOT_CONTRACT and intent != "conservative":
