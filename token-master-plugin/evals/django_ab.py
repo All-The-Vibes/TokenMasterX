@@ -8,6 +8,7 @@ run_prs5_study.py (lanes, relay, isolation, grading).
 
   python django_ab.py --repo <django checkout> --tasks-file <tasks.json> --output <new folder> --variant ab|lean
                       --lanes <name> [--model claude-opus-5.5]
+  python django_ab.py --self-test
 """
 from __future__ import annotations
 
@@ -18,12 +19,56 @@ import random
 import shutil
 import subprocess
 import sys
+import time
 
 EVALS = Path(__file__).resolve().parent
 sys.path.insert(0, str(EVALS))
 import quick_copilot_ab as q  # noqa: E402
 import run_prs1_study as p1  # noqa: E402
 import run_prs5_study as p5  # noqa: E402
+
+TEMPLATE_MANIFESTS: dict[str, dict] = {}
+
+
+def reset_lane(lane: Path, template: Path) -> None:
+    """Make the lane identical to its template, copying only what differs (robocopy /MIR).
+
+    Same result as run_prs5_study.reset_lane (delete, then copy everything), which took minutes per session on the
+    289 MB TokenMaster workspace."""
+    for attempt in range(6):  # Windows: a process that is still exiting can hold a file for a moment
+        proc = subprocess.run(["robocopy", str(template), str(lane), "/MIR", "/MT:16", "/R:2", "/W:1", "/NFL", "/NDL",
+                               "/NJH", "/NJS", "/NP"], capture_output=True, text=True, errors="replace")
+        if proc.returncode < 8:  # robocopy: 0-7 success, 8+ failure
+            return
+        time.sleep(5 * (attempt + 1))
+    raise RuntimeError(f"lane reset failed: {lane}: {proc.stdout[-500:]}")
+
+
+def changed_files(lane: Path, template: Path) -> list[str]:
+    """run_prs5_study.changed_files, hashing each read-only template once per run instead of once per session."""
+    if str(template) not in TEMPLATE_MANIFESTS:
+        TEMPLATE_MANIFESTS[str(template)] = p1.manifest(template)
+    before, after = TEMPLATE_MANIFESTS[str(template)], p1.manifest(lane)
+    changed = sorted(k for k in before.keys() & after.keys() if before[k] != after[k])
+    changed += sorted(set(after) - set(before)) + sorted(set(before) - set(after))
+    return [c for c in changed if not c.startswith(p5.IGNORED)]
+
+
+def self_test() -> None:
+    """reset_lane restores an edited lane; changed_files reports edits and additions."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        template, lane = Path(tmp) / "template", Path(tmp) / "lane"
+        (template / "pkg").mkdir(parents=True)
+        (template / "pkg" / "a.py").write_text("x = 1\n", encoding="utf-8")
+        reset_lane(lane, template)
+        assert changed_files(lane, template) == []
+        (lane / "pkg" / "a.py").write_text("x = 2\n", encoding="utf-8")
+        (lane / "new.txt").write_text("extra\n", encoding="utf-8")
+        assert changed_files(lane, template) == ["pkg/a.py", "new.txt"], changed_files(lane, template)
+        reset_lane(lane, template)
+        assert changed_files(lane, template) == [] and not (lane / "new.txt").exists()
+    print("self-test passed")
 
 
 def install_lean(home: Path) -> dict:
@@ -51,6 +96,7 @@ def main(argv=None) -> int:
     if out.exists():
         raise SystemExit(f"output must be new: {out}")
     q.configure(args.model, args.lanes)
+    p5.reset_lane, p5.changed_files = reset_lane, changed_files
     if args.variant == "lean":
         p5.ARMS = ("tm",)  # one arm: the bridge-wrapped TokenMaster lane, installed without graphify
     if p5.LANES.exists():
@@ -83,4 +129,6 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--self-test"]:
+        raise SystemExit(self_test())
     raise SystemExit(main())

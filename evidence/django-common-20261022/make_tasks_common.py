@@ -14,7 +14,7 @@ and `from ... import`, relative imports, re-exports and star imports. A function
 Answer: the callers, "<path>::<function>" or "<path>::<Class.method>".
 Sample (fixed seed): 5 of the 20 pool entries with the largest repository-wide `rg -n -w <name>` output.
 
-  python make_tasks_common.py <django git checkout>
+  python make_tasks_common.py <django git checkout> [<file for the whole pool>]
 """
 import ast
 import builtins
@@ -173,7 +173,7 @@ class Index:
         return ("expr",)
 
 
-def main(checkout: Path) -> None:
+def main(checkout: Path, pool_out: Path | None = None) -> None:
     commit = subprocess.run([GIT, "rev-parse", "HEAD"], cwd=checkout, capture_output=True, text=True,
                             check=True).stdout.strip()
     raw = subprocess.run([GIT, "archive", "--format=tar", "HEAD"], cwd=checkout, capture_output=True, check=True).stdout
@@ -287,6 +287,8 @@ def main(checkout: Path) -> None:
     for row in pool:
         row["grep_tokens"] = tokens.count_tokens("\n".join(lines[row["name"]]))
     pool.sort(key=lambda row: (-row["grep_tokens"], row["symbol"]))
+    if pool_out:  # the whole pool, for later samples (../django-scale-20261022)
+        pool_out.write_text(json.dumps(pool, indent=1) + "\n", encoding="utf-8")
     picked = random.Random(SEED).sample(pool[:TOP], min(PICK, len(pool)))
     tasks = []
     for number, row in enumerate(picked, 11):
@@ -311,4 +313,4 @@ def main(checkout: Path) -> None:
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]), Path(sys.argv[2]) if len(sys.argv) > 2 else None)
