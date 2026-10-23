@@ -1,0 +1,344 @@
+{
+ "kind": "exploratory, not pre-registered",
+ "tasks": "tasks.json",
+ "models": {
+  "gpt-6-astra": {
+   "arms": {
+    "stock": {
+     "sessions": 5,
+     "passes": 5,
+     "raw_tokens": 262822,
+     "usd": 1.3121,
+     "calls": 17,
+     "nav_calls": 0,
+     "sessions_using_nav": 0,
+     "tool_output_tokens_incl_resends": {
+      "grep (rg tool)": 28108,
+      "file read (view)": 802
+     },
+     "infra": 0
+    },
+    "lean": {
+     "sessions": 5,
+     "passes": 5,
+     "raw_tokens": 146543,
+     "usd": 0.4914,
+     "calls": 16,
+     "nav_calls": 0,
+     "sessions_using_nav": 0,
+     "tool_output_tokens_incl_resends": {
+      "grep (rg tool)": 32649,
+      "file read (view)": 1210
+     },
+     "infra": 0
+    },
+    "tm": {
+     "sessions": 5,
+     "passes": 5,
+     "raw_tokens": 159547,
+     "usd": 0.3772,
+     "calls": 19,
+     "nav_calls": 9,
+     "sessions_using_nav": 5,
+     "tool_output_tokens_incl_resends": {
+      "graph/nav tools": 13643,
+      "grep (rg tool)": 8313
+     },
+     "infra": 0
+    }
+   },
+   "per_task": [
+    {
+     "task": "D11",
+     "stock": {
+      "raw": 46046,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 28454,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 32710,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D12",
+     "stock": {
+      "raw": 44748,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 27861,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 26624,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D13",
+     "stock": {
+      "raw": 45380,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 37270,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 44316,
+      "pass": true,
+      "calls": 5,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D14",
+     "stock": {
+      "raw": 66202,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 28300,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 25346,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D15",
+     "stock": {
+      "raw": 60446,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 24658,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 30551,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     }
+    }
+   ],
+   "graphify_effect_tm_vs_lean": {
+    "raw": 0.0887,
+    "usd": -0.2324,
+    "tasks_tm_lower_raw": 2,
+    "tasks_compared": 5
+   },
+   "tm_vs_stock": {
+    "raw": -0.3929,
+    "usd": -0.7125
+   },
+   "lean_vs_stock": {
+    "raw": -0.4424,
+    "usd": -0.6255
+   }
+  },
+  "claude-opus-5.5": {
+   "arms": {
+    "stock": {
+     "sessions": 5,
+     "passes": 4,
+     "raw_tokens": 429933,
+     "usd": 0.4666,
+     "calls": 19,
+     "nav_calls": 0,
+     "sessions_using_nav": 0,
+     "tool_output_tokens_incl_resends": {
+      "grep (rg tool)": 15786,
+      "grep (PowerShell)": 630,
+      "file read (view)": 276,
+      "other shell": 52
+     },
+     "infra": 0
+    },
+    "lean": {
+     "sessions": 5,
+     "passes": 5,
+     "raw_tokens": 220539,
+     "usd": 0.2318,
+     "calls": 20,
+     "nav_calls": 0,
+     "sessions_using_nav": 0,
+     "tool_output_tokens_incl_resends": {
+      "grep (rg tool)": 13459,
+      "other shell": 1505,
+      "file read (view)": 928,
+      "grep (PowerShell)": 544
+     },
+     "infra": 0
+    },
+    "tm": {
+     "sessions": 5,
+     "passes": 5,
+     "raw_tokens": 157447,
+     "usd": 0.171,
+     "calls": 14,
+     "nav_calls": 5,
+     "sessions_using_nav": 5,
+     "tool_output_tokens_incl_resends": {
+      "graph/nav tools": 7670,
+      "grep (rg tool)": 1246
+     },
+     "infra": 0
+    }
+   },
+   "per_task": [
+    {
+     "task": "D11",
+     "stock": {
+      "raw": 91337,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 44392,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 31305,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D12",
+     "stock": {
+      "raw": 64190,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 51153,
+      "pass": true,
+      "calls": 5,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 39468,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D13",
+     "stock": {
+      "raw": 92197,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 30553,
+      "pass": true,
+      "calls": 3,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 43115,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D14",
+     "stock": {
+      "raw": 69728,
+      "pass": false,
+      "calls": 3,
+      "why": "wrong:callers"
+     },
+     "lean": {
+      "raw": 52910,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 22949,
+      "pass": true,
+      "calls": 2,
+      "why": "ok"
+     }
+    },
+    {
+     "task": "D15",
+     "stock": {
+      "raw": 112481,
+      "pass": true,
+      "calls": 5,
+      "why": "ok"
+     },
+     "lean": {
+      "raw": 41531,
+      "pass": true,
+      "calls": 4,
+      "why": "ok"
+     },
+     "tm": {
+      "raw": 20610,
+      "pass": true,
+      "calls": 2,
+      "why": "ok"
+     }
+    }
+   ],
+   "graphify_effect_tm_vs_lean": {
+    "raw": -0.2861,
+    "usd": -0.2623,
+    "tasks_tm_lower_raw": 4,
+    "tasks_compared": 5
+   },
+   "tm_vs_stock": {
+    "raw": -0.6338,
+    "usd": -0.6335
+   },
+   "lean_vs_stock": {
+    "raw": -0.487,
+    "usd": -0.5032
+   }
+  }
+ }
+}
