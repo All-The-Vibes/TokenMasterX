@@ -4,7 +4,7 @@ Arms: stock = Copilot CLI as shipped; lean = TokenMaster without graphify (bridg
 tm = full TokenMaster (lean + graphify navigation tools). tm vs lean isolates graphify.
 Tool-output shares count every re-send: an output in a request's history is counted once per request.
 
-  python summarize.py <runs folder holding astra-ab, astra-lean, opus-ab, opus-lean>
+  python summarize.py <runs folder holding astra-ab, astra-lean, opus-ab, opus-lean> [<evidence folder, default: here>]
 """
 from collections import defaultdict
 import json
@@ -72,13 +72,13 @@ def change(new: float, old: float):
     return round(new / old - 1, 4) if old else None
 
 
-def main(runs: Path) -> None:
+def main(runs: Path, here: Path = HERE) -> None:
     summary, cache = {"kind": "exploratory, not pre-registered", "tasks": "tasks.json", "models": {}}, {}
     for short, model in MODELS.items():
         rows = {}  # (task, arm) -> row
         for variant, arms in (("ab", {"stock": "stock", "tm": "tm"}), ("lean", {"tm": "lean"})):
             out = runs / f"{short}-{variant}"
-            target = HERE / f"{short}-{variant}"
+            target = here / f"{short}-{variant}"
             target.mkdir(exist_ok=True)
             for name in ("results.jsonl", "setup.json", "warmup.json"):
                 if (out / name).exists():
@@ -123,7 +123,7 @@ def main(runs: Path) -> None:
                             "usd": change(arms["tm"]["usd"], arms["stock"]["usd"])},
             "lean_vs_stock": {"raw": change(arms["lean"]["raw_tokens"], arms["stock"]["raw_tokens"]),
                               "usd": change(arms["lean"]["usd"], arms["stock"]["usd"])}}
-    (HERE / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
+    (here / "summary.json").write_text(json.dumps(summary, indent=1) + "\n", encoding="utf-8")
     for model, data in summary["models"].items():
         print(f"== {model}")
         for arm, a in data["arms"].items():
@@ -134,4 +134,4 @@ def main(runs: Path) -> None:
 
 
 if __name__ == "__main__":
-    main(Path(sys.argv[1]))
+    main(Path(sys.argv[1]), Path(sys.argv[2]).resolve() if len(sys.argv) > 2 else HERE)

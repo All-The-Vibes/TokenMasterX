@@ -1,0 +1,202 @@
+{
+ "kind": "exploratory, not pre-registered",
+ "django_commit": "9e7cc2b628fe8fd3895986af9b7fc9525034c1b0",
+ "seed": 20261022,
+ "pool_size": 169,
+ "top": [
+  {
+   "symbol": "django/utils/dateformat.py::format",
+   "grep_tokens": 507193,
+   "callers": 2
+  },
+  {
+   "symbol": "django/contrib/staticfiles/finders.py::find",
+   "grep_tokens": 139878,
+   "callers": 2
+  },
+  {
+   "symbol": "django/contrib/messages/api.py::error",
+   "grep_tokens": 119256,
+   "callers": 2
+  },
+  {
+   "symbol": "django/template/defaultfilters.py::date",
+   "grep_tokens": 104686,
+   "callers": 2
+  },
+  {
+   "symbol": "django/templatetags/static.py::static",
+   "grep_tokens": 77229,
+   "callers": 3
+  },
+  {
+   "symbol": "django/urls/base.py::resolve",
+   "grep_tokens": 61666,
+   "callers": 7
+  },
+  {
+   "symbol": "django/core/serializers/__init__.py::serialize",
+   "grep_tokens": 38187,
+   "callers": 2
+  },
+  {
+   "symbol": "django/contrib/messages/api.py::success",
+   "grep_tokens": 32334,
+   "callers": 2
+  },
+  {
+   "symbol": "django/template/loader.py::render_to_string",
+   "grep_tokens": 24071,
+   "callers": 4
+  },
+  {
+   "symbol": "django/contrib/auth/__init__.py::login",
+   "grep_tokens": 21069,
+   "callers": 4
+  },
+  {
+   "symbol": "django/core/management/__init__.py::call_command",
+   "grep_tokens": 17148,
+   "callers": 8
+  },
+  {
+   "symbol": "django/core/signing.py::loads",
+   "grep_tokens": 6054,
+   "callers": 2
+  },
+  {
+   "symbol": "django/contrib/auth/__init__.py::authenticate",
+   "grep_tokens": 5061,
+   "callers": 3
+  },
+  {
+   "symbol": "django/core/signing.py::dumps",
+   "grep_tokens": 4508,
+   "callers": 2
+  },
+  {
+   "symbol": "django/contrib/auth/__init__.py::logout",
+   "grep_tokens": 4195,
+   "callers": 3
+  },
+  {
+   "symbol": "django/utils/formats.py::localize",
+   "grep_tokens": 3180,
+   "callers": 5
+  },
+  {
+   "symbol": "django/forms/models.py::modelformset_factory",
+   "grep_tokens": 2962,
+   "callers": 3
+  },
+  {
+   "symbol": "django/utils/timesince.py::timesince",
+   "grep_tokens": 2593,
+   "callers": 3
+  },
+  {
+   "symbol": "django/core/serializers/__init__.py::deserialize",
+   "grep_tokens": 2514,
+   "callers": 2
+  },
+  {
+   "symbol": "django/utils/http.py::urlencode",
+   "grep_tokens": 2496,
+   "callers": 7
+  }
+ ],
+ "tasks": [
+  {
+   "id": "D11",
+   "category": "investigate",
+   "stratum": "common-name",
+   "symbol": "django/core/signing.py::loads",
+   "grep_tokens": 6054,
+   "prompt": "We're about to change the signature of the function `loads()` in django/core/signing.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/sessions/backends/base.py::SessionBase.decode",
+     "django/contrib/sessions/backends/signed_cookies.py::SessionStore.load"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D12",
+   "category": "investigate",
+   "stratum": "common-name",
+   "symbol": "django/core/serializers/__init__.py::deserialize",
+   "grep_tokens": 2514,
+   "prompt": "We're about to change the signature of the function `deserialize()` in django/core/serializers/__init__.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/core/management/commands/loaddata.py::Command.load_label",
+     "django/db/backends/base/creation.py::BaseDatabaseCreation.deserialize_db_from_string"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D13",
+   "category": "investigate",
+   "stratum": "common-name",
+   "symbol": "django/contrib/auth/__init__.py::login",
+   "grep_tokens": 21069,
+   "prompt": "We're about to change the signature of the function `login()` in django/contrib/auth/__init__.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/auth/middleware.py::RemoteUserMiddleware.__call__",
+     "django/contrib/auth/views.py::LoginView.form_valid",
+     "django/contrib/auth/views.py::PasswordResetConfirmView.form_valid",
+     "django/test/client.py::ClientMixin._login"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D14",
+   "category": "investigate",
+   "stratum": "common-name",
+   "symbol": "django/urls/base.py::resolve",
+   "grep_tokens": 61666,
+   "prompt": "We're about to change the signature of the function `resolve()` in django/urls/base.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/admin/sites.py::AdminSite.catch_all_view",
+     "django/contrib/admin/templatetags/admin_urls.py::add_preserved_filters",
+     "django/test/client.py::AsyncClient.request",
+     "django/test/client.py::Client.request",
+     "django/urls/base.py::is_valid_path",
+     "django/urls/base.py::translate_url",
+     "django/views/debug.py::get_caller"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  },
+  {
+   "id": "D15",
+   "category": "investigate",
+   "stratum": "common-name",
+   "symbol": "django/contrib/staticfiles/finders.py::find",
+   "grep_tokens": 139878,
+   "prompt": "We're about to change the signature of the function `find()` in django/contrib/staticfiles/finders.py. Which non-test functions or methods call it directly? Only files under the top-level `tests/` directory count as test code. Reply with ONLY a JSON object with exactly 1 key: \"callers\" (list of strings, each \"<path relative to the repository root>::<Class.method or function>\"). List order does not matter.",
+   "expected": {
+    "callers": [
+     "django/contrib/staticfiles/management/commands/findstatic.py::Command.handle_label",
+     "django/contrib/staticfiles/views.py::serve"
+    ]
+   },
+   "unordered_list_keys": [
+    "callers"
+   ]
+  }
+ ]
+}
