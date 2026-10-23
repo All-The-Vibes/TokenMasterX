@@ -84,10 +84,18 @@ have made the same model calls.
      after its first call.
 2. **First call, per session.** The first call of a session writes most of its prompt to GitHub's cache.
    - Stock's first call would send the same prompt plus the fixed tokens. It would read its usual cached prefix
-     (`stock_first_cached` tokens) and write the rest.
+     and write the rest.
+   - The usual cached prefix is measured from your own stock sessions: the median tokens that their first calls read
+     from the cache, per model. Only for a model with no stock session in the store does the dashboard use the
+     calibration value `stock_first_cached`.
    - Cost saved = (stock's write − the actual write) × (cache-write price − cache-read price).
    - The result can be negative. Example: a TokenMaster session starts cold, while stock's prefix is warm.
    - This term changes only cost, not raw tokens.
+   - Why the dashboard measures it: on October 23, 2026, every stock first call in a real Copilot CLI 1.0.98 home
+     with default GitHub routing read 0 tokens from the cache (6 sessions, `gpt-6.1-sol` and `claude-sonnet-5.5`),
+     even 2 minutes after another stock session. The probe's 6,450 came from bring-your-own-model mode with the
+     built-in MCP servers off. With the calibration value, the dashboard showed a small negative cost saving for two
+     TokenMaster sessions whose measured cost was 33% and 41% lower than stock's.
 
 The fixed prompt depends on the Copilot CLI version. The dashboard uses the 1.0.98 values: the launcher runs the
 installed Copilot CLI, which was 1.0.98 on October 23, 2026.
@@ -160,8 +168,9 @@ same time. Those runs used Copilot CLI 1.0.78-3, so the check uses the 1.0.78-3 
 - The savings are an estimate. The 1.0.98 values come from a probe with one short prompt, two models and no A/B
   run. A different Copilot CLI version, more MCP servers or custom instructions change the fixed prompt, and the
   values do not follow.
-- `stock_first_cached` assumes that another session of the same version ran shortly before, so stock's prefix is warm.
-  After a long pause, stock's first call is colder, and the real first-call saving is larger.
+- Without a stock session of your own for a model, `stock_first_cached` assumes that another session of the same
+  version ran shortly before, so stock's prefix is warm. After a long pause, stock's first call is colder, and the real
+  first-call saving is larger.
 - Copilot CLI's `session-store.db` is an internal file. A future Copilot CLI version can change its tables. The
   dashboard reads only the columns it finds.
 - Cost is GitHub's charge for each call. It does not count premium requests or plan allowances.

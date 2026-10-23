@@ -87,19 +87,23 @@ def test_estimates_follow_the_documented_formula(tmp_path):
     responses, messages = tokenomics.CALIBRATION["responses"], tokenomics.CALIBRATION["messages"]
     fixed = responses["lean"] - responses["nav"]  # lean tool set, less the navigation tools' definitions
 
-    def first_call(calibration, fixed, read, write):  # stock writes its prompt plus the fixed tokens, less its cache
-        return read + write + fixed - min(calibration["stock_first_cached"], read + write + fixed) - write
+    def first_call(usual, fixed, read, write):  # stock writes its prompt plus the fixed tokens, less its cache
+        return read + write + fixed - min(usual, read + write + fixed) - write
 
+    # Stock's usual first-call cache read comes from the store's own stock sessions: S (gpt-6-astra) read 0 and
+    # V (claude-opus-5.5) read 13,393 on their first calls.
+    assert tokenomics.stock_first_cached(calls) == {"gpt-6-astra": 0, "claude-opus-5.5": 13393}
     assert by[0][1:] == by[1][1:] == (0, 0, 0)  # stock calls carry no estimate
-    assert by[2] == ("T", fixed, round(fixed * 1e5), round(first_call(responses, fixed, 6921, 174) * 11.5e5))
+    assert by[2] == ("T", fixed, round(fixed * 1e5), round(first_call(0, fixed, 6921, 174) * 11.5e5))
     assert by[3] == ("T", fixed, round(fixed * 1e5), 0)  # only a session's first call gets the cache term
     assert by[4] == ("T", 0, 0, 0) and calls[4]["launch"] and not calls[4]["estimated"]  # subagent
     assert by[5] == ("U", messages["lean"], round(messages["lean"] * 0.2e5),
-                     round(first_call(messages, messages["lean"], 5000, 4331) * 4.8e5))
+                     round(first_call(13393, messages["lean"], 5000, 4331) * 4.8e5))
     assert by[6][1:] == (0, 0, 0) and calls[6]["launch"] is None  # outside every launch window
 
 
-def test_a_cold_tokenmaster_start_can_cost_more_than_a_warm_stock_start():
+def test_without_stock_sessions_a_cold_tokenmaster_start_can_cost_more_than_stock():
+    # No stock session in the store: stock's first-call cache read falls back to the calibration (warm stock).
     responses = tokenomics.CALIBRATION["responses"]
     prices = {"input": 1e6, "cache_read": 1e5, "cache_write": 1.25e6, "output": 5e6}
     at = datetime(2026, 10, 23, 5, 32, tzinfo=timezone.utc)

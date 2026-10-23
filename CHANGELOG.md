@@ -47,6 +47,10 @@ and the project aims to follow semantic versioning.
   pre-approves no tool: Copilot CLI asks before it runs the command, unless it started with `--allow-all-tools`.
 - When a range has no TokenMaster calls, the dashboard prints the launcher command with the full path of its own
   Python. On some Windows machines, `python` on PATH is only the Microsoft Store placeholder.
+- Stock's usual first-call cache read now comes from the store's own stock sessions (median per model); the
+  calibration value applies only to a model without stock sessions. In a real Copilot CLI 1.0.98 home with default
+  GitHub routing, all 6 stock first calls read 0 tokens from the cache, so the calibration's 6,450 had turned two
+  measured savings (33% and 41% lower cost) into a small negative estimate. The validation results do not change.
 - Live checks (`evidence/tokenomics-check-20261023/`): typed in an interactive session, `/tokenomics` works on
   Copilot CLI 1.0.78-3 and 1.0.98, although the lean tool set removes the `skill` tool. It took 2 model calls,
   16,445 tokens and $0.16 on 1.0.98. The `!` shell form needs no model call. With `-p`, Copilot CLI passes

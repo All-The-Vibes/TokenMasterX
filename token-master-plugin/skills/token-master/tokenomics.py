@@ -13,7 +13,8 @@ Copilot CLI would have made the same model calls:
 - Lean tool set: every main-agent call sent fewer fixed tokens than stock Copilot CLI ("lean"), less the navigation
   tools' definitions when they were installed ("nav"). These tokens are priced at the call's cache-read price.
 - First call: stock Copilot CLI's first call sends the same prompt plus those fixed tokens, and reads only its usual
-  cached prefix ("stock_first_cached"); it writes the rest to the prompt cache. The difference to the actual
+  cached prefix: the median first-call cache read of this store's own stock sessions with the same model, else the
+  calibration's "stock_first_cached". It writes the rest to the prompt cache. The difference to the actual
   first-call write is priced at (cache-write price - cache-read price). It can be negative.
 Not counted: model calls that graph navigation saved, v6 shaping, and any other change in model behavior. On the
 measured A/B runs (Copilot CLI 1.0.78-3), the method gave 72% to 125% of the measured token saving.
@@ -32,6 +33,7 @@ import os
 from pathlib import Path
 import shutil
 import sqlite3
+import statistics
 import sys
 import tempfile
 
@@ -171,6 +173,18 @@ def norm(folder: str | None) -> str:
 
 # ----------------------------------------------------------------------------------------------- savings
 
+def stock_first_cached(calls: list[dict]) -> dict:
+    """Per model: the median tokens that this store's own stock sessions read from the cache on their first call."""
+    firsts = {}
+    for call in calls:  # time order
+        if call["main"] and not call["launch"]:
+            firsts.setdefault((call["session"], call["model"]), call["cache_read"])
+    by_model = defaultdict(list)
+    for (_, model), cache_read in firsts.items():
+        by_model[model].append(cache_read)
+    return {model: statistics.median(values) for model, values in by_model.items()}
+
+
 def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibrations: dict | None = None) -> None:
     """Tag TokenMaster calls and add their estimated savings, in place."""
     calibrations = calibrations or CALIBRATION
@@ -185,9 +199,13 @@ def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibratio
         # folder, stays stock. A resumed session counts as stock.
         matches = [launch for launch in launches if folder and launch["cwd"] == folder
                    and launch["start"] <= started <= launch["end"] and launch["start"] <= call["at"] <= launch["end"]]
-        if not matches:
+        if matches:
+            call["launch"] = matches[-1]
+    observed = stock_first_cached(calls)
+    for call in calls:
+        launch = call["launch"]
+        if not launch:
             continue
-        launch = call["launch"] = matches[-1]
         calibration = calibrations.get(call["api"])
         read, write = call["prices"].get("cache_read"), call["prices"].get("cache_write")
         if not call["main"] or calibration is None or read is None:
@@ -200,8 +218,10 @@ def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibratio
             first_seen.add(key)
             if write is not None and cached:
                 # Stock's first call: the same prompt plus the fixed tokens, minus the prefix that stock usually reads
-                # from the cache. It can be smaller than the actual write, for example on a cold TokenMaster start.
-                stock_write = cached + fixed - min(calibration["stock_first_cached"], cached + fixed)
+                # from the cache: measured from this store's stock sessions, else the calibration. It can be smaller
+                # than the actual write, for example on a cold TokenMaster start.
+                usual = observed.get(call["model"], calibration["stock_first_cached"])
+                stock_write = cached + fixed - min(usual, cached + fixed)
                 call["first_nano"] = (stock_write - call["cache_write"]) * (write - read)
         call["saved_nano"] = call["lean_nano"] + call["first_nano"]
 

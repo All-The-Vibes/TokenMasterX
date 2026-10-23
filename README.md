@@ -155,7 +155,9 @@ To use it:
 
 Excerpt from a live check (Copilot CLI 1.0.98, `gpt-6-astra`, October 23, 2026): one stock
 session, then two TokenMaster sessions with the same one-line question in the same folder
-([full record](evidence/tokenomics-check-20261023/readme-example.txt)).
+([full record](evidence/tokenomics-check-20261023/readme-example.txt)). The "Saved (USD) ≈"
+values come from the estimator of that morning. The current estimator measures stock's first-call
+cache reads from your own stock sessions, so it would credit more here.
 
 ```text
 ┌──────────┬───────────────┬──────────────┬────────────┬──────────────┬────────────────┬───────────────┐
@@ -190,7 +192,8 @@ TokenMaster savings (estimated)
   same calls for stock, so it does not show that difference.
 - **How the estimate works:** each TokenMaster call is credited with the fixed tokens that the
   lean tool set removes, and each session's first call is compared with stock's prompt-cache
-  write. Calls that graph navigation saved are not counted. On the measured A/B runs (Copilot
+  write. Stock's first-call cache reads come from your own stock sessions when the store has
+  them. Calls that graph navigation saved are not counted. On the measured A/B runs (Copilot
   CLI 1.0.78-3), the method gave 72% to 125% of the measured token saving. The values for 1.0.98
   come from a probe, not from an A/B run.
 
@@ -371,7 +374,7 @@ commit `703aa20`, so they predate the v5 changes:
 - [Documentation index](token-master-plugin/docs/README.md)
 - [Real Copilot CLI results](token-master-plugin/docs/COPILOT_CLI_RESULTS.md) and the
   [launcher and bridge](token-master-plugin/docs/COPILOT_BRIDGE.md)
-- [/tokenomics dashboard](token-master-plugin/docs/TOKENOMICS.md)
+- [/tokenomics dashboard](token-master-plugin/docs/TOKENOMICS.md) and a [15-minute demo script](docs/DEMO_SCRIPT.md)
 - [PRS-4 results](token-master-plugin/docs/PRS4_RESULTS.md) and [protocol](token-master-plugin/docs/PRS4_PROTOCOL.md)
 - [PRS-3 results](token-master-plugin/docs/PRS3_RESULTS.md) and [protocol](token-master-plugin/docs/PRS3_PROTOCOL.md)
 - [PRS-2 results](token-master-plugin/docs/PRS2_RESULTS.md) and [protocol](token-master-plugin/docs/PRS2_PROTOCOL.md)
