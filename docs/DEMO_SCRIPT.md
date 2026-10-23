@@ -18,6 +18,7 @@
 2. Paste this block into both windows. It defines two helpers for that window only:
 
    ```powershell
+   . $PROFILE.CurrentUserCurrentHost
    cd C:\Users\shyamsridhar\code\Tokenmaster
    $django = "$env:TEMP\opencode\django-g091"
    $nav = "@$env:USERPROFILE\.copilot\token-master\demo-nav-mcp.json"
