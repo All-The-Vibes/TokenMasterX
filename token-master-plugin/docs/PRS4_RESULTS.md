@@ -9,6 +9,11 @@ Protocol: [PRS4_PROTOCOL.md](PRS4_PROTOCOL.md). Evidence: `evidence/prs4-2026101
 - `analyze` also checked every graded session against the provider's own bill. The largest
   difference was 0.0 units.
 
+> **Harness (note added October 22, 2026).** PRS-4 ran a Copilot-CLI-shaped agent, not the real
+> Copilot CLI. Its fixed prompt was about 3,600 tokens. The real Copilot CLI 1.0.98 sends about
+> 13,500 tokens of system prompt and tool definitions with `gpt-6-astra`. For results with the
+> real Copilot CLI, see [COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md).
+
 ## Result
 
 **Under continuous use, `tm8` (v7 plus the cache-stable system prompt) had 49.8% lower billed
@@ -78,6 +83,8 @@ missed the cache.
 - **Product scope.**
   - Only the native Copilot route applies the cache-stable system prompt, because only that
     route sees the request. That route is experimental and read-only.
+  - Update (October 22, 2026): the Copilot CLI bridge now applies it too, in
+    bring-your-own-model mode ([COPILOT_BRIDGE.md](COPILOT_BRIDGE.md)).
   - The default install (the `tokenmaster-nav` MCP server and the v6 `view` hook) cannot apply
     it. That hook applies v6 only to whole-file `view` results.
   - No PRS study measured the default install. Inference: its users should not expect more

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TokenMaster PRS-4 results</title>
+  <title>TokenMaster on the real Copilot CLI</title>
   <style>
     :root {
       --bg: #07090e;
@@ -277,32 +277,32 @@
   <div class="slide">
     <div class="header">
       <div>
-        <div class="badge">● PRS-4 · Pre-registered · 360 live sessions · 24 fresh blind-authored tasks · gpt-6-astra</div>
-        <h1>Under continuous use, v7 + a cache-stable system prompt cut billed cost by 49.8%. <span>The 30% goal is met.</span></h1>
-        <p class="subtitle">Billed cost per finished task at the provider's own prices: cache read 0.1, cache write 1.25, output 5. One model, one repository. Every token recounted and checked against the provider's bill.</p>
+        <div class="badge">&#9679; Real Copilot CLI 1.0.98 &middot; gpt-6-astra and claude-opus-5.5 &middot; Django 5.2 &middot; 45 tasks per model &middot; 270 sessions &middot; exploratory</div>
+        <h1>On the real Copilot CLI, TokenMaster used about half the raw tokens. <span>Every task used fewer.</span></h1>
+        <p class="subtitle">Raw tokens: input plus output, as GitHub's API reported them. Cost: GitHub's prices; GitHub's own per-call charges match. Test: Copilot CLI 1.0.98 in bring-your-own-model mode through a relay to GitHub's API, reasoning effort low, 1 run per task and version, all versions at the same time with sessions back to back. Exploratory, not pre-registered; one task type ("who calls X?").</p>
       </div>
     </div>
 
     <div class="hero-grid">
       <div class="stat-card">
-        <div class="stat-label">v7 + cache-stable system prompt · vs. stock</div>
-        <div class="stat-value accent">−49.8%</div>
-        <div class="stat-sub">95% CI −57.1% to −42.9% · 24 of 24 tasks cheaper</div>
+        <div class="stat-label">Raw tokens &middot; gpt-6-astra &middot; vs. stock</div>
+        <div class="stat-value accent">&minus;53.4%</div>
+        <div class="stat-sub">95% CI &minus;57.1% to &minus;49.1% &middot; 45 of 45 tasks lower</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">v7 alone · vs. stock</div>
-        <div class="stat-value cyan">−18.2%</div>
-        <div class="stat-sub">95% CI −26.6% to −9.5% · significant again on new tasks</div>
+        <div class="stat-label">Raw tokens &middot; claude-opus-5.5 &middot; vs. stock</div>
+        <div class="stat-value accent">&minus;51.6%</div>
+        <div class="stat-sub">95% CI &minus;55.7% to &minus;47.2% &middot; 45 of 45 tasks lower</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">v7 + cache-stable, cold cache · vs. stock</div>
-        <div class="stat-value">−18.9%</div>
-        <div class="stat-sub">every first call re-priced as a cache miss</div>
+        <div class="stat-label">Cost &middot; gpt-6-astra &middot; every session cold</div>
+        <div class="stat-value cyan">&minus;49.5%</div>
+        <div class="stat-sub">As run, back to back: &minus;79.9% ($11.55 &rarr; $2.33). claude-opus-5.5: &minus;46.0% cold, &minus;60.8% as run.</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Task success · every arm</div>
-        <div class="stat-value accent">120/120</div>
-        <div class="stat-sub">Same as stock · no quality loss</div>
+        <div class="stat-label">Correct answers &middot; both models</div>
+        <div class="stat-value">88/90</div>
+        <div class="stat-sub">Stock 90/90 &middot; both misses were model errors</div>
       </div>
     </div>
 
@@ -313,61 +313,71 @@
           <div class="step">
             <div class="step-num">1</div>
             <div class="step-body">
-              <strong>One system prompt for every session</strong>
-              <p>Copilot CLI puts each session's folder in its system prompt. With that line moved to the first user message, 119 of 120 back-to-back sessions read the prompt from the cache.</p>
+              <strong>A smaller fixed prompt on every call</strong>
+              <p>Copilot CLI re-sends its system prompt and tool definitions on every call. Removing 11 built-in tools that no session used in the October 18 runs cut the first call by about half.</p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">2</div>
             <div class="step-body">
-              <strong>Smaller tool results</strong>
-              <p>v6 shaping plus v7's locate, read_symbol and impact cut raw tokens by 14% to 15% against stock.</p>
+              <strong>Graph navigation saves calls</strong>
+              <p>graphify's call graph answers "who calls X" in one compact result. On top of the lean tool set, it cut a further 15.4% (gpt-6-astra) and 9.8% (claude-opus-5.5) of raw tokens.</p>
             </div>
           </div>
           <div class="step">
             <div class="step-num">3</div>
             <div class="step-body">
-              <strong>History is never rewritten</strong>
-              <p>v6 shapes each tool result once, so every later call still reads the history from the cache.</p>
+              <strong>One system prompt for every session</strong>
+              <p>In bring-your-own-model mode, the bridge keeps the prompt prefix identical. With sessions back to back, 44 of 45 gpt-6-astra sessions started from the cache; stock: 0 of 45. This saves cost only while the cache lasts (6.5 to 31 minutes in one probe).</p>
             </div>
           </div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-title">Billed cost per arm (120 sessions each)</div>
+        <div class="panel-title">Raw tokens per version (45 tasks)</div>
         <div class="chart-rows">
           <div class="chart-row arm">
-            <div class="turn-label">stock</div>
+            <div class="turn-label">gpt-6-astra &middot; stock</div>
             <div class="bars"><div class="bar-base" style="width: 100%"></div></div>
-            <div class="delta-pill neutral">1.61M</div>
+            <div class="delta-pill neutral">2.42M</div>
           </div>
           <div class="chart-row arm">
-            <div class="turn-label">v7 (v6 + navigation tools)</div>
-            <div class="bars"><div class="bar-v5" style="width: 81.8%"></div></div>
-            <div class="delta-pill">1.32M · −18.2%</div>
+            <div class="turn-label">gpt-6-astra &middot; TokenMaster without graphify</div>
+            <div class="bars"><div class="bar-muted" style="width: 55.1%"></div></div>
+            <div class="delta-pill">1.33M &middot; &minus;44.9%</div>
           </div>
           <div class="chart-row arm">
-            <div class="turn-label">v7 + cache-stable system prompt, cold (re-priced)</div>
-            <div class="bars"><div class="bar-muted" style="width: 81.1%"></div></div>
-            <div class="delta-pill neutral">1.30M · −18.9%</div>
+            <div class="turn-label">gpt-6-astra &middot; full TokenMaster</div>
+            <div class="bars"><div class="bar-v5" style="width: 46.6%"></div></div>
+            <div class="delta-pill">1.13M &middot; &minus;53.4%</div>
           </div>
           <div class="chart-row arm">
-            <div class="turn-label">v7 + cache-stable system prompt</div>
-            <div class="bars"><div class="bar-v5" style="width: 50.2%"></div></div>
-            <div class="delta-pill">0.81M · −49.8%</div>
+            <div class="turn-label">claude-opus-5.5 &middot; stock</div>
+            <div class="bars"><div class="bar-base" style="width: 100%"></div></div>
+            <div class="delta-pill neutral">3.46M</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">claude-opus-5.5 &middot; TokenMaster without graphify</div>
+            <div class="bars"><div class="bar-muted" style="width: 53.7%"></div></div>
+            <div class="delta-pill">1.86M &middot; &minus;46.3%</div>
+          </div>
+          <div class="chart-row arm">
+            <div class="turn-label">claude-opus-5.5 &middot; full TokenMaster</div>
+            <div class="bars"><div class="bar-v5" style="width: 48.4%"></div></div>
+            <div class="delta-pill">1.67M &middot; &minus;51.6%</div>
           </div>
         </div>
-        <div class="legend note">Continuous use: sessions of one repository ran back to back. In one probe, the cached prompt survived 6.5 minutes but not 31. Only the experimental, read-only native Copilot route applies the cache-stable system prompt.</div>
+        <div class="legend note">Bars are scaled per model. On this repository (27 tasks), full TokenMaster used 44.8% and 53.5% fewer raw tokens. Not yet measured: Copilot CLI's default GitHub routing, a pre-registered study, and work that needs subagents or skills.</div>
       </div>
     </div>
 
     <div class="footer">
-      <div>Evidence: <code>evidence/prs4-20261018/</code> · Protocol: <code>token-master-plugin/docs/PRS4_PROTOCOL.md</code></div>
+      <div>Evidence: <code>evidence/django-scale-20261022/</code> &middot; Details: <code>token-master-plugin/docs/COPILOT_CLI_RESULTS.md</code></div>
       <div class="pills">
-        <span class="pill">✓ Pre-registered, SHA-frozen</span>
-        <span class="pill">✓ Tasks written blind to the arms</span>
-        <span class="pill">✓ 30% goal met (continuous use)</span>
+        <span class="pill">&#10003; Real Copilot CLI, not a replica</span>
+        <span class="pill">&#10003; GitHub's own bill matches</span>
+        <span class="pill">Exploratory, not pre-registered</span>
       </div>
     </div>
   </div>

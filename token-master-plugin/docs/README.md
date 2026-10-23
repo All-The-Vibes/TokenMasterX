@@ -6,11 +6,18 @@ This directory contains the architecture specifications, mathematical contracts,
 
 ## 1. Start Here: Current Evidence
 
+- **[Real Copilot CLI results](COPILOT_CLI_RESULTS.md)**: exploratory runs of the real Copilot CLI 1.0.98 with `gpt-6-astra` and `claude-opus-5.5`, October 18–22, 2026.
+  - Django, 45 "who calls X?" tasks: full TokenMaster used 53.4% and 51.6% fewer raw tokens than stock. Cost fell 79.9% and 60.8% with sessions back to back, and 49.5% and 46.0% with every first call re-priced as cold. Correct answers: stock 90/90, TokenMaster 88/90.
+  - This repository, 27 tasks: 44.8% and 53.5% fewer raw tokens.
+  - Most of the saving came with the lean tool set; on Django, graphify cut a further 15.4% and 9.8% on top of it.
+- **[Copilot CLI launcher and bridge](COPILOT_BRIDGE.md)**: how to start Copilot CLI with the lean tool set, and what the bridge adds in bring-your-own-model mode.
+- **Pre-registered studies in a replica harness.** PRS-1 to PRS-4 ran a Copilot-CLI-shaped agent with `gpt-6-astra`, not the real Copilot CLI. The PRS-4 agent's fixed prompt was about 3,600 tokens; the real CLI sends about 13,500.
 - **[PRS-4 results](PRS4_RESULTS.md)**: a pre-registered live study on 24 fresh tasks (360 sessions, 3 arms).
   - Under continuous use, v7 plus the cache-stable system prompt lowered billed cost per finished task by 49.8% against stock (95% CI −57.1% to −42.9%).
   - v7 alone lowered it by 18.2%. Every arm passed 120/120.
-  - Only the experimental, read-only native Copilot route applies the cache-stable system prompt.
+  - Today the native Copilot route and the Copilot CLI bridge (bring-your-own-model mode) apply the cache-stable system prompt.
 - **[PRS-4 protocol](PRS4_PROTOCOL.md)**: the pre-registered design, goal rule and red-team fixes.
+- **[PRS-5 protocol](PRS5_PROTOCOL.md)**: a pre-registered real-CLI study. It stopped after 10 of 32 sessions on October 18, 2026; its partial data are evidence, not a result.
 - **[PRS-3 results](PRS3_RESULTS.md)**: a pre-registered live study on 24 fresh tasks (480 sessions, 4 arms).
   - v7 graph-first navigation lowered cost by 22.0% against stock (95% CI −35.4% to −8.9%), with 120/120 passed.
   - v6 replicated at −13.0%.
@@ -23,7 +30,7 @@ This directory contains the architecture specifications, mathematical contracts,
   - Every TokenMaster arm passed 36/36.
 - **[PRS-1 protocol](PRS1_PROTOCOL.md)**: the design, arms, endpoints and decision rules, frozen before the run, plus every change made before it.
 - **[Root README](../../README.md)**: overview, results table and reproduction commands.
-- **[Single-slide summary](../../docs/tokenmaster-v5-slide.html)**: a one-screen view of the PRS-4 results.
+- **[Single-slide summary](../../docs/tokenmaster-v5-slide.html)**: a one-screen view of the real Copilot CLI results.
 - **[Retracted: V5 isolated sandbox report](V5_ISOLATED_SANDBOX_SAVINGS_REPORT.md)**: why the October 17 numbers were withdrawn.
 - **[Mission & Thesis](../../MISSION.md)**: the spatial (graph routing) and temporal (context compaction) thesis.
 - **[Changelog](../../CHANGELOG.md)**: chronological release and engineering log.

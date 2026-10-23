@@ -1,9 +1,14 @@
 #!/usr/bin/env python
-"""Run GitHub Copilot CLI through a local TokenMaster bridge (opt-in; Copilot CLI BYOK mode).
+"""Start GitHub Copilot CLI for TokenMaster: a lean tool set, plus a local bridge in BYOK mode.
 
-Copilot CLI sends model requests to COPILOT_PROVIDER_BASE_URL. The bridge listens on
-127.0.0.1, rewrites each Responses API request, and forwards it to one upstream: --upstream,
-or the COPILOT_PROVIDER_BASE_URL that was already set. The bridge never reads, stores or adds
+Lean tool set: for a Copilot CLI session, the launcher adds --excluded-tools with the built-in
+tools that no session called in the October 18 runs (LEAN_EXCLUDED_TOOLS). It skips this with
+--all-tools, when the user already chose tools, or for a Copilot CLI subcommand.
+
+Bridge (only with a provider URL, Copilot CLI BYOK mode): Copilot CLI sends model requests to
+COPILOT_PROVIDER_BASE_URL. The bridge listens on 127.0.0.1, rewrites each OpenAI Responses or
+Anthropic Messages request, and forwards it to one upstream: --upstream, or the
+COPILOT_PROVIDER_BASE_URL that was already set. The bridge never reads, stores or adds
 credentials. The client's headers, including Authorization, go to the upstream unchanged.
 
 The bridge applies two deterministic rewrites to every request. Each call of a session
@@ -12,10 +17,11 @@ therefore sends the same bytes for its history, and the provider's prefix cache 
 - request-policy-v6 shaping of grep, glob and whole-file view results
   (brainspace.v6_shaping.shape_tool_result; PRS-2 and PRS-3). Other tool results pass through.
 
-  python brainspace_copilot_bridge.py [--upstream URL] [--log usage.jsonl] -- copilot [args...]
+  python brainspace_copilot_bridge.py [--all-tools] [--upstream URL] [--log usage.jsonl] -- copilot [args...]
   python brainspace_copilot_bridge.py [--upstream URL]          (serve only; prints the base URL)
 
-The upstream must accept OpenAI Responses requests at <upstream>/responses.
+Without a provider URL, Copilot CLI keeps its normal GitHub routing and the launcher applies only
+the lean tool set. See docs/COPILOT_BRIDGE.md.
 """
 from __future__ import annotations
 
@@ -48,7 +54,8 @@ MAX_BODY = 64 * 1024 * 1024
 _HOP = frozenset({"host", "content-length", "connection", "keep-alive", "proxy-authorization",
                   "proxy-connection", "te", "trailer", "transfer-encoding", "upgrade", "accept-encoding"})
 _LOOPBACK = ("127.0.0.1", "localhost", "::1")
-# Built-in Copilot CLI tools that no measured session called (October 2026 runs, gpt-6-astra and claude-opus-5.5).
+# Built-in Copilot CLI tools that no session called in the October 18 runs (gpt-6-astra and claude-opus-5.5).
+# A later stock session (October 19) called `task` once. --all-tools keeps them.
 # Excluding them removes their definitions and the system-prompt text about them from every model call.
 LEAN_EXCLUDED_TOOLS = ("session_store_sql", "task", "read_agent", "write_agent", "list_agents", "skill", "sql",
                        "read_powershell", "stop_powershell", "list_powershell", "fetch_copilot_cli_documentation")
@@ -359,11 +366,13 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--upstream", default=os.environ.get("COPILOT_PROVIDER_BASE_URL"),
                         help="Responses or Anthropic API base URL (default: the current COPILOT_PROVIDER_BASE_URL). "
-                             "Without one, Copilot CLI keeps its normal routing and only the lean tool set applies.")
+                             "Without one, Copilot CLI keeps its normal routing and the launcher applies only the "
+                             "lean tool set.")
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--log", help="append one JSON line per model request: usage numbers, no content")
     parser.add_argument("--all-tools", action="store_true",
-                        help="keep every built-in Copilot CLI tool (default: exclude the ones no measured session used)")
+                        help="keep every built-in Copilot CLI tool (default: exclude the ones no session used in "
+                             "the October 18 runs)")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command

@@ -7,6 +7,69 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Real Copilot CLI: 45-task Django run, graphify 0.9.91 and documentation — October 22, 2026
+
+- Documentation now leads with the real Copilot CLI results. The new
+  `docs/COPILOT_CLI_RESULTS.md` gives their method, numbers and limits. README, MISSION,
+  `docs/COPILOT_BRIDGE.md`, the documentation index, the skill guide and the slide were updated.
+  PRS-1 to PRS-4 are now labeled as studies in a replica harness.
+- A 45-task Django 5.2 run measured stock Copilot CLI 1.0.98, TokenMaster without graphify and
+  full TokenMaster, with `gpt-6-astra` and `claude-opus-5.5` (270 sessions, exploratory).
+  - Raw tokens, full TokenMaster against stock: −53.4% (95% CI −57.1% to −49.1%) and −51.6%
+    (−55.7% to −47.2%). Fewer raw tokens on all 45 tasks with each model.
+  - Cost with sessions back to back: $11.55 → $2.33 (`gpt-6-astra`) and $3.31 → $1.30
+    (`claude-opus-5.5`). Re-priced with every first call cold: −49.5% and −46.0%.
+  - Correct answers: stock 90/90, each TokenMaster version 88/90. The 4 errors were model errors.
+  - Graphify cut a further 15.4% and 9.8% of the raw tokens that TokenMaster without graphify
+    used.
+  - The tasks were committed before the run (`0516a82`); results `5d27601`.
+  - `evidence/django-scale-20261022/analyze.py` gives the confidence intervals and the cold
+    re-pricing. `evidence/copilot-lean-analysis-20261022/` does the same for the 27-task run of
+    October 19.
+- `evidence/django-scale-20261022/audit.py` recounts the run from the committed per-call
+  records. Its totals match, and GitHub's own per-call charges add up to the same costs
+  (`f3e6c36`).
+- `evals/django_ab.py` runs these Django A/Bs (`dd1f38a`). It resets each workspace with
+  `robocopy /MIR` and hashes each template once per run (`0516a82`). A reset of the 289 MB
+  TokenMaster workspace now takes 0.3 seconds instead of minutes. `--self-test` covers both.
+- Graphify was upgraded from 0.9.84 to 0.9.91, the newest version that the company package feed
+  served (`35bc10b`). On Django, `impact` found the same 54 of 56 answer-key callers with either
+  version. Both versions miss calls through an import alias.
+- Two smaller Django runs earlier that day (`dd1f38a`, `d34b5c3`) used 15 of the 45 tasks. The
+  45-task run repeated them and supersedes them.
+
+### Lean tool set for Copilot CLI and the first real-CLI A/Bs — October 18–19, 2026
+
+- `setup.py` now adds `graphify-out/` to `.gitignore`. Before, `rg` searched graphify's 9.5 MB
+  `graph.json` (`319d1b2`, October 19).
+- Without a model, a repository-wide `rg` for "who uses X" printed 128,279 tokens for 40 Django
+  symbols; `impact` returned 8,401. For "where is X defined", `rg` printed 992 tokens and
+  `locate` returned 2,116 (`319d1b2`). These are raw `rg` outputs; Copilot's search tool shortens
+  long results.
+- The launcher now applies a lean tool set by default (`981444d`, October 19).
+  - It passes `--excluded-tools` for 11 built-in tools that no session called in the October 18
+    runs: `session_store_sql`, `task`, `read_agent`, `write_agent`, `list_agents`, `skill`,
+    `sql`, `read_powershell`, `stop_powershell`, `list_powershell` and
+    `fetch_copilot_cli_documentation`. One later stock session (P13, October 19) called `task`.
+  - It skips this when the user passes `--all-tools`, chooses tools, or runs a subcommand.
+  - Without a provider URL, it runs Copilot CLI with its normal routing and the lean tool set.
+  - In a one-task probe, the `gpt-6-astra` system prompt fell from 7,216 to 5,117 tokens, and
+    the session from 27,255 to 13,702 raw tokens.
+- A 27-task A/B on this repository (`c5681a7`, October 19, exploratory): full TokenMaster used
+  44.8% (`gpt-6-astra`) and 53.5% (`claude-opus-5.5`) fewer raw tokens than stock. Cost fell
+  62.8% and 51.2% with sessions back to back, and 40.8% and 43.9% with every first call
+  re-priced as cold. Passed: stock 27/27 and 27/27; TokenMaster 27/27 and 26/27.
+- The bridge also supports Anthropic Messages, because GitHub's API serves `claude-opus-5.5`
+  only on Anthropic Messages and Chat Completions (`5524197`, October 18). An A/B before the
+  lean tool set raised raw tokens by 7.6% (`gpt-6-astra`) and 2.4% (`claude-opus-5.5`), and
+  lowered cost by 14.3% and 19.8%.
+- `brainspace_setup.py --host copilot` no longer installs the `brainspace` MCP server
+  (`763d451`, October 18). Its 5 tools got no calls in live sessions, and their definitions
+  added about 500 tokens to each call. `--brainspace-mcp` installs it; a reinstall removes an
+  owned one. The navigation tool descriptions now say which searches and reads they replace.
+- PRS-5, a pre-registered real-CLI study (`dec1bb2`, `3f2b5a9`), stopped after 10 of 32
+  sessions on October 18. Its partial data are kept as evidence, not as a study result.
+
 ### Copilot CLI bridge and a live fix for the v6 hook — October 18, 2026
 
 - New opt-in `brainspace_copilot_bridge.py` runs Copilot CLI in bring-your-own-key mode through
