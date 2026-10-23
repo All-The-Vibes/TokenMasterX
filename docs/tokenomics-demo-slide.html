@@ -4,649 +4,1214 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TokenMaster &amp; /tokenomics — Math, Architecture &amp; Live Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton:wght@400&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <script>document.documentElement.classList.add('js')</script>
   <style>
     :root {
-      --bg: #07090e;
-      --card: rgba(17, 23, 36, 0.88);
-      --card-soft: rgba(255, 255, 255, 0.03);
-      --border: rgba(255, 255, 255, 0.10);
-      --cyan: #00f2fe;
-      --green: #10b981;
-      --amber: #f59e0b;
-      --red: #f43f5e;
-      --text: #f8fafc;
-      --muted: #94a3b8;
-      --mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+      --bg: #dfdedb;
+      --surface: #d3d2ce;
+      --ink: #26251e;
+      --muted: #55534b;
+      --accent: #2456d6;
+      --accent-ink: #ffffff;
+
+      --font-display: 'Anton', Impact, sans-serif;
+      --font-text: 'Work Sans', system-ui, sans-serif;
+
+      --step-small: clamp(0.875rem, 0.84rem + 0.12vw, 0.9375rem);
+      --step-body: clamp(1.0625rem, 1rem + 0.2vw, 1.1875rem);
+      --step-lead: clamp(1.35rem, 1.15rem + 0.75vw, 1.85rem);
+      --step-head: clamp(2.6rem, 1.4rem + 4.5vw, 5.25rem);
+      --step-display: clamp(4.2rem, 1.5rem + 11vw, 10.5rem);
+
+      --margin: clamp(1.25rem, 2.6vw, 2.25rem);
+      --gutter: clamp(1rem, 2vw, 2rem);
+      --section: clamp(5.5rem, 10vw, 10rem);
+      --radius: 0px;
+
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+      --ease-soft: cubic-bezier(0.33, 1, 0.68, 1);
+      --t-press: 140ms;
+      --t-hover: 180ms;
+      --t-reveal: 800ms;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; }
     body {
-      background:
-        radial-gradient(circle at 12% 12%, rgba(0, 242, 254, 0.11), transparent 38%),
-        radial-gradient(circle at 88% 88%, rgba(16, 185, 129, 0.11), transparent 38%),
-        var(--bg);
-      color: var(--text);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      min-height: 100vh;
-      padding: 20px 24px 36px;
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-text);
+      font-size: var(--step-body);
+      line-height: 1.5;
+      font-kerning: normal;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: clip;
     }
-    .deck {
-      max-width: 1320px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
+    h1, h2, h3, h4, p, figure, blockquote, ul, ol, dl, dd, pre { margin: 0; }
+    ul[class], ol[class] { padding: 0; list-style: none; }
+    img, video, svg { display: block; max-width: 100%; height: auto; }
+    button, input, select { font: inherit; color: inherit; }
+    button { background: none; border: 0; padding: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 0.07em; }
+    ::selection { background: var(--accent); color: var(--accent-ink); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      line-height: 0.88;
+      text-wrap: balance;
     }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-      background: rgba(11, 15, 25, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 12px 18px;
-    }
-    .tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .tab {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .tab:hover { color: var(--text); border-color: rgba(0, 242, 254, 0.4); }
-    .tab.active {
-      background: linear-gradient(90deg, rgba(0, 242, 254, 0.18), rgba(16, 185, 129, 0.18));
-      border-color: var(--cyan);
-      color: #fff;
-    }
-    .nav-help {
-      font-size: 12px;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .slide {
-      display: none;
-      width: 100%;
-      background: rgba(11, 15, 25, 0.92);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 32px 38px;
-      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.65), 0 0 40px rgba(0, 242, 254, 0.05);
-      flex-direction: column;
-      gap: 22px;
-    }
-    .slide.active, body.all-slides .slide { display: flex; }
-    body.all-slides .deck { gap: 28px; }
-    .badge {
+    .display { font-size: var(--step-display); line-height: 0.86; }
+    .head { font-size: var(--step-head); line-height: 0.9; }
+    .lead { font-size: var(--step-lead); line-height: 1.35; max-width: 44ch; font-weight: 400; }
+    .small { font-size: var(--step-small); line-height: 1.45; }
+    .muted { color: var(--muted); }
+    .nums { font-variant-numeric: tabular-nums; }
+    p { max-width: 62ch; text-wrap: pretty; }
+    p + p { margin-top: 0.85em; }
+
+    .wrap { padding-inline: var(--margin); }
+    .grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter); row-gap: 2rem; }
+    .section { padding-block: calc(var(--section) * 0.65); position: relative; }
+
+    .button {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(16, 185, 129, 0.14);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #34d399;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 5px 12px;
-      border-radius: 999px;
-      margin-bottom: 8px;
+      justify-content: center;
+      min-height: 3rem;
+      padding: 0 1.4rem;
+      background: var(--accent);
+      color: var(--accent-ink);
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: var(--step-small);
+      white-space: nowrap;
+      transition: transform var(--t-press) var(--ease-out), opacity var(--t-hover) ease;
     }
-    h1 {
-      font-size: clamp(26px, 2.7vw, 36px);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-    }
-    h1 span {
-      background: linear-gradient(90deg, var(--cyan), var(--green));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .subtitle {
-      color: var(--muted);
-      font-size: 15px;
-      margin-top: 6px;
-      line-height: 1.45;
-    }
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
-    }
-    .stat-card, .panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px 20px;
+    .button:hover { opacity: 0.9; }
+    .button:active { transform: scale(0.97); }
+    .button.ink { background: var(--ink); color: var(--bg); }
+
+    /* ---------- Hero: Waterline headline ---------- */
+    .hero {
       position: relative;
-      overflow: hidden;
+      min-height: 100svh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      background: var(--bg);
+      overflow: clip;
     }
-    .stat-card::before {
-      content: "";
+    .hero-layer {
       position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--cyan), var(--green));
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding-inline: var(--margin);
+      text-align: center;
+      pointer-events: none;
     }
-    .stat-label {
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+    .hero-layer.upper {
+      background: var(--bg);
+      color: var(--ink);
+      clip-path: inset(0 0 50% 0);
+      z-index: 1;
     }
-    .stat-value {
-      font-size: clamp(24px, 2.5vw, 36px);
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      margin: 6px 0 4px;
-      color: #fff;
+    .hero-layer.lower {
+      background: var(--accent);
+      color: var(--bg);
+      clip-path: inset(50% 0 0 0);
+      z-index: 1;
     }
-    .stat-value.green { color: var(--green); }
-    .stat-value.cyan { color: var(--cyan); }
-    .stat-value.amber { color: var(--amber); }
-    .stat-sub { color: var(--muted); font-size: 12.5px; line-height: 1.35; }
-    .panel-title {
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--cyan);
-      margin-bottom: 12px;
+    .hero-top {
+      position: relative;
+      z-index: 3;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 1.75rem var(--margin);
+      gap: 1.5rem;
+      flex-wrap: wrap;
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
+    .wordmark {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      color: var(--ink);
     }
-    th, td {
-      padding: 8px 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      text-align: left;
-      vertical-align: top;
-    }
-    th {
-      color: var(--muted);
-      font-size: 11.5px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 700;
-    }
-    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-    tr:last-child td { border-bottom: none; }
-    .hl-green { color: #34d399; font-weight: 700; }
-    .hl-cyan { color: var(--cyan); font-weight: 700; }
-    .hl-red { color: var(--red); font-weight: 700; }
-    .formula-box {
-      background: rgba(0, 242, 254, 0.06);
-      border: 1px solid rgba(0, 242, 254, 0.25);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-family: var(--mono);
-      font-size: 12.5px;
-      line-height: 1.55;
-      color: #e2e8f0;
-      margin-top: 10px;
-    }
-    .steps { display: flex; flex-direction: column; gap: 11px; }
-    .step {
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-      background: var(--card-soft);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 11px 13px;
-    }
-    .step-num {
-      width: 26px;
-      height: 26px;
-      border-radius: 7px;
-      background: linear-gradient(135deg, var(--cyan), var(--green));
-      color: #050811;
-      font-weight: 900;
-      font-size: 13px;
+    .nav-links {
       display: flex;
       align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    .step-body { flex: 1; min-width: 0; }
-    .step-body strong {
-      display: block;
-      font-size: 14px;
-      color: #fff;
-      margin-bottom: 3px;
-    }
-    .step-body p {
-      font-size: 12.5px;
-      color: var(--muted);
-      line-height: 1.42;
-    }
-    pre.cmd {
-      background: #05070b;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 10px;
-      padding: 10px 12px;
-      font-family: var(--mono);
-      font-size: 12px;
-      line-height: 1.5;
-      color: #e2e8f0;
-      overflow-x: auto;
-      margin-top: 6px;
-      position: relative;
-    }
-    .copy-btn {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid var(--border);
-      color: #cbd5e1;
-      font-size: 11px;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      font-size: var(--step-small);
       font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      float: right;
-      margin-left: 8px;
     }
-    .copy-btn:hover { border-color: var(--cyan); color: #fff; }
-    .arch-flow {
-      display: grid;
-      grid-template-columns: 1fr auto 1.25fr auto 1.35fr;
-      align-items: stretch;
-      gap: 10px;
-      margin-bottom: 6px;
+    .nav-links a { text-decoration: none; }
+    .nav-links a:hover { text-decoration: underline; }
+    .waterline-title {
+      font-family: var(--font-display);
+      font-size: clamp(4.8rem, 14vw, 13.5rem);
+      line-height: 0.86;
+      letter-spacing: -0.015em;
+      text-transform: uppercase;
+      width: 100%;
+      transform: translateY(-10%);
     }
-    .arch-node {
-      background: rgba(255, 255, 255, 0.035);
-      border: 1px solid rgba(0, 242, 254, 0.28);
-      border-radius: 14px;
-      padding: 14px 16px;
+    .hero-bottom {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 2rem var(--margin) 2.5rem;
+      gap: 2rem;
+      color: var(--accent-ink);
+      flex-wrap: wrap;
+    }
+    .hero-bottom p {
+      font-size: clamp(1.125rem, 1rem + 0.45vw, 1.375rem);
+      max-width: 48ch;
+      color: var(--accent-ink);
+    }
+    .hero-meta {
+      font-size: var(--step-small);
+      color: var(--bg);
+      text-align: right;
+    }
+
+    /* ---------- Section 1: Stats — Figure set by a slider ---------- */
+    .stats-section {
+      min-height: 90svh;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      justify-content: space-between;
+      background: var(--surface);
+      padding-block: 4rem;
     }
-    .arch-node.green { border-color: rgba(16, 185, 129, 0.4); }
-    .arch-node h3 { font-size: 14px; color: #fff; }
-    .arch-node p, .arch-node li { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
-    .arch-node ul { padding-left: 16px; display: flex; flex-direction: column; gap: 4px; }
-    .arch-arrow {
+    .calc-ui {
+      background: var(--bg);
+      padding: 1.5rem 1.75rem;
+      max-width: 36rem;
+      min-width: 20rem;
+      min-height: 14rem;
       display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      color: var(--cyan);
-      font-weight: 900;
+      flex-direction: column;
+      gap: 1.1rem;
     }
-    code {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: #e2e8f0;
-      background: rgba(255, 255, 255, 0.06);
-      padding: 1px 5px;
-      border-radius: 4px;
-    }
-    .say-box {
-      background: rgba(16, 185, 129, 0.08);
-      border-left: 3px solid var(--green);
-      padding: 8px 12px;
-      border-radius: 0 8px 8px 0;
-      font-size: 12.5px;
-      color: #d1fae5;
-      margin-top: 6px;
-      line-height: 1.4;
-    }
-    .footer {
+    .calc-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      font-size: 12.5px;
-      color: var(--muted);
-      flex-wrap: wrap;
-      gap: 10px;
+      gap: 1rem;
+      font-weight: 600;
     }
-    @media (max-width: 1024px) {
-      .grid-4, .grid-3, .grid-2, .arch-flow { grid-template-columns: 1fr; }
-      .arch-arrow { transform: rotate(90deg); }
+    .calc-slider {
+      width: 100%;
+      height: 2.25rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .calc-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .calc-pill {
+      padding: 0.55rem 0.95rem;
+      background: var(--surface);
+      color: var(--ink);
+      font-weight: 600;
+      font-size: var(--step-small);
+      transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease, color var(--t-hover) ease;
+    }
+    .calc-pill.is-active {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    .calc-pill:active { transform: scale(0.97); }
+    .giant-stat-row {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      align-items: end;
+      margin-top: 3rem;
+    }
+    .giant-figure-box {
+      grid-column: 1 / 8;
+    }
+    .giant-figure {
+      font-family: var(--font-display);
+      font-size: clamp(5.5rem, 15vw, 15.5rem);
+      line-height: 0.82;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      font-variant-numeric: tabular-nums;
+    }
+    .giant-unit {
+      font-family: var(--font-text);
+      font-size: clamp(1.25rem, 2vw, 2.25rem);
+      font-weight: 600;
+      margin-left: 0.4rem;
+      color: var(--accent);
+    }
+    .giant-note {
+      grid-column: 8 / 13;
+      padding-bottom: 0.5rem;
+    }
+
+    /* ---------- Section 2: Showcase — Two giant words compared ---------- */
+    .showcase-section {
+      background: var(--bg);
+      padding-top: 5rem;
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+    .specimens {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: var(--gutter);
+      margin-top: 3.5rem;
+    }
+    .specimen {
+      grid-column: span 6;
+      padding: 2rem 2rem 0;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .specimen.accent-ground {
+      background: var(--ink);
+      color: var(--bg);
+    }
+    .specimen-caption {
+      font-size: var(--step-body);
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+    .specimen-word {
+      font-family: var(--font-display);
+      font-size: clamp(6rem, 18vw, 17rem);
+      line-height: 0.78;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      transform: translateY(14%);
+    }
+
+    /* ---------- Atmosphere band ---------- */
+    .photo-band {
+      display: grid;
+      grid-template-columns: 7fr 5fr;
+      gap: var(--gutter);
+      padding-block: 3rem;
+      background: var(--bg);
+    }
+    .photo-frame {
+      position: relative;
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .photo-frame img {
+      width: 100%;
+      height: 22rem;
+      object-fit: cover;
+      filter: grayscale(100%) contrast(1.08);
+    }
+    .photo-caption {
+      padding: 0.75rem 0;
+      font-size: var(--step-small);
+      color: var(--muted);
+    }
+
+    /* ---------- Section 3: How it works — Itinerary on a slip ---------- */
+    .slip-section {
+      background: var(--ink);
+      color: var(--bg);
+      padding-block: 5.5rem;
+    }
+    .slip-section .muted { color: #b5b3aa; }
+    .slip-section .photo-frame { background: transparent; }
+    .arch-col {
+      grid-column: 1 / 6;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+    .slip-col {
+      grid-column: 7 / 13;
+    }
+    .paper-slip {
+      background: var(--bg);
+      color: var(--ink);
+      padding: 2.25rem 2.25rem 3.25rem;
+      clip-path: polygon(
+        0% 0%, 100% 0%, 100% 96%,
+        95% 100%, 90% 96%, 85% 100%, 80% 96%, 75% 100%, 70% 96%, 65% 100%,
+        60% 96%, 55% 100%, 50% 96%, 45% 100%, 40% 96%, 35% 100%, 30% 96%,
+        25% 100%, 20% 96%, 15% 100%, 10% 96%, 5% 100%, 0% 96%
+      );
+    }
+    .slip-group + .slip-group { margin-top: 1.75rem; }
+    .slip-stage-title {
+      font-weight: 600;
+      font-size: var(--step-body);
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+    .slip-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      padding-block: 0.3rem;
+      font-size: var(--step-body);
+    }
+    .slip-dots {
+      flex: 1;
+      border-bottom: 3px dotted var(--muted);
+      min-width: 2rem;
+    }
+    .slip-time {
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .slip-total {
+      margin-top: 1.75rem;
+      background: var(--ink);
+      color: var(--bg);
+      padding: 0.85rem 1.1rem;
+      display: flex;
+      justify-content: space-between;
+      font-weight: 600;
+    }
+
+    /* ---------- Interactive Runbook UI Fragment ---------- */
+    .runbook-ui {
+      background: #171612;
+      color: var(--bg);
+      padding: 1.75rem;
+      margin-top: 3rem;
+      min-height: 20rem;
+    }
+    .runbook-tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .runbook-tab {
+      padding: 0.6rem 1.1rem;
+      background: #26251e;
+      color: var(--bg);
+      font-weight: 600;
+      font-size: var(--step-small);
+      transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease;
+    }
+    .runbook-tab.is-active {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    .runbook-tab:active { transform: scale(0.97); }
+    .runbook-pane { display: none; }
+    .runbook-pane.is-active { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .cmd-box {
+      background: #0e0d0a;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .cmd-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: var(--step-small);
+      color: #b5b3aa;
+    }
+    .copy-trigger {
+      padding: 0.35rem 0.8rem;
+      background: var(--accent);
+      color: var(--accent-ink);
+      font-size: var(--step-small);
+      font-weight: 600;
+      transition: transform var(--t-press) var(--ease-out);
+    }
+    .copy-trigger:active { transform: scale(0.96); }
+    pre {
+      overflow-x: auto;
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #f2f1ec;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* ---------- Section 4: Proof — Recognition as a table ---------- */
+    .proof-section {
+      background: var(--bg);
+      padding-block: 5.5rem;
+    }
+    .proof-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 3rem;
+      font-size: var(--step-body);
+    }
+    .proof-table th, .proof-table td {
+      padding: 0.95rem 1rem;
+      text-align: left;
+      vertical-align: baseline;
+    }
+    .proof-table th {
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .proof-table tbody tr:nth-child(even) {
+      background: var(--surface);
+    }
+    .proof-table .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .terminal-ui {
+      background: var(--ink);
+      color: var(--bg);
+      padding: 1.75rem;
+      margin-top: 3.5rem;
+      min-height: 18rem;
+    }
+    .terminal-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .session-Inspection {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+    .session-btn {
+      padding: 0.85rem 1rem;
+      background: #333128;
+      color: var(--bg);
+      text-align: left;
+      transition: transform var(--t-press) var(--ease-out), background-color var(--t-hover) ease;
+    }
+    .session-btn.is-active {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    .session-btn:active { transform: scale(0.97); }
+
+    /* ---------- Section 5: FAQ — Answers as reading text ---------- */
+    .faq-section {
+      background: var(--surface);
+      padding-block: 5.5rem;
+    }
+    .faq-title-col { grid-column: 1 / 4; }
+    .faq-text-col {
+      grid-column: 5 / 13;
+      columns: 2;
+      column-gap: 3.5rem;
+    }
+    .faq-item {
+      break-inside: avoid;
+      margin-bottom: 1.35rem;
+      font-size: var(--step-body);
+      line-height: 1.55;
+      max-width: 42ch;
+    }
+    .faq-item strong {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* ---------- Section 6: Footer — Columns above, wordmark below ---------- */
+    .footer-section {
+      background: var(--ink);
+      color: var(--bg);
+      min-height: 92svh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding-block: 3.5rem 2rem;
+    }
+    .footer-cols {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--gutter);
+    }
+    .footer-list li { line-height: 1.45; }
+    .footer-list li + li { margin-top: 0.55rem; }
+    .footer-list .muted-light { color: #b5b3aa; }
+    .footer-wordmark {
+      width: 100%;
+      margin-top: 3rem;
+    }
+    .footer-wordmark svg {
+      width: 100%;
+      height: auto;
+      fill: var(--bg);
+    }
+    .footer-legal {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 1rem;
+      font-size: var(--step-small);
+      color: #b5b3aa;
+    }
+
+    /* ---------- Motion ---------- */
+    .lines .line { display: block; overflow: hidden; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+    .lines [data-line] { display: block; }
+    @media (prefers-reduced-motion: no-preference) {
+      .js [data-rise] {
+        opacity: 0;
+        transform: translateY(18px);
+        animation: tm-rise var(--t-reveal) var(--ease-out) forwards;
+        animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+      }
+      .js .lines [data-line] {
+        transform: translateY(105%);
+        animation: tm-line 900ms var(--ease-out) forwards;
+        animation-delay: calc(var(--i, 0) * 110ms + 140ms);
+      }
+      .js [data-reveal] {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 700ms var(--ease-out), transform 900ms var(--ease-out);
+      }
+      .js [data-reveal].is-in {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    @keyframes tm-rise { to { opacity: 1; transform: none; } }
+    @keyframes tm-line { to { transform: none; } }
+
+    @media (max-width: 64em) {
+      .giant-figure-box, .giant-note, .arch-col, .slip-col, .faq-title-col, .faq-text-col { grid-column: 1 / -1; }
+      .specimen { grid-column: 1 / -1; }
+      .runbook-pane.is-active { grid-template-columns: 1fr; }
+      .session-Inspection { grid-template-columns: 1fr 1fr; }
+      .photo-band { grid-template-columns: 1fr; }
+      .faq-text-col { columns: 1; }
+      .footer-cols { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 38em) {
+      .session-Inspection, .footer-cols { grid-template-columns: 1fr; }
+      .proof-table th:nth-child(3), .proof-table td:nth-child(3) { display: none; }
     }
   </style>
 </head>
 <body>
-  <div class="deck">
-    <div class="topbar">
-      <div class="tabs">
-        <button class="tab active" onclick="showSlide(0)">1. The Tokenomics Math</button>
-        <button class="tab" onclick="showSlide(1)">2. Architecture</button>
-        <button class="tab" onclick="showSlide(2)">3. Live Demo Runbook</button>
-        <button class="tab" onclick="showSlide(3)">4. Dashboard Output &amp; Q&amp;A</button>
+
+  <!-- ==================== HERO (Waterline Headline) ==================== -->
+  <header class="hero" id="top">
+    <div class="hero-top">
+      <a class="wordmark" href="#top">TOKENMASTER</a>
+      <nav class="nav-links" aria-label="Presentation sections">
+        <a href="#math">The Math</a>
+        <a href="#specimens">Call Comparison</a>
+        <a href="#architecture">Architecture &amp; Runbook</a>
+        <a href="#proof">Dashboard &amp; Proof</a>
+        <a href="#faq">Questions</a>
+        <button class="button" type="button" onclick="copyText(' preflight-code ', this)">Copy Pre-Flight</button>
+      </nav>
+    </div>
+
+    <div class="hero-layer upper">
+      <h1 class="waterline-title lines">
+        <span class="line"><span data-line style="--i:0">HALF THE</span></span>
+        <span class="line"><span data-line style="--i:1">PROMPT.</span></span>
+      </h1>
+    </div>
+    <div class="hero-layer lower" aria-hidden="true">
+      <div class="waterline-title lines">
+        <span class="line"><span data-line style="--i:0">HALF THE</span></span>
+        <span class="line"><span data-line style="--i:1">PROMPT.</span></span>
       </div>
-      <div class="nav-help">
-        <span>Keys: <code>1–4</code> or <code>&larr;</code> <code>&rarr;</code></span>
-        <button class="tab" id="allBtn" onclick="toggleAll()">Show All Slides</button>
+    </div>
+    <div></div>
+
+    <div class="hero-bottom">
+      <p data-rise style="--i:2">
+        GitHub Copilot CLI re-sends its system prompt and sixteen tool definitions on every model call. TokenMaster strips eleven unused tools, routes call-graph questions to Graphify, and audits every cent in <code>/tokenomics</code>.
+      </p>
+      <div class="hero-meta" data-rise style="--i:3">
+        <a class="button ink" href="#architecture">Open Live Demo Runbook</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== SECTION 1: STATS (Live Tokenomics Calculator) ==================== -->
+  <section class="section stats-section wrap" id="math">
+    <div class="grid">
+      <div style="grid-column: 1 / 7;" data-reveal>
+        <h2 class="head">THE CALL MATH</h2>
+        <p class="lead" style="margin-top: 1rem;">
+          A language model has no memory between turns. Every call pays for the fixed prompt again. Move the slider to run the exact <code>/tokenomics</code> estimator for your daily workload.
+        </p>
+
+        <div class="calc-ui" data-ui style="margin-top: 1.75rem;" data-reveal>
+          <div class="calc-row">
+            <label for="callsSlider">How many Copilot model calls a day?</label>
+            <span class="nums" id="callsOut" style="font-size: 1.4rem;">40 calls / day</span>
+          </div>
+          <input id="callsSlider" class="calc-slider" type="range" min="1" max="200" value="40" oninput="updateCalc()" />
+
+          <div class="calc-row">
+            <span>Model &amp; Copilot CLI 1.0.98 calibration</span>
+          </div>
+          <div class="calc-pills" role="group" aria-label="Model calibration">
+            <button type="button" class="calc-pill is-active" data-model="sol" onclick="setModel('sol', this)">gpt-6.1-sol ($2 / $2.50 / $0.10)</button>
+            <button type="button" class="calc-pill" data-model="astra" onclick="setModel('astra', this)">gpt-6-astra ($10 / $12.50 / $1)</button>
+            <button type="button" class="calc-pill" data-model="opus" onclick="setModel('opus', this)">claude-opus-5.5 ($4 / $5 / $0.20)</button>
+          </div>
+
+          <p class="small muted" id="calcFormulaLine">
+            Fixed tokens removed per call: 5,558. Stock first-call cache read on your machine: 0 tokens.
+          </p>
+        </div>
+      </div>
+
+      <div style="grid-column: 7 / 13;" data-reveal>
+        <h3 class="head" style="font-size: clamp(1.8rem, 3vw, 3.2rem);">GITHUB BILLING FORMULA</h3>
+        <p style="margin-top: 0.85rem;">
+          Copilot CLI logs four token buckets and GitHub's exact charge (<code>total_nano_aiu</code>, where 10<sup>9</sup> nano equals 1 AI credit or $0.01) into <code>~/.copilot/session-store.db</code> after every call.
+        </p>
+        <table class="proof-table" style="margin-top: 1.25rem;" data-reveal>
+          <thead>
+            <tr><th>Bucket</th><th class="num">gpt-6.1-sol</th><th class="num">gpt-6-astra</th><th class="num">claude-opus-5.5</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>New input (uncached)</td><td class="num">$2.00 / 1M</td><td class="num">$10.00 / 1M</td><td class="num">$4.00 / 1M</td></tr>
+            <tr><td>Cache write (1.25&times;)</td><td class="num">$2.50 / 1M</td><td class="num">$12.50 / 1M</td><td class="num">$5.00 / 1M</td></tr>
+            <tr><td>Cache read (0.05–0.1&times;)</td><td class="num">$0.10 / 1M</td><td class="num">$1.00 / 1M</td><td class="num">$0.20 / 1M</td></tr>
+            <tr><td>Output (with reasoning)</td><td class="num">$10.00 / 1M</td><td class="num">$50.00 / 1M</td><td class="num">$20.00 / 1M</td></tr>
+          </tbody>
+        </table>
+        <p class="small muted" style="margin-top: 1rem;">
+          Worked rehearsal check (one-word prompt, <code>gpt-6.1-sol</code>): removing 5,558 fixed tokens saves <code>5,558 &times; $0.10 / 1M = $0.0006</code> on the call plus <code>5,558 &times; ($2.50 &minus; $0.10) / 1M = $0.0133</code> on the first-call cache write. Total estimated saving: <strong>$0.0139</strong> against the measured <strong>$0.0154</strong> difference ($0.0380 stock vs. $0.0226 TokenMaster, 90% captured).
+        </p>
       </div>
     </div>
 
-    <!-- ========================================== SLIDE 1: THE MATH ========================================== -->
-    <section class="slide active">
+    <div class="giant-stat-row" data-reveal>
+      <div class="giant-figure-box">
+        <span class="giant-figure nums" id="bigSavedTokens">222,320</span>
+        <span class="giant-unit" id="bigSavedUsd">tokens / day (&approx; $0.16 saved)</span>
+      </div>
+      <div class="giant-note">
+        <p id="bigSavedNote">
+          Estimated from the two deterministic terms in <code>tokenomics.py</code>: fixed overhead removed per call plus first-call prompt-cache writes avoided. Extra model calls saved by Graphify are on top of this figure.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 2: SHOWCASE (Two Giant Words Compared) ==================== -->
+  <section class="showcase-section wrap" id="specimens">
+    <div class="grid" style="align-items: start;">
+      <div style="grid-column: 1 / 6;" data-reveal>
+        <h2 class="head">TWO REAL CALLS</h2>
+      </div>
+      <div style="grid-column: 7 / 13;" data-reveal>
+        <p>
+          Same machine, same repository, same model (<code>gpt-6.1-sol</code> on Copilot CLI 1.0.98), same prompt: <code>"Reply with the single word OK."</code> Stock Copilot sends sixteen built-in tools and writes 15,177 tokens into the prompt cache. Starting Copilot through <code>tmc</code> removes eleven unused tools and drops the call to 9,016 tokens.
+        </p>
+      </div>
+    </div>
+
+    <div class="specimens">
+      <div class="specimen" data-reveal>
+        <div class="specimen-caption">Stock Copilot CLI &middot; 16 tools sent &middot; $0.0380 billed</div>
+        <div class="specimen-word nums">15,185</div>
+      </div>
+      <div class="specimen accent-ground" data-reveal>
+        <div class="specimen-caption">TokenMaster (tmc) &middot; 5 tools sent &middot; $0.0226 billed (&minus;40.6%)</div>
+        <div class="specimen-word nums">9,016</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== ATMOSPHERE + INTERFACE FRAGMENT BAND ==================== -->
+  <section class="wrap photo-band" aria-label="Visual context and Graphify call comparison">
+    <figure class="photo-frame" data-reveal>
+      <img src="https://picsum.photos/id/505/1600/1000?grayscale" width="1600" height="1000" alt="High ridge under twilight sky" />
+      <figcaption class="photo-caption">
+        On Django 5.2 (2,818 Python files), answering "who calls format() in dateformat.py?" by grep took 62,484 tokens across 4 calls and named the wrong functions. Graphify's prebuilt call graph answered in 21,495 tokens across 2 calls. Photograph: Lee Scott (Unsplash).
+      </figcaption>
+    </figure>
+
+    <div class="calc-ui" data-ui style="background: var(--surface); min-height: 22rem; max-width: none; justify-content: space-between;" data-reveal>
       <div>
-        <div class="badge">&#9679; Part 1 &middot; The Math in Plain Terms &middot; Measured vs. Estimated</div>
-        <h1>Every model call re-sends a fixed prompt. <span>TokenMaster cuts it in half.</span></h1>
-        <p class="subtitle">A model has no memory between calls. On every call, Copilot CLI sends the system prompt, every tool definition, and the conversation so far. Removing 11 unused built-in tools shrinks every call, and Graphify answers call-graph questions in one lookup instead of a grep loop.</p>
+        <div class="calc-row">
+          <strong>Django 5.2 Call-Graph Lookup (Task D31)</strong>
+          <span class="nums">2,818 .py files</span>
+        </div>
+        <p class="small muted" style="margin-top: 0.4rem;">
+          Prompt: <code>List the non-test functions that call format() in django/utils/dateformat.py.</code>
+        </p>
+        <pre style="background: var(--ink); color: var(--bg); padding: 0.9rem; margin-top: 0.85rem;">Stock Copilot (glob &rarr; rg &rarr; view):
+  4 calls · 62,484 tokens · $0.0472
+  Answer: format, time_format  [WRONG]
+
+tmc + Graphify (tokenmaster-nav-impact):
+  2 calls · 21,495 tokens · $0.0315 (-65.6% tokens)
+  Answer: django.template.defaultfilters.date
+          django.utils.formats.date_format  [EXACT]</pre>
+      </div>
+      <p class="small muted">
+        In the 45-task Django A/B, both arms received identical prompts without naming the tool: <code>gpt-6-astra</code> chose Graphify tools in 45 of 45 sessions and <code>claude-opus-5.5</code> in 26 of 45.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 3: HOW IT WORKS & LIVE DEMO RUNBOOK ==================== -->
+  <section class="section slip-section wrap" id="architecture">
+    <div class="grid">
+      <div class="arch-col" data-reveal>
+        <h2 class="head">THE ARCHITECTURE</h2>
+        <p class="lead" style="color: var(--bg);">
+          Plain <code>copilot</code> stays untouched. Typing <code>tmc</code> wraps the launch, trims unused tools, logs a prompt-free launch window, and lets <code>/tokenomics</code> join launch windows with Copilot's SQLite store.
+        </p>
+        <p class="muted">
+          <strong>Launcher (`brainspace_copilot_bridge.py`):</strong> Appends <code>--excluded-tools</code> for the 11 unused built-in tools and writes millisecond start/end records to <code>~/.copilot/token-master/launches.jsonl</code>. In bring-your-own-model mode, it also starts the local request bridge that keeps the system prompt identical across sessions in the same folder.
+        </p>
+        <p class="muted">
+          <strong>View hook (`settings.json`):</strong> Runs <code>brainspace_posttooluse.py</code> on whole-file <code>view</code> outputs, turning a 29,836-character file into a 5,175-character digest before it enters the transcript.
+        </p>
+        <p class="muted">
+          <strong>Graph navigation (`navigation_mcp.py`):</strong> Exposes <code>locate</code>, <code>read_symbol</code>, and <code>impact</code> over Graphify's call graph and a SQLite symbol index, capped at 2,400 tokens per result.
+        </p>
+        <figure class="photo-frame" style="margin-top: 0.5rem;" data-reveal>
+          <img src="https://picsum.photos/id/114/1200/750?grayscale" width="1200" height="750" alt="Storm clouds over mountain ridge" />
+          <figcaption class="photo-caption" style="color: #d3d2ce;">
+            Read-only accounting: <code>tokenomics.py</code> never mutates <code>session-store.db</code> and <code>launches.jsonl</code> stores zero prompt text. Photograph: Brian Gonzalez (Unsplash).
+          </figcaption>
+        </figure>
       </div>
 
-      <div class="grid-4">
-        <div class="stat-card">
-          <div class="stat-label">1-Word Prompt &middot; Stock vs. tmc</div>
-          <div class="stat-value green">&minus;40.6%</div>
-          <div class="stat-sub">15,185 &rarr; 9,016 tokens ($0.0380 &rarr; $0.0226) on your machine today (<code>gpt-6.1-sol</code>, 1.0.98)</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Django Lookup (D31) &middot; Stock vs. tmc+Graph</div>
-          <div class="stat-value green">&minus;65.6%</div>
-          <div class="stat-sub">62,484 &rarr; 21,495 tokens (4 calls &rarr; 2 calls). Stock answered wrong; <code>impact</code> answered right.</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">45-Task Django A/B &middot; Raw Tokens</div>
-          <div class="stat-value cyan">&minus;53.4%</div>
-          <div class="stat-sub"><code>gpt-6-astra</code> (2.42M &rarr; 1.13M). <code>claude-opus-5.5</code>: &minus;51.6% (3.46M &rarr; 1.67M). Lower on 45/45 tasks.</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">45-Task Django A/B &middot; Cold Cost</div>
-          <div class="stat-value amber">&minus;49.5%</div>
-          <div class="stat-sub">$11.55 &rarr; $5.83 cold ($2.33 back-to-back). Opus: &minus;46.0% cold. Correct answers: 88/90 vs. 90/90.</div>
-        </div>
-      </div>
+      <div class="slip-col" data-reveal>
+        <div class="paper-slip">
+          <h3 class="head" style="font-size: clamp(2rem, 3.2vw, 3.4rem);">LIVE RUNBOOK SLIP</h3>
+          <p class="small muted" style="margin-top: 0.4rem;">
+            Two PowerShell 7 windows side by side: Window A (Stock) on the left, Window B (TokenMaster <code>tmc</code>) on the right.
+          </p>
 
-      <div class="grid-2">
-        <div class="panel">
-          <div class="panel-title"><span>1. How GitHub Prices Every Call (Measured)</span><span>From <code>session-store.db</code></span></div>
-          <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 10px;">Copilot CLI writes the exact token counts and GitHub's charge (<code>total_nano_aiu</code>; 10<sup>9</sup> nano = 1 AI credit = $0.01) after every call. Prices for <code>gpt-6.1-sol</code> / <code>claude-sonnet-5.5</code>:</p>
-          <table>
-            <thead>
-              <tr><th>Token Type</th><th class="num">Price / 1M</th><th>What It Means</th></tr>
-            </thead>
-            <tbody>
-              <tr><td><strong>New input</strong></td><td class="num">$2.00</td><td>Input tokens not in GitHub's prompt cache</td></tr>
-              <tr><td><strong>Cache write</strong></td><td class="num">$2.50</td><td>Input tokens written into the cache (1.25&times;)</td></tr>
-              <tr><td><strong>Cache read</strong></td><td class="num">$0.10</td><td>Input tokens read from the cache (0.05&times;)</td></tr>
-              <tr><td><strong>Output</strong></td><td class="num">$10.00</td><td>Tokens the model writes (reasoning included)</td></tr>
-            </tbody>
-          </table>
-          <div class="formula-box">
-            <strong>Measured Call Cost</strong> = (New &times; $2.00 + Write &times; $2.50 + Read &times; $0.10 + Out &times; $10.00) &divide; 1,000,000<br/>
-            <span style="color: var(--muted);">Total Tokens and Cost (USD) in <code>/tokenomics</code> are 100% measured from GitHub's own records.</span>
+          <div class="slip-group">
+            <div class="slip-stage-title">Before You Start &middot; Pre-Flight Setup</div>
+            <div class="slip-row"><span>Set <code>$django</code>, <code>$nav</code>, and <code>tokenomics</code> helper</span><span class="slip-dots"></span><span class="slip-time">0:30</span></div>
+            <div class="slip-row"><span>Verify <code>copilot skill list</code> in Window B</span><span class="slip-dots"></span><span class="slip-time">0:30</span></div>
+          </div>
+
+          <div class="slip-group">
+            <div class="slip-stage-title">First Comparison &middot; Fixed Prompt Overhead</div>
+            <div class="slip-row"><span>Window A: <code>copilot -p "Reply with the single word OK."</code></span><span class="slip-dots"></span><span class="slip-time">15,185 tok</span></div>
+            <div class="slip-row"><span>Window B: <code>tmc -p "Reply with the single word OK."</code></span><span class="slip-dots"></span><span class="slip-time">9,016 tok</span></div>
+            <div class="slip-row"><span>Show <code>tokenomics session --since 20261023</code></span><span class="slip-dots"></span><span class="slip-time">&minus;40.6%</span></div>
+          </div>
+
+          <div class="slip-group">
+            <div class="slip-stage-title">Second Comparison &middot; Graphify vs. Grep on Django</div>
+            <div class="slip-row"><span>Window A: stock grep/view loop on <code>dateformat.py</code></span><span class="slip-dots"></span><span class="slip-time">62,484 tok</span></div>
+            <div class="slip-row"><span>Window B: <code>tmc --additional-mcp-config $nav</code></span><span class="slip-dots"></span><span class="slip-time">21,495 tok</span></div>
+          </div>
+
+          <div class="slip-group">
+            <div class="slip-stage-title">Finale &middot; Interactive /tokenomics &amp; Free ! Shell</div>
+            <div class="slip-row"><span>Run <code>tmc</code>, point to 11 disabled tools in banner</span><span class="slip-dots"></span><span class="slip-time">0:30</span></div>
+            <div class="slip-row"><span>Type <code>/tokenomics</code> and <code>/tokenomics session</code></span><span class="slip-dots"></span><span class="slip-time">1:30</span></div>
+            <div class="slip-row"><span>Run <code>! ... tokenomics.py</code> for zero model tokens</span><span class="slip-dots"></span><span class="slip-time">0 tok</span></div>
+          </div>
+
+          <div class="slip-total">
+            <span>Total live walkthrough</span>
+            <span class="nums">8 minutes &middot; $0.14 rehearsal bill</span>
           </div>
         </div>
+      </div>
+    </div>
 
-        <div class="panel">
-          <div class="panel-title"><span>2. How <code>/tokenomics</code> Estimates Savings (&approx;)</span><span>Worked Example</span></div>
-          <p style="font-size: 12.5px; color: var(--muted); margin-bottom: 10px;">We do not run a hidden stock session. For each TokenMaster session, <code>tokenomics.py</code> estimates what stock would have spent on the <strong>same calls</strong>:</p>
-          <div class="steps">
-            <div class="step">
-              <div class="step-num">A</div>
-              <div class="step-body">
-                <strong>Every call: fixed tokens removed &times; cache-read price</strong>
-                <p>The lean tool set removes <code>5,558</code> fixed tokens per call on 1.0.98 (<code>9,727</code> on Anthropic). After call 1, stock reads its fixed prompt from cache: <code>5,558 &times; $0.10 / 1M = $0.0006</code>.</p>
-              </div>
-            </div>
-            <div class="step">
-              <div class="step-num">B</div>
-              <div class="step-body">
-                <strong>First call of a session: extra cache write avoided</strong>
-                <p>Your stock sessions read <code>0</code> tokens from cache on call 1. So stock would write <code>9,008 + 5,558 = 14,566</code> tokens instead of <code>9,008</code>: <code>5,558 &times; ($2.50 &minus; $0.10) / 1M = $0.0133</code>.</p>
-              </div>
-            </div>
+    <!-- Interactive Copy-Paste Command Deck (data-ui) -->
+    <div class="runbook-ui" data-ui data-reveal>
+      <div class="runbook-tabs" role="tablist" aria-label="Demo commands by stage">
+        <button type="button" class="runbook-tab is-active" onclick="showPane(0, this)">Pre-Flight &amp; Check</button>
+        <button type="button" class="runbook-tab" onclick="showPane(1, this)">One-Word Prompt (Stock vs. tmc)</button>
+        <button type="button" class="runbook-tab" onclick="showPane(2, this)">Django 5.2 Graphify vs. Grep</button>
+        <button type="button" class="runbook-tab" onclick="showPane(3, this)">Interactive /tokenomics &amp; Free ! Command</button>
+      </div>
+
+      <div class="runbook-pane is-active">
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Paste into BOTH Windows A and B</span>
+            <button type="button" class="copy-trigger" onclick="copyText('preflight-code', this)">Copy</button>
           </div>
-          <div class="formula-box">
-            <strong>Worked check (1-word session):</strong> $0.0006 + $0.0133 = <span class="hl-green">$0.0139 estimated</span> vs. <span class="hl-cyan">$0.0154 measured</span> ($0.0380 &minus; $0.0226) &rarr; captures <strong>90%</strong> of the actual difference. Across 6 A/B runs, the estimator gave <strong>72% to 125%</strong> of the measured token saving.
-          </div>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div>Say to the room: <em>&ldquo;Total Tokens and Cost are GitHub's own numbers. Saved columns marked &approx; estimate the fixed prompt removed; they do not even count the extra calls that Graphify saves.&rdquo;</em></div>
-      </div>
-    </section>
-
-    <!-- ========================================== SLIDE 2: ARCHITECTURE ========================================== -->
-    <section class="slide">
-      <div>
-        <div class="badge">&#9679; Part 2 &middot; Architecture &middot; Zero Changes to Normal Copilot</div>
-        <h1>How <code>tmc</code>, Graphify, and <code>/tokenomics</code> fit together.</h1>
-        <p class="subtitle">Plain <code>copilot</code> stays untouched. Starting Copilot with <code>tmc</code> wraps the launch, trims unused tools, records a prompt-free launch timestamp, and lets <code>/tokenomics</code> join launch windows with Copilot's SQLite store.</p>
-      </div>
-
-      <div class="arch-flow">
-        <div class="arch-node">
-          <div class="stat-label">1. Entrypoint (PowerShell 7)</div>
-          <h3><code>tmc</code> &rarr; TokenMaster Launcher</h3>
-          <p><code>~/.copilot/token-master/brainspace_copilot_bridge.py</code></p>
-          <ul>
-            <li>Passes <code>--excluded-tools</code> for 11 unused built-in tools (16 &rarr; 5 tools sent).</li>
-            <li>Appends start/end millisecond timestamps + folder to <code>launches.jsonl</code> (<strong>never</strong> logs prompt text).</li>
-            <li>In BYOK mode only: also starts the local cache-stable prompt &amp; v6 bridge.</li>
-          </ul>
-        </div>
-        <div class="arch-arrow">&rarr;</div>
-        <div class="arch-node">
-          <div class="stat-label">2. Live Session</div>
-          <h3>GitHub Copilot CLI 1.0.98</h3>
-          <ul>
-            <li><strong>Lean tool set:</strong> sends ~5.6K–9.7K fewer tokens on every call.</li>
-            <li><strong>v6 view hook</strong> (<code>settings.json</code>): turns large whole-file views into bounded digests.</li>
-            <li><strong>Graphify MCP</strong> (<code>tokenmaster-nav</code>): <code>locate</code>, <code>read_symbol</code>, <code>impact</code> (&le;2,400 tokens/call).</li>
-            <li><strong>Personal skill:</strong> typing <code>/tokenomics</code> runs <code>tokenomics.py --compact</code>.</li>
-          </ul>
-        </div>
-        <div class="arch-arrow">&rarr;</div>
-        <div class="arch-node green">
-          <div class="stat-label">3. Local Accounting (Read-Only)</div>
-          <h3><code>tokenomics.py</code> Dashboard</h3>
-          <ul>
-            <li>Reads <code>~/.copilot/session-store.db</code> (<code>assistant_usage_events</code> + <code>sessions</code>).</li>
-            <li>Matches sessions whose folder and first call fall inside a <code>launches.jsonl</code> window.</li>
-            <li>Prints <code>ccusage</code>-style tables: <code>daily</code>, <code>weekly</code>, <code>monthly</code>, <code>session</code>, <code>--full</code>, <code>--json</code>.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title"><span>The 6 Components on Your Machine</span><span>All Local</span></div>
-        <table>
-          <thead>
-            <tr><th>Component</th><th>What It Does</th><th>Where It Lives</th><th>Default GitHub Routing?</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>1. <code>tmc</code> function</strong></td>
-              <td>One-word command that runs Copilot through the launcher</td>
-              <td><code>Documents\PowerShell\profile.ps1</code></td>
-              <td><span class="hl-green">Yes</span></td>
-            </tr>
-            <tr>
-              <td><strong>2. Lean tool set</strong></td>
-              <td>Excludes <code>task</code>, <code>skill</code>, <code>sql</code>, <code>session_store_sql</code>, 3 bg-pwsh tools, 3 agent tools, <code>fetch_copilot_cli_documentation</code></td>
-              <td><code>~/.copilot/token-master/brainspace_copilot_bridge.py</code></td>
-              <td><span class="hl-green">Yes</span> (<code>--all-tools</code> keeps all 11)</td>
-            </tr>
-            <tr>
-              <td><strong>3. v6 <code>view</code> hook</strong></td>
-              <td>Replaces oversized whole-file <code>view</code> output with a compact digest (e.g. 29.8 KB &rarr; 5.2 KB)</td>
-              <td><code>~/.copilot/settings.json</code> (<code>postToolUse</code>)</td>
-              <td><span class="hl-green">Yes</span></td>
-            </tr>
-            <tr>
-              <td><strong>4. Graph navigation (v7)</strong></td>
-              <td>Prebuilt Graphify call graph + SQLite symbol index behind <code>locate</code>, <code>read_symbol</code>, <code>impact</code></td>
-              <td><code>navigation_mcp.py</code> + repo <code>.token-master/</code></td>
-              <td><span class="hl-green">Yes</span> (per-repo or per-session)</td>
-            </tr>
-            <tr>
-              <td><strong>5. Request bridge</strong></td>
-              <td>Moves <code>Session folder:</code> out of the system prompt so sessions in the same folder share cache</td>
-              <td>Inside <code>brainspace_copilot_bridge.py</code></td>
-              <td><span class="hl-cyan">BYOK mode only</span></td>
-            </tr>
-            <tr>
-              <td><strong>6. <code>/tokenomics</code></strong></td>
-              <td>Joins <code>session-store.db</code> + <code>launches.jsonl</code> into measured + estimated savings tables</td>
-              <td><code>~/.copilot/skills/tokenomics/SKILL.md</code></td>
-              <td><span class="hl-green">Yes</span> (interactive + CLI)</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- ========================================== SLIDE 3: LIVE DEMO RUNBOOK ========================================== -->
-    <section class="slide">
-      <div>
-        <div class="badge">&#9679; Part 3 &middot; Step-by-Step Live Walkthrough &middot; ~8 Minutes</div>
-        <h1>Live Demo Runbook: <span>Click Copy, Paste, and Narrate.</span></h1>
-        <p class="subtitle">Open two PowerShell 7 windows side by side: <strong>Window A (Stock Copilot)</strong> on the left, <strong>Window B (TokenMaster <code>tmc</code>)</strong> on the right.</p>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title"><span>Pre-Flight (Paste in Both Windows Before You Start)</span></div>
-        <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy</button>cd C:\Users\shyamsridhar\code\Tokenmaster
+          <pre id="preflight-code">cd C:\Users\shyamsridhar\code\Tokenmaster
 $django = "$env:TEMP\opencode\django-g091"
 $nav = "@$env:USERPROFILE\.copilot\token-master\demo-nav-mcp.json"
-function tokenomics { & "C:\Users\shyamsridhar\code\Tokenmaster\.token-master-dev\Scripts\python.exe" "$env:USERPROFILE\.copilot\token-master\tokenomics.py" @args }</pre>
-      </div>
-
-      <div class="grid-2">
-        <div class="panel">
-          <div class="panel-title"><span>Step 1 &middot; Show What Is Installed (30 sec, 0 tokens)</span><span>Window B</span></div>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy</button>copilot skill list
+function tokenomics { &amp; "C:\Users\shyamsridhar\code\Tokenmaster\.token-master-dev\Scripts\python.exe" "$env:USERPROFILE\.copilot\token-master\tokenomics.py" @args }</pre>
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Window B &middot; Show Installed Skill &amp; tmc Function (0 tokens)</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step1-code', this)">Copy</button>
+          </div>
+          <pre id="step1-code">copilot skill list
 (Get-Command tmc).Definition</pre>
-          <div class="say-box"><strong>Say:</strong> &ldquo;<code>tokenomics</code> is registered as a personal Copilot skill, and <code>tmc</code> is a one-line wrapper that launches Copilot through TokenMaster.&rdquo;</div>
         </div>
+      </div>
 
-        <div class="panel">
-          <div class="panel-title"><span>Step 2 &middot; Same 1-Word Prompt: Stock vs. <code>tmc</code> (2 min)</span><span>Windows A &amp; B</span></div>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win A: Stock)</button>copilot -p "Reply with the single word OK."</pre>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win B: tmc)</button>tmc -p "Reply with the single word OK."
+      <div class="runbook-pane">
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Window A (Stock Copilot CLI) &middot; Expect ~15,185 tokens ($0.04)</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step2a-code', this)">Copy</button>
+          </div>
+          <pre id="step2a-code">copilot -p "Reply with the single word OK."</pre>
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Window B (TokenMaster tmc) &middot; Expect ~9,016 tokens ($0.02)</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step2b-code', this)">Copy</button>
+          </div>
+          <pre id="step2b-code">tmc -p "Reply with the single word OK."
 tokenomics session --since 20261023</pre>
-          <div class="say-box"><strong>Point out:</strong> Stock sent <strong>15,185 tokens ($0.04)</strong> just to say OK. <code>tmc</code> sent <strong>9,016 tokens ($0.02)</strong> and <code>tokenomics</code> attributes it as <code>lean</code> with <code>5,558</code> saved tokens &approx;.</div>
         </div>
+      </div>
 
-        <div class="panel">
-          <div class="panel-title"><span>Step 3 &middot; Graphify vs. Grep on Django 5.2 (3 min)</span><span>2,818 Python Files</span></div>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win A: Stock Grep)</button>cd $django
+      <div class="runbook-pane">
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Window A (Stock Grep on Django) &middot; Rehearsal: 62,484 tokens, 4 calls</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step3a-code', this)">Copy</button>
+          </div>
+          <pre id="step3a-code">cd $django
 copilot -p "List the non-test functions that call format() in django/utils/dateformat.py. Answer with the list only." --allow-all-tools</pre>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Win B: tmc + Graphify)</button>cd $django
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Window B (tmc + Graphify impact) &middot; Rehearsal: 21,495 tokens, 2 calls</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step3b-code', this)">Copy</button>
+          </div>
+          <pre id="step3b-code">cd $django
 tmc --additional-mcp-config $nav -p "Use the impact tool to list the non-test functions that call format() in django/utils/dateformat.py. Answer with the list only." --allow-all-tools</pre>
-          <div class="say-box"><strong>Point out:</strong> Correct callers are <code>defaultfilters.date</code> and <code>formats.date_format</code>. In rehearsal, stock spent <strong>62,484 tokens across 4 calls</strong> (<code>glob</code>, <code>rg</code>, <code>view</code>) and answered wrong. <code>tmc</code> called <code>impact</code> once, spent <strong>21,495 tokens across 2 calls (&minus;65.6%)</strong>, and answered right.</div>
         </div>
+      </div>
 
-        <div class="panel">
-          <div class="panel-title"><span>Step 4 &middot; Interactive <code>/tokenomics</code> &amp; Free <code>!</code> Mode (2.5 min)</span><span>Window B</span></div>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Start Interactive)</button>cd C:\Users\shyamsridhar\code\Tokenmaster
-tmc</pre>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Inside Copilot)</button>/tokenomics
+      <div class="runbook-pane">
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Window B &middot; Start Interactive Session &amp; Run /tokenomics</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step4a-code', this)">Copy</button>
+          </div>
+          <pre id="step4a-code">cd C:\Users\shyamsridhar\code\Tokenmaster
+tmc
+# Inside Copilot CLI, type:
+/tokenomics
 /tokenomics session --since 20261023</pre>
-          <pre class="cmd"><button class="copy-btn" onclick="copyCmd(this)">Copy (Zero-Token ! Form)</button>! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "C:/Users/shyamsridhar/code/Tokenmaster/.token-master-dev/Scripts/python.exe" "C:/Users/shyamsridhar/.copilot/token-master/tokenomics.py" session --since 20261023 --full</pre>
-          <div class="say-box"><strong>Point out:</strong> Notice the startup banner lists the 11 disabled tools. Typing <code>/tokenomics</code> works even with the <code>skill</code> tool excluded (costs ~16K tokens). Prefixing with <code>!</code> runs it directly in PowerShell for <strong>0 model tokens</strong>.</div>
+        </div>
+        <div class="cmd-box">
+          <div class="cmd-head">
+            <span>Inside Copilot CLI &middot; Zero-Token ! Shell Form</span>
+            <button type="button" class="copy-trigger" onclick="copyText('step4b-code', this)">Copy</button>
+          </div>
+          <pre id="step4b-code">! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); &amp; "C:/Users/shyamsridhar/code/Tokenmaster/.token-master-dev/Scripts/python.exe" "C:/Users/shyamsridhar/.copilot/token-master/tokenomics.py" session --since 20261023 --full</pre>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- ========================================== SLIDE 4: REAL OUTPUT & Q&A ========================================== -->
-    <section class="slide">
-      <div>
-        <div class="badge">&#9679; Part 4 &middot; Live Rehearsal Output &amp; Tough Q&amp;A</div>
-        <h1>What the audience sees in <code>/tokenomics</code> &mdash; <span>and how to answer questions.</span></h1>
-        <p class="subtitle">Below is the actual table from your machine after rehearsing Steps 2 and 3 today (<code>tokenomics session --since 20261023 --full</code>).</p>
+  <!-- ==================== SECTION 4: PROOF (Benchmark Table & Real Dashboard) ==================== -->
+  <section class="section proof-section wrap" id="proof">
+    <div class="grid">
+      <div style="grid-column: 1 / 8;" data-reveal>
+        <h2 class="head">MEASURED PROOF</h2>
+      </div>
+      <div style="grid-column: 8 / 13;" data-reveal>
+        <p>
+          Every A/B number below is recounted from raw per-call API records. In the <code>/tokenomics</code> dashboard beneath it, click any of today's four rehearsal sessions from your machine to inspect how its measured bill and estimated savings were computed.
+        </p>
+      </div>
+    </div>
+
+    <table class="proof-table" data-reveal>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Benchmark or Probe</th>
+          <th>Model &amp; CLI Build</th>
+          <th class="num">Stock Tokens &rarr; TokenMaster</th>
+          <th class="num">Measured Saving (Cost / Quality)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="nums">2026-10-22</td>
+          <td>Django 5.2 &middot; 45 caller tasks (full TokenMaster)</td>
+          <td><code>gpt-6-astra</code> &middot; 1.0.78-3</td>
+          <td class="num">2,417,452 &rarr; 1,127,277</td>
+          <td class="num">&minus;53.4% tokens &middot; &minus;49.5% cold (&minus;79.9% back-to-back)</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-22</td>
+          <td>Django 5.2 &middot; 45 caller tasks (full TokenMaster)</td>
+          <td><code>claude-opus-5.5</code> &middot; 1.0.78-3</td>
+          <td class="num">3,457,179 &rarr; 1,673,646</td>
+          <td class="num">&minus;51.6% tokens &middot; &minus;46.0% cold &middot; 88/90 vs. 90/90</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-22</td>
+          <td>Django 5.2 &middot; Graphify share on top of lean set</td>
+          <td>Both models &middot; 1.0.78-3</td>
+          <td class="num">162 &rarr; 143 &amp; 174 &rarr; 150 calls</td>
+          <td class="num">&minus;15.4% (astra) &amp; &minus;9.8% (opus) further cut</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-19</td>
+          <td>TokenMaster repo &middot; 27 tasks (P01–P24, H02, H03, H05)</td>
+          <td><code>gpt-6-astra</code> &amp; <code>claude-opus-5.5</code></td>
+          <td class="num">2.40M &rarr; 1.33M &amp; 3.05M &rarr; 1.42M</td>
+          <td class="num">&minus;44.8% &amp; &minus;53.5% tokens &middot; 53/54 vs. 54/54</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-23</td>
+          <td>Copilot CLI 1.0.98 fixed-prompt probe</td>
+          <td><code>gpt-6-astra</code> &amp; <code>claude-opus-5.5</code> &middot; 1.0.98</td>
+          <td class="num">11,083 &rarr; 5,525 &amp; 18,104 &rarr; 8,377</td>
+          <td class="num">&minus;50.1% &amp; &minus;53.7% first-call tokens removed</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-23</td>
+          <td>Estimator check against 6 measured A/B runs</td>
+          <td><code>tokenomics.py</code> validation</td>
+          <td class="num">270 Django + 108 repo sessions</td>
+          <td class="num">72.1% to 125.4% of measured token saving</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Verbatim /tokenomics Dashboard Fragment (data-ui) -->
+    <div class="terminal-ui" data-ui data-reveal>
+      <div class="terminal-bar">
+        <strong>Actual <code>/tokenomics session --since 20261023</code> on Your Machine</strong>
+        <span class="small" style="color: #b5b3aa;">Source: <code>C:\Users\shyamsridhar\.copilot\session-store.db</code> &middot; 2 launches recorded</span>
+      </div>
+      <pre style="white-space: pre; overflow-x: auto; font-size: 0.86rem; line-height: 1.45;">┌────────────────────────────┬───────────────┬──────────────┬────────────┬──────────────┬────────────────┬───────────────┐
+│ Session                    │ Models        │ Total Tokens │ Cost (USD) │ TokenMaster  │ Saved Tokens ≈ │ Saved (USD) ≈ │
+├────────────────────────────┼───────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ 2db20280 (Stock: "OK")     │ • gpt-6.1-sol │       15,185 │      $0.04 │ -            │              - │             - │
+│ 228cd45d (tmc: "OK")       │ • gpt-6.1-sol │        9,016 │      $0.02 │ lean         │  5,558 (38.1%) │ $0.01 (38.1%) │
+│ 0c4d1fe3 (tmc+Graph D31)   │ • gpt-6.1-sol │       21,495 │      $0.03 │ lean         │ 11,116 (34.1%) │ $0.01 (31.4%) │
+│ 024cbb23 (Stock D31)       │ • gpt-6.1-sol │       62,484 │      $0.05 │ -            │              - │             - │
+├────────────────────────────┼───────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ Total (8 calls)            │               │      108,180 │      $0.14 │ 2/4 sessions │ 16,674 (35.3%) │ $0.03 (34.4%) │
+└────────────────────────────┴───────────────┴──────────────┴────────────┴──────────────┴────────────────┴───────────────┘</pre>
+
+      <div class="session-Inspection" role="group" aria-label="Inspect session math">
+        <button type="button" class="session-btn is-active" onclick="explainSession(0, this)">
+          <strong>2db20280 &middot; Stock "OK"</strong>
+          <div class="small" style="color: #d3d2ce;">15,185 tok &middot; $0.0380</div>
+        </button>
+        <button type="button" class="session-btn" onclick="explainSession(1, this)">
+          <strong>228cd45d &middot; tmc "OK"</strong>
+          <div class="small" style="color: #d3d2ce;">9,016 tok &middot; $0.0226 (&minus;40.5%)</div>
+        </button>
+        <button type="button" class="session-btn" onclick="explainSession(2, this)">
+          <strong>0c4d1fe3 &middot; tmc + Graphify</strong>
+          <div class="small" style="color: #d3d2ce;">21,495 tok &middot; 2 calls &middot; Correct</div>
+        </button>
+        <button type="button" class="session-btn" onclick="explainSession(3, this)">
+          <strong>024cbb23 &middot; Stock Django</strong>
+          <div class="small" style="color: #d3d2ce;">62,484 tok &middot; 4 calls &middot; Wrong</div>
+        </button>
+      </div>
+      <p id="sessionDetail" style="margin-top: 1rem; color: var(--bg);">
+        <strong>Session 2db20280 (Stock Copilot CLI):</strong> Started with plain <code>copilot -p "Reply with the single word OK."</code> Not in <code>launches.jsonl</code>, so TokenMaster is <code>-</code>. Wrote 15,177 fixed prompt tokens to GitHub's cache at $2.50/1M plus 3 new input and 5 output tokens = <strong>$0.0380</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 5: FAQ (Answers as Reading Text) ==================== -->
+  <section class="section faq-section wrap" id="faq">
+    <div class="grid">
+      <div class="faq-title-col" data-reveal>
+        <h2 class="head">HARD QUESTIONS</h2>
+        <p class="small muted" style="margin-top: 1rem;">
+          Direct, evidence-backed answers for technical questions during the demo.
+        </p>
       </div>
 
-      <div class="panel">
-        <div class="panel-title"><span>Actual Rehearsal Output on Your Machine (October 23, 2026)</span><span><code>~/.copilot/session-store.db</code></span></div>
-        <pre class="cmd" style="font-size: 11.5px; line-height: 1.42;">┌────────────────────────────┬───────────────┬──────────────────┬───────┬───────┬────────┬─────────────┬────────────┬──────────────┬────────────┬──────────────┬────────────────┬───────────────┐
-│ Session                    │ Models        │ Started          │ Calls │ Input │ Output │ Cache Write │ Cache Read │ Total Tokens │ Cost (USD) │ TokenMaster  │ Saved Tokens ≈ │ Saved (USD) ≈ │
-├────────────────────────────┼───────────────┼──────────────────┼───────┼───────┼────────┼─────────────┼────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
-│ 2db20280 (Stock: "OK")     │ • gpt-6.1-sol │ 2026-10-23 09:07 │     1 │     3 │      5 │      15,177 │          0 │       15,185 │      $0.04 │ -            │              - │             - │
-│ 228cd45d (tmc: "OK")       │ • gpt-6.1-sol │ 2026-10-23 09:07 │     1 │     3 │      5 │       9,008 │          0 │        9,016 │      $0.02 │ lean         │  5,558 (38.1%) │ $0.01 (38.1%) │
-│ 0c4d1fe3 (tmc+Graph D31)   │ • gpt-6.1-sol │ 2026-10-23 09:07 │     2 │   413 │     74 │      11,617 │      9,391 │       21,495 │      $0.03 │ lean         │ 11,116 (34.1%) │ $0.01 (31.4%) │
-│ 024cbb23 (Stock D31)       │ • gpt-6.1-sol │ 2026-10-23 09:09 │     4 │    12 │    156 │      16,393 │     45,923 │       62,484 │      $0.05 │ -            │              - │             - │
-├────────────────────────────┼───────────────┼──────────────────┼───────┼───────┼────────┼─────────────┼────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
-│ Total                      │               │                  │     8 │   431 │    240 │      52,195 │     55,314 │      108,180 │      $0.14 │ 2/4 sessions │ 16,674 (35.3%) │ $0.03 (34.4%) │
-└────────────────────────────┴───────────────┴──────────────────┴───────┴───────┴────────┴─────────────┴────────────┴──────────────┴────────────┴──────────────┴────────────────┴───────────────┘</pre>
+      <div class="faq-text-col">
+        <p class="faq-item" data-reveal>
+          <strong>Are the numbers in /tokenomics measured or estimated?</strong> Both, and the table keeps them separate. Total Tokens, Input, Output, Cache Write, Cache Read, and Cost (USD) are 100% measured from Copilot CLI's own <code>session-store.db</code>. The two columns marked &approx; estimate what stock Copilot would have spent on the same calls.
+        </p>
+        <p class="faq-item" data-reveal>
+          <strong>Does removing eleven built-in tools hurt quality?</strong> In our October 18 runs, zero sessions called any of the eleven tools. In the October 19 27-task run, one stock session called <code>task</code> (a subagent) and spent 124,403 tokens; TokenMaster passed the same task without it in 38,154 tokens. Across 90 Django runs and 54 repository runs, TokenMaster scored 88/90 and 53/54 against stock's 90/90 and 54/54, with every miss traced to a model error.
+        </p>
+        <p class="faq-item" data-reveal>
+          <strong>What if a task needs subagents or background PowerShell?</strong> Pass <code>tmc --all-tools</code> or run plain <code>copilot</code>. The launcher leaves every built-in tool in place when <code>--all-tools</code> is given.
+        </p>
+        <p class="faq-item" data-reveal>
+          <strong>Which Copilot CLI version ran in the A/B studies?</strong> The A/B harnesses passed <code>--no-auto-update</code>, which caused the Windows WinGet launcher to run its bundled <code>1.0.78-3</code> build even though <code>1.0.98</code> was installed. We caught that discrepancy in the session captures, corrected every document and evidence record, fixed the version gate, and probed <code>1.0.98</code>: the lean tool set removes 50.1% (`gpt-6-astra`) and 53.7% (`claude-opus-5.5`) of the first call on 1.0.98.
+        </p>
+        <p class="faq-item" data-reveal>
+          <strong>Does TokenMaster store or transmit any prompt text?</strong> No. <code>launches.jsonl</code> records only the start/end millisecond timestamps, the working directory path, and three booleans (<code>lean</code>, <code>bridge</code>, <code>nav</code>). <code>tokenomics.py</code> opens <code>session-store.db</code> read-only and makes no network calls.
+        </p>
+        <p class="faq-item" data-reveal>
+          <strong>Why does /tokenomics itself cost tokens when typed as a slash command?</strong> In Copilot CLI, a personal skill injects instructions into the conversation so the model calls PowerShell and echoes the table (~16,445 tokens). Running the <code>!</code> shell command printed at the bottom of the report executes <code>tokenomics.py</code> directly in PowerShell for zero model tokens.
+        </p>
       </div>
+    </div>
+  </section>
 
-      <div class="grid-3">
-        <div class="panel">
-          <div class="panel-title"><span>Q: Measured or Estimated?</span></div>
-          <p style="font-size: 12.5px; color: var(--muted); line-height: 1.45;"><strong>Both, clearly separated.</strong> The 45-task Django A/B (&minus;53.4% / &minus;51.6% tokens) is measured against real stock runs. In <code>/tokenomics</code>, <code>Total Tokens</code> and <code>Cost (USD)</code> are GitHub's exact per-call records; <code>Saved &approx;</code> is a formula estimate for your daily work where no stock twin ran.</p>
-        </div>
-        <div class="panel">
-          <div class="panel-title"><span>Q: Does Dropping 11 Tools Hurt?</span></div>
-          <p style="font-size: 12.5px; color: var(--muted); line-height: 1.45;">In our October 18 runs, <strong>0 sessions called any of the 11 tools</strong>. In the October 19 27-task run, 1 stock session called <code>task</code> (subagent); TokenMaster still passed that task in 38K tokens vs. stock's 124K. Need subagents or background PowerShell? Run <code>tmc --all-tools</code> or plain <code>copilot</code>.</p>
-        </div>
-        <div class="panel">
-          <div class="panel-title"><span>Q: What About CLI Versions?</span></div>
-          <p style="font-size: 12.5px; color: var(--muted); line-height: 1.45;">Our A/B harness passed <code>--no-auto-update</code>, which made the WinGet launcher run its bundled <strong>1.0.78-3</strong> build. We caught that, disclosed it in the docs, and probed <strong>1.0.98</strong>: the fixed prompt is smaller on 1.0.98, and the lean tool set still removes <strong>50.1% to 53.7%</strong> of the first call.</p>
-        </div>
+  <!-- ==================== SECTION 6: FOOTER (Columns Above, Wordmark Below) ==================== -->
+  <footer class="footer-section wrap">
+    <div class="footer-cols" data-reveal>
+      <ul class="footer-list small">
+        <li><strong>Installed Paths</strong></li>
+        <li class="muted-light"><code>~/.copilot/skills/tokenomics/SKILL.md</code></li>
+        <li class="muted-light"><code>~/.copilot/token-master/tokenomics.py</code></li>
+        <li class="muted-light"><code>~/.copilot/token-master/launches.jsonl</code></li>
+        <li class="muted-light"><code>~/.copilot/settings.json</code> (v6 view hook)</li>
+      </ul>
+      <ul class="footer-list small">
+        <li><strong>Dashboard Commands</strong></li>
+        <li class="muted-light"><code>/tokenomics</code> (daily compact)</li>
+        <li class="muted-light"><code>/tokenomics session --full</code></li>
+        <li class="muted-light"><code>/tokenomics monthly --breakdown</code></li>
+        <li class="muted-light"><code>tokenomics --only tokenmaster --json</code></li>
+      </ul>
+      <ul class="footer-list small">
+        <li><strong>Evidence in Repo</strong></li>
+        <li class="muted-light"><code>docs/DEMO_SCRIPT.md</code></li>
+        <li class="muted-light"><code>token-master-plugin/docs/TOKENOMICS.md</code></li>
+        <li class="muted-light"><code>token-master-plugin/docs/COPILOT_CLI_RESULTS.md</code></li>
+        <li class="muted-light"><code>evidence/django-scale-20261022/</code></li>
+      </ul>
+      <ul class="footer-list small">
+        <li><strong>Honest Limits</strong></li>
+        <li class="muted-light">A/B runs are exploratory, on 1.0.78-3</li>
+        <li class="muted-light">1.0.98 calibration comes from a 1-prompt probe</li>
+        <li class="muted-light">Bridge requires BYOK mode</li>
+        <li class="muted-light"><code>-p "/tokenomics"</code> is not supported by Copilot CLI</li>
+      </ul>
+    </div>
+
+    <div></div>
+
+    <div>
+      <div class="footer-wordmark" data-reveal>
+        <svg viewBox="0 0 1000 145" role="img" aria-label="TOKENMASTER">
+          <text x="0" y="128" font-family="Anton, Impact, sans-serif" font-size="152" letter-spacing="-2">TOKENMASTER</text>
+        </svg>
       </div>
-    </section>
-  </div>
+      <div class="footer-legal">
+        <span>TokenMaster &amp; /tokenomics &middot; GitHub Copilot CLI Token Efficiency</span>
+        <span>Photographs: Lee Scott &amp; Brian Gonzalez (Unsplash, via picsum.photos) &middot; Keys 1–6 jump sections</span>
+      </div>
+    </div>
+  </footer>
 
   <script>
-    let current = 0;
-    const slides = document.querySelectorAll('.slide');
-    const tabs = document.querySelectorAll('.topbar .tabs .tab');
-    function showSlide(index) {
-      document.body.classList.remove('all-slides');
-      document.getElementById('allBtn').classList.remove('active');
-      current = (index + slides.length) % slides.length;
-      slides.forEach((s, i) => s.classList.toggle('active', i === current));
-      tabs.forEach((t, i) => t.classList.toggle('active', i === current));
+    // Reveal on scroll (from taste-skill base.js)
+    (() => {
+      const targets = document.querySelectorAll('[data-reveal]');
+      if (!targets.length) return;
+      if (!('IntersectionObserver' in window)) { targets.forEach((el) => el.classList.add('is-in')); return; }
+      const io = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-in');
+          io.unobserve(entry.target);
+        }
+      }, { rootMargin: '0px 0px -10% 0px', threshold: 0.08 });
+      targets.forEach((el) => io.observe(el));
+      window.addEventListener('load', () => setTimeout(() => {
+        targets.forEach((el) => { const r = el.getBoundingClientRect(); if (r.top < innerHeight && r.bottom > 0) el.classList.add('is-in'); });
+      }, 1800));
+    })();
+
+    // Live Tokenomics Calculator
+    const MODELS = {
+      sol:   { name: 'gpt-6.1-sol',     lean: 5558, read: 0.10, write: 2.50, firstShare: 0.25 },
+      astra: { name: 'gpt-6-astra',     lean: 5558, read: 1.00, write: 12.50, firstShare: 0.25 },
+      opus:  { name: 'claude-opus-5.5', lean: 9727, read: 0.20, write: 5.00, firstShare: 0.25 }
+    };
+    let activeModel = 'sol';
+
+    function setModel(key, btn) {
+      activeModel = key;
+      document.querySelectorAll('.calc-pill').forEach((b) => b.classList.toggle('is-active', b === btn));
+      updateCalc();
     }
-    function toggleAll() {
-      const on = document.body.classList.toggle('all-slides');
-      document.getElementById('allBtn').classList.toggle('active', on);
+
+    function updateCalc() {
+      const calls = Number(document.getElementById('callsSlider').value);
+      const m = MODELS[activeModel];
+      const sessions = Math.max(1, Math.round(calls * m.firstShare));
+      const savedTokens = calls * m.lean;
+      const leanUsd = (savedTokens * m.read) / 1e6;
+      const firstUsd = (sessions * m.lean * (m.write - m.read)) / 1e6;
+      const totalUsd = leanUsd + firstUsd;
+
+      document.getElementById('callsOut').textContent = `${calls} call${calls === 1 ? '' : 's'} / day (${sessions} session${sessions === 1 ? '' : 's'})`;
+      document.getElementById('bigSavedTokens').textContent = savedTokens.toLocaleString('en-US');
+      document.getElementById('bigSavedUsd').textContent = `tokens / day (\u2248 $${totalUsd.toFixed(2)} saved, $${(totalUsd * 22).toFixed(2)} / month)`;
+      document.getElementById('calcFormulaLine').textContent =
+        `${m.name}: ${m.lean.toLocaleString('en-US')} fixed tokens removed/call \u00b7 $${leanUsd.toFixed(3)} per-call cache reads + $${firstUsd.toFixed(3)} first-call cache writes avoided.`;
     }
+
+    function showPane(idx, btn) {
+      document.querySelectorAll('.runbook-tab').forEach((t, i) => t.classList.toggle('is-active', i === idx));
+      document.querySelectorAll('.runbook-pane').forEach((p, i) => p.classList.toggle('is-active', i === idx));
+    }
+
+    const SESSION_NOTES = [
+      '<strong>Session 2db20280 (Stock Copilot CLI):</strong> Started with plain <code>copilot -p "Reply with the single word OK."</code> Not in <code>launches.jsonl</code>, so TokenMaster is <code>-</code>. Wrote 15,177 fixed prompt tokens to GitHub\'s cache at $2.50/1M plus 3 new input and 5 output tokens = <strong>$0.0380</strong>.',
+      '<strong>Session 228cd45d (TokenMaster tmc):</strong> Same <code>"Reply with the single word OK."</code> prompt through <code>tmc</code>. Removing 11 built-in tools dropped the cache write from 15,177 to 9,008 tokens. Actual charge: <strong>$0.0226</strong> (&minus;40.5%). Estimator credits 5,558 tokens and $0.0139 (&approx;38.1%).',
+      '<strong>Session 0c4d1fe3 (tmc + Graphify on Django D31):</strong> Asked who calls <code>format()</code> in <code>django/utils/dateformat.py</code>. Called <code>tokenmaster-nav-impact</code> once, finished in <strong>2 calls and 21,495 tokens ($0.0315)</strong>, and returned the exact two callers (<code>defaultfilters.date</code> and <code>formats.date_format</code>).',
+      '<strong>Session 024cbb23 (Stock Copilot on Django D31):</strong> Same Django question without TokenMaster. Ran <code>glob</code>, <code>rg</code>, and <code>view</code> across <strong>4 calls and 62,484 tokens ($0.0472)</strong>, and returned the wrong answer (<code>format</code> and <code>time_format</code>).'
+    ];
+    function explainSession(idx, btn) {
+      document.querySelectorAll('.session-btn').forEach((b, i) => b.classList.toggle('is-active', i === idx));
+      document.getElementById('sessionDetail').innerHTML = SESSION_NOTES[idx];
+    }
+
+    function copyText(id, btn) {
+      const el = document.getElementById(id.trim());
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText.trim());
+      const prev = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.textContent = prev; }, 1200);
+    }
+
+    // Keyboard section jump (1-6) for live presentation
+    const SECTION_IDS = ['top', 'math', 'specimens', 'architecture', 'proof', 'faq'];
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key >= '1' && e.key <= '4') showSlide(Number(e.key) - 1);
-      else if (e.key === 'ArrowRight') showSlide(current + 1);
-      else if (e.key === 'ArrowLeft') showSlide(current - 1);
+      if (e.key >= '1' && e.key <= '6') {
+        const target = document.getElementById(SECTION_IDS[Number(e.key) - 1]);
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      }
     });
-    function copyCmd(btn) {
-      const pre = btn.parentElement;
-      const clone = pre.cloneNode(true);
-      clone.querySelector('button')?.remove();
-      navigator.clipboard.writeText(clone.innerText.trim());
-      const old = btn.innerText;
-      btn.innerText = 'Copied!';
-      setTimeout(() => { btn.innerText = old; }, 1200);
-    }
   </script>
 </body>
 </html>
