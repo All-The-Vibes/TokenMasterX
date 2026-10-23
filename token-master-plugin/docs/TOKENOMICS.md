@@ -65,9 +65,11 @@ it is `! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "<python>" "<
 | `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, and whether the lean tool set, the bridge and the navigation tools were on |
 
 - The dashboard opens the database read-only. If Copilot CLI holds it, the dashboard reads a private copy.
-- The launch records hold no prompt text. A call counts as a TokenMaster call if its session's folder matches a
-  launch that was running at the time of the call.
-- Sessions that did not start through the launcher count as stock, with no savings.
+- The launch records hold no prompt text. A session counts as a TokenMaster session if its folder matches a launch
+  and its first call came during that launch. Its calls during the launch count as TokenMaster calls.
+- Sessions that did not start through the launcher count as stock, with no savings. So do sessions resumed through
+  the launcher, because their first call came before the launch.
+- A stock session started in the same folder while a TokenMaster launch was running counts as TokenMaster.
 
 ## How the savings are estimated
 
@@ -142,9 +144,14 @@ same time. Those runs used Copilot CLI 1.0.78-3, so the check uses the 1.0.78-3 
 | Typed in an interactive session, lean tool set, `--allow-all-tools` | 1.0.78-3 | The skill ran after one path question; the dashboard printed |
 | Typed in an interactive session, lean tool set, no pre-approval | 1.0.98 | The skill ran after a path question and a command question; the dashboard printed |
 | `!` shell command in the same 1.0.98 session | 1.0.98 | The dashboard printed without a model call |
+| One stock and two TokenMaster sessions in one folder, then the reports ([record](../../evidence/tokenomics-check-20261023/readme-example.txt)) | 1.0.98 | The stock session counted as stock, after the attribution fix below |
 
 - The lean tool set removes Copilot CLI's `skill` tool. Typed `/tokenomics` still loaded the skill.
 - The launcher wrote one start record and one end record for each interactive session.
+- The last check found an attribution error. The stock session's last call came 66 ms after the launcher's start
+  second, and a 5-second tolerance counted that session as TokenMaster. Now a session must have its first call during
+  the launch, and the launcher records milliseconds. Older launch records hold whole seconds, so the dashboard extends
+  their end by one second; otherwise it dropped calls from the launch's last second.
 - The 1.0.78-3 checks ran that version by mistake. The scripts passed `--no-auto-update`, which makes the WinGet
   launcher run its bundled build. See [COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md#copilot-cli-version).
 

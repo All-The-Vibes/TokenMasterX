@@ -1,6 +1,7 @@
 """tokenomics.py: a ccusage-style report from Copilot CLI's session store, with estimated TokenMaster savings."""
 import importlib.util
 import json
+import re
 import sqlite3
 import sys
 from datetime import datetime, timedelta, timezone
@@ -159,6 +160,27 @@ def test_tables_render_in_box_and_ascii(tmp_path, capsys):
     assert "+--" in out and "┌" not in out and "Cache Read" not in out
 
 
+def test_a_stock_session_just_before_a_launch_stays_stock(tmp_path):
+    # The real store of October 23: the stock session's last call came 66 ms after the launch's start second, and the
+    # launcher recorded whole seconds, so its end second also held the TokenMaster session's last call.
+    def at(seconds):
+        return datetime(2026, 10, 23, 6, 10, tzinfo=timezone.utc) + timedelta(seconds=seconds)
+
+    prices = {"input": 1e6, "cache_read": 1e5, "cache_write": 1.25e6, "output": 5e6}
+    calls = [{"session": session, "at": at(seconds), "model": "gpt-6-astra", "api": "responses", "input": 5000,
+              "output": 10, "cache_read": 4000, "cache_write": 990, "nano": 0, "prices": prices, "main": True}
+             for session, seconds in (("stock", 43.084), ("stock", 45.066), ("tm", 49.252), ("tm", 51.271),
+                                      ("tm", 53.176))]
+    registry = tmp_path / "launches.jsonl"
+    registry.write_text(json.dumps({"event": "start", "id": "l", "at": "2026-10-23T06:10:45Z", "cwd": "C:/repo",
+                                    "lean": True, "bridge": True, "nav": False}) + "\n"
+                        + json.dumps({"event": "end", "id": "l", "at": "2026-10-23T06:10:53Z"}) + "\n",
+                        encoding="utf-8")
+    tokenomics.estimate(calls, {"stock": {"cwd": "C:/repo"}, "tm": {"cwd": "C:/repo"}},
+                        tokenomics.load_launches(registry))
+    assert [bool(call["launch"]) for call in calls] == [False, False, True, True, True]
+
+
 def test_launcher_records_copilot_launches_without_prompt_text(tmp_path, monkeypatch):
     monkeypatch.setenv("COPILOT_HOME", str(tmp_path))
     (tmp_path / "mcp-config.json").write_text('{"mcpServers": {"tokenmaster-nav": {}}}', encoding="utf-8")
@@ -167,6 +189,7 @@ def test_launcher_records_copilot_launches_without_prompt_text(tmp_path, monkeyp
     assert bridge.run_recorded(None, ["python", "-c", "pass"], {}, lean=False, bridge=False) == 3  # not Copilot
     records = [json.loads(line) for line in (tmp_path / "token-master" / "launches.jsonl").read_text().splitlines()]
     assert [r["event"] for r in records] == ["start", "end"] and records[0]["id"] == records[1]["id"]
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", records[0]["at"])  # milliseconds, UTC
     assert records[0]["lean"] is True and records[0]["bridge"] is False and records[0]["nav"] is True
     assert "secret" not in json.dumps(records)
     assert tokenomics.load_launches(tmp_path / "token-master" / "launches.jsonl")[0]["lean"] is True

@@ -30,6 +30,10 @@ It has four parts:
    the bridge, in the Copilot output hook for whole-file `view` results, and in the native
    Copilot route.
 
+It also ships **`/tokenomics`**, a ccusage-style dashboard of your Copilot CLI tokens, GitHub's
+charges and TokenMaster's estimated savings
+([see below](#see-your-tokens-cost-and-savings-with-tokenomics)).
+
 ## Current evidence: the real Copilot CLI (October 18–22, 2026)
 
 These runs used the real Copilot CLI 1.0.78-3 with `gpt-6-astra` and `claude-opus-5.5` on
@@ -112,10 +116,85 @@ python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot
 - In bring-your-own-model mode (`COPILOT_PROVIDER_BASE_URL` set), the same command also starts
   the bridge.
 - `--all-tools` keeps every built-in tool.
-- In an interactive session, type `/tokenomics` for a ccusage-style dashboard of your Copilot CLI tokens, GitHub's
-  charges and the estimated TokenMaster savings ([TOKENOMICS.md](token-master-plugin/docs/TOKENOMICS.md)).
+- The first command also installs the `/tokenomics` dashboard
+  ([next section](#see-your-tokens-cost-and-savings-with-tokenomics)).
 
 Details: [COPILOT_BRIDGE.md](token-master-plugin/docs/COPILOT_BRIDGE.md).
+
+## See your tokens, cost and savings with `/tokenomics`
+
+`/tokenomics` does for Copilot CLI what [ccusage](https://github.com/ryoppippi/ccusage) does for
+Claude Code. It reads Copilot CLI's own record of every model call and prints daily, weekly,
+monthly or per-session tables.
+
+- **Measured:** tokens, cache reads and writes, and GitHub's own charge for each call, from
+  `<COPILOT_HOME>/session-store.db`.
+- **Estimated:** what the TokenMaster sessions would have used without TokenMaster. The columns
+  and lines with these numbers are marked ≈.
+- **TokenMaster or stock:** the launcher records each launch in
+  `<COPILOT_HOME>/token-master/launches.jsonl`: time, folder, and whether the lean tool set, the
+  bridge and the navigation tools were on. The records hold no prompt text. Sessions started
+  without the launcher count as stock.
+
+To use it:
+
+1. Install TokenMaster for Copilot with `brainspace_setup.py` (the first command above).
+2. Start Copilot CLI through the launcher, and work as usual.
+3. In an interactive session, type `/tokenomics`. Add a report and options after it, for example
+   `/tokenomics session --since 20261020` or `/tokenomics monthly --breakdown`.
+4. Approve Copilot CLI's two questions: access to the script's path, and running the command.
+
+- **It costs model tokens.** `/tokenomics` asks the model to run the report and repeat it. In the
+  live check on Copilot CLI 1.0.98, that took 2 model calls, 16,445 tokens and $0.16 with
+  `gpt-6-astra`.
+- **The free way:** the last line of the report gives a `!` shell command that prints the same
+  report in Copilot CLI without a model call. In any terminal, run
+  `python <COPILOT_HOME>/token-master/tokenomics.py`.
+- **`copilot -p "/tokenomics"` does not work.** Copilot CLI runs slash commands only in an
+  interactive session.
+
+Excerpt from a live check (Copilot CLI 1.0.98, `gpt-6-astra`, October 23, 2026): one stock
+session, then two TokenMaster sessions with the same one-line question in the same folder
+([full record](evidence/tokenomics-check-20261023/readme-example.txt)).
+
+```text
+┌──────────┬───────────────┬──────────────┬────────────┬──────────────┬────────────────┬───────────────┐
+│ Session  │ Models        │ Total Tokens │ Cost (USD) │ TokenMaster  │ Saved Tokens ≈ │ Saved (USD) ≈ │
+├──────────┼───────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ 579e5c15 │ • gpt-6-astra │       22,278 │      $0.15 │ -            │              - │             - │
+│ repo     │               │              │            │              │                │               │
+├──────────┼───────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ 9b2700f4 │ • gpt-6-astra │       16,847 │      $0.09 │ lean+bridge  │         16,674 │         $0.01 │
+│ repo     │               │              │            │              │                │               │
+├──────────┼───────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ 5690993e │ • gpt-6-astra │       16,844 │      $0.02 │ lean+bridge  │         16,674 │         $0.07 │
+│ repo     │               │              │            │              │                │               │
+├──────────┼───────────────┼──────────────┼────────────┼──────────────┼────────────────┼───────────────┤
+│ Total    │               │       55,969 │      $0.26 │ 2/3 sessions │         33,348 │         $0.08 │
+└──────────┴───────────────┴──────────────┴────────────┴──────────────┴────────────────┴───────────────┘
+
+TokenMaster savings (estimated)
+  TokenMaster sessions          2 of 3  6 model calls
+  Tokens, actual                33,691  GitHub's token counts
+  Tokens without TokenMaster ≈  67,039  saved 33,348 (49.7%)
+  Cost, actual                   $0.11  GitHub's own charge per call
+  Cost without TokenMaster ≈     $0.18  saved $0.08 (41.0%)
+    of which lean tool set       $0.03  33,348 fewer fixed tokens, priced as cache reads
+    of which first calls         $0.04  prompt-cache writes on each session's first call
+```
+
+- The second TokenMaster session cost $0.02 against the first one's $0.09. Its first call read
+  the prompt that the first session had written to the cache. The bridge makes that possible for
+  sessions in the same folder.
+- The stock session made 2 model calls; each TokenMaster session made 3. The estimate assumes the
+  same calls for stock, so it does not show that difference.
+- **How the estimate works:** each TokenMaster call is credited with the fixed tokens that the
+  lean tool set removes, and each session's first call is compared with stock's prompt-cache
+  write. Calls that graph navigation saved are not counted. On the measured A/B runs (Copilot
+  CLI 1.0.78-3), the method gave 72% to 125% of the measured token saving. The values for 1.0.98
+  come from a probe, not from an A/B run.
+
+Details: [TOKENOMICS.md](token-master-plugin/docs/TOKENOMICS.md).
 
 ## Earlier evidence: pre-registered studies in a replica harness (PRS-1 to PRS-4)
 
@@ -224,6 +303,7 @@ Protocol: [PRS1_PROTOCOL.md](token-master-plugin/docs/PRS1_PROTOCOL.md).
 | `request-policy-v6` | Shapes each tool result once, deterministically, when it enters the conversation. Folds search and list output losslessly; turns oversized results into digests that name what was omitted and how to fetch it. | PRS-2: −11.6% cost; PRS-3: −13.0% cost on new tasks. Quality unchanged. Never rewrites history, so the provider's cache stays valid. |
 | `request-policy-v5` | Keeps the newest tool result verbatim. Compacts older `view` results (code skeletons, JSON overviews, Markdown and log summaries) behind one `[[BR:<sha256>\|r=1]]` reference with exact SQLite recovery. | Removed 15.7% of tokens on the requests it changed. Uncached input still rose 94.8%, because each rewrite invalidates the cached prefix. Superseded by v6. |
 | Runtime transport | Captures every request and reply for whole-task accounting. | The native route now keeps the client's parallel tool calls (default on). Earlier versions forced them off, which PRS-1 suggested was costly. |
+| `/tokenomics` dashboard | Reads Copilot CLI's `session-store.db` and the launcher's `launches.jsonl`. Reports measured tokens and GitHub's charges, and estimated TokenMaster savings. | On the A/B runs (Copilot CLI 1.0.78-3), the estimate gave 72% to 125% of the measured token saving. The 1.0.98 values come from a probe. Each `/tokenomics` costs about 16,000 model tokens; the `!` form costs none. |
 
 ## Version history
 
@@ -291,6 +371,7 @@ commit `703aa20`, so they predate the v5 changes:
 - [Documentation index](token-master-plugin/docs/README.md)
 - [Real Copilot CLI results](token-master-plugin/docs/COPILOT_CLI_RESULTS.md) and the
   [launcher and bridge](token-master-plugin/docs/COPILOT_BRIDGE.md)
+- [/tokenomics dashboard](token-master-plugin/docs/TOKENOMICS.md)
 - [PRS-4 results](token-master-plugin/docs/PRS4_RESULTS.md) and [protocol](token-master-plugin/docs/PRS4_PROTOCOL.md)
 - [PRS-3 results](token-master-plugin/docs/PRS3_RESULTS.md) and [protocol](token-master-plugin/docs/PRS3_PROTOCOL.md)
 - [PRS-2 results](token-master-plugin/docs/PRS2_RESULTS.md) and [protocol](token-master-plugin/docs/PRS2_PROTOCOL.md)

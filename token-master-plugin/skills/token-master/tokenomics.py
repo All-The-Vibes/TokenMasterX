@@ -5,7 +5,8 @@ Data, read locally and never changed:
 - <COPILOT_HOME>/session-store.db, table assistant_usage_events: Copilot CLI's own record of every model call, with
   GitHub's token counts and GitHub's charge for the call (total_nano_aiu; 1e9 nano = 1 AI credit = $0.01).
 - <COPILOT_HOME>/token-master/launches.jsonl: written by the TokenMaster launcher when Copilot CLI starts and exits.
-  A call counts as a TokenMaster call if its session's folder matches a launch that was running at that time.
+  A call counts as a TokenMaster call if its session's folder matches a launch, and the session's first call and the
+  call itself fall within that launch's run.
 
 Actual tokens and cost are measured. Savings are estimated (docs/TOKENOMICS.md). The estimate assumes that stock
 Copilot CLI would have made the same model calls:
@@ -51,7 +52,6 @@ CALIBRATION_SOURCE = "Copilot CLI 1.0.98, probe of October 23, 2026"
 BENCHMARK = ("Measured on Copilot CLI 1.0.78-3 (45 Django tasks, October 22, 2026): full TokenMaster used 53.4% "
              "(gpt-6-astra) and 51.6% (claude-opus-5.5) fewer raw tokens than stock.")
 NANO_PER_USD = 1e11
-SLACK = timedelta(seconds=5)
 LAUNCH_TIMEOUT = timedelta(hours=12)  # a launch without an end record counts as running for at most this long
 REPORTS = ("daily", "weekly", "monthly", "session")
 
@@ -154,7 +154,11 @@ def load_launches(path: Path) -> list[dict]:
         start = parse_time(record.get("at"))
         if start is None:
             continue
-        end = parse_time((ends.get(launch_id) or {}).get("at")) or start + LAUNCH_TIMEOUT
+        stamp = (ends.get(launch_id) or {}).get("at")
+        end = parse_time(stamp)
+        if end and "." not in stamp:
+            end += timedelta(seconds=1)  # records before October 23, 2026 hold whole seconds; cover the last one
+        end = end or start + LAUNCH_TIMEOUT
         launches.append({"id": launch_id, "start": start, "end": end, "cwd": norm(record.get("cwd")),
                          "lean": bool(record.get("lean")), "bridge": bool(record.get("bridge")),
                          "nav": bool(record.get("nav"))})
@@ -170,12 +174,17 @@ def norm(folder: str | None) -> str:
 def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibrations: dict | None = None) -> None:
     """Tag TokenMaster calls and add their estimated savings, in place."""
     calibrations = calibrations or CALIBRATION
-    first_seen = set()
+    first_seen, session_start = set(), {}
+    for call in calls:  # calls arrive in time order
+        session_start.setdefault(call["session"], call["at"])
     for call in calls:
         call.update(launch=None, saved_tokens=0, saved_nano=0.0, lean_nano=0.0, first_nano=0.0, estimated=False)
         folder = norm((sessions.get(call["session"]) or {}).get("cwd"))
+        started = session_start[call["session"]]
+        # The session must have started during the launch: a stock session that ran just before it, in the same
+        # folder, stays stock. A resumed session counts as stock.
         matches = [launch for launch in launches if folder and launch["cwd"] == folder
-                   and launch["start"] - SLACK <= call["at"] <= launch["end"] + SLACK]
+                   and launch["start"] <= started <= launch["end"] and launch["start"] <= call["at"] <= launch["end"]]
         if not matches:
             continue
         launch = call["launch"] = matches[-1]

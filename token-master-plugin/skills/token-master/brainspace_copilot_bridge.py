@@ -38,6 +38,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -100,7 +101,7 @@ def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: b
     if Path(command[0]).stem.lower() != "copilot":
         return run_child(parser, command, env)
     launch_id = hashlib.sha256(f"{time.time_ns()}-{os.getpid()}".encode()).hexdigest()[:16]
-    now = lambda: time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())  # noqa: E731
+    now = lambda: datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")  # noqa: E731
     _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": os.getcwd(), "lean": lean,
                     "bridge": bridge, "nav": _nav_installed()})
     try:

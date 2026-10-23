@@ -38,8 +38,10 @@ and the project aims to follow semantic versioning.
   runs, it gave 72% to 125% of the measured token saving (`evidence/tokenomics-validation-20261023/`). See
   `docs/TOKENOMICS.md`.
 - The launcher appends a start and an end record for each Copilot CLI launch to
-  `<COPILOT_HOME>/token-master/launches.jsonl` (time, folder, lean tool set, bridge, navigation tools; no prompt
-  text).
+  `<COPILOT_HOME>/token-master/launches.jsonl` (time in milliseconds, folder, lean tool set, bridge, navigation
+  tools; no prompt text). A session counts as TokenMaster only if its first call came during a launch in its folder.
+  Before this rule, a stock session that ran up to 5 seconds before a launch in the same folder counted as
+  TokenMaster (`evidence/tokenomics-check-20261023/readme-example.txt`).
 - `brainspace_setup.py --host copilot` installs `tokenomics.py` and a personal skill,
   `<COPILOT_HOME>/skills/tokenomics/SKILL.md`. Uninstall removes the skill only if TokenMaster wrote it. The skill
   pre-approves no tool: Copilot CLI asks before it runs the command, unless it started with `--allow-all-tools`.
