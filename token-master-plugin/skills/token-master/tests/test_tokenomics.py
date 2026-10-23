@@ -113,9 +113,12 @@ def test_a_cold_tokenmaster_start_can_cost_more_than_a_warm_stock_start():
     assert tokenomics.money(-1.03e9) == "-$0.01"
 
 
-def test_without_a_launch_registry_nothing_is_attributed(tmp_path):
-    calls = estimated(make_home(tmp_path, launches=None))
+def test_without_a_launch_registry_nothing_is_attributed(tmp_path, capsys):
+    home = make_home(tmp_path, launches=None)
+    calls = estimated(home)
     assert all(c["launch"] is None and c["saved_nano"] == 0 for c in calls)
+    assert tokenomics.main(["--copilot-home", str(home)]) == 0  # the hint names this Python, not a bare `python`
+    assert f'"{sys.executable}" "{SKILL / "brainspace_copilot_bridge.py"}" -- copilot' in capsys.readouterr().out
 
 
 def run_json(home, capsys, *args):

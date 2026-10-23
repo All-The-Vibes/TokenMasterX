@@ -400,11 +400,17 @@ def shell_command(python, script) -> tuple[str, str]:
     return "bash", f'"{python}" "{script}"'
 
 
+def launcher_command() -> str:
+    """Starts Copilot CLI through the launcher next to this script, with this Python: a bare `python` can be missing."""
+    launcher = Path(__file__).resolve().with_name("brainspace_copilot_bridge.py")
+    return f'{"& " if sys.platform == "win32" else ""}"{sys.executable}" "{launcher}" -- copilot'
+
+
 def savings_panel(total: dict, paint: Painter, mark: str, calls: list) -> list[str]:
     lines = [paint("TokenMaster savings (estimated)", "title")]
     if not total["tm_calls"]:
         lines += ["  No TokenMaster calls in this range. Start Copilot CLI through the TokenMaster launcher:",
-                  "  python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot", ""]
+                  f"  {launcher_command()}", ""]
         return lines
     stock_tokens = total["tm_total"] + total["saved_tokens"]
     stock_nano = total["tm_nano"] + total["saved_nano"]

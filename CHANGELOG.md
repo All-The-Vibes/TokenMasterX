@@ -45,6 +45,8 @@ and the project aims to follow semantic versioning.
 - `brainspace_setup.py --host copilot` installs `tokenomics.py` and a personal skill,
   `<COPILOT_HOME>/skills/tokenomics/SKILL.md`. Uninstall removes the skill only if TokenMaster wrote it. The skill
   pre-approves no tool: Copilot CLI asks before it runs the command, unless it started with `--allow-all-tools`.
+- When a range has no TokenMaster calls, the dashboard prints the launcher command with the full path of its own
+  Python. On some Windows machines, `python` on PATH is only the Microsoft Store placeholder.
 - Live checks (`evidence/tokenomics-check-20261023/`): typed in an interactive session, `/tokenomics` works on
   Copilot CLI 1.0.78-3 and 1.0.98, although the lean tool set removes the `skill` tool. It took 2 model calls,
   16,445 tokens and $0.16 on 1.0.98. The `!` shell form needs no model call. With `-p`, Copilot CLI passes
