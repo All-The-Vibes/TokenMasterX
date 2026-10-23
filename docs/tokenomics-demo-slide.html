@@ -627,7 +627,8 @@
       <nav class="nav-links" aria-label="Presentation sections">
         <a href="#math">The Math</a>
         <a href="#specimens">Call Comparison</a>
-        <a href="#architecture">Architecture &amp; Runbook</a>
+        <a href="#cache">Cache Architecture</a>
+        <a href="#architecture">Live Runbook</a>
         <a href="#proof">Dashboard &amp; Proof</a>
         <a href="#faq">Questions</a>
         <button class="button" type="button" onclick="copyText(' preflight-code ', this)">Copy Pre-Flight</button>
@@ -779,6 +780,83 @@ tmc + Graphify (tokenmaster-nav-impact):
       <p class="small muted">
         In the 45-task Django A/B, both arms received identical prompts without naming the tool: <code>gpt-6-astra</code> chose Graphify tools in 45 of 45 sessions and <code>claude-opus-5.5</code> in 26 of 45.
       </p>
+    </div>
+  </section>
+
+  <!-- ==================== SECTION 2B: PROMPT-CACHE ARCHITECTURE ==================== -->
+  <section class="section wrap" id="cache" style="background: var(--surface);">
+    <div class="grid">
+      <div style="grid-column: 1 / 6;" data-reveal>
+        <h2 class="head">CACHE ARCHITECTURE</h2>
+        <p class="lead" style="margin-top: 1rem;">
+          Provider prompt caches match strictly from byte zero forward. One changing byte evicts every token after it from a cheap cache read (0.05&ndash;0.10&times;) to an expensive cache write (1.25&times;).
+        </p>
+        <p style="margin-top: 1rem;">
+          <strong>1. Cross-session eviction (the UUID trap):</strong> Stock Copilot CLI writes <code>Session folder: ...\.copilot\session-state\&lt;uuid&gt;</code> into its system prompt. Because that UUID changes on every launch, every token serialized after it misses the cache on a new session's first call.
+        </p>
+        <p>
+          <strong>2. OpenAI vs. Anthropic wire order:</strong> Anthropic's <code>/v1/messages</code> places the <code>tools</code> array before <code>system</code>, so stock back-to-back sessions still cache the tool block (11,226 tokens on 1.0.98) and rewrite only the system prompt (6,880 tokens). OpenAI's <code>/responses</code> on 1.0.78-3 (and default routing on your machine) missed on the entire 13.6K&ndash;15.2K first call.
+        </p>
+        <p>
+          <strong>3. Intra-session eviction (why v5 failed and v6 works):</strong> In PRS-1, <code>v5</code> compacted older tool outputs on later turns. Mutating Turn 2 on Turn 5 broke prefix byte-identity and raised cache-weighted cost by <strong>+61.6%</strong>. <code>v6</code> shapes each tool result <strong>once when it enters the conversation</strong> and never rewrites history.
+        </p>
+      </div>
+
+      <div style="grid-column: 6 / 13;" data-reveal>
+        <!-- Interactive Prefix Byte-Stream Visualizer (data-ui) -->
+        <div class="calc-ui" data-ui style="max-width: none; background: var(--bg); padding: 1.75rem; gap: 1.25rem;">
+          <div class="calc-row" style="flex-wrap: wrap;">
+            <strong>Interactive Request Byte-Stream Inspector (Byte 0 &rarr; End of Request)</strong>
+            <div class="calc-pills" role="group" aria-label="API wire format">
+              <button type="button" class="calc-pill is-active" id="wireOpenaiBtn" onclick="setCacheWire('openai')">OpenAI /responses (gpt-6-astra)</button>
+              <button type="button" class="calc-pill" id="wireAnthropicBtn" onclick="setCacheWire('anthropic')">Anthropic /v1/messages (claude-opus-5.5)</button>
+            </div>
+          </div>
+
+          <div class="calc-pills" role="group" aria-label="Cache architecture mode">
+            <button type="button" class="calc-pill is-active" onclick="setCacheMode(0, this)">Stock Session 2 (UUID Eviction)</button>
+            <button type="button" class="calc-pill" onclick="setCacheMode(1, this)">tmc Default Routing (Lean Tool Set)</button>
+            <button type="button" class="calc-pill" onclick="setCacheMode(2, this)">tmc + BYOK Bridge (Same Folder)</button>
+            <button type="button" class="calc-pill" onclick="setCacheMode(3, this)">Turn 4 History: v5 (Broken) vs. v6 (Stable)</button>
+          </div>
+
+          <!-- Byte stream bars -->
+          <div id="cacheStreamBox" style="background: var(--ink); color: var(--bg); padding: 1.35rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;">
+              <strong id="cacheStreamTitle" style="font-size: 1.05rem;">Stock Copilot CLI &middot; Second Back-to-Back Session in Same Repo</strong>
+              <span class="nums small" id="cacheStreamBadge" style="color: #f59e0b;">First-call write: 4,632 tokens (1.0.98) / 13,601 tokens (1.0.78-3)</span>
+            </div>
+
+            <!-- Segmented horizontal byte bar -->
+            <div id="cacheBarRow" style="display: flex; width: 100%; min-height: 3.4rem; gap: 3px; font-size: 0.82rem; font-weight: 600;">
+            </div>
+
+            <!-- Legend -->
+            <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.84rem; color: #d3d2ce;">
+              <span><strong style="color: #34d399;">&#9632; CACHE HIT (Read at 0.05&ndash;0.10&times;)</strong> &middot; Byte-identical to prior call</span>
+              <span><strong style="color: #f43f5e;">&#9632; CACHE MISS (Write at 1.25&times;)</strong> &middot; At or after first mutated byte</span>
+              <span><strong style="color: #94a3b8;">&#9632; REMOVED BY LEAN SET ($0)</strong> &middot; 11 unused tools stripped</span>
+            </div>
+
+            <pre id="cacheCodeDiff" style="background: #14130f; padding: 0.95rem; font-size: 0.84rem; line-height: 1.45; color: #e2e8f0;"></pre>
+          </div>
+
+          <!-- Measured numbers comparison table inside the inspector -->
+          <table class="proof-table" style="margin-top: 0.25rem; font-size: 0.92rem;">
+            <thead>
+              <tr>
+                <th>Configuration (Measured)</th>
+                <th class="num">Total Input</th>
+                <th class="num">Cache Read (Cheap)</th>
+                <th class="num">Cache Write (1.25&times;)</th>
+                <th class="num">45-Task First-Call Write Bill</th>
+              </tr>
+            </thead>
+            <tbody id="cacheCompareRows">
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1205,15 +1283,146 @@ tmc
       setTimeout(() => { btn.textContent = prev; }, 1200);
     }
 
-    // Keyboard section jump (1-6) for live presentation
-    const SECTION_IDS = ['top', 'math', 'specimens', 'architecture', 'proof', 'faq'];
+    // Keyboard section jump (1-7) for live presentation
+    const SECTION_IDS = ['top', 'math', 'specimens', 'cache', 'architecture', 'proof', 'faq'];
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key >= '1' && e.key <= '6') {
+      if (e.key >= '1' && e.key <= '7') {
         const target = document.getElementById(SECTION_IDS[Number(e.key) - 1]);
         if (target) target.scrollIntoView({ behavior: 'smooth' });
       }
     });
+
+    // Interactive Prompt-Cache Architecture Visualizer
+    let cacheWire = 'openai';
+    let cacheMode = 0;
+
+    const CACHE_DATA = {
+      openai: {
+        table: [
+          ['Stock 1.0.78-3 (45 Django sessions, median call 1)', '13,605', '0', '13,601', '$7.65 across 45 sessions'],
+          ['tmc + Bridge 1.0.78-3 (44/45 warm first calls)', '7,097', '6,921', '174', '$0.30 across 45 sessions (-96%)'],
+          ['Stock 1.0.98 (warm session 2 in same folder)', '11,085', '6,450', '4,632', 'probe: 42% rewritten'],
+          ['tmc + Bridge 1.0.98 (warm session 2 in same folder)', '5,540', '5,438', '99', 'probe: only 99 tok written (-98%)']
+        ],
+        modes: [
+          {
+            title: 'Stock Copilot CLI · Session 2 First Call (UUID Breaks the Prefix)',
+            badge: '1.0.98 probe: 6,450 read / 4,632 written · 1.0.78-3 A/B: 0 read / 13,601 written',
+            segments: [
+              { label: 'Static System Prefix (6,450 tok)', pct: 58, bg: '#10b981', fg: '#050811' },
+              { label: 'UUID Session folder + 16 Tools + Task (4,632 tok WRITE 1.25×)', pct: 42, bg: '#f43f5e', fg: '#ffffff' }
+            ],
+            diff: 'Byte 0..25,800:  [System instructions before <session_context>]  -> CACHE HIT (on 1.0.98; MISS on 1.0.78-3)\nByte 25,801:     "Session folder: C:\\...\\session-state\\9b2700f4-..."  <- NEW UUID! CACHE MISS STARTS HERE\nByte 25,880..End: [Remaining system prompt + tool definitions + user prompt] -> 4,632 tokens billed at 1.25x Cache Write'
+          },
+          {
+            title: 'tmc Default GitHub Routing · Lean Tool Set (--excluded-tools)',
+            badge: 'Removes 5,558 fixed tokens (1.0.98) / 6,760 tokens (1.0.78-3) on every call',
+            segments: [
+              { label: '11 Unused Tools Removed (5,558 tok · $0)', pct: 50, bg: '#55534b', fg: '#dfdedb' },
+              { label: 'Lean Prompt + 5 Core Tools (5,525 tok)', pct: 50, bg: '#2456d6', fg: '#ffffff' }
+            ],
+            diff: 'Removed before Byte 0: session_store_sql, task, read_agent, write_agent, list_agents,\n                       skill, sql, read_powershell, stop_powershell, list_powershell, fetch_copilot_cli_documentation\nKept (5 core tools):   powershell, view, apply_patch, rg, glob\nEffect:                Every call in the session is 5,558 tokens smaller (9,016 vs. 15,185 tokens on your machine today).'
+          },
+          {
+            title: 'tmc + BYOK Bridge · Session 2 in Same Working Folder (98% Cache Hit)',
+            badge: '1.0.98 probe: 5,438 read / 99 written · 1.0.78-3 A/B: 6,921 read / 174 written',
+            segments: [
+              { label: '11 Tools Stripped (5,558 tok · $0)', pct: 49, bg: '#55534b', fg: '#dfdedb' },
+              { label: 'Cache-Stable System + 5 Tools (5,438 tok READ 0.1×)', pct: 49, bg: '#10b981', fg: '#050811' },
+              { label: 'User (99)', pct: 2, bg: '#f43f5e', fg: '#ffffff' }
+            ],
+            diff: 'System prompt rewrite: "Session folder: stated in the first user message"  <- IDENTICAL BYTES ACROSS SESSIONS!\nprefix_sha256:         021bacc79bf17f19 (matches Session 1 byte-for-byte)\nFirst user message:    "Session folder: C:/.../session-state/9b2700f4\\n\\n<your task>"\nEffect:                5,438 tokens read from cache at 0.1x; only 99 tokens written at 1.25x.'
+          },
+          {
+            title: 'Intra-Session Turns 1 -> 4 · Why v5 Failed (+61.6% Cost) vs. Why v6 Works',
+            badge: 'PRS-1 (252 sessions): v5 rewrote history (+61.6% cost) · PRS-2/3: v6 shapes once (-11.6% to -13.0%)',
+            segments: [
+              { label: 'System + Tools (READ 0.1×)', pct: 32, bg: '#10b981', fg: '#050811' },
+              { label: 'Turns 1–3 Shaped Once by v6 (READ 0.1×)', pct: 52, bg: '#10b981', fg: '#050811' },
+              { label: 'Turn 4 New Output (WRITE 1.25×)', pct: 16, bg: '#f43f5e', fg: '#ffffff' }
+            ],
+            diff: 'v5 (retracted): Compacted Turn 1 view output when Turn 3 arrived -> mutated bytes at Turn 1 -> evicted Turns 1..3!\nv6 (shipped):   Shapes each view/grep/glob output ONCE when it first enters the transcript (hook or bridge).\n                Turns 1..3 never change bytes on Turn 4, so the entire conversation history stays a 0.1x Cache Read.'
+          }
+        ]
+      },
+      anthropic: {
+        table: [
+          ['Stock 1.0.78-3 (45 Django sessions, median call 1)', '20,867', '13,393 (tools)', '7,474 (system)', '$1.75 in first-call writes'],
+          ['tmc + Bridge 1.0.78-3 (45 Django sessions, median call 1)', '9,329', '9,015 (tools+sys)', '314 (user)', '$0.12 in first-call writes (-93%)'],
+          ['Stock 1.0.98 (warm session 2 in same folder)', '18,110', '11,226 (tools)', '6,880 (system)', 'probe: system prompt rewritten'],
+          ['tmc + Bridge 1.0.98 (warm session 2 in same folder)', '8,395', '8,184 (tools+sys)', '207 (user)', 'probe: 97.5% cache read']
+        ],
+        modes: [
+          {
+            title: 'Stock Copilot CLI (Anthropic /v1/messages) · Tools Hit Cache, System Prompt Misses',
+            badge: '1.0.98 probe: 11,226 read / 6,880 written · 1.0.78-3 A/B: 13,393 read / 7,474 written',
+            segments: [
+              { label: '17 Tool Definitions First (11,226 tok READ 0.05×)', pct: 62, bg: '#10b981', fg: '#050811' },
+              { label: 'System Prompt with UUID + User (6,880 tok WRITE 1.25×)', pct: 38, bg: '#f43f5e', fg: '#ffffff' }
+            ],
+            diff: 'Anthropic wire order:  {"tools": [...17 tools...], "system": "...Session folder: <uuid>...", "messages": [...]}\nWhy tools hit cache:   `tools` sits before `system`, so back-to-back stock sessions share the 11,226-token tool prefix.\nWhy system misses:     The UUID in `system` invalidates the remaining 6,880 tokens on every new session (billed at 25x cache read!).'
+          },
+          {
+            title: 'tmc Default GitHub Routing (Anthropic) · Lean Tool Set Removes 9,727 Tokens',
+            badge: '1.0.98 probe: 18,104 -> 8,377 tokens (-53.7%) · 1.0.78-3 A/B: 11,540 tokens removed',
+            segments: [
+              { label: '11 Unused Tools Removed (9,727 tok · $0)', pct: 54, bg: '#55534b', fg: '#dfdedb' },
+              { label: '6 Core Tools + Lean System Prompt (8,377 tok)', pct: 46, bg: '#2456d6', fg: '#ffffff' }
+            ],
+            diff: 'Anthropic tool count:  17 built-in tools -> 6 core tools with `--excluded-tools`.\nTokens removed/call:   9,727 tokens on Copilot CLI 1.0.98 (11,540 tokens on 1.0.78-3).\nEffect:                Saves 9,727 tokens on every single turn of the session, before counting Graphify call reductions.'
+          },
+          {
+            title: 'tmc + BYOK Bridge (Anthropic) · Both Tools AND System Prompt Hit Cache',
+            badge: '1.0.98 probe: 8,184 read / 207 written · 1.0.78-3 A/B: 9,015 read / 314 written',
+            segments: [
+              { label: '11 Tools Stripped (9,727 tok · $0)', pct: 53, bg: '#55534b', fg: '#dfdedb' },
+              { label: '6 Tools + Stable System Prompt (8,184 tok READ 0.05×)', pct: 45, bg: '#10b981', fg: '#050811' },
+              { label: '207', pct: 2, bg: '#f43f5e', fg: '#ffffff' }
+            ],
+            diff: 'Bridge rewrite:        Moves `Session folder:` from `system` into `messages[0]` (first user message).\nResult on Session 2:   Both `tools` AND `system` (8,184 tokens) are read from cache at $0.20/1M (0.05x).\n                       First-call cache write drops from 6,880 tokens to 207 tokens (-97%).'
+          },
+          {
+            title: 'Intra-Session Turns 1 -> 4 · Append-Only v6 Keeps All Prior Turns at $0.20/1M',
+            badge: 'Cache read is 25× cheaper than cache write on Anthropic ($0.20 vs. $5.00 / 1M)',
+            segments: [
+              { label: '6 Tools + System (READ 0.05×)', pct: 35, bg: '#10b981', fg: '#050811' },
+              { label: 'Turns 1–3 Shaped Once by v6 (READ 0.05×)', pct: 50, bg: '#10b981', fg: '#050811' },
+              { label: 'Turn 4 (WRITE 1.25×)', pct: 15, bg: '#f43f5e', fg: '#ffffff' }
+            ],
+            diff: 'Because Anthropic prices cache writes at $5.00/1M and cache reads at $0.20/1M (a 25x ratio),\nnever mutating earlier messages is mandatory. v6 shapes `view` / `rg` / `glob` outputs once when they\narrive and leaves earlier turns untouched.'
+          }
+        ]
+      }
+    };
+
+    function setCacheWire(wire) {
+      cacheWire = wire;
+      document.getElementById('wireOpenaiBtn').classList.toggle('is-active', wire === 'openai');
+      document.getElementById('wireAnthropicBtn').classList.toggle('is-active', wire === 'anthropic');
+      renderCacheArch();
+    }
+
+    function setCacheMode(mode, btn) {
+      cacheMode = mode;
+      btn.parentElement.querySelectorAll('.calc-pill').forEach((b, i) => b.classList.toggle('is-active', i === mode));
+      renderCacheArch();
+    }
+
+    function renderCacheArch() {
+      const data = CACHE_DATA[cacheWire];
+      const m = data.modes[cacheMode];
+      document.getElementById('cacheStreamTitle').textContent = m.title;
+      document.getElementById('cacheStreamBadge').textContent = m.badge;
+      document.getElementById('cacheCodeDiff').textContent = m.diff;
+      document.getElementById('cacheBarRow').innerHTML = m.segments.map((s) =>
+        `<div style="width:${s.pct}%;background:${s.bg};color:${s.fg};padding:0.65rem 0.6rem;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;">${s.label}</div>`
+      ).join('');
+      document.getElementById('cacheCompareRows').innerHTML = data.table.map((r) =>
+        `<tr><td>${r[0]}</td><td class="num">${r[1]}</td><td class="num">${r[2]}</td><td class="num">${r[3]}</td><td class="num">${r[4]}</td></tr>`
+      ).join('');
+    }
+    renderCacheArch();
   </script>
 </body>
 </html>
