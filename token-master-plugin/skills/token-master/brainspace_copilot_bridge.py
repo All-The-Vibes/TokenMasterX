@@ -88,12 +88,23 @@ def _record_launch(event: dict) -> None:
         pass
 
 
-def _nav_installed() -> bool:
-    try:
-        config = json.loads((launch_registry().parents[1] / "mcp-config.json").read_text(encoding="utf-8-sig"))
-        return "tokenmaster-nav" in (config.get("mcpServers") or {})
-    except (OSError, ValueError, AttributeError):
-        return False
+def _nav_installed(command: list[str] = ()) -> bool:
+    paths = [launch_registry().parents[1] / "mcp-config.json"]
+    for index, arg in enumerate(command):
+        value = arg.partition("=")[2] if arg.startswith("--additional-mcp-config=") else (
+            command[index + 1] if arg == "--additional-mcp-config" and index + 1 < len(command) else "")
+        if "tokenmaster-nav" in value:
+            return True
+        if value.startswith("@"):
+            paths.append(Path(value[1:]))
+    for path in paths:
+        try:
+            config = json.loads(path.read_text(encoding="utf-8-sig"))
+            if "tokenmaster-nav" in (config.get("mcpServers") or {}):
+                return True
+        except (OSError, ValueError, AttributeError):
+            continue
+    return False
 
 
 def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool) -> int:
@@ -103,7 +114,7 @@ def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: b
     launch_id = hashlib.sha256(f"{time.time_ns()}-{os.getpid()}".encode()).hexdigest()[:16]
     now = lambda: datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")  # noqa: E731
     _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": os.getcwd(), "lean": lean,
-                    "bridge": bridge, "nav": _nav_installed()})
+                    "bridge": bridge, "nav": _nav_installed(command)})
     try:
         return run_child(parser, command, env)
     finally:

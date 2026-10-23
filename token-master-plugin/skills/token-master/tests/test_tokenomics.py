@@ -200,6 +200,11 @@ def test_launcher_records_copilot_launches_without_prompt_text(tmp_path, monkeyp
     assert records[0]["lean"] is True and records[0]["bridge"] is False and records[0]["nav"] is True
     assert "secret" not in json.dumps(records)
     assert tokenomics.load_launches(tmp_path / "token-master" / "launches.jsonl")[0]["lean"] is True
+    (tmp_path / "mcp-config.json").write_text('{"mcpServers": {}}', encoding="utf-8")
+    extra = tmp_path / "demo-nav-mcp.json"
+    extra.write_text('{"mcpServers": {"tokenmaster-nav": {}}}', encoding="utf-8")
+    assert bridge._nav_installed(["copilot", "--additional-mcp-config", f"@{extra}"]) is True
+    assert bridge._nav_installed(["copilot", "-p", "hi"]) is False
 
 
 def test_launch_without_an_end_record_counts_for_a_bounded_time(tmp_path):

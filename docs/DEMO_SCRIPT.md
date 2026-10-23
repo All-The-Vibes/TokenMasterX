@@ -18,22 +18,23 @@
 2. Paste this block into both windows. It defines two helpers for that window only:
 
    ```powershell
-   . $PROFILE.CurrentUserCurrentHost
+   . $PROFILE
    cd C:\Users\shyamsridhar\code\Tokenmaster
    $django = "$env:TEMP\opencode\django-g091"
    $nav = "@$env:USERPROFILE\.copilot\token-master\demo-nav-mcp.json"
-   function tokenomics { & "C:\Users\shyamsridhar\code\Tokenmaster\.token-master-dev\Scripts\python.exe" "$env:USERPROFILE\.copilot\token-master\tokenomics.py" @args }
    ```
+
+   (`tmc` and `tokenomics` are also installed in `C:\Users\shyamsridhar\.local\bin\`, which is on your `PATH`, so they work even if you skip `. $PROFILE`. Using `copilot.exe` for the stock commands bypasses any shell wrapper.)
 
 3. In window B, check the setup:
 
    ```powershell
-   copilot skill list
+   copilot.exe skill list
    tokenomics session --since 20261023
    ```
 
    - `tokenomics` is listed under "Personal skills".
-   - The table shows 4 rehearsal sessions from this morning. Tell the audience that they are rehearsal runs.
+   - The table shows the rehearsal sessions from this morning (`lean` for the 1-word prompt, `lean+nav` for the Django Graphify lookup). Tell the audience that they are rehearsal runs.
 4. Optional: run Step 4 once, so that the folder and permission questions do not surprise you live.
 5. Open `docs/tokenomics-demo-slide.html` in a browser (4 tabs: Math, Architecture, Live Runbook with Copy buttons, and Dashboard Output & Q&A). `docs/tokenmaster-v5-slide.html` has the single-slide A/B summary.
 
@@ -148,19 +149,18 @@ Say: "The dashboard reads two local files and changes nothing. The launch record
 Window B:
 
 ```powershell
-copilot skill list
-(Get-Command tmc).Definition
+copilot.exe skill list
+tokenomics session --since 20261023
 ```
 
-Say: "`tokenomics` is a personal Copilot skill. `tmc` is one line: it starts Copilot through the TokenMaster
-launcher."
+Say: "`tokenomics` is a personal Copilot skill, and `tmc` starts Copilot through the TokenMaster launcher."
 
 ### Step 2: The fixed part, measured (2 minutes)
 
 Window A:
 
 ```powershell
-copilot -p "Reply with the single word OK."
+copilot.exe -p "Reply with the single word OK."
 ```
 
 Window B:
@@ -174,7 +174,7 @@ tokenomics session --since 20261023
 - Point at the two newest rows of the table.
 - Rehearsal values:
   - Stock: 15,185 tokens, $0.04.
-  - TokenMaster: 9,016 tokens, $0.02, mode `lean`, Saved Tokens ≈ 5,558, Saved (USD) ≈ $0.01.
+  - TokenMaster: 9,016 tokens (and 8,905 on a second run), $0.02, mode `lean`, Saved Tokens ≈ 5,558, Saved (USD) ≈ $0.01.
 
 Say: "Total Tokens and Cost are GitHub's own numbers. The columns marked ≈ are estimates."
 
@@ -186,7 +186,7 @@ Window A:
 
 ```powershell
 cd $django
-copilot -p "List the non-test functions that call format() in django/utils/dateformat.py. Answer with the list only." --allow-all-tools
+copilot.exe -p "List the non-test functions that call format() in django/utils/dateformat.py. Answer with the list only." --allow-all-tools
 ```
 
 Window B:
@@ -197,10 +197,10 @@ tmc --additional-mcp-config $nav -p "Use the impact tool to list the non-test fu
 ```
 
 - **Correct answer:** `django.template.defaultfilters.date` and `django.utils.formats.date_format`.
-- **Rehearsal, stock:** 4 calls, 62,484 tokens, $0.0472. It searched with `glob`, `rg` and `view`. It
+- **Rehearsal, stock (`024cbb23`):** 4 calls, 62,484 tokens, $0.0472. It searched with `glob`, `rg` and `view`. It
   answered `format` and `time_format`, which is wrong.
-- **Rehearsal, TokenMaster:** 2 calls, 21,495 tokens, $0.0315. It called `impact` once and answered
-  correctly.
+- **Rehearsal, TokenMaster (`0c4d1fe3` and `0b7f206a`):** 2 calls, 21,495 and 21,541 tokens, $0.0315, mode `lean+nav`
+  (saved ≈ 10,612 tokens, $0.01). It called `impact` once and answered both callers correctly.
 
 Say: "`impact` answers 'who calls X?' from a prebuilt call graph in one compact result. With grep, the model
 reads raw search output and files."
@@ -233,11 +233,10 @@ In Copilot, type:
    - One row per session, including the sessions from Steps 2 and 3.
 3. Optional: `/tokenomics monthly --breakdown`
    - One sub-row per model.
-4. The free form. The last line of the report shows a `!` command. Type it, with
-   `session --since 20261023` at the end:
+4. The free form. Because `tokenomics.cmd` is on your `PATH` (`~/.local/bin/tokenomics.cmd`), type:
 
    ```text
-   ! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "C:/Users/shyamsridhar/code/Tokenmaster/.token-master-dev/Scripts/python.exe" "C:/Users/shyamsridhar/.copilot/token-master/tokenomics.py" session --since 20261023
+   ! tokenomics session --since 20261023 --full
    ```
 
    Say: "`/tokenomics` asks the model to run the report. That costs about 16,000 tokens. The `!` form runs the
