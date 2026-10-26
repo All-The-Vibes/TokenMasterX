@@ -31,6 +31,7 @@ import hashlib
 import http.client
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -55,22 +56,95 @@ MAX_BODY = 64 * 1024 * 1024
 _HOP = frozenset({"host", "content-length", "connection", "keep-alive", "proxy-authorization",
                   "proxy-connection", "te", "trailer", "transfer-encoding", "upgrade", "accept-encoding"})
 _LOOPBACK = ("127.0.0.1", "localhost", "::1")
-# Built-in Copilot CLI tools that no session called in the October 18 runs (gpt-6-astra and claude-opus-5.5).
-# A later stock session (October 19) called `task` once. --all-tools keeps them.
-# Excluding them removes their definitions and the system-prompt text about them from every model call.
-LEAN_EXCLUDED_TOOLS = ("session_store_sql", "task", "read_agent", "write_agent", "list_agents", "skill", "sql",
-                       "read_powershell", "stop_powershell", "list_powershell", "fetch_copilot_cli_documentation")
+# Auxiliary Copilot CLI tool families and the intent patterns that require them.
+# Core coding tools (view, edit, create, rg, glob, powershell, report_intent) are always kept.
+CAPABILITY_GROUPS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
+    "session_history": (
+        ("session_store_sql",),
+        re.compile(r"\b(session_store_sql|session[- ]store|session\s+history|(?:previous|past|earlier|prior)\s+sessions?)\b", re.I),
+    ),
+    "agents": (
+        ("task", "read_agent", "write_agent", "list_agents"),
+        re.compile(r"\b(subagents?|parallel\s+agents?|multi-agent|spawn\s+(?:an?\s+)?agent|delegate\s+to\s+(?:an?\s+)?agent|read_agent|write_agent|list_agents)\b", re.I),
+    ),
+    "skills": (
+        ("skill",),
+        re.compile(r"(?:^|\s)/[a-z][\w-]*\b|\bskill://|\b(?:use|load|invoke|run)\s+(?:the\s+)?[\w-]+\s+skill\b", re.I),
+    ),
+    "sql": (
+        ("sql",),
+        re.compile(r"\b(sql\s+scratchpad|run\s+a?\s*sql\s+query|query\s+with\s+sql)\b", re.I),
+    ),
+    "background_shell": (
+        ("read_powershell", "stop_powershell", "list_powershell"),
+        re.compile(r"\b(read_powershell|stop_powershell|list_powershell|background\s+(?:powershell|shell|process|job|server)|in\s+the\s+background)\b", re.I),
+    ),
+    "copilot_docs": (
+        ("fetch_copilot_cli_documentation",),
+        re.compile(r"\b(fetch_copilot_cli_documentation|copilot\s+cli\s+(?:docs|documentation|flags|keybindings|settings))\b", re.I),
+    ),
+}
+LEAN_EXCLUDED_TOOLS = tuple(tool for tools, _ in CAPABILITY_GROUPS.values() for tool in tools)
 _TOOL_FLAGS = ("--available-tools", "--excluded-tools")
 
 
+def _installed_names(subfolder: str) -> set[str]:
+    """Installed skill or agent names in <COPILOT_HOME> and the current repository."""
+    copilot = Path(os.environ.get("COPILOT_HOME") or Path.home() / ".copilot")
+    cwd = Path.cwd()
+    names: set[str] = set()
+    for root in (copilot / subfolder, cwd / ".github" / subfolder, cwd / ".claude" / subfolder):
+        try:
+            for entry in root.iterdir() if root.is_dir() else ():
+                stem = entry.name.split(".")[0].lower()
+                if len(stem) >= 3 and stem != "token-master":
+                    names.add(stem)
+        except OSError:
+            pass
+    return names
+
+
+def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
+    """Prune auxiliary tool families not needed by the command's flags, prompt, installed assets, or env."""
+    keep: set[str] = set()
+    env_keep = os.environ.get("TOKENMASTER_KEEP_TOOLS", "")
+    for token in (part.strip() for part in env_keep.split(",") if part.strip()):
+        if token in CAPABILITY_GROUPS:
+            keep.update(CAPABILITY_GROUPS[token][0])
+        else:
+            keep.add(token)
+    prompts: list[str] = []
+    rest = command[1:]
+    for index, arg in enumerate(rest):
+        head, eq, val = arg.partition("=")
+        if head in ("-p", "--prompt"):
+            prompts.append(val if eq else (rest[index + 1] if index + 1 < len(rest) else ""))
+        elif head == "--agent":
+            keep.update(CAPABILITY_GROUPS["agents"][0])
+        elif head in ("--resume", "--continue"):
+            keep.update(CAPABILITY_GROUPS["session_history"][0])
+    prompt_text = "\n".join(prompts).lower()
+    if prompt_text:
+        for tools, pattern in CAPABILITY_GROUPS.values():
+            if pattern.search(prompt_text):
+                keep.update(tools)
+        words = set(re.findall(r"[a-z0-9][\w-]*", prompt_text))
+        if words & _installed_names("skills"):
+            keep.update(CAPABILITY_GROUPS["skills"][0])
+        if words & _installed_names("agents"):
+            keep.update(CAPABILITY_GROUPS["agents"][0])
+    return tuple(tool for tool in LEAN_EXCLUDED_TOOLS if tool not in keep)
+
+
 def lean_command(command: list[str]) -> list[str]:
-    """Copilot CLI sessions get --excluded-tools, unless the user already chose tools or runs a subcommand."""
+    """Copilot CLI sessions get dynamic --excluded-tools, unless the user already chose tools or runs a subcommand."""
     if not command or Path(command[0]).stem.lower() != "copilot":
         return command
     rest = command[1:]
     if (rest and not rest[0].startswith("-")) or any(arg.split("=")[0] in _TOOL_FLAGS for arg in rest):
         return command
-    return [*command, "--excluded-tools", *LEAN_EXCLUDED_TOOLS]
+    excluded = select_excluded_tools(command)
+    return [*command, "--excluded-tools", *excluded] if excluded else command
 
 
 def launch_registry() -> Path:

@@ -290,6 +290,30 @@ def test_lean_command_excludes_unused_tools_unless_the_user_chose():
     assert bridge_module.lean_command(["copilot"])[1] == "--excluded-tools"
 
 
+def test_dynamic_tool_routing_keeps_capabilities_matched_by_prompt_or_flags(monkeypatch, tmp_path):
+    sub = bridge_module.lean_command(["copilot", "-p", "Spawn a parallel subagent to audit auth"])
+    for tool in ("task", "read_agent", "write_agent", "list_agents"):
+        assert tool not in sub
+    bg = bridge_module.lean_command(["copilot", "-p", "Start the server in the background and check logs"])
+    for tool in ("read_powershell", "stop_powershell", "list_powershell"):
+        assert tool not in bg
+    hist = bridge_module.lean_command(["copilot", "--resume", "-p", "continue"])
+    assert "session_store_sql" not in hist
+    sk = bridge_module.lean_command(["copilot", "-p", "Use the tokenomics skill"])
+    assert "skill" not in sk
+    docs = bridge_module.lean_command(["copilot", "-p", "Check Copilot CLI documentation for flags"])
+    assert "fetch_copilot_cli_documentation" not in docs
+    (tmp_path / "skills" / "impeccable").mkdir(parents=True)
+    (tmp_path / "agents").mkdir(parents=True)
+    (tmp_path / "agents" / "auditor.agent.md").write_text("# auditor", encoding="utf-8")
+    monkeypatch.setenv("COPILOT_HOME", str(tmp_path))
+    assert "skill" not in bridge_module.lean_command(["copilot", "-p", "Run impeccable on this UI"])
+    assert "task" not in bridge_module.lean_command(["copilot", "-p", "Ask auditor to check this diff"])
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "sql,agents")
+    env_kept = bridge_module.lean_command(["copilot", "-p", "hi"])
+    assert "sql" not in env_kept and "task" not in env_kept
+
+
 def test_without_a_provider_url_the_launcher_runs_the_command_directly(monkeypatch):
     monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
     script = "import os, sys; sys.exit(5 if 'COPILOT_PROVIDER_BASE_URL' not in os.environ else 1)"
