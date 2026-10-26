@@ -875,7 +875,7 @@ tmc + Graphify (tokenmaster-nav-impact):
           <strong>View hook (`settings.json`):</strong> Runs <code>brainspace_posttooluse.py</code> on whole-file <code>view</code> outputs, turning a 29,836-character file into a 5,175-character digest before it enters the transcript.
         </p>
         <p class="muted">
-          <strong>Graph navigation (`navigation_mcp.py`):</strong> Exposes <code>locate</code>, <code>read_symbol</code>, and <code>impact</code> over Graphify's call graph and a SQLite symbol index, capped at 2,400 tokens per result.
+          <strong>Graph navigation (`navigation_mcp.py`):</strong> Exposes <code>locate</code>, <code>read_symbol</code>, and <code>impact</code> over Graphify's call graph and a SQLite symbol index (<code>SCHEMA_VERSION = 4</code> with <code>import ... as ...</code> alias resolution), capped at 2,400 tokens per result.
         </p>
         <figure class="photo-frame" style="margin-top: 0.5rem;" data-reveal>
           <img src="https://picsum.photos/id/114/1200/750?grayscale" width="1200" height="750" alt="Storm clouds over mountain ridge" />
@@ -1041,6 +1041,34 @@ tmc
       </thead>
       <tbody>
         <tr>
+          <td class="nums">2026-10-26</td>
+          <td>PRS-6 &middot; TokenMaster repo &middot; 29 tasks (pre-registered, commit <code>19443fc</code>)</td>
+          <td><code>gpt-6-astra</code> &middot; 1.0.98</td>
+          <td class="num">2,449,067 &rarr; 1,237,510</td>
+          <td class="num">&minus;49.5% tokens &middot; &minus;41.5% cold ($8.91 &rarr; $5.21) &middot; &minus;50.2% as-run ($6.83 &rarr; $3.40) &middot; 29/29</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-26</td>
+          <td>PRS-6 &middot; TokenMaster repo &middot; 29 tasks (pre-registered, commit <code>19443fc</code>)</td>
+          <td><code>claude-opus-5.5</code> &middot; 1.0.98</td>
+          <td class="num">2,672,316 &rarr; 1,655,797</td>
+          <td class="num">&minus;38.0% tokens &middot; &minus;34.0% cold ($4.23 &rarr; $2.79) &middot; &minus;40.1% as-run ($2.72 &rarr; $1.63) &middot; 29/29</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-26</td>
+          <td>PRS-6 &middot; Django 5.2 &middot; 15 caller tasks D01–D15 (<code>SCHEMA_VERSION = 4</code>)</td>
+          <td><code>gpt-6-astra</code> &middot; 1.0.98</td>
+          <td class="num">707,799 &rarr; 293,779</td>
+          <td class="num">&minus;58.5% tokens &middot; &minus;53.5% cold &middot; &minus;70.7% as-run &middot; 15/15 (15/15 lower)</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-26</td>
+          <td>PRS-6 &middot; Django 5.2 &middot; 15 caller tasks D01–D15 (<code>SCHEMA_VERSION = 4</code>)</td>
+          <td><code>claude-opus-5.5</code> &middot; 1.0.98</td>
+          <td class="num">989,925 &rarr; 457,875</td>
+          <td class="num">&minus;53.7% tokens &middot; &minus;46.0% cold &middot; &minus;61.2% as-run &middot; 15/15 (incl. D13 <code>auth_login</code>)</td>
+        </tr>
+        <tr>
           <td class="nums">2026-10-22</td>
           <td>Django 5.2 &middot; 45 caller tasks (full TokenMaster)</td>
           <td><code>gpt-6-astra</code> &middot; 1.0.78-3</td>
@@ -1064,7 +1092,7 @@ tmc
         <tr>
           <td class="nums">2026-10-19</td>
           <td>TokenMaster repo &middot; 27 tasks (P01–P24, H02, H03, H05)</td>
-          <td><code>gpt-6-astra</code> &amp; <code>claude-opus-5.5</code></td>
+          <td><code>gpt-6-astra</code> &amp; <code>claude-opus-5.5</code> &middot; 1.0.78-3</td>
           <td class="num">2.40M &rarr; 1.33M &amp; 3.05M &rarr; 1.42M</td>
           <td class="num">&minus;44.8% &amp; &minus;53.5% tokens &middot; 53/54 vs. 54/54</td>
         </tr>
@@ -1143,13 +1171,16 @@ tmc
           <strong>Are the numbers in /tokenomics measured or estimated?</strong> Both, and the table keeps them separate. Total Tokens, Input, Output, Cache Write, Cache Read, and Cost (USD) are 100% measured from Copilot CLI's own <code>session-store.db</code>. The two columns marked &approx; estimate what stock Copilot would have spent on the same calls.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>Does removing eleven built-in tools hurt quality?</strong> In our October 18 runs, zero sessions called any of the eleven tools. In the October 19 27-task run, one stock session called <code>task</code> (a subagent) and spent 124,403 tokens; TokenMaster passed the same task without it in 38,154 tokens. Across 90 Django runs and 54 repository runs, TokenMaster scored 88/90 and 53/54 against stock's 90/90 and 54/54, with every miss traced to a model error.
+          <strong>Does removing eleven built-in tools hurt quality?</strong> In our October 18 runs, zero sessions called any of the eleven tools. In the pre-registered PRS-6 study on Copilot CLI <code>1.0.98</code> (176 sessions), both stock and TokenMaster scored <strong>88/88</strong> (<code>29/29</code> on repository tasks and <code>15/15</code> on Django <code>D01</code>–<code>D15</code> for each model). Across the earlier 90-session Django and 54-session repository runs on <code>1.0.78-3</code>, TokenMaster scored 88/90 and 53/54 against stock's 90/90 and 54/54, with every miss traced to a model error.
         </p>
         <p class="faq-item" data-reveal>
           <strong>What if a task needs subagents or background PowerShell?</strong> Pass <code>tmc --all-tools</code> or run plain <code>copilot</code>. The launcher leaves every built-in tool in place when <code>--all-tools</code> is given.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>Which Copilot CLI version ran in the A/B studies?</strong> The A/B harnesses passed <code>--no-auto-update</code>, which caused the Windows WinGet launcher to run its bundled <code>1.0.78-3</code> build even though <code>1.0.98</code> was installed. We caught that discrepancy in the session captures, corrected every document and evidence record, fixed the version gate, and probed <code>1.0.98</code>: the lean tool set removes 50.1% (`gpt-6-astra`) and 53.7% (`claude-opus-5.5`) of the first call on 1.0.98.
+          <strong>What about Copilot CLI 1.0.98 vs 1.0.78-3?</strong> The October 18–22 harnesses passed <code>--no-auto-update</code>, which caused the WinGet launcher to run its bundled <code>1.0.78-3</code> build. After fixing the version gate, we pre-registered and ran <strong>PRS-6 on Copilot CLI <code>1.0.98</code></strong> (commit <code>19443fc</code>, 176 sessions, <code>88/88</code> passes in both arms): on the 29-task repository benchmark, <code>gpt-6-astra</code> cut raw tokens by <strong>&minus;49.5%</strong> (<code>2,449,067 &rarr; 1,237,510</code>, cold cost &minus;41.5%, as-run &minus;50.2%) and <code>claude-opus-5.5</code> by <strong>&minus;38.0%</strong> (<code>2,672,316 &rarr; 1,655,797</code>, cold cost &minus;34.0%, as-run &minus;40.1%); on the 15-task Django 5.2 replication (<code>D01</code>–<code>D15</code>), raw tokens dropped <strong>&minus;58.5%</strong> (<code>707,799 &rarr; 293,779</code>, cold &minus;53.5%, as-run &minus;70.7%) and <strong>&minus;53.7%</strong> (<code>989,925 &rarr; 457,875</code>, cold &minus;46.0%, as-run &minus;61.2%), lower on all 15 tasks for both models.
+        </p>
+        <p class="faq-item" data-reveal>
+          <strong>When does <code>impact</code> miss a caller?</strong> <code>SCHEMA_VERSION = 4</code> in <code>brainspace/symbol_index.py</code> (commit <code>19443fc</code>) resolves <code>import ... as ...</code> and <code>from ... import ... as ...</code> aliases in scope (matching <code>56/56</code> answer-key callers across <code>D01</code>–<code>D15</code>, including <code>from django.contrib.auth import login as auth_login</code> in <code>D13</code>). Only dynamic dispatch, <code>getattr</code>, and string-based lookup remain unindexed.
         </p>
         <p class="faq-item" data-reveal>
           <strong>Does TokenMaster store or transmit any prompt text?</strong> No. <code>launches.jsonl</code> records only the start/end millisecond timestamps, the working directory path, and three booleans (<code>lean</code>, <code>bridge</code>, <code>nav</code>). <code>tokenomics.py</code> opens <code>session-store.db</code> read-only and makes no network calls.
@@ -1180,15 +1211,15 @@ tmc
       </ul>
       <ul class="footer-list small">
         <li><strong>Evidence in Repo</strong></li>
-        <li class="muted-light"><code>docs/DEMO_SCRIPT.md</code></li>
-        <li class="muted-light"><code>token-master-plugin/docs/TOKENOMICS.md</code></li>
+        <li class="muted-light"><code>evidence/prs6-copilot-1.0.98-20261026/</code></li>
+        <li class="muted-light"><code>token-master-plugin/docs/PRS6_PROTOCOL.md</code></li>
         <li class="muted-light"><code>token-master-plugin/docs/COPILOT_CLI_RESULTS.md</code></li>
-        <li class="muted-light"><code>evidence/django-scale-20261022/</code></li>
+        <li class="muted-light"><code>token-master-plugin/docs/TOKENOMICS.md</code></li>
       </ul>
       <ul class="footer-list small">
         <li><strong>Honest Limits</strong></li>
-        <li class="muted-light">A/B runs are exploratory, on 1.0.78-3</li>
-        <li class="muted-light">1.0.98 calibration comes from a 1-prompt probe</li>
+        <li class="muted-light">PRS-6 pre-registered on 1.0.98 (176 sessions, 88/88); Oct 18–22 on 1.0.78-3 exploratory</li>
+        <li class="muted-light"><code>SCHEMA_VERSION = 4</code> resolves import aliases; dynamic <code>getattr</code> / string lookup unindexed</li>
         <li class="muted-light">Bridge requires BYOK mode</li>
         <li class="muted-light"><code>-p "/tokenomics"</code> is not supported by Copilot CLI</li>
       </ul>
@@ -1302,8 +1333,8 @@ tmc
         table: [
           ['Stock 1.0.78-3 (45 Django sessions, median call 1)', '13,605', '0', '13,601', '$7.65 across 45 sessions'],
           ['tmc + Bridge 1.0.78-3 (44/45 warm first calls)', '7,097', '6,921', '174', '$0.30 across 45 sessions (-96%)'],
-          ['Stock 1.0.98 (warm session 2 in same folder)', '11,085', '6,450', '4,632', 'probe: 42% rewritten'],
-          ['tmc + Bridge 1.0.98 (warm session 2 in same folder)', '5,540', '5,438', '99', 'probe: only 99 tok written (-98%)']
+          ['Stock 1.0.98 (PRS-6 44 tasks / warm session 2)', '11,085', '6,450', '4,632–4,882', 'PRS-6: 28/29 & 14/15 warm (42% rewritten)'],
+          ['tmc + Bridge 1.0.98 (PRS-6 44 tasks / warm session 2)', '5,540', '5,438–5,723', '99–322', 'PRS-6: −93% to −98% first-call write']
         ],
         modes: [
           {
@@ -1350,8 +1381,8 @@ tmc
         table: [
           ['Stock 1.0.78-3 (45 Django sessions, median call 1)', '20,867', '13,393 (tools)', '7,474 (system)', '$1.75 in first-call writes'],
           ['tmc + Bridge 1.0.78-3 (45 Django sessions, median call 1)', '9,329', '9,015 (tools+sys)', '314 (user)', '$0.12 in first-call writes (-93%)'],
-          ['Stock 1.0.98 (warm session 2 in same folder)', '18,110', '11,226 (tools)', '6,880 (system)', 'probe: system prompt rewritten'],
-          ['tmc + Bridge 1.0.98 (warm session 2 in same folder)', '8,395', '8,184 (tools+sys)', '207 (user)', 'probe: 97.5% cache read']
+          ['Stock 1.0.98 (PRS-6 44 tasks / warm session 2)', '18,110', '11,226 (tools)', '6,880–7,265 (system)', 'PRS-6: system prompt rewritten each session'],
+          ['tmc + Bridge 1.0.98 (PRS-6 44 tasks / warm session 2)', '8,395', '8,184–8,764 (tools+sys)', '207–543 (user)', 'PRS-6: −93% to −97% first-call write']
         ],
         modes: [
           {

@@ -104,7 +104,22 @@ measured A/B comparisons, it gave 72% to 125% of the measured token saving."
 
 ### The measured A/B results
 
-Real Copilot CLI 1.0.78-3, 45 "who calls X?" questions on Django 5.2 per model, October 22, 2026:
+**1. Pre-registered PRS-6 study on Copilot CLI `1.0.98` (176 sessions, `88/88` pass rate in both `stock` and `tm` arms, October 26, 2026, commit `19443fc`, `evidence/prs6-copilot-1.0.98-20261026/analysis.json`):**
+
+| PRS-6 (`1.0.98`, pre-registered) | Stock | Full TokenMaster (`tm`) | Change |
+| --- | ---: | ---: | ---: |
+| **29-task repository benchmark (`>2.4M` stock tokens/model)** | | | |
+| `gpt-6-astra` raw tokens (`29/29` passes both arms) | 2,449,067 | 1,237,510 | **−49.5%** (27/29 lower) |
+| `gpt-6-astra` cold cost / as-run cost | $8.91 / $6.83 | $5.21 / $3.40 | **−41.5%** cold / **−50.2%** as-run |
+| `claude-opus-5.5` raw tokens (`29/29` passes both arms) | 2,672,316 | 1,655,797 | **−38.0%** (27/29 lower) |
+| `claude-opus-5.5` cold cost / as-run cost | $4.23 / $2.72 | $2.79 / $1.63 | **−34.0%** cold / **−40.1%** as-run |
+| **15-task Django 5.2 replication (`D01`–`D15`, `SCHEMA_VERSION = 4` import-alias resolution)** | | | |
+| `gpt-6-astra` raw tokens (`15/15` passes both arms) | 707,799 | 293,779 | **−58.5%** (15/15 lower) |
+| `gpt-6-astra` cold cost / as-run cost | $3.40 / $2.36 | $1.58 / $0.69 | **−53.5%** cold / **−70.7%** as-run |
+| `claude-opus-5.5` raw tokens (`15/15` passes both arms) | 989,925 | 457,875 | **−53.7%** (15/15 lower) |
+| `claude-opus-5.5` cold cost / as-run cost | $1.81 / $1.11 | $0.98 / $0.43 | **−46.0%** cold / **−61.2%** as-run |
+
+**2. Exploratory 45-task Django 5.2 scale run on Copilot CLI `1.0.78-3` (270 sessions, October 22, 2026):**
 
 | | Stock | Full TokenMaster |
 | --- | ---: | ---: |
@@ -114,8 +129,7 @@ Real Copilot CLI 1.0.78-3, 45 "who calls X?" questions on Django 5.2 per model, 
 | `claude-opus-5.5` cost, every first call cold | $6.14 | $3.31 (−46.0%) |
 | Correct answers, both models | 90 of 90 | 88 of 90 (2 model errors) |
 
-Say: "These runs used Copilot CLI 1.0.78-3. On 1.0.98, the fixed part is smaller, but TokenMaster still
-removes about half of it. We have not repeated the full A/B on 1.0.98."
+Say: "We have both the 45-task Django scale study on 1.0.78-3 and the pre-registered PRS-6 study on 1.0.98 across 176 sessions. In PRS-6, TokenMaster passed all 88 tasks per arm and cut raw tokens by 49.5% and 38.0% on our 29-task repository benchmark, and by 58.5% and 53.7% on the 15-task Django replication."
 
 ## Part 2: Architecture (3 minutes)
 
@@ -247,11 +261,9 @@ In Copilot, type:
 
 Say:
 
-1. "On 45 Django questions per model, TokenMaster used about half the tokens of stock Copilot CLI. It got 2
-   fewer correct answers out of 90; both were model errors."
-2. "Today's runs are single examples. The A/B is the evidence."
-3. "Limits: one task type, one run per task, and Copilot CLI 1.0.78-3 for the A/B. The dashboard's estimate
-   covers only the fixed part."
+1. "Across the pre-registered PRS-6 study on Copilot CLI 1.0.98 (176 sessions, `88/88` passes in both arms) and the 45-task Django scale run on 1.0.78-3, TokenMaster cut raw tokens by 38% to 58.5% and cold-repriced cost by 34% to 53.5%."
+2. "Today's runs are single examples. The pre-registered PRS-6 study and the 45-task Django A/B are the evidence."
+3. "Limits: 1 run per task per model in PRS-6, dynamic dispatch / `getattr` is not statically indexed by `impact`, and the dashboard's `/tokenomics` estimate covers only the fixed prompt part."
 
 ## If something goes wrong
 
@@ -272,12 +284,16 @@ Say:
   - The 11 tools are `task` (subagents), `skill`, `sql`, `session_store_sql`, three background-PowerShell
     tools, three agent tools and `fetch_copilot_cli_documentation`.
   - No session used them in our October 18 runs. One later stock session used `task`.
-  - For work that needs them, run plain `copilot`.
-- **"Which Copilot CLI version did you test?"**
-  - The A/B ran Copilot CLI 1.0.78-3, because of a harness flag. We found the error and corrected the
-    documents.
-  - On 1.0.98, TokenMaster still removes about half of the fixed part.
-  - A full A/B on 1.0.98 is still to do.
+  - In the pre-registered PRS-6 study on `1.0.98`, both `stock` and `tm` scored `88/88` (`29/29` on repository tasks and `15/15` on Django `D01`–`D15` for each model).
+  - For work that needs the removed tools, run plain `copilot` or `tmc --all-tools`.
+- **"What about Copilot CLI 1.0.98 vs 1.0.78-3? / Which Copilot CLI version did you test?"**
+  - The October 18–22 exploratory runs used Copilot CLI `1.0.78-3` because `--no-auto-update` selected the WinGet launcher's bundled build. We caught that in the session captures, corrected the documents, and pinned the version gate.
+  - We then ran the pre-registered **PRS-6 study on Copilot CLI `1.0.98`** (`token-master-plugin/docs/PRS6_PROTOCOL.md`, commit `19443fc`, `evidence/prs6-copilot-1.0.98-20261026/analysis.json`, 176 sessions, `88/88` pass rate in both arms):
+    - **29-task repository benchmark (`1.0.98`, >2.4M stock tokens/model):** `gpt-6-astra` raw tokens **−49.5%** (`2,449,067` → `1,237,510`), cold cost **−41.5%** (`$8.91` → `$5.21`), as-run cost **−50.2%** (`$6.83` → `$3.40`), `29/29` passes; `claude-opus-5.5` raw tokens **−38.0%** (`2,672,316` → `1,655,797`), cold cost **−34.0%** (`$4.23` → `$2.79`), as-run cost **−40.1%** (`$2.72` → `$1.63`), `29/29` passes.
+    - **15-task Django 5.2 replication (`D01`–`D15` on `1.0.98` with `SCHEMA_VERSION = 4` import-alias resolution):** `gpt-6-astra` raw tokens **−58.5%** (`707,799` → `293,779`), cold cost **−53.5%** (`$3.40` → `$1.58`), as-run cost **−70.7%** (`$2.36` → `$0.69`), `15/15` passes; `claude-opus-5.5` raw tokens **−53.7%** (`989,925` → `457,875`), cold cost **−46.0%** (`$1.81` → `$0.98`), as-run cost **−61.2%** (`$1.11` → `$0.43`), `15/15` passes (lower on all 15 tasks for both models, including `D13` where `login` is imported as `auth_login`).
+- **"When does `impact` miss a caller?"**
+  - `SCHEMA_VERSION = 4` in `brainspace/symbol_index.py` (commit `19443fc`) now resolves `import ... as ...` and `from ... import ... as ...` aliases in scope (`56/56` answer-key callers on `D01`–`D15`, including `from django.contrib.auth import login as auth_login` in `D13`).
+  - Only dynamic dispatch, `getattr`, and string-based lookup remain unindexed by static AST analysis.
 - **"Does my prompt text go anywhere new?"** No. The dashboard reads local files and opens Copilot's
   database read-only. The launch records hold no prompt text.
 - **"What does the bridge do?"** It works only in bring-your-own-model mode. It makes the system prompt the
@@ -285,7 +301,8 @@ Say:
 
 ## Sources
 
-- A/B results and test parameters: `token-master-plugin/docs/COPILOT_CLI_RESULTS.md`.
+- Pre-registered PRS-6 protocol and results (`1.0.98`, 176 sessions): `token-master-plugin/docs/PRS6_PROTOCOL.md` (commit `19443fc`) and `evidence/prs6-copilot-1.0.98-20261026/analysis.json`.
+- Exploratory A/B results and test parameters (`1.0.78-3`): `token-master-plugin/docs/COPILOT_CLI_RESULTS.md`.
 - Dashboard method and its check against the A/B: `token-master-plugin/docs/TOKENOMICS.md`.
 - Version probe (1.0.78-3 against 1.0.98): `evidence/copilot-version-probe-20261023/`.
 - Rehearsal numbers: `tokenomics session --since 20261023 --json` on this machine.
