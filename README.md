@@ -1,22 +1,12 @@
-<div align="center">
+# TokenMaster
 
-<img src="assets/tokenmaster-hero.svg?v=3" alt="TokenMaster — Cut GitHub Copilot CLI token burn in half" width="100%">
+![TokenMaster — Half the tokens. Half the cold-start cost. Zero prompt-cache invalidation on the real GitHub Copilot CLI.](assets/tokenmaster-hero.svg)
 
-<br/>
+**[60-Second Quickstart](#60-second-quickstart)** · **[4-Pillar Architecture](#the-4-pillar-architecture)** · **[`/tokenomics` Dashboard](#tokenomics--ccusage-for-github-copilot-cli)** · **[Real-CLI Benchmarks](#real-github-copilot-cli-benchmarks)** · **[What Failed (`PRS-1`–`PRS-4`)](#what-failed-along-the-way-prs-1-to-prs-4--v1v7-history)** · **[Disclaimer & Evals Index](#experimental-disclaimer-honest-limits--complete-evals-index)**
 
-[![GitHub Copilot CLI](https://img.shields.io/badge/Copilot_CLI-1.0.98_%26_1.0.78--3-4f46e5?style=flat-square)](#real-github-copilot-cli-benchmarks)
-[![Pre-Registered PRS-6](https://img.shields.io/badge/PRS--6_(1.0.98)-88%2F88_Passed_(−38%25_to_−58%25_Tokens)-0d9488?style=flat-square)](#1-pre-registered-confirmatory-study-prs-6--copilot-cli-1098)
-[![Graphify + SQLite v4](https://img.shields.io/badge/Navigation-Graphify_0.9.91_%2B_SQLite_v4-0891b2?style=flat-square)](#the-4-pillar-architecture)
-[![/tokenomics](https://img.shields.io/badge/Dashboard-%2Ftokenomics_(ccusage_for_Copilot)-d97706?style=flat-square)](#tokenomics--ccusage-for-github-copilot-cli)
-[![Status: Experimental](https://img.shields.io/badge/Status-Experimental_Research-e11d48?style=flat-square)](#experimental-disclaimer-honest-limits--complete-evals-index)
+**TokenMaster** is an experimental toolkit that cuts the raw tokens and API cost that the real **GitHub Copilot CLI** spends on coding tasks—without evicting the provider's prompt cache or degrading answer quality.
 
-### **Stop paying to re-send 11 unused tools, whole-file reads, and uncached system prompts on every single turn.**
-
-TokenMaster cuts **38.0% to 58.5% of raw tokens** and **34.0% to 53.5% of cold-start API cost** (up to **79.9%** in back-to-back sessions) on the real **GitHub Copilot CLI** across **GPT-6 Astra** and **Claude Opus 5.5**—while passing **88 of 88** tasks in our pre-registered `1.0.98` study ([PRS-6](#1-pre-registered-confirmatory-study-prs-6--copilot-cli-1098)).
-
-[**60-Second Quickstart**](#60-second-quickstart) · [**4-Pillar Architecture**](#the-4-pillar-architecture) · [**`/tokenomics` Dashboard**](#tokenomics--ccusage-for-github-copilot-cli) · [**Real-CLI Benchmarks**](#real-github-copilot-cli-benchmarks) · [**What Failed (`PRS-1`–`PRS-4`)**](#what-failed-along-the-way-prs-1-to-prs-4--v1v7-history) · [**Disclaimer & Evals Index**](#experimental-disclaimer-honest-limits--complete-evals-index)
-
-</div>
+Across **554 real Copilot CLI sessions** (`176` pre-registered sessions on Copilot CLI `1.0.98` and `378` exploratory sessions on `1.0.78-3`) with **GPT-6 Astra** and **Claude Opus 5.5**, full TokenMaster cut **raw tokens by 38.0% to 58.5%** and **cold-start API cost by 34.0% to 53.5%** (up to **79.9%** when sessions run back to back in one working folder), while passing **88 of 88** tasks in the pre-registered `1.0.98` study ([PRS-6](#1-pre-registered-confirmatory-study-prs-6--copilot-cli-1098)).
 
 ---
 
