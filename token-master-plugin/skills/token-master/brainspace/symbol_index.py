@@ -37,7 +37,7 @@ from . import tokens
 
 INDEX_PATH = Path(".token-master") / "symbols.sqlite"
 GRAPH_PATH = Path(".token-master") / "graph.json"
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 SKIP_DIRS = {"node_modules", "__pycache__", "graphify-out", "venv"}
 CODE_SUFFIXES = (".py", ".pyi")
 DOC_SUFFIXES = (".md", ".markdown")
@@ -127,15 +127,34 @@ def _symbol(name, qualname, kind, start, end, line, signature="", calls=()) -> d
             "signature": signature, "calls": list(calls)}
 
 
+def _aliases(node, base: dict[str, str] | None = None) -> dict[str, str]:
+    """Import aliases (`import a.b as c`, `from a import b as c`) in one scope, minus shadowed parameters."""
+    out = dict(base or {})
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        args = node.args
+        for param in (*args.posonlyargs, *args.args, *args.kwonlyargs,
+                      *([args.vararg] if args.vararg else []), *([args.kwarg] if args.kwarg else [])):
+            out.pop(param.arg, None)
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, (ast.Import, ast.ImportFrom)):
+            for alias in child.names:
+                if alias.asname:
+                    out[alias.asname] = alias.name.rsplit(".", 1)[-1]
+        elif isinstance(child, _NESTED):
+            out = _aliases(child, out)
+    return out
+
+
 class _Calls(ast.NodeVisitor):
     """Call sites inside one body, excluding nested definitions (indexed separately).
 
     Each is (name, form, receiver, line, text); form is "bare" for name(), "self" for
-    self.name() or cls.name(), and "attr" for any other obj.name().
+    self.name() or cls.name(), and "attr" for any other obj.name(). Import aliases are
+    resolved back to the imported symbol or module name.
     """
 
-    def __init__(self, lines: list[str]):
-        self.lines, self.found = lines, []
+    def __init__(self, lines: list[str], aliases: dict[str, str] | None = None):
+        self.lines, self.aliases, self.found = lines, aliases or {}, []
 
     def visit_FunctionDef(self, node):
         pass
@@ -145,9 +164,12 @@ class _Calls(ast.NodeVisitor):
     def visit_Call(self, node):
         func = node.func
         if isinstance(func, ast.Name):
-            found = (func.id, "bare", "")
+            found = (self.aliases.get(func.id, func.id), "bare", "")
         elif isinstance(func, ast.Attribute):
             receiver = _dotted(func.value)
+            head, dot, rest = receiver.partition(".")
+            if head in self.aliases:
+                receiver = self.aliases[head] + (dot + rest if dot else "")
             found = (func.attr, "self" if receiver in ("self", "cls") else "attr", receiver)
         else:
             found = None
@@ -164,18 +186,21 @@ class _Calls(ast.NodeVisitor):
 def _python(text: str) -> list[dict[str, Any]]:
     tree = ast.parse(text)
     lines = text.splitlines()
-    out = [_symbol("<module>", "<module>", "module", 1, max(1, len(lines)), 1, calls=_Calls(lines).body(tree))]
+    root_aliases = _aliases(tree)
+    out = [_symbol("<module>", "<module>", "module", 1, max(1, len(lines)), 1,
+                   calls=_Calls(lines, root_aliases).body(tree))]
 
-    def visit(node, prefix: str, parent_kind: str) -> None:
+    def visit(node, prefix: str, parent_kind: str, scope_aliases: dict[str, str]) -> None:
         for child in ast.iter_child_nodes(node):
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 qualname = f"{prefix}.{child.name}" if prefix else child.name
                 kind = ("class" if isinstance(child, ast.ClassDef) else "method" if parent_kind == "class"
                         else "function")
                 start = min([d.lineno for d in child.decorator_list] + [child.lineno])
+                inner_aliases = _aliases(child, scope_aliases)
                 out.append(_symbol(child.name, qualname, kind, start, child.end_lineno or child.lineno, child.lineno,
-                                   _signature(lines, child.lineno), _Calls(lines).body(child)))
-                visit(child, qualname, kind)
+                                   _signature(lines, child.lineno), _Calls(lines, inner_aliases).body(child)))
+                visit(child, qualname, kind, inner_aliases)
             elif isinstance(child, (ast.Assign, ast.AnnAssign)) and parent_kind in ("module", "class"):
                 targets = child.targets if isinstance(child, ast.Assign) else [child.target]
                 for target in targets:
@@ -184,9 +209,9 @@ def _python(text: str) -> list[dict[str, Any]]:
                                            child.lineno, child.end_lineno or child.lineno, child.lineno,
                                            lines[child.lineno - 1].strip()[:200]))
             elif isinstance(child, _NESTED):  # definitions under if/try/with keep their scope
-                visit(child, prefix, parent_kind)
+                visit(child, prefix, parent_kind, scope_aliases)
 
-    visit(tree, "", "module")
+    visit(tree, "", "module", root_aliases)
     return out
 
 

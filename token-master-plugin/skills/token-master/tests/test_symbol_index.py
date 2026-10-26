@@ -344,6 +344,28 @@ def test_same_named_definitions_share_one_unresolved_count(tmp_path: Path, monke
         index.close()
 
 
+def test_import_aliases_resolve_for_functions_classes_and_modules(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(symbol_index, "MAX_LOOSE", 0)
+    (tmp_path / "auth.py").write_text("def login(req):\n    return req\n\n\nclass Guard:\n    @staticmethod\n"
+                                      "    def check():\n        return True\n", encoding="utf-8")
+    (tmp_path / "views.py").write_text(
+        "from auth import login as auth_login, Guard as G\nimport auth as auth_mod\n\n\n"
+        "def sign_in(req):\n    auth_login(req)\n    G.check()\n    return auth_mod.login(req)\n\n\n"
+        "def shadowed(auth_login):\n    return auth_login(1)\n",
+        encoding="utf-8",
+    )
+    index = SymbolIndex(tmp_path)
+    try:
+        login_impact = dispatch(index, "impact", {"symbol": "login"})
+        assert "  views.py:6 sign_in | auth_login(req)" in login_impact
+        assert "  views.py:8 sign_in | return auth_mod.login(req)" in login_impact
+        assert "shadowed" not in login_impact
+        check_impact = dispatch(index, "impact", {"symbol": "Guard.check"})
+        assert "  views.py:7 sign_in | G.check()" in check_impact
+    finally:
+        index.close()
+
+
 def test_tool_definitions_stay_small():
     # They ride on every request; the graph tools shipped before v7 cost 1,165 tokens per call (PRS-2).
     assert tokens.estimate(json.dumps(symbol_index.TOOL_SPECS)) < 400

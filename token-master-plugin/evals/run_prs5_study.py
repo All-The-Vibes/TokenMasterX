@@ -72,7 +72,7 @@ ENDPOINTS = {"raw_tokens": None, "billed": (0.1, 5.0, 0.25), "uncached_input": "
              "cost": (0.1, 8.0, 0.0)}
 PRIMARY = ("raw_tokens", "billed")
 IGNORED = ("graphify-out/",)  # graphify's own output; dot-folders (.git, .token-master) are never listed
-FLAGS = ["--model", MODEL, "--reasoning-effort", EFFORT, "--allow-all-tools", "--no-ask-user", "--no-auto-update",
+FLAGS = ["--model", MODEL, "--reasoning-effort", EFFORT, "--allow-all-tools", "--no-ask-user",
          "--disable-builtin-mcps", "--output-format", "json"]
 BASE_ENV = ("SystemRoot", "WINDIR", "COMSPEC", "PATHEXT", "OS", "PROCESSOR_ARCHITECTURE", "PROCESSOR_IDENTIFIER",
             "NUMBER_OF_PROCESSORS", "SystemDrive", "ProgramFiles", "ProgramFiles(x86)", "ProgramW6432", "ProgramData",
@@ -117,9 +117,13 @@ def cli_env(home: Path, base_url: str) -> dict:
                 "COPILOT_PROVIDER_WIRE_API": "responses", "COPILOT_PROVIDER_API_KEY": "relay-adds-the-credential",
                 "COPILOT_PROVIDER_MODEL_ID": MODEL, "COPILOT_PROVIDER_WIRE_MODEL": MODEL,
                 "COPILOT_PROVIDER_MAX_PROMPT_TOKENS": "200000", "COPILOT_PROVIDER_MAX_OUTPUT_TOKENS": "16000"})
-    package = Path(env["LOCALAPPDATA"]) / "copilot" / "pkg"
-    if not package.exists():
-        shutil.copytree(INSTALLED_PKG, package)
+    version = CLI_VERSION.split()[-1].rstrip(".")
+    source = INSTALLED_PKG / "win32-x64" / version
+    target = Path(env["LOCALAPPDATA"]) / "copilot" / "pkg" / "win32-x64" / version
+    if not target.exists():
+        shutil.copytree(source if source.is_dir() else INSTALLED_PKG, target if source.is_dir() else target.parents[1])
+    if (target / "index.js").is_file():
+        env["COPILOT_CLI_DIST_DIR"] = str(target)
     return env
 
 
@@ -316,9 +320,23 @@ def final_answer(stdout: str) -> str | None:
     return final if final is not None else last
 
 
+TEMPLATE_MANIFESTS: dict[str, dict] = {}
+
+
+def same_content(first: Path, second: Path) -> bool:
+    """True when two files differ only by CRLF vs LF line endings."""
+    try:
+        return first.read_bytes().replace(b"\r\n", b"\n") == second.read_bytes().replace(b"\r\n", b"\n")
+    except OSError:
+        return False
+
+
 def changed_files(lane: Path, template: Path) -> list[str]:
-    before, after = p1.manifest(template), p1.manifest(lane)
-    changed = sorted(k for k in before.keys() & after.keys() if before[k] != after[k])
+    if str(template) not in TEMPLATE_MANIFESTS:
+        TEMPLATE_MANIFESTS[str(template)] = p1.manifest(template)
+    before, after = TEMPLATE_MANIFESTS[str(template)], p1.manifest(lane)
+    changed = sorted(k for k in before.keys() & after.keys()
+                     if before[k] != after[k] and not same_content(template / k, lane / k))
     changed += sorted(set(after) - set(before)) + sorted(set(before) - set(after))
     return [c for c in changed if not c.startswith(IGNORED)]
 
@@ -374,14 +392,12 @@ def run_copilot(args: list[str], cwd: Path, env: dict) -> tuple[object, str, str
 
 
 def reset_lane(lane: Path, template: Path) -> None:
-    for attempt in range(6):  # Windows: a process that is still exiting can hold the folder for a moment
-        try:
-            if lane.exists():
-                p1.remove_tree(lane)
-            shutil.copytree(template, lane)
+    for attempt in range(6):  # Windows: a process that is still exiting can hold a file for a moment
+        proc = subprocess.run(["robocopy", str(template), str(lane), "/MIR", "/MT:16", "/R:2", "/W:1", "/NFL", "/NDL",
+                               "/NJH", "/NJS", "/NP"], capture_output=True, text=True, errors="replace")
+        if proc.returncode < 8:  # robocopy: 0-7 success, 8+ failure
             return
-        except OSError:
-            time.sleep(5 * (attempt + 1))
+        time.sleep(5 * (attempt + 1))
     raise RuntimeError(f"lane reset failed: {lane}")
 
 

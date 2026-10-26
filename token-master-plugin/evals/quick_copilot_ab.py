@@ -71,6 +71,7 @@ def load_tasks(task_ids: tuple, out: Path) -> list[dict]:
 # GitHub Copilot models-and-pricing, USD per 1M tokens: new input, cached input, cache write, output.
 USD_PER_M = {"gpt-6-astra": (10.00, 1.00, 12.50, 50.00), "claude-opus-5.5": (4.00, 0.20, 5.00, 20.00)}
 ANTHROPIC = ("claude-",)
+_BASE_CLI_ENV, _BASE_RELAY, _BASE_WARMUP = p5.cli_env, p5.Relay, p5.warmup
 
 
 def configure(model: str, lanes: str) -> None:
@@ -78,13 +79,15 @@ def configure(model: str, lanes: str) -> None:
     p5.MODEL = model
     p5.FLAGS = ["--model", model, *p5.FLAGS[2:]]
     p5.LANES = Path(tempfile.gettempdir()) / "opencode" / lanes
+    p5.cli_env, p5.Relay, p5.warmup = _BASE_CLI_ENV, _BASE_RELAY, _BASE_WARMUP
     if not model.startswith(ANTHROPIC):
         return
-    original_env, original_relay = p5.cli_env, p5.Relay
+    original_env, original_relay = _BASE_CLI_ENV, _BASE_RELAY
 
     def cli_env(home, base_url):
         env = original_env(home, base_url)
         env["COPILOT_PROVIDER_TYPE"] = "anthropic"
+        env["COPILOT_PROVIDER_MAX_OUTPUT_TOKENS"] = "32000"  # Copilot CLI 1.0.98 requires >= 32,000 for claude-opus-5.5
         env.pop("COPILOT_PROVIDER_WIRE_API", None)
         return env
 

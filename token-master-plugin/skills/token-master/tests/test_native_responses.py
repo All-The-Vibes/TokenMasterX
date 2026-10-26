@@ -75,6 +75,7 @@ def recovery_body():
     return native, aliases, standards
 
 
+@pytest.mark.skipif(not CAPTURE.is_file(), reason="local Oct 9 capture is not in the repository")
 def test_actual_two_captured_native_requests_roundtrip_without_view_rename():
     captures = json.loads(CAPTURE.read_text(encoding="utf-8"))
     assert len(captures) == 2

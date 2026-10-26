@@ -50,20 +50,23 @@ def changed_files(lane: Path, template: Path) -> list[str]:
     if str(template) not in TEMPLATE_MANIFESTS:
         TEMPLATE_MANIFESTS[str(template)] = p1.manifest(template)
     before, after = TEMPLATE_MANIFESTS[str(template)], p1.manifest(lane)
-    changed = sorted(k for k in before.keys() & after.keys() if before[k] != after[k])
+    changed = sorted(k for k in before.keys() & after.keys()
+                     if before[k] != after[k] and not p5.same_content(template / k, lane / k))
     changed += sorted(set(after) - set(before)) + sorted(set(before) - set(after))
     return [c for c in changed if not c.startswith(p5.IGNORED)]
 
 
 def self_test() -> None:
-    """reset_lane restores an edited lane; changed_files reports edits and additions."""
+    """reset_lane restores an edited lane; changed_files reports edits and additions and ignores CRLF-only changes."""
     import tempfile
     with tempfile.TemporaryDirectory() as tmp:
         template, lane = Path(tmp) / "template", Path(tmp) / "lane"
         (template / "pkg").mkdir(parents=True)
-        (template / "pkg" / "a.py").write_text("x = 1\n", encoding="utf-8")
+        (template / "pkg" / "a.py").write_bytes(b"x = 1\ny = 2\n")
         reset_lane(lane, template)
         assert changed_files(lane, template) == []
+        (lane / "pkg" / "a.py").write_bytes(b"x = 1\r\ny = 2\r\n")
+        assert changed_files(lane, template) == []  # CRLF-only rewrite is not a content change
         (lane / "pkg" / "a.py").write_text("x = 2\n", encoding="utf-8")
         (lane / "new.txt").write_text("extra\n", encoding="utf-8")
         assert changed_files(lane, template) == ["pkg/a.py", "new.txt"], changed_files(lane, template)
