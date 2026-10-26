@@ -124,22 +124,31 @@ installed Copilot CLI, which was 1.0.98 on October 23, 2026.
 runs. It compared the estimated "without TokenMaster" totals with the stock sessions that ran on the same tasks at the
 same time. Those runs used Copilot CLI 1.0.78-3, so the check uses the 1.0.78-3 values.
 
-| Model | Run | Token saving, estimated | Token saving, measured | Cost saving, estimated | Cost saving, measured |
-| --- | --- | ---: | ---: | ---: | ---: |
-| `gpt-6-astra` | Django, full TokenMaster | 45.2% | 53.4% | 77.0% | 79.9% |
-| `gpt-6-astra` | Django, without graphify | 45.1% | 44.9% | 70.3% | 70.8% |
-| `gpt-6-astra` | This repository, full TokenMaster | 39.5% | 44.8% | 59.1% | 62.8% |
-| `claude-opus-5.5` | Django, full TokenMaster | 49.7% | 51.6% | 58.5% | 60.8% |
-| `claude-opus-5.5` | Django, without graphify | 52.0% | 46.3% | 56.2% | 55.2% |
-| `claude-opus-5.5` | This repository, full TokenMaster | 47.4% | 53.5% | 45.4% | 51.2% |
+| Model | Copilot CLI | Run | Token saving, estimated | Token saving, measured | Cost saving, estimated | Cost saving, measured |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| `gpt-6-astra` | 1.0.98 | PRS-6 This repository, 29 tasks, full TokenMaster | 38.0% | 49.5% | 39.1% | 50.2% |
+| `gpt-6-astra` | 1.0.98 | PRS-6 Django, 15 tasks, full TokenMaster | 45.4% | 58.5% | 57.5% | 70.7% |
+| `claude-opus-5.5` | 1.0.98 | PRS-6 This repository, 29 tasks, full TokenMaster | 43.2% | 38.0% | 40.9% | 40.1% |
+| `claude-opus-5.5` | 1.0.98 | PRS-6 Django, 15 tasks, full TokenMaster | 48.0% | 53.7% | 52.9% | 61.2% |
+| `gpt-6-astra` | 1.0.78-3 | Django, 45 tasks, full TokenMaster | 45.2% | 53.4% | 77.0% | 79.9% |
+| `gpt-6-astra` | 1.0.78-3 | Django, 45 tasks, without graphify | 45.1% | 44.9% | 70.3% | 70.8% |
+| `gpt-6-astra` | 1.0.78-3 | This repository, 27 tasks, full TokenMaster | 39.5% | 44.8% | 59.1% | 62.8% |
+| `claude-opus-5.5` | 1.0.78-3 | Django, 45 tasks, full TokenMaster | 49.7% | 51.6% | 58.5% | 60.8% |
+| `claude-opus-5.5` | 1.0.78-3 | Django, 45 tasks, without graphify | 52.0% | 46.3% | 56.2% | 55.2% |
+| `claude-opus-5.5` | 1.0.78-3 | This repository, 27 tasks, full TokenMaster | 47.4% | 53.5% | 45.4% | 51.2% |
 
-- In 5 of 6 runs, the estimate gave 72% to 101% of the measured token saving.
-- In one run (`claude-opus-5.5` without graphify), it gave 125%. There, TokenMaster made 174 model calls and stock
-  made 157. The estimate assumes that stock would have made the same calls, so it counts TokenMaster's 17 extra calls,
-  and the tokens they sent, as calls that stock would also have made.
-- The check reuses the run that set the 1.0.78-3 values, so it is not independent. These runs had sessions back to
-  back; see [How to read the cost numbers](COPILOT_CLI_RESULTS.md#how-to-read-the-cost-numbers).
-- No A/B run has measured the 1.0.98 values against stock sessions yet.
+- **Out-of-sample check on Copilot CLI 1.0.98 (PRS-6):** the 1.0.98 calibration values were set from the October 23
+  probe before PRS-6 ran. On the four PRS-6 runs, the estimator gave 59.0% to 123.9% of the measured token saving
+  and 56.0% to 103.6% of the measured cost saving. On the three runs where TokenMaster reduced model calls, the
+  estimate is conservative because it does not count saved calls or v6 shaping; on the one run where TokenMaster made
+  more calls (`claude-opus-5.5` on this repository: 137 vs 127 calls), it over-estimates raw token savings (43.2% vs
+  38.0%) while matching cost savings within 0.8 percentage points (40.9% vs 40.1%).
+- **Copilot CLI 1.0.78-3:** in 5 of 6 runs, the estimate gave 72% to 101% of the measured token saving.
+- In one 1.0.78-3 run (`claude-opus-5.5` without graphify), it gave 125%. There, TokenMaster made 174 model calls and
+  stock made 157. The estimate assumes that stock would have made the same calls, so it counts TokenMaster's 17 extra
+  calls, and the tokens they sent, as calls that stock would also have made.
+- The 1.0.78-3 check reuses the run that set the 1.0.78-3 values, so it is not independent. All 10 runs had sessions
+  back to back; see [How to read the cost numbers](COPILOT_CLI_RESULTS.md#how-to-read-the-cost-numbers).
 
 ## Live checks in Copilot CLI (October 23, 2026)
 

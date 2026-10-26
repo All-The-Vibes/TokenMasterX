@@ -16,8 +16,8 @@ Copilot CLI would have made the same model calls:
   cached prefix: the median first-call cache read of this store's own stock sessions with the same model, else the
   calibration's "stock_first_cached". It writes the rest to the prompt cache. The difference to the actual
   first-call write is priced at (cache-write price - cache-read price). It can be negative.
-Not counted: model calls that graph navigation saved, v6 shaping, and any other change in model behavior. On the
-measured A/B runs (Copilot CLI 1.0.78-3), the method gave 72% to 125% of the measured token saving.
+Not counted: model calls that graph navigation saved, v6 shaping, and any other change in model behavior. On the 10
+measured A/B runs (Copilot CLI 1.0.98 and 1.0.78-3), the method gave 59% to 125% of the measured token saving.
 
   python tokenomics.py [daily|weekly|monthly|session] [--since YYYYMMDD] [--until YYYYMMDD] [--project TEXT]
                        [--only tokenmaster|stock] [--breakdown] [--order asc|desc] [--json] [--compact | --full]
@@ -51,8 +51,9 @@ CALIBRATIONS = {
 CLI_VERSION = "1.0.98"  # the installed build that the launcher runs; other versions send other fixed prompts
 CALIBRATION = CALIBRATIONS[CLI_VERSION]
 CALIBRATION_SOURCE = "Copilot CLI 1.0.98, probe of October 23, 2026"
-BENCHMARK = ("Measured on Copilot CLI 1.0.78-3 (45 Django tasks, October 22, 2026): full TokenMaster used 53.4% "
-             "(gpt-6-astra) and 51.6% (claude-opus-5.5) fewer raw tokens than stock.")
+BENCHMARK = ("Measured on Copilot CLI 1.0.98 (PRS-6, 29 repo tasks + 15 Django tasks, Oct 26, 2026): full TokenMaster "
+             "used 49.5%–58.5% (gpt-6-astra) and 38.0%–53.7% (claude-opus-5.5) fewer raw tokens than stock; on "
+             "1.0.78-3 (45 Django tasks, Oct 22, 2026): 53.4% and 51.6% fewer.")
 NANO_PER_USD = 1e11
 LAUNCH_TIMEOUT = timedelta(hours=12)  # a launch without an end record counts as running for at most this long
 REPORTS = ("daily", "weekly", "monthly", "session")
