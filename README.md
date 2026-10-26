@@ -62,14 +62,16 @@ TokenMaster attacks all four sources of waste without mutating conversation hist
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│ 1. LEAN LAUNCHER (`brainspace_copilot_bridge.py`)                                      │
-│    Strips 11 unused built-in tools via `--excluded-tools` (16 → 5 tools on Astra;      │
-│    17 → 6 on Opus 5.5). Saves 5,558 to 11,552 fixed tokens on EVERY model call.        │
+│ 1. TOOL-SCHEMA PRUNING (`brainspace_copilot_bridge.py`)                                │
+│    Stock Copilot CLI re-sends JSON schemas and system-prompt instructions for SQL      │
+│    scratchpads, session-store SQL, background job managers, and CLI docs on every      │
+│    turn. Pruning non-core schemas via native `--excluded-tools` cuts ~50% of fixed     │
+│    per-call overhead (~5,500 to ~11,500 tokens saved per call).                        │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ 2. GRAPH-FIRST CODE NAVIGATION (`tokenmaster-nav` · Graphify 0.9.91 + SQLite AST)      │
 │    3 compact tools (`locate`, `read_symbol`, `impact`) capped at <2,400 tokens.        │
 │    Resolves `import ... as ...` aliases. Cuts a further 15.4% (Astra) & 9.8% (Opus)    │
-│    of raw tokens on top of the lean tool set by eliminating exploratory grep turns.    │
+│    of raw tokens on top of schema pruning by eliminating exploratory grep turns.       │
 ├────────────────────────────────────────────────────────────────────────────────────────┤
 │ 3. ONE-SHOT TOOL-RESULT SHAPING (`brainspace/request_policy.py`)                       │
 │    Folds `rg`/`glob` output losslessly and compacts oversized `view` reads ONCE when   │
@@ -87,7 +89,7 @@ TokenMaster attacks all four sources of waste without mutating conversation hist
 
 | Pillar | What It Does | Measured Effect | Known Trade-Off |
 | :--- | :--- | :--- | :--- |
-| **1. Lean Tool Set** | Excludes 11 built-in tools that received 0 calls across all Oct 18 runs (`session_store_sql`, `task`, `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`, `read_powershell`, `stop_powershell`, `list_powershell`, `fetch_copilot_cli_documentation`). | Removes **5,558** (`gpt-6-astra`) and **9,727** (`claude-opus-5.5`) fixed tokens per call on `1.0.98` (**50.1%** and **53.7%** of the first call; `6,775` and `11,552` on `1.0.78-3`). | One stock session on Oct 19 (`P13`) called `task` (subagent) and spent `124,403` tokens in 8 calls vs TokenMaster's `38,154` in 4 calls. Use `--all-tools` when subagents or background PowerShell are needed. |
+| **1. Tool-Schema Pruning** | Uses Copilot CLI's native `--excluded-tools` flag to omit non-core built-in subsystems (SQL scratchpads `sql`/`session_store_sql`, background job polling `read_powershell`/`stop_powershell`/`list_powershell`, agent/skill loaders, CLI docs lookup) while keeping core coding tools (`view`, `edit`, `create`, `rg`, `glob`, `powershell`). Respects any user-supplied `--available-tools` / `--excluded-tools`, or `--all-tools`. | Removes **5,558** (`gpt-6-astra`) and **9,727** (`claude-opus-5.5`) fixed tokens per call on `1.0.98` (**50.1%** and **53.7%** of the first call; `6,775` and `11,552` on `1.0.78-3`). | One stock session on Oct 19 (`P13`) called `task` (subagent) and spent `124,403` tokens in 8 calls vs TokenMaster's `38,154` in 4 calls. Pass `--all-tools` when subagents or background PowerShell polling are needed. |
 | **2. Graph-First Navigation** | Combines `graphify update` call edges (`Graphify 0.9.91`) with a local SQLite AST symbol index (`brainspace/symbol_index.py`) exposing `locate(query)`, `read_symbol(target)`, and `impact(symbol, depth)`. | On 40 random Django symbols, `impact` returned **8,401** total tokens (max `2,325`) vs **128,279** for raw `rg` (max `115,555`). In the 45-task Django A/B, added **−15.4%** (`gpt-6-astra`) and **−9.8%** (`claude-opus-5.5`) raw-token savings on top of the lean tool set. Resolves `import ... as ...` aliases (`56/56` caller recall on `D01`–`D15`, including `auth_login` in `D13`). | Static AST + call graph does not resolve dynamic `getattr`, string-based dispatch, or monkeypatching (`impact` prints a `[Not listed: N calls ...]` footer so the agent can fall back to narrow `rg`). |
 | **3. One-Shot Output Shaping** | Shapes tool output once at ingestion—lossless prefix/table folding for search results and budgeted digests for oversized file reads—without ever touching prior turns. | Cut billed cost by **−11.6%** ($p = 0.014$) and **−13.0%** ($p = 0.0001$) in controlled studies with **156/156** tasks passed, avoiding the **+61.6%** cache-eviction penalty of history-rewriting compression. | Smaller effect than the lean tool set on short real-CLI sessions where fixed prompt overhead dominates. |
 | **4. Cache-Stable BYOK Bridge** | Relocates the per-session `Session folder:` UUID from the system prompt to the first user message so back-to-back sessions in the same directory hit the provider's prompt cache on call 1. | On `1.0.78-3` (`gpt-6-astra`), raised warm first calls from **0/45** (stock) to **44/45** (TokenMaster). On `1.0.98`, reduced median first-call cache writes from **4,882 → 322** tokens (`gpt-6-astra`) and **7,265 → 543** (`claude-opus-5.5`). | Applies only in BYOK mode (`COPILOT_PROVIDER_BASE_URL`) and within the same working directory while the provider's cache is warm (`6.5` to `31` minutes in our probe). |
