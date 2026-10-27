@@ -10,22 +10,31 @@ Across **554 real Copilot CLI sessions** with **GPT-6 Astra** and **Claude Opus 
 
 ## Quickstart
 
-Run from `token-master-plugin/skills/token-master/`:
+### 1. Install the GitHub Copilot CLI Plugin
 
 ```powershell
-# 1. Install the Copilot CLI launcher, output-shaping hook, bridge, and /tokenomics skill
-python brainspace_setup.py --host copilot --python <python-exe> --tokenizer-file <cl100k_base.tiktoken>
+# Install directly from GitHub into Copilot CLI
+copilot plugin install All-The-Vibes/TokenMasterX:token-master-plugin
 
-# 2. Index your repository for graph code navigation (requires `uv tool install graphify`)
-python setup.py <repo-path> --host copilot --python <python-exe>
+# Or load from a local checkout
+copilot --plugin-dir ./token-master-plugin
+```
 
-# 3. Start Copilot CLI through TokenMaster (plain `copilot` stays untouched)
+Inside an interactive Copilot CLI session:
+- Type **`/token-master`** to index the current repository (with [Graphify](https://github.com/safishamsi/graphify)) and wire up `tokenmaster-nav`, the `view` output-shaping hook, the launcher, and `/tokenomics`.
+- Type **`/tokenomics`** anytime to view your token usage, GitHub charges, and TokenMaster savings.
+
+### 2. Start Copilot CLI with Dynamic Tool Routing (Recommended)
+
+Once `/token-master` has configured your host (or after running `brainspace_setup.py --host copilot` manually), start `copilot` through the installed launcher so unused auxiliary tool schemas are pruned automatically:
+
+```powershell
 python ~/.copilot/token-master/brainspace_copilot_bridge.py -- copilot
 ```
 
-- **Keep all built-in tools:** pass `--all-tools` before `--` (or set `TOKENMASTER_KEEP_TOOLS=agents,sql`).
-- **BYOK mode (`COPILOT_PROVIDER_BASE_URL` set):** automatically enables the local prompt-cache bridge.
-- **Uninstall cleanly:** add `--uninstall` to `brainspace_setup.py` or `setup.py`.
+- **Normal GitHub sign-in:** Applies **Dynamic Tool Routing** (`--excluded-tools`), **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook**, and **`/tokenomics`**.
+- **BYOK mode (`COPILOT_PROVIDER_BASE_URL` set):** Also activates the local **prompt-cache bridge** (`stable_session_prefix` + wire-level `rg`/`glob` shaping).
+- **Keep all built-in tools:** Pass `--all-tools` before `--` (or set `TOKENMASTER_KEEP_TOOLS=agents,sql`).
 
 ---
 
