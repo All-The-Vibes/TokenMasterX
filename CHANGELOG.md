@@ -22,6 +22,11 @@ and the project aims to follow semantic versioning.
 - `config_lock` (`hosts/config.py`) retries on Windows while a just-released lock is still delete-pending. Creating it
   then raised `PermissionError` in 1.4% to 2.3% of contended lock attempts, which also made
   `test_concurrent_updates_do_not_lose_other_server` flaky.
+- `test_runtime_cli.py` and `test_isolated_sandbox_savings.py` no longer read fixtures from the untracked
+  `evidence/controlled-scorecard-20261008/` folder, which made 26 tests fail in any fresh clone. They take the verified
+  `cl100k_base` vocabulary from `TOKENMASTER_TEST_TOKENIZER_FILE` or tiktoken's cache and skip without it; the pinned
+  Ponytail export comes from `TOKENMASTER_TEST_PONYTAIL_EXPORT` or the local copy. Tests that fail before the
+  tokenizer loads still run without a vocabulary.
 
 ### Changed
 
