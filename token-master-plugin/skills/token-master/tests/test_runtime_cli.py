@@ -16,11 +16,11 @@ import brainspace_tools
 from brainspace import session_cli, tokens
 from brainspace.request_policy import RequestPolicy, SourceReadInfo
 from brainspace.task_mode import TaskContract, TaskModeStore
+from hosts.tokenizer import read_tokenizer
 
 
 ROOT = Path(__file__).resolve().parents[1]
 REPO = ROOT.parents[2]
-VOCAB = REPO / "evidence/controlled-scorecard-20261008/batch-001/cl100k_base.tiktoken"
 MODEL = "local-mock-only"
 TEXT = "def value():\n" + "".join(f"    number_{i} = {i}\n" for i in range(160))
 
@@ -104,20 +104,34 @@ def command(installed, workspace, output, bridge, *extra, network=True, backend=
     return values + (["--allow-network"] if network else []) + list(extra)
 
 
-def environment():
+def verified_vocabulary(required=True):
+    """TOKENMASTER_TEST_TOKENIZER_FILE, else tiktoken's cache, verified by hash.
+
+    With none, skips the test if it needs the vocabulary; otherwise returns a path that does not exist.
+    """
+    try:
+        _, receipt = read_tokenizer(os.environ.get("TOKENMASTER_TEST_TOKENIZER_FILE"))
+    except ValueError as exc:
+        if required:
+            pytest.skip(f"no verified cl100k_base vocabulary: {exc}")
+        return ROOT / "missing-cl100k_base.tiktoken"
+    return Path(receipt["source"])
+
+
+def environment(needs_vocabulary=True):
     env = {key: os.environ[key] for key in ("PATH", "SystemRoot", "WINDIR", "TEMP", "TMP", "PATHEXT")
            if key in os.environ}
-    env.update(BRAINSPACE_TOKENIZER_FILE=str(VOCAB), PYTHONIOENCODING="utf-8")
+    env.update(BRAINSPACE_TOKENIZER_FILE=str(verified_vocabulary(needs_vocabulary)), PYTHONIOENCODING="utf-8")
     return env
 
 
-def launch(tmp_path, installed, bridge, input_bytes, *extra, **options):
+def launch(tmp_path, installed, bridge, input_bytes, *extra, needs_vocabulary=True, **options):
     workspace = tmp_path / "workspace"
     workspace.mkdir(exist_ok=True)
     output = tmp_path / "run"
     completed = subprocess.run(
         command(installed, workspace, output, bridge, *extra, **options),
-        input=input_bytes, capture_output=True, timeout=25, cwd=tmp_path, env=environment(),
+        input=input_bytes, capture_output=True, timeout=25, cwd=tmp_path, env=environment(needs_vocabulary),
     )
     rows = [json.loads(line) for line in completed.stdout.splitlines()]
     return completed, rows, output
@@ -234,6 +248,7 @@ def test_model_output_cannot_submit_receipts_or_self_grade(tmp_path, installed, 
 def test_explicit_network_gate_precedes_output_creation(tmp_path, installed, bridge):
     process, rows, output = launch(
         tmp_path, installed, bridge, frames({"op": "call", "request": request()}), network=False,
+        needs_vocabulary=False,
     )
     assert process.returncode == 2
     assert rows == [{"op": "error", "ok": False, "error": "explicit_network_opt_in_required"}]
@@ -322,7 +337,8 @@ def test_exit_zero_means_accounted_not_successful_http_or_answer(tmp_path, insta
     ["--policy", '{"enabled":true,"enabled":false}'],
 ])
 def test_invalid_configuration_creates_no_run_or_call(tmp_path, installed, bridge, extra):
-    process, rows, output = launch(tmp_path, installed, bridge, frames({"op": "finish"}), *extra)
+    process, rows, output = launch(tmp_path, installed, bridge, frames({"op": "finish"}), *extra,
+                                   needs_vocabulary=False)
     assert process.returncode == 2
     assert rows[0]["op"] == "error"
     assert not output.exists() and not bridge.requests
@@ -344,7 +360,10 @@ def test_explicit_session_mode_selection(tmp_path, installed, bridge):
 
 
 def test_real_pinned_export_loads_in_installed_session(tmp_path, installed, bridge):
-    export = REPO / "evidence/controlled-scorecard-20261008/batch-001/ponytail.json"
+    export = Path(os.environ.get("TOKENMASTER_TEST_PONYTAIL_EXPORT",
+                                 REPO / "evidence/controlled-scorecard-20261008/batch-001/ponytail.json"))
+    if not export.is_file():
+        pytest.skip("no pinned Ponytail export: set TOKENMASTER_TEST_PONYTAIL_EXPORT")
     process, rows, output = launch(
         tmp_path, installed, bridge, frames({"op": "call", "request": request()}, {"op": "finish"}),
         "--ponytail-export", str(export),
