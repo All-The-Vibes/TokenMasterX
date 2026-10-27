@@ -9,7 +9,7 @@
   <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a>
 </p>
 
-<p align="center"><sub>Measured on GitHub Copilot CLI in bring-your-own-model mode with GPT-6 Astra and Claude Opus 5.5. Costs come from GitHub's own per-call billing.</sub></p>
+<p align="center"><sub>Measured in a pre-registered study on GitHub Copilot CLI, in bring-your-own-model mode, with GPT-6 Astra and Claude Opus 5.5. Costs come from GitHub's own per-call billing.</sub></p>
 
 ---
 

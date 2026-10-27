@@ -1,6 +1,12 @@
 # Design: a `/command` that runs the token-efficient harness automatically
 
-> Mission context: see [`MISSION.md`](./MISSION.md). This command is how we make the
+> **Superseded (October 27, 2026).** This is the original May 2026 design of the `/token-master`
+> command, kept for history. The packaging it chose (a skill, an agent and an MCP server bundled
+> as a plugin) shipped. The tools it describes were replaced by `tokenmaster-nav` (`locate`,
+> `read_symbol`, `impact`), and its −72% figure comes from an early pilot that was never
+> replicated. For current results, see the [README](../../README.md#benchmark-summary-github-copilot-cli).
+
+> Mission context: see [`MISSION.md`](../../MISSION.md). This command is how we make the
 > efficient path the *default* one — operationalizing the routing layer that is the
 > actual product. The graph indexes are swappable suppliers of structure; the routing
 > is the load-bearing primitive.
@@ -193,5 +199,5 @@ All facts above are grounded in first-party GitHub docs and verified local tool 
 - Harness wiring ground truth (MCP config shape, routing nudge, GRAPH_PATH): local
   `sandbox-scale/tools/runner.py` and `sandbox-scale/tools/graphify_mcp.py`.
 - Token result this command operationalizes (−72% overall; T1 −80%, T4 −76%): local
-  `evidence/` and `token-efficient-harness-research.md` §7.10.
+  `evidence/` and [`token-efficient-harness-research.md`](../research/token-efficient-harness-research.md) §7.10.
 - CLI flags (`--agent`, `--additional-mcp-config`, `mcp` subcommand): local `copilot --help`.
