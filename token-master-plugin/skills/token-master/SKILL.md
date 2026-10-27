@@ -1,6 +1,6 @@
 ---
 name: token-master
-description: Configure graph navigation and conservative token-efficiency tools for an explicitly selected host. Use when the user asks to enable TokenMaster, graph routing, recoverable views, or scoped token-efficiency discipline. Not a universal interceptor or a task-quality guarantee.
+description: Configure graph navigation and conservative token-efficiency tools for an explicitly selected host. Use when the user asks to enable or remove TokenMaster, graph routing, recoverable views, or scoped token-efficiency discipline. Not a universal interceptor or a task-quality guarantee.
 ---
 
 # TokenMaster
@@ -18,11 +18,38 @@ host and an already provisioned pinned runtime:
 <runtime-python> setup.py <repo-root> --host claude|codex|copilot --python <runtime-python>
 ```
 
-The script requires an already installed graph supplier (graphify). Do not install
-an unverified similarly named package or silently resolve dependencies at every
-launch. Runtime pins are in the plugin's `requirements-runtime.txt` and closure lock.
+For Copilot, then run the second installer from the same directory. Copilot setup is
+complete only when both commands succeed; this one installs the `view` output hook,
+the launcher and `/tokenomics`:
 
-It installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`), with three
+```text
+<runtime-python> brainspace_setup.py --host copilot --python <runtime-python>
+```
+
+Both need an already provisioned runtime: an interpreter with the exact pins in the
+plugin's `requirements-runtime.txt` and closure lock. Look first in
+`<COPILOT_HOME>/token-master-runtime` (`Scripts/python.exe` on Windows, `bin/python`
+elsewhere), then in an activated virtual environment. Do not substitute another
+interpreter; setup rejects any pinned-version mismatch. `setup.py` also needs the
+graph supplier, `graphify`, on PATH; it comes from the `graphifyy` PyPI package.
+`brainspace_setup.py` reads OpenAI's `cl100k_base` vocabulary from tiktoken's cache
+and verifies its SHA-256; it never downloads. When one of these is missing, stop and
+give the user these one-time commands, with `<plugin>` (this skill directory's
+grandparent, which holds `requirements-runtime.txt`) and `<COPILOT_HOME>` filled in.
+Run them only if the user asks:
+
+```text
+uv venv --python 3.12 <COPILOT_HOME>/token-master-runtime
+<runtime-python> -m ensurepip
+<runtime-python> -m pip install -r <plugin>/requirements-runtime.txt
+<runtime-python> -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
+uv tool install graphifyy
+```
+
+Do not install an unverified similarly named package or silently resolve dependencies
+at every launch.
+
+`setup.py` installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`), with three
 tools: `locate` (a symbol or a file's outline), `read_symbol` (one symbol, file or
 line range) and `impact` (callers). It builds `.token-master/graph.json` with
 graphify and prebuilds `.token-master/symbols.sqlite`; both are gitignored. It also
@@ -33,12 +60,30 @@ when TokenMaster owns them.
 Report the actual installer result, not a claim that a host accepted a tool.
 Claude/Copilot get a navigation agent; Codex gets native MCP configuration, not a
 translated Claude agent or output-replacement hook. Honor the restart guidance
-printed for the selected host. Never rewrite another host's profile by guessing.
+printed for the selected host; for Copilot, end with the launcher command given under
+Recoverable views. Never rewrite another host's profile by guessing.
 
 Treat `impact` lines marked `[inferred]` or `[name]` as candidates and verify them
 in source; dynamic calls, callbacks and string dispatch are invisible to it.
 `locate` and `read_symbol` see edits immediately. The call graph is a build-time
 snapshot; its edges from files edited since then are dropped.
+
+## Uninstall
+
+When the user asks to remove TokenMaster, run from this skill directory with the
+runtime interpreter, or any Python 3.11 or newer if the runtime is gone; uninstall
+needs no pinned packages, repository or `--python`. The second command is for
+Copilot only:
+
+```text
+<runtime-python> setup.py --host claude|codex|copilot --uninstall
+<runtime-python> brainspace_setup.py --host copilot --uninstall
+```
+
+Both remove only configuration TokenMaster owns. These scripts ship inside the
+plugin, so they must run before `copilot plugin uninstall token-master@token-master`;
+tell the user to run that next. The runtime, `<COPILOT_HOME>/token-master/` and each
+repository's `.token-master/` and `graphify-out/` stay until the user deletes them.
 
 ## Recoverable views
 
@@ -66,7 +111,8 @@ policy. For Copilot, setup does not install the `brainspace` MCP server unless
 `--brainspace-mcp` is given.
 
 Setup also copies the launcher to `<COPILOT_HOME>/token-master/`. Start Copilot CLI
-with `python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot`.
+with `<runtime-python> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot`;
+in bring-your-own-model mode its v6 shaping needs the runtime's `tiktoken`.
 The launcher excludes 11 built-in tools that no session called in the October 18 runs;
 `--all-tools` keeps them. In bring-your-own-model mode, it also runs a local bridge
 that applies the cache-stable system prompt and v6 shaping. See

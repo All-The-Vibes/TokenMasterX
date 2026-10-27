@@ -28,7 +28,7 @@ for the six design flaws behind them.
 
 - 7 arms × 12 tasks × 3 repeats = **252 sessions**, plus 1 pre-declared infrastructure
   re-run. 1,609 model calls and **14.29M provider-reported tokens** counted.
-- `gpt-6-astra`, reasoning `low`. The real GitHub Copilot CLI system prompt is used
+- `gpt-6-astra`, reasoning `low`. GitHub Copilot CLI's own system prompt is used
   (2,944 tokens). Workspace: this repository at commit `703aa20` (201 files).
 - Tasks were written by a separate agent that was not told the arms, then
   independently verified: 3 locate, 3 logic, 2 impact, 2 docs, 2 edit.

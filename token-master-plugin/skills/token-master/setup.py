@@ -155,8 +155,8 @@ def main() -> int:
     graphify = shutil.which("graphify")
     if not graphify:
         return _fail(
-            "`graphify` not found on PATH. Install it with `uv tool install graphify` "
-            "(https://github.com/safishamsi/graphify), then run /token-master again."
+            "`graphify` not found on PATH. Install it with `uv tool install graphifyy` (the PyPI package "
+            "that provides `graphify`: https://github.com/Graphify-Labs/graphify), then run /token-master again."
         )
     print(f"[token-master] indexing {repo} ...")
     build_started = time.monotonic()

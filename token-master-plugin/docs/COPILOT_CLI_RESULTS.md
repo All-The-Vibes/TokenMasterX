@@ -1,6 +1,6 @@
-# Real Copilot CLI results (October 18–27, 2026)
+# Copilot CLI results (October 18–27, 2026)
 
-These runs used the real GitHub Copilot CLI and GitHub's Copilot API:
+These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
 - **Default GitHub routing on Copilot CLI `1.0.104` (October 27, 2026):** the only run without the evaluation
   relay. Copilot CLI signed in and routed every request itself, and its own per-call records gave the tokens and
@@ -9,7 +9,7 @@ These runs used the real GitHub Copilot CLI and GitHub's Copilot API:
 - **Pre-registered study PRS-6 on Copilot CLI `1.0.98` (October 26, 2026):** pre-registered before
   any study call ([PRS6_PROTOCOL.md](PRS6_PROTOCOL.md), commit `19443fc`, evidence in
   `evidence/prs6-copilot-1.0.98-20261026/analysis.json`). Pinning `COPILOT_CLI_DIST_DIR` to `1.0.98`
-  and removing `--no-auto-update` ran real Copilot CLI `1.0.98`, verified in 176 of 176 session
+  and removing `--no-auto-update` ran Copilot CLI `1.0.98`, verified in 176 of 176 session
   captures (`Version number: 1.0.98`, 0 recount mismatches, `total_nano_aiu` matching calculated USD
   to `$0.0001`).
 - **Exploratory runs on Copilot CLI `1.0.78-3` (October 18–22, 2026):** used Copilot CLI `1.0.78-3`,
@@ -79,7 +79,7 @@ These runs used the real GitHub Copilot CLI and GitHub's Copilot API:
   tokens that TokenMaster without graphify used. That is 8.5 and 5.3 percentage points of stock's
   tokens.
 - **Copilot CLI version:** the October 18–22 exploratory runs used `1.0.78-3`. On October 26, the
-  pre-registered PRS-6 study measured real Copilot CLI `1.0.98`
+  pre-registered PRS-6 study measured Copilot CLI `1.0.98`
   ([Pre-registered study PRS-6](#pre-registered-study-prs-6-on-copilot-cli-1098-october-26-2026) and
   [Copilot CLI version](#copilot-cli-version)).
 
@@ -88,7 +88,7 @@ These runs used the real GitHub Copilot CLI and GitHub's Copilot API:
 ### 1. Protocol and version verification
 
 - Pre-registered before any study call ([PRS6_PROTOCOL.md](PRS6_PROTOCOL.md), commit `19443fc`).
-- Pinning `COPILOT_CLI_DIST_DIR` to `1.0.98` and removing `--no-auto-update` ran real Copilot CLI
+- Pinning `COPILOT_CLI_DIST_DIR` to `1.0.98` and removing `--no-auto-update` ran Copilot CLI
   `1.0.98`, verified in 176 of 176 session captures (`Version number: 1.0.98`, 0 recount mismatches,
   `total_nano_aiu` matching calculated USD to `$0.0001`).
 - Evidence: `evidence/prs6-copilot-1.0.98-20261026/analysis.json` and `capture_audit.json`.
@@ -315,7 +315,7 @@ GitHub's own per-call charges added up to the same costs.
 ## Copilot CLI version
 
 The October 18–22 real-CLI runs on this page used Copilot CLI **1.0.78-3**. Until October 23, 2026,
-this page said 1.0.98. That was wrong. On October 26, 2026, the pre-registered PRS-6 study ran real
+this page said 1.0.98. That was wrong. On October 26, 2026, the pre-registered PRS-6 study ran
 Copilot CLI **1.0.98** ([Pre-registered study PRS-6](#pre-registered-study-prs-6-on-copilot-cli-1098-october-26-2026)).
 
 - In the October 18–22 runs, the harness passed `--no-auto-update`. With that flag, the WinGet
@@ -329,7 +329,7 @@ Copilot CLI **1.0.98** ([Pre-registered study PRS-6](#pre-registered-study-prs-6
   `evals/run_prs5_study.py`). With the October 18–22 flags, the check stops the harness, because
   `CLI_VERSION` names 1.0.98.
 - In PRS-6 (October 26), pinning `COPILOT_CLI_DIST_DIR` to `1.0.98` and removing `--no-auto-update`
-  ran real Copilot CLI `1.0.98`, verified in 176 of 176 session captures (`Version number: 1.0.98`).
+  ran Copilot CLI `1.0.98`, verified in 176 of 176 session captures (`Version number: 1.0.98`).
 
 A probe on October 23 sent one short prompt per model, version and tool set
 (`evidence/copilot-version-probe-20261023/`):
@@ -537,8 +537,8 @@ tokens.
 
 - The largest single Django `rg` output was 115,555 tokens. The largest `impact` result was
   2,325.
-- These are raw `rg` outputs. Copilot's search tool shortens long results, and the models in the
-  real CLI searched with narrower patterns (Result 1). So this table measures lookup output,
+- These are raw `rg` outputs. Copilot's search tool shortens long results, and the models in
+  Copilot CLI itself searched with narrower patterns (Result 1). So this table measures lookup output,
   not session cost.
 - The same commit fixed a setup gap. `setup.py` left graphify's 9.5 MB `graphify-out/graph.json`
   visible to `rg`. Setup now adds `graphify-out/` to `.gitignore`.
@@ -657,7 +657,7 @@ cd token-master-plugin\evals
 Live runs need an active GitHub Copilot sign-in in OpenCode and an installed Copilot CLI. The
 harness reads the credential in memory and never writes it. It stops unless the Copilot CLI
 version that its sessions run equals `CLI_VERSION` in `run_prs5_study.py` (`1.0.98`). Pinning
-`COPILOT_CLI_DIST_DIR` to `1.0.98` and omitting `--no-auto-update` runs real Copilot CLI `1.0.98`;
+`COPILOT_CLI_DIST_DIR` to `1.0.98` and omitting `--no-auto-update` runs Copilot CLI `1.0.98`;
 passing `--no-auto-update` to the WinGet launcher selects its bundled `1.0.78-3` build instead.
 
 `default_routing_ab.py` needs a Copilot CLI sign-in (`copilot login`) instead of OpenCode's. It copies only the

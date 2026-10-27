@@ -7,6 +7,38 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Fixed
+
+- `/token-master` runs both Copilot installers: `setup.py` for graph navigation, then `brainspace_setup.py` for the
+  `view` hook, the launcher and `/tokenomics` (`skills/token-master/SKILL.md`). It ran only `setup.py` before, so the
+  README's launcher command pointed at a file that setup never copied.
+- The skill looks for the pinned runtime in `<COPILOT_HOME>/token-master-runtime`, then an activated virtual
+  environment, and stops with the one-time setup commands when neither exists. It no longer tries another interpreter
+  that fails the pin check.
+- The missing-`graphify` hint in `setup.py` names the real PyPI package, `graphifyy`. No package named `graphify`
+  exists on PyPI.
+- The missing-tokenizer error (`hosts/tokenizer.py`) gives the command that caches `cl100k_base`, and reports a
+  mistyped `--tokenizer-file` or `BRAINSPACE_TOKENIZER_FILE` as not found.
+- `config_lock` (`hosts/config.py`) retries on Windows while a just-released lock is still delete-pending. Creating it
+  then raised `PermissionError` in 1.4% to 2.3% of contended lock attempts, which also made
+  `test_concurrent_updates_do_not_lose_other_server` flaky.
+
+### Changed
+
+- README Quickstart: install from the marketplace (`copilot plugin marketplace add All-The-Vibes/TokenMasterX`, then
+  `copilot plugin install token-master@token-master`), with a new "Prepare the runtime" step. Commands use `$HOME`
+  instead of `~`, which Windows PowerShell 5.1 passes to native programs literally, and the launcher runs on the
+  runtime's Python, whose `tiktoken` BYOK shaping needs.
+- README hero: a TokenMasterX logo and banner (`assets/tokenmasterx-mark.svg`, `tokenmasterx-logo.svg`,
+  `tokenmasterx-hero.svg`), drawn from token chips by `assets/generate_logo.py` so they render the same everywhere
+  with no fonts to embed. The intro drops session and task counts, CLI versions and the word "real", and the "up to
+  80% back to back" figure: it came from bring-your-own-model runs on CLI `1.0.78-3`, where the bridge fixed a
+  per-session cache miss that `1.0.98` no longer has.
+
+### Added
+
+- Uninstall: `/token-master uninstall` runs both installers with `--uninstall`, and the README documents the full
+  removal order, including the backup copies that uninstall keeps.
 ## [0.2.0] - 2026-10-26
 
 ### Added
