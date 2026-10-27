@@ -1,0 +1,303 @@
+{
+ "study": "default GitHub routing A/B",
+ "kind": "exploratory; decision rule frozen in PROTOCOL.md",
+ "copilot_cli": "1.0.104",
+ "model": "gpt-6-astra",
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 20261022
+ },
+ "audit": {
+  "django-common": {
+   "sessions": 10,
+   "wrong_version": [],
+   "other_models": [],
+   "several_copilot_sessions": [],
+   "charge_mismatch": [],
+   "cli_total_mismatch": [],
+   "recount_mismatch": [],
+   "infra": [],
+   "nano_total": 147237650000,
+   "clean": true
+  },
+  "django-rare": {
+   "sessions": 20,
+   "wrong_version": [],
+   "other_models": [],
+   "several_copilot_sessions": [],
+   "charge_mismatch": [],
+   "cli_total_mismatch": [],
+   "recount_mismatch": [],
+   "infra": [],
+   "nano_total": 208906550000,
+   "clean": true
+  },
+  "pilot-django": {
+   "sessions": 4,
+   "wrong_version": [
+    [
+     "D01-stock-r1",
+     "1.0.98-2"
+    ],
+    [
+     "D01-tm-r1",
+     "1.0.98-2"
+    ]
+   ],
+   "other_models": [],
+   "several_copilot_sessions": [],
+   "charge_mismatch": [],
+   "cli_total_mismatch": [],
+   "recount_mismatch": [],
+   "infra": [],
+   "nano_total": 84191200000,
+   "clean": false
+  },
+  "probe-astra": {
+   "sessions": 2,
+   "wrong_version": [
+    [
+     "SMOKE-tm-r1",
+     "1.0.98-2"
+    ],
+    [
+     "SMOKE-stock-r1",
+     "1.0.98-2"
+    ]
+   ],
+   "other_models": [],
+   "several_copilot_sessions": [],
+   "charge_mismatch": [],
+   "cli_total_mismatch": [],
+   "recount_mismatch": [],
+   "infra": [],
+   "nano_total": 48248400000,
+   "clean": false
+  }
+ },
+ "ai_credits_spent": 488.58,
+ "ai_credit_cap": 1450,
+ "django_15_tasks": {
+  "tasks": 15,
+  "paired_tasks": 15,
+  "excluded_tasks": [],
+  "sessions_started_utc": [
+   "2026-10-27T14:19:52Z",
+   "2026-10-27T14:30:16Z"
+  ],
+  "passes_of_all_tasks": {
+   "stock": 15,
+   "tm": 15
+  },
+  "passes": {
+   "stock": 15,
+   "tm": 15
+  },
+  "pass_rate_ci95": {
+   "stock": [
+    0.7961,
+    1.0
+   ],
+   "tm": [
+    0.7961,
+    1.0
+   ]
+  },
+  "stock_only_passes": [],
+  "tm_only_passes": [],
+  "failure_reasons": {
+   "stock": {},
+   "tm": {}
+  },
+  "first_call_median": {
+   "stock": {
+    "input": 13587,
+    "cached": 9017,
+    "cache_write": 4569
+   },
+   "tm": {
+    "input": 7791,
+    "cached": 4865,
+    "cache_write": 2924
+   }
+  },
+  "warm_first_calls": {
+   "stock": 14,
+   "tm": 14
+  },
+  "tm_sessions_using_nav": 15,
+  "tm_nav_calls": 27,
+  "subagent_calls": {
+   "stock": 0,
+   "tm": 0
+  },
+  "raw_tokens": {
+   "stock": 708928,
+   "tm": 372621,
+   "change": -0.4744,
+   "ci95": [
+    -0.5284,
+    -0.4174
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05,
+   "holm_p": 0.000122,
+   "verdict": "lower"
+  },
+  "usd_cold": {
+   "stock": 3.7489,
+   "tm": 2.0475,
+   "change": -0.4538,
+   "ci95": [
+    -0.482,
+    -0.4266
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05,
+   "holm_p": 0.000122,
+   "verdict": "lower"
+  },
+  "usd_as_run": {
+   "stock": 2.2972,
+   "tm": 1.2643,
+   "change": -0.4496,
+   "ci95": [
+    -0.4938,
+    -0.4052
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05
+  },
+  "calls": {
+   "stock": 47,
+   "tm": 44,
+   "change": -0.0638,
+   "ci95": [
+    -0.1458,
+    0.0222
+   ],
+   "tasks_lower": 4,
+   "wilcoxon_p": 0.375
+  },
+  "hero_check": {
+   "audit_clean": true,
+   "raw_tokens": {
+    "hero": 0.58,
+    "reduction": 0.4744,
+    "reduction_ci95": [
+     0.4174,
+     0.5284
+    ],
+    "holds": false
+   },
+   "usd_cold": {
+    "hero": 0.54,
+    "reduction": 0.4538,
+    "reduction_ci95": [
+     0.4266,
+     0.482
+    ],
+    "holds": false
+   },
+   "pass_rate": {
+    "of_all_tasks": {
+     "stock": 15,
+     "tm": 15
+    },
+    "paired": {
+     "stock": 15,
+     "tm": 15
+    },
+    "holds": true
+   }
+  },
+  "prs6_relay_reference": {
+   "gpt-6-astra": {
+    "raw_tokens": {
+     "stock": 707799,
+     "tm": 293779,
+     "change": -0.5849,
+     "ci95": [
+      -0.6436,
+      -0.5233
+     ],
+     "tasks_lower": 15,
+     "wilcoxon_p": 6.1e-05,
+     "holm_p": 0.000122,
+     "verdict": "lower"
+    },
+    "usd_if_every_first_call_cold": {
+     "stock": 3.4033,
+     "tm": 1.5818,
+     "change": -0.5352,
+     "ci95": [
+      -0.5704,
+      -0.4983
+     ],
+     "tasks_lower": 15,
+     "wilcoxon_p": 6.1e-05,
+     "holm_p": 0.000122,
+     "verdict": "lower"
+    },
+    "usd_as_run": {
+     "stock": 2.3649,
+     "tm": 0.6928,
+     "change": -0.707,
+     "ci95": [
+      -0.766,
+      -0.634
+     ],
+     "tasks_lower": 15,
+     "wilcoxon_p": 6.1e-05
+    },
+    "passes": {
+     "stock": 15,
+     "tm": 15
+    }
+   },
+   "claude-opus-5.5": {
+    "raw_tokens": {
+     "stock": 989925,
+     "tm": 457875,
+     "change": -0.5375,
+     "ci95": [
+      -0.5781,
+      -0.4888
+     ],
+     "tasks_lower": 15,
+     "wilcoxon_p": 6.1e-05,
+     "holm_p": 0.000122,
+     "verdict": "lower"
+    },
+    "usd_if_every_first_call_cold": {
+     "stock": 1.8132,
+     "tm": 0.9788,
+     "change": -0.4602,
+     "ci95": [
+      -0.4875,
+      -0.4318
+     ],
+     "tasks_lower": 15,
+     "wilcoxon_p": 6.1e-05,
+     "holm_p": 0.000122,
+     "verdict": "lower"
+    },
+    "usd_as_run": {
+     "stock": 1.1127,
+     "tm": 0.4319,
+     "change": -0.6118,
+     "ci95": [
+      -0.6818,
+      -0.5383
+     ],
+     "tasks_lower": 15,
+     "wilcoxon_p": 6.1e-05
+    },
+    "passes": {
+     "stock": 15,
+     "tm": 15
+    }
+   }
+  }
+ }
+}

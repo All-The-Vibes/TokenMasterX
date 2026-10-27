@@ -56,8 +56,8 @@ This directory contains the architecture specifications, mathematical contracts,
 - **[Native Copilot Hook](NATIVE_COPILOT_HOOK.md)** — Explicit `postToolUse` JSON view hook contract.
 - **[Native Envelopes (Claude Code & Copilot)](NATIVE_ENVELOPES.md)** & **[Host Contract](../evals/hosts/CONTRACT.md)** — Host tool envelope schemas and bypass rules.
 - **[Windows Isolation Feasibility](WINDOWS_ISOLATION_FEASIBILITY.md)** — Windows Job Object, profile redirection, and loopback proxy isolation design.
-- **[Dual-Host Installer Plan](../../DUAL_HOST_PLAN.md)** & **[Harness Command Design](../../harness-command-design.md)** — Symmetric setup for Claude Code (`~/.claude`), GitHub Copilot CLI (`~/.copilot`), and Codex (`~/.codex`).
-- **[Token-Efficient Harness Research](../../token-efficient-harness-research.md)** & **[Research Provenance](RESEARCH_PROVENANCE.md)** — Literature review and external tool audits (`Graphify`, `CodeGraph`, `Headroom`, `Ponytail`).
+- **[Harness Command Design (superseded)](../../docs/history/harness-command-design.md)**: the original May 2026 design of the `/token-master` command, kept for history.
+- **[Token-Efficient Harness Research (superseded)](../../docs/research/token-efficient-harness-research.md)** & **[Research Provenance](RESEARCH_PROVENANCE.md)**: literature review and external tool audits (`Graphify`, `CodeGraph`, `Headroom`, `Ponytail`).
 
 ---
 
