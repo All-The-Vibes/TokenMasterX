@@ -1,10 +1,17 @@
-# TokenMaster
+<p align="center">
+  <img src="assets/tokenmasterx-hero.svg" width="100%" alt="TokenMasterX for GitHub Copilot. Half the tokens, same answers. Up to 58% fewer tokens and up to 54% lower cold-start cost, with no drop in pass rate.">
+</p>
 
-![TokenMaster — Half the tokens. Half the cold-start cost. Prompt-cache friendly on the real GitHub Copilot CLI.](assets/tokenmaster-hero.svg)
+<p align="center">
+  <b>GitHub Copilot on about half the tokens, with the same pass rate.</b><br>
+  It drops tool definitions a task never calls, answers "who calls this?" from a code graph instead of a grep dump, and trims tool output without breaking the provider's prompt cache.
+</p>
 
-**TokenMaster** cuts the tokens and API cost that **GitHub Copilot CLI** spends on coding tasks—while keeping provider prompt caching and answer quality intact.
+<p align="center">
+  <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a>
+</p>
 
-Across **554 real Copilot CLI sessions** with **GPT-6 Astra** and **Claude Opus 5.5**, TokenMaster cut **raw tokens by 38% to 58%** and **cold-start cost by 34% to 54%** (up to **80%** back to back), passing **88 of 88** tasks on Copilot CLI `1.0.98`.
+<p align="center"><sub>Measured on GitHub Copilot CLI in bring-your-own-model mode with GPT-6 Astra and Claude Opus 5.5. Costs come from GitHub's own per-call billing.</sub></p>
 
 ---
 
@@ -101,9 +108,9 @@ Or type `/tokenomics` inside an interactive Copilot CLI session.
 
 ---
 
-## Benchmark Summary (Real GitHub Copilot CLI)
+## Benchmark Summary (GitHub Copilot CLI)
 
-All runs used the real `copilot.exe` binary against `api.githubcopilot.com`, verified against GitHub's per-call `copilot_usage` bills. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
+All runs used the `copilot.exe` binary against `api.githubcopilot.com`, verified against GitHub's per-call `copilot_usage` bills. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
 
 | Benchmark | CLI Version | Model | Raw Tokens (`Stock → TM`) | Cold Cost | Back-to-Back Cost | Passed (`Stock vs TM`) |
 | :--- | :--- | :--- | ---: | ---: | ---: | ---: |
@@ -122,7 +129,7 @@ All runs used the real `copilot.exe` binary against `api.githubcopilot.com`, ver
 
 All full experimental reports, pre-registered protocols, negative results (`v1`–`v5`), and raw evidence live under `token-master-plugin/docs/` and `evidence/`:
 
-- **[Real Copilot CLI Results (`1.0.98` & `1.0.78-3`)](token-master-plugin/docs/COPILOT_CLI_RESULTS.md)** · **[Pre-Registered `1.0.98` Protocol (PRS-6)](token-master-plugin/docs/PRS6_PROTOCOL.md)**
+- **[Copilot CLI Results (`1.0.98` & `1.0.78-3`)](token-master-plugin/docs/COPILOT_CLI_RESULTS.md)** · **[Pre-Registered `1.0.98` Protocol (PRS-6)](token-master-plugin/docs/PRS6_PROTOCOL.md)**
 - **[Launcher & BYOK Bridge Guide](token-master-plugin/docs/COPILOT_BRIDGE.md)** · **[`/tokenomics` Dashboard & Estimator Validation](token-master-plugin/docs/TOKENOMICS.md)**
 - **[Replica Studies & Negative Results](token-master-plugin/docs/README.md):** [PRS-4](token-master-plugin/docs/PRS4_RESULTS.md) · [PRS-3](token-master-plugin/docs/PRS3_RESULTS.md) · [PRS-2](token-master-plugin/docs/PRS2_RESULTS.md) · [PRS-1 (why history rewriting fails)](token-master-plugin/docs/PRS1_RESULTS.md)
 - **[15-Minute Demo Script](docs/DEMO_SCRIPT.md)** · **[Interactive HTML Demo Deck](docs/tokenomics-demo-slide.html)**

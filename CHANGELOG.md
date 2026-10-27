@@ -29,6 +29,11 @@ and the project aims to follow semantic versioning.
   `copilot plugin install token-master@token-master`), with a new "Prepare the runtime" step. Commands use `$HOME`
   instead of `~`, which Windows PowerShell 5.1 passes to native programs literally, and the launcher runs on the
   runtime's Python, whose `tiktoken` BYOK shaping needs.
+- README hero: a TokenMasterX logo and banner (`assets/tokenmasterx-mark.svg`, `tokenmasterx-logo.svg`,
+  `tokenmasterx-hero.svg`), drawn from token chips by `assets/generate_logo.py` so they render the same everywhere
+  with no fonts to embed. The intro drops session and task counts, CLI versions and the word "real", and the "up to
+  80% back to back" figure: it came from bring-your-own-model runs on CLI `1.0.78-3`, where the bridge fixed a
+  per-session cache miss that `1.0.98` no longer has.
 
 ### Added
 

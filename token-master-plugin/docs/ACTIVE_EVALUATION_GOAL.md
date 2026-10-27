@@ -316,7 +316,7 @@ are not inferred complete from this one positive diagnostic.
 
 ### Native host and mathematical-feasibility continuation
 
-This continuation is **progress**, not another model benchmark. The real Copilot
+This continuation is **progress**, not another model benchmark. The Copilot
 1.0.95-0 `postToolUse.modifiedResult` boundary is now implemented with an explicit
 contract and `brainspace_setup.py --host copilot --copilot-output-hook`.
 The default remains MCP-only registration; normal user configuration is unchanged.

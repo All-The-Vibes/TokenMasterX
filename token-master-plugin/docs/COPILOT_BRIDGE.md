@@ -11,7 +11,7 @@ things:
    The bridge applies two deterministic rewrites to every model request: the cache-stable system
    prompt and v6 shaping.
 
-Real Copilot CLI runs measured the launcher and bridge in BYOK mode, with graph navigation
+Copilot CLI runs measured the launcher and bridge in BYOK mode, with graph navigation
 installed. Against stock Copilot CLI, they used about half the raw tokens
 ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)).
 
@@ -108,7 +108,7 @@ stock sessions.
 
 ## Evidence
 
-- **Real Copilot CLI runs, October 18–22, 2026** ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)).
+- **Copilot CLI runs, October 18–22, 2026** ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)).
   These runs are exploratory.
   - Django, 45 "who calls X?" tasks: −53.4% raw tokens with `gpt-6-astra` and −51.6% with
     `claude-opus-5.5`, against stock. Correct answers: stock 90/90, TokenMaster 88/90.
@@ -122,5 +122,5 @@ stock sessions.
   - Through the bridge, Copilot CLI made correct one-line edits, and an interactive session in a
     terminal ended normally with `/exit`.
 - **PRS-4, a pre-registered study in a Copilot-CLI-shaped harness** ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
-  Its prompt was about 3,600 tokens, not the real CLI's. Under continuous use, the two bridge
+  Its prompt was about 3,600 tokens, not the CLI's own. Under continuous use, the two bridge
   rewrites with v7 cut billed cost per finished task by 49.8% (95% CI −57.1% to −42.9%).

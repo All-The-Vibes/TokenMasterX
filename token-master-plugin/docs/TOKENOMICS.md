@@ -91,7 +91,7 @@ have made the same model calls.
    - Cost saved = (stock's write − the actual write) × (cache-write price − cache-read price).
    - The result can be negative. Example: a TokenMaster session starts cold, while stock's prefix is warm.
    - This term changes only cost, not raw tokens.
-   - Why the dashboard measures it: on October 23, 2026, every stock first call in a real Copilot CLI 1.0.98 home
+   - Why the dashboard measures it: on October 23, 2026, every stock first call in a Copilot CLI 1.0.98 home
      with default GitHub routing read 0 tokens from the cache (6 sessions, `gpt-6.1-sol` and `claude-sonnet-5.5`),
      even 2 minutes after another stock session. The probe's 6,450 came from bring-your-own-model mode with the
      built-in MCP servers off. With the calibration value, the dashboard showed a small negative cost saving for two
