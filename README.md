@@ -2,7 +2,7 @@
 
 <p align="center">
   <b>GitHub Copilot on about half the tokens, with the same pass rate.</b><br>
-  It drops tool definitions a task never calls, answers "who calls this?" from a code graph instead of a grep dump, and trims tool output without breaking the provider's prompt cache.
+  It drops tool definitions a task never calls, finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.
 </p>
 
 <p align="center">
@@ -74,7 +74,7 @@ If you already uninstalled the plugin, install it again, run step 1, then uninst
 ## How It Works
 
 1. **Dynamic Tool Routing (`brainspace_copilot_bridge.py`)** — Stock Copilot CLI sends JSON schemas for SQL scratchpads, session-store SQL, background job managers, subagents, skills, and CLI docs on every turn (~5,500 to ~11,500 tokens/call). TokenMaster inspects your prompt, flags (`--agent`, `--resume`), and installed skills/agents—keeping the capabilities your task needs and pruning the rest via `--excluded-tools`.
-2. **Graph Code Navigation (`tokenmaster-nav`)** — Combines [Graphify](https://github.com/safishamsi/graphify) call edges with a local SQLite AST index into 3 compact tools (`locate`, `read_symbol`, `impact`), capped under 2,400 tokens. Answers "who calls X?" in one turn instead of dumping 100k+ tokens of `rg`.
+2. **Graph Code Navigation (`tokenmaster-nav`)** — Combines [Graphify](https://github.com/safishamsi/graphify) call edges with a local SQLite AST index into 3 compact tools (`locate`, `read_symbol`, `impact`), capped under 2,400 tokens. Answers "who calls X?" in one turn instead of dumping 100k+ tokens of `rg`. Covers Python today.
 3. **Cache-Safe Output Shaping (`request_policy.py`)** — Folds `rg`/`glob` output losslessly and compacts oversized `view` reads **once** when appended. Never rewrites earlier messages, so the provider's prompt cache stays valid.
 4. **Cache-Stable BYOK Bridge (`stable_session_prefix`)** — Moves the per-session `Session folder:` UUID out of the system prompt in BYOK mode so sessions in the same folder share the cached prompt on call 1.
 
