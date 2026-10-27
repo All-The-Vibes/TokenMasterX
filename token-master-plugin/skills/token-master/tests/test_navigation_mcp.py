@@ -30,6 +30,8 @@ def test_installed_navigation_server_answers_over_stdio(tmp_path):
     repo = tmp_path / "repo"
     repo.mkdir()
     (repo / "app.py").write_text("def helper():\n    return 1\n\n\ndef main():\n    return helper()\n", encoding="utf-8")
+    (repo / "lib.rs").write_text("pub fn rust_helper() -> u8 {\n    1\n}\n\n"
+                                 "pub fn rust_main() -> u8 {\n    rust_helper()\n}\n", encoding="utf-8")
 
     async def exercise():
         server = StdioServerParameters(command=sys.executable, args=["-X", "utf8", str(install / "navigation_mcp.py")],
@@ -45,6 +47,8 @@ def test_installed_navigation_server_answers_over_stdio(tmp_path):
                 assert "  app.py:6 main | return helper()" in callers.content[0].text
                 body = await session.call_tool("read_symbol", {"target": "app.py::main"})
                 assert body.content[0].text.endswith("6.     return helper()")
+                rust = await session.call_tool("impact", {"symbol": "rust_helper"})
+                assert "  lib.rs:6 rust_main | rust_helper()" in rust.content[0].text
 
     asyncio.run(asyncio.wait_for(exercise(), timeout=60))
     assert (repo / ".token-master" / "symbols.sqlite").is_file()
