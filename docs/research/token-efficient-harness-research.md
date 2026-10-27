@@ -1,8 +1,14 @@
 # Redefining Token Economics at the Harness Level — Deep Research & GitHub Copilot Feasibility
 
+> **Superseded (October 27, 2026).** Early research from May and June 2026, kept as a record of
+> where TokenMaster came from. Its figures, including the −72% Django pilot in §7.10, predate the
+> pre-registered studies PRS-1 to PRS-6 and are superseded by them. CodeGraph and claude-mem are
+> not part of the product. For current results, see the
+> [README](../../README.md#benchmark-summary-github-copilot-cli).
+
 **Date:** 2026‑05‑31
 **Author:** Copilot CLI research run
-**Mission:** See [`MISSION.md`](./MISSION.md). This project is **not** "merge three repos into one." It is an attack on the dominant form of agent waste — **the model re‑processing context it has already seen** — at the harness level (the layer that decides what context the model sees each turn). Graphify, CodeGraph, and claude‑mem are treated as **evidence and suppliers of structure**, not as the product.
+**Mission:** See [`MISSION.md`](../../MISSION.md). This project is **not** "merge three repos into one." It is an attack on the dominant form of agent waste — **the model re‑processing context it has already seen** — at the harness level (the layer that decides what context the model sees each turn). Graphify, CodeGraph, and claude‑mem are treated as **evidence and suppliers of structure**, not as the product.
 **Scope:** Use the three open‑source "harness" projects as evidence, determine how their patterns combine into a single routing layer that minimizes **cumulative tokens processed per task**, and assess feasibility on **GitHub Copilot (CLI / coding agent)**.
 
 ---

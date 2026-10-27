@@ -48,6 +48,10 @@ and the project aims to follow semantic versioning.
   with no fonts to embed. The intro drops session and task counts, CLI versions and the word "real", and the "up to
   80% back to back" figure: it came from bring-your-own-model runs on CLI `1.0.78-3`, where the bridge fixed a
   per-session cache miss that `1.0.98` no longer has.
+- Docs cleanup: the README hero now credits its numbers to the pre-registered study, where both versions passed every
+  task. `MISSION.md` drops its October 23 status and open-levers sections for a pointer to current results.
+  `DUAL_HOST_PLAN.md` is removed; `harness-command-design.md` and `token-efficient-harness-research.md` move to
+  `docs/history/` and `docs/research/` with superseded notes.
 
 ### Added
 

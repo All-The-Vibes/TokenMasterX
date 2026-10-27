@@ -28,7 +28,7 @@ billed cost = new input + r_read × cache reads + r_write × cache writes + r_ou
 
 This changes what counts as a win:
 
-- **Fixed overhead is paid on every call.** The real Copilot CLI re-sends about 13,500 tokens of
+- **Fixed overhead is paid on every call.** Copilot CLI re-sends about 13,500 tokens of
   system prompt and tool definitions on every call (`gpt-6-astra`). A shorter fixed prompt and
   fewer calls beat smaller tool results.
 - **Rewriting earlier messages can cost more than it saves.** It invalidates the provider's
@@ -36,50 +36,15 @@ This changes what counts as a win:
 - **A graph wins only if it saves more than it adds.** Its tool definitions ride on every call.
   It pays off when it replaces model calls.
 
-## Where we stand (October 23, 2026)
+## Where we stand
 
-**The real Copilot CLI (exploratory, not pre-registered).** Copilot CLI 1.0.78-3, `gpt-6-astra`
-and `claude-opus-5.5`, GitHub's Copilot API, reasoning effort `low`. Each run used offline
-bring-your-own-model mode through a relay, 1 run per task and version, and back-to-back
-sessions. The full parameter table and method are in
-[COPILOT_CLI_RESULTS.md](token-master-plugin/docs/COPILOT_CLI_RESULTS.md#test-parameters).
-Until October 23, the documents named 1.0.98: the harness's `--no-auto-update` flag had selected
-the WinGet launcher's bundled build. A probe on 1.0.98 found a smaller fixed prompt; the lean tool
-set still removed about half of the first call. No A/B run has used 1.0.98
-([version note](token-master-plugin/docs/COPILOT_CLI_RESULTS.md#copilot-cli-version)).
-
-| Run | Sessions | Finding |
-| --- | ---: | --- |
-| Django 5.2, 45 "who calls X?" tasks (October 22) | 270 | Full TokenMaster used **53.4%** (`gpt-6-astra`, 95% CI −57.1% to −49.1%) and **51.6%** (`claude-opus-5.5`, −55.7% to −47.2%) fewer raw tokens than stock, and fewer on all 45 tasks with each model. Cost fell 79.9% and 60.8% as run, with sessions back to back; 49.5% and 46.0% with every first call re-priced as cold. Correct answers: stock 90/90, TokenMaster 88/90. Graphify cut a further 15.4% and 9.8% on top of TokenMaster without graphify. |
-| This repository, 27 tasks (October 19) | 108 | Full TokenMaster used **44.8%** (`gpt-6-astra`) and **53.5%** (`claude-opus-5.5`) fewer raw tokens. Cost fell 62.8% and 51.2% as run; 40.8% and 43.9% with every first call cold. Passed: stock 54/54, TokenMaster 53/54. |
-
-**Pre-registered studies in a replica harness.** These ran a Copilot-CLI-shaped agent with
-`gpt-6-astra`, not the real Copilot CLI. Its fixed prompt was about 3,600 tokens.
-
-| Study | Sessions | Finding |
-| --- | ---: | --- |
-| [PRS-1](token-master-plugin/docs/PRS1_RESULTS.md) | 252 | No configuration shipped at the time significantly cut tokens. v5 raised cost by 61.6%. |
-| [PRS-2](token-master-plugin/docs/PRS2_RESULTS.md) | 216 | v6 result shaping cut cost by 11.6%. The graph tools as shipped raised it by 12.9%. |
-| [PRS-3](token-master-plugin/docs/PRS3_RESULTS.md) | 480 | v7 cut cost by **22.0%** against stock (95% CI −35.4% to −8.9%); v6 cut it by 13.0%. Quality was 120/120 in every arm. v7 against v6 alone: −10.4%, not significant. |
-| [PRS-4](token-master-plugin/docs/PRS4_RESULTS.md) | 360 | Under continuous use, v7 with the cache-stable system prompt cut billed cost per finished task by **49.8%** against stock (95% CI −57.1% to −42.9%). v7 alone: −18.2%. Quality was 120/120 in every arm. Raw tokens fell 14.0%. |
-
-**The target of at least 30% savings is met on the real Copilot CLI, in exploratory runs, with
-answer quality close to stock.** Raw tokens fell 44.8% to 53.5%. Cost fell 51.2% to 79.9% with
-sessions back to back, and 40.8% to 49.5% with every first call re-priced as cold. TokenMaster gave
-2 fewer correct answers of 90 on Django and 1 fewer of 54 on this repository; all were model
-errors. A pre-registered real-CLI study has not yet confirmed the result. PRS-5, the first
-attempt, stopped after 10 of 32 sessions.
-
-Earlier claims are superseded:
-- **The October 17 savings figures are retracted.** See the retraction in the
-  [README](README.md).
-- **The early Django pilot is unreplicated.** It reported −72% cumulative input tokens
-  ([research notes](token-efficient-harness-research.md) §7.10), but:
-  - it used 2 runs per cell;
-  - it counted raw tokens without the cache discount;
-  - it describes its own numbers as directional.
-
-  The October 22 Django runs above are a separate test with a different method.
+Current results are in the [README](README.md#benchmark-summary-github-copilot-cli) and in
+[COPILOT_CLI_RESULTS.md](token-master-plugin/docs/COPILOT_CLI_RESULTS.md), with each study's
+pre-registration and results under `token-master-plugin/docs/PRS*_PROTOCOL.md` and
+`PRS*_RESULTS.md`. Two earlier claims are superseded: the October 17 figures are retracted
+([report](token-master-plugin/docs/V5_ISOLATED_SANDBOX_SAVINGS_REPORT.md)), and the early −72%
+Django pilot was never replicated
+([research notes](docs/research/token-efficient-harness-research.md) §7.10).
 
 ## What we are building
 
@@ -88,7 +53,7 @@ Earlier claims are superseded:
    - Their definitions and the system-prompt text about them leave every call.
    - In a probe on Copilot CLI 1.0.78-3, the `gpt-6-astra` system prompt fell from 7,216 to
      5,117 tokens.
-   - Most of the real-CLI saving came with this change.
+   - Most of the Copilot CLI saving came with this change.
    - One later stock session called `task`, one of the removed tools. `--all-tools` keeps every
      tool for work that needs subagents, skills or background PowerShell.
 2. **One system prompt for every session in a folder (bridge).** Copilot CLI writes each session's
@@ -106,12 +71,12 @@ Earlier claims are superseded:
      three compact tools: `locate`, `read_symbol` and `impact`.
    - Every result stays under 2,400 tokens.
    - `setup.py` installs it as one MCP server, `tokenmaster-nav`.
-   - On the real CLI, it saved model calls. On 45 Django tasks, it cut a further 15.4%
+   - On Copilot CLI, it saved model calls. On 45 Django tasks, it cut a further 15.4%
      (`gpt-6-astra`) and 9.8% (`claude-opus-5.5`) of the raw tokens that TokenMaster without
      graphify used.
    - Without a model, a repository-wide `rg` for "who uses X" printed 128,279 tokens for 40
      Django symbols; `impact` returned 8,401. Copilot's search tool shortens long results, and
-     the models in the real CLI searched with narrower patterns, so this is lookup output, not
+     the models in Copilot CLI itself searched with narrower patterns, so this is lookup output, not
      session cost.
 4. **Pay once per tool result (v6).** Shape each tool result once, deterministically,
    when it enters the conversation.
@@ -123,41 +88,17 @@ Earlier claims are superseded:
    session learned, instead of re-deriving it, remains an idea. No study has
    measured it.
 
-## Open levers (hypotheses, not results, unless marked measured)
-
-1. **Copilot CLI's default GitHub routing.** Without a provider URL, the launcher applies only
-   the lean tool set; graph navigation and the v6 `view` hook still work, but the bridge does
-   not. No run has measured that configuration.
-2. **A pre-registered real-CLI study.** It needs fresh blind tasks, both models, and tasks that
-   run tests. The harness gaps to fix first:
-   - give the agents a Python and test runner;
-   - grade line-ending-only changes fairly.
-3. **Import aliases in `impact`.** Calls through an alias, such as `login` imported as
-   `auth_login`, are invisible to it. Hypothesis: resolving them would save follow-up searches.
-4. **Edit tasks:** in PRS-3 (replica harness), v7 cost 9% more than v6 on them.
-5. **Output tokens:** in PRS-3, v7 already wrote 17% fewer than v6. Terser final answers may
-   cut more.
-6. **First-call caching across sessions: measured.**
-   - PRS-4 (replica harness): −38.6% billed cost against v7 alone, under continuous use.
-   - Real CLI, `gpt-6-astra`: 44 of 45 warm first calls through the bridge, 0 of 45 for stock.
-   - The saving needs another session with the same system prompt within the cache lifetime.
-     One probe found the cached prompt still there after 6.5 minutes and gone after 31 minutes
-     ([evidence](evidence/cache-probe-20261018/ttl.jsonl)).
-   - With `claude-opus-5.5`, stock first calls already read the tool block from the cache. They
-     still wrote the system prompt to it (median 7,474 tokens; TokenMaster: 314). No run isolated
-     the bridge's own effect with `claude-opus-5.5`.
-
 ## Principles
 
 - **Raw tokens first, then billed cost, per finished task, at equal quality.** Not per-turn
   size, and not premium requests.
-- **Test on the real client.** A replica harness can mislead: the real Copilot CLI's fixed
+- **Test on the client itself.** A replica harness can mislead: Copilot CLI's own fixed
   prompt was almost 4 times the size of the PRS-4 agent's.
 - **Pre-register, then measure.** Freeze code, tasks and analysis before any live
   call. Use tasks written by someone who does not know the arms. Recount every token
   from raw records. Label exploratory runs as exploratory.
 - **Publish negatives.** PRS-1 found no win, and PRS-2 found the shipped graph tools
-  cost more; both are published. Before the lean tool set, TokenMaster saved cost on the real
+  cost more; both are published. Before the lean tool set, TokenMaster saved cost on Copilot
   CLI but not reliably raw tokens; that is published too. A harness that wins everywhere is
   measuring an artifact.
 - **Never rewrite history.** Shape content once, as it enters, and keep earlier
@@ -177,17 +118,18 @@ Earlier claims are superseded:
 ## How to read this repo through the mission
 
 - [`README.md`](README.md): current evidence, components and how to reproduce.
-- [`COPILOT_CLI_RESULTS.md`](token-master-plugin/docs/COPILOT_CLI_RESULTS.md): the real Copilot
-  CLI runs, their method and limits.
+- [`COPILOT_CLI_RESULTS.md`](token-master-plugin/docs/COPILOT_CLI_RESULTS.md): the Copilot CLI
+  runs, their method and limits.
 - `token-master-plugin/docs/PRS*_PROTOCOL.md` and `PRS*_RESULTS.md`: each study's
   pre-registration and results.
-- `evidence/`: committed summaries and per-session results. The real-CLI runs are in
+- `evidence/`: committed summaries and per-session results. The Copilot CLI runs are in
   `evidence/django-scale-20261022/` and `evidence/copilot-lean-*-20261019/`; the PRS studies are
-  in `evidence/prs*-20261018/`, except PRS-5 (`evidence/prs5-20261019/`).
-- [`token-efficient-harness-research.md`](token-efficient-harness-research.md):
+  in `evidence/prs*-20261018/`, except PRS-5 (`evidence/prs5-20261019/`) and PRS-6
+  (`evidence/prs6-copilot-1.0.98-20261026/`).
+- [`token-efficient-harness-research.md`](docs/research/token-efficient-harness-research.md):
   early pilots, including the §7.9 retraction and the §7.10 Django pilot. The later studies
   supersede them.
-- [`harness-command-design.md`](harness-command-design.md): the original design of
+- [`harness-command-design.md`](docs/history/harness-command-design.md): the original design of
   the routing `/command`.
 
 **One line:** TokenMaster makes the cheapest correct path the default. It sends less fixed
