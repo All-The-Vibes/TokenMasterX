@@ -76,6 +76,12 @@ def config_lock(path, timeout=10):
             if time.monotonic() >= deadline:
                 raise ValueError(f"configuration busy (inspect lock before retrying): {lock}")
             time.sleep(0.025)
+        except PermissionError:
+            # Windows: a lock another installer just released stays "delete pending" while any handle
+            # (antivirus, indexer) is still open, and recreating it fails as access denied meanwhile.
+            if os.name != "nt" or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.025)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
             stream.write(str(os.getpid()))

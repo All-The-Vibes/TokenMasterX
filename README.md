@@ -10,31 +10,59 @@ Across **554 real Copilot CLI sessions** with **GPT-6 Astra** and **Claude Opus 
 
 ## Quickstart
 
-### 1. Install the GitHub Copilot CLI Plugin
+### 1. Install the GitHub Copilot CLI plugin
 
 ```powershell
-# Install directly from GitHub into Copilot CLI
-copilot plugin install All-The-Vibes/TokenMasterX:token-master-plugin
+copilot plugin marketplace add All-The-Vibes/TokenMasterX
+copilot plugin install token-master@token-master
 
 # Or load from a local checkout
 copilot --plugin-dir ./token-master-plugin
 ```
 
-Inside an interactive Copilot CLI session:
-- Type **`/token-master`** to index the current repository (with [Graphify](https://github.com/safishamsi/graphify)) and wire up `tokenmaster-nav`, the `view` output-shaping hook, the launcher, and `/tokenomics`.
-- Type **`/tokenomics`** anytime to view your token usage, GitHub charges, and TokenMaster savings.
+### 2. Prepare the runtime (once)
 
-### 2. Start Copilot CLI with Dynamic Tool Routing (Recommended)
-
-Once `/token-master` has configured your host (or after running `brainspace_setup.py --host copilot` manually), start `copilot` through the installed launcher so unused auxiliary tool schemas are pruned automatically:
+TokenMaster's MCP server and hook run on their own Python 3.12 environment with exact pinned packages; setup rejects an interpreter whose packages differ from the pins. Setup also needs `graphify` on `PATH` and OpenAI's `cl100k_base` vocabulary in tiktoken's cache. If you set `COPILOT_HOME`, use it in place of `$HOME\.copilot`.
 
 ```powershell
-python ~/.copilot/token-master/brainspace_copilot_bridge.py -- copilot
+$plugin = "$HOME\.copilot\installed-plugins\token-master\token-master"  # or ./token-master-plugin in a checkout
+$runtime = "$HOME\.copilot\token-master-runtime"
+uv venv --python 3.12 $runtime
+& "$runtime\Scripts\python.exe" -m ensurepip
+& "$runtime\Scripts\python.exe" -m pip install -r "$plugin\requirements-runtime.txt"
+& "$runtime\Scripts\python.exe" -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
+uv tool install graphifyy  # the PyPI package that provides the graphify command
+```
+
+The `tiktoken` line downloads the 1.7 MB vocabulary once. Setup verifies its SHA-256 and never downloads anything itself. Offline, copy a verified `cl100k_base.tiktoken` to the machine and set `BRAINSPACE_TOKENIZER_FILE` to its path before you start Copilot, or pass it to `brainspace_setup.py` with `--tokenizer-file`.
+
+### 3. Run `/token-master` in your repository
+
+Start `copilot` in the repository and type **`/token-master`**. It indexes the repository with [Graphify](https://github.com/Graphify-Labs/graphify), which takes a few minutes on a large repository the first time. Then it runs two installers with the runtime: `setup.py` wires up `tokenmaster-nav`, and `brainspace_setup.py` adds the `view` output-shaping hook, the launcher, and `/tokenomics`. Approve the commands when Copilot asks. Besides `$HOME\.copilot`, they write `.token-master/` and `graphify-out/` in the repository and add any missing `.gitignore` lines for them.
+
+Type **`/tokenomics`** anytime to view your token usage, GitHub charges, and TokenMaster savings.
+
+### 4. Start Copilot CLI with dynamic tool routing (recommended)
+
+Once `/token-master` has configured your host (or after running `brainspace_setup.py --host copilot` manually), start `copilot` through the installed launcher so unused auxiliary tool schemas are pruned automatically. Use the runtime's Python: in BYOK mode the launcher's shaping needs its `tiktoken`.
+
+```powershell
+& "$HOME\.copilot\token-master-runtime\Scripts\python.exe" "$HOME\.copilot\token-master\brainspace_copilot_bridge.py" -- copilot
 ```
 
 - **Normal GitHub sign-in:** Applies **Dynamic Tool Routing** (`--excluded-tools`), **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook**, and **`/tokenomics`**.
 - **BYOK mode (`COPILOT_PROVIDER_BASE_URL` set):** Also activates the local **prompt-cache bridge** (`stable_session_prefix` + wire-level `rg`/`glob` shaping).
 - **Keep all built-in tools:** Pass `--all-tools` before `--` (or set `TOKENMASTER_KEEP_TOOLS=agents,sql`).
+
+## Uninstall
+
+Remove TokenMaster's Copilot configuration before you remove the plugin, because the uninstall scripts ship inside it:
+
+1. In Copilot CLI, type **`/token-master uninstall`**. It runs `setup.py --host copilot --uninstall` and `brainspace_setup.py --host copilot --uninstall`, which remove only what TokenMaster added: `tokenmaster-nav`, its agent, the `view` hook, and `/tokenomics`.
+2. Run `copilot plugin uninstall token-master@token-master`, then `copilot plugin marketplace remove token-master`. If you installed with the older direct command, run `copilot plugin uninstall token-master` instead.
+3. Optional, with Copilot closed: delete `$HOME\.copilot\token-master` (launcher and launch log) and `$HOME\.copilot\token-master-runtime`. Also delete the `*.token-master-backup-*` and `*.token-master-owned.json` files that uninstall leaves next to `mcp-config.json`, `settings.json` and `agents\token-master.agent.md`; the backups are full copies of those files, including other servers' settings. In each indexed repository, delete `.token-master` and its `.gitignore` line, and `graphify-out` with its line unless you use Graphify on its own.
+
+If you already uninstalled the plugin, install it again, run step 1, then uninstall it.
 
 ---
 
@@ -53,8 +81,8 @@ Track your measured Copilot CLI tokens, GitHub billing (`total_nano_aiu`), and e
 
 ```powershell
 # Run directly in any terminal (spends 0 model tokens)
-python ~/.copilot/token-master/tokenomics.py
-python ~/.copilot/token-master/tokenomics.py session --since 20261020
+python $HOME\.copilot\token-master\tokenomics.py
+python $HOME\.copilot\token-master\tokenomics.py session --since 20261020
 ```
 
 Or type `/tokenomics` inside an interactive Copilot CLI session.
