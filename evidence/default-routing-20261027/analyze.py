@@ -95,6 +95,23 @@ def cold_nano(calls: list[dict]) -> float:
     return (first.get("cache_read_tokens") or 0) * (prices.get("cache_write", 0) - prices.get("cache_read", 0))
 
 
+def charge_problems(calls: list[dict]) -> list[str]:
+    """GitHub's charge for each call recomputed from the call's own token counts and per-token prices. A call
+    without all four prices cannot be checked, so it counts as a problem."""
+    problems = []
+    for call in calls:
+        prices = tokenomics.prices_of(call.get("token_details_json"))
+        if any(kind not in prices for kind in ("input", "cache_read", "cache_write", "output")):
+            problems.append(f"call {call.get('n')}: missing prices")
+            continue
+        read, write = call["cache_read_tokens"] or 0, call["cache_write_tokens"] or 0
+        charge = (((call["input_tokens"] or 0) - read - write) * prices["input"] + read * prices["cache_read"]
+                  + write * prices["cache_write"] + (call["output_tokens"] or 0) * prices["output"])
+        if abs(charge - (call["total_nano_aiu"] or 0)) > 1:
+            problems.append(f"call {call.get('n')}: charged {call['total_nano_aiu']}, tokens give {round(charge)}")
+    return problems
+
+
 def audit(shard: Path) -> dict:
     """Every session of a shard. Spend counts every calls.jsonl, including sessions without a graded result."""
     out = {"sessions": 0, "wrong_version": [], "other_models": [], "several_copilot_sessions": [],
@@ -113,8 +130,9 @@ def audit(shard: Path) -> dict:
             out["other_models"].append([row["session"], usage["models"]])
         if len(usage.get("session_ids") or []) > 1:
             out["several_copilot_sessions"].append(row["session"])
-        if usage["nano_recount_max_diff"] > 1:
-            out["charge_mismatch"].append([row["session"], usage["nano_recount_max_diff"]])
+        problems = charge_problems(calls)  # recomputed from calls.jsonl, not the harness's stored recount
+        if problems:
+            out["charge_mismatch"].append([row["session"], problems])
         if row.get("cli_nano") is not None and row["cli_nano"] != usage["nano"]:
             out["cli_total_mismatch"].append([row["session"], row["cli_nano"], usage["nano"]])
         recount = {"calls": len(calls), "input": sum(c["input_tokens"] or 0 for c in calls),
@@ -213,7 +231,23 @@ def hero_check(suite: dict, audit_clean: bool) -> dict:
     return out
 
 
+def self_test() -> None:
+    prices = (("input", 10**12), ("cache_read", 10**11), ("cache_write", 125 * 10**10), ("output", 5 * 10**12))
+    details = json.dumps([{"batchSize": 10**6, "costPerBatch": cost, "tokenCount": 0, "tokenType": kind}
+                          for kind, cost in prices])  # gpt-6-astra: 1e6, 1e5, 1.25e6 and 5e6 nano per token
+    good = {"n": 1, "input_tokens": 1000, "cache_read_tokens": 600, "cache_write_tokens": 300, "output_tokens": 10,
+            "total_nano_aiu": 100 * 10**6 + 600 * 10**5 + 300 * 125 * 10**4 + 10 * 5 * 10**6,
+            "token_details_json": details}
+    assert charge_problems([good]) == []
+    assert charge_problems([{**good, "token_details_json": "[]"}])  # no prices: the charge cannot be checked
+    assert charge_problems([{**good, "total_nano_aiu": good["total_nano_aiu"] + 10}])
+    print("self-test passed")
+
+
 def main() -> None:
+    if sys.argv[1:] == ["--self-test"]:
+        self_test()
+        return
     root = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(os.environ.get("TEMP", "/tmp")) / "tm-dr"
     if root.is_dir():
         copy_from_local(root)

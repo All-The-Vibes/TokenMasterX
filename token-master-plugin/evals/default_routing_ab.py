@@ -62,7 +62,7 @@ USAGE_COLUMNS = ("session_id", "turn_index", "agent_id", "model", "copilot_usage
                  "total_nano_aiu", "request_multiplier", "token_details_json", "created_at")
 INFRA_TEXT = re.compile(r"\b(429|500|502|503|504)\b|rate.?limit|ECONNRESET|ETIMEDOUT|socket hang up", re.I)
 ERROR_EVENTS = ("session.error", "model.call_failure")
-BUDGET_ALLOWANCE = 60e9  # nano-AIU (60 AI credits) kept free for the next session before the budget stops the run
+BUDGET_ALLOWANCE = 60e9  # nano-AIU (60 AI credits) that each running session holds against the budget
 _BASE_ENV = p5.base_env
 
 
@@ -292,33 +292,50 @@ def run_session(out: Path, arm: str, task: dict, repeat: int, *, suffix: str = "
             "wall_seconds": wall, "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started))}
 
 
+class Budget:
+    """The credit guard both arms share: a session starts only if its allowance fits next to the spend so far and the
+    allowances that running sessions hold, and settles to its real spend when it ends."""
+
+    def __init__(self, credits: float | None):
+        self.cap = None if credits is None else credits * 1e9
+        self.spent = self.held = 0.0
+        self.lock = threading.Lock()
+
+    def reserve(self) -> bool:
+        with self.lock:
+            if self.cap is not None and self.spent + self.held + BUDGET_ALLOWANCE > self.cap:
+                return False
+            self.held += BUDGET_ALLOWANCE
+            return True
+
+    def settle(self, nano: float) -> None:
+        with self.lock:
+            self.held -= BUDGET_ALLOWANCE
+            self.spent += nano
+
+
 def execute(out: Path, tasks: list[dict], jobs: list[list], results: Path, budget_credits: float | None = None) -> None:
-    """Both arms at the same time. With a budget, no session starts once the spend so far plus one session's
-    allowance would pass it; the sessions not started are missing from the results."""
+    """Both arms at the same time. With a budget, a session starts only if Budget can hold its allowance; the sessions
+    not started are missing from the results."""
     by_id = {t["id"]: t for t in tasks}
     lock = threading.Lock()
-    spent = [0.0]  # nano-AIU over every session of this run, failed ones included
-
-    def affordable() -> bool:
-        with lock:
-            return budget_credits is None or spent[0] + BUDGET_ALLOWANCE <= budget_credits * 1e9
+    budget = Budget(budget_credits)  # nano-AIU over every session of this run, failed ones included
 
     def one(arm: str, task: dict, repeat: int, suffix: str = "") -> dict | None:
-        if not affordable():
+        if not budget.reserve():
             print(f"[{task['id']}-{arm}-r{repeat}{suffix}] not started: budget of {budget_credits} credits", flush=True)
             return None
         try:
             row = run_session(out, arm, task, repeat, suffix=suffix)
         except Exception as error:  # recorded as infrastructure, never silently dropped
             row = p5.failed_row(task, arm, repeat, suffix, error)
-        calls = p5.read_jsonl(out / "runs" / row["session"] / "calls.jsonl")
-        with lock:
-            spent[0] += sum(c.get("total_nano_aiu") or 0 for c in calls)
+        budget.settle(sum(c.get("total_nano_aiu") or 0
+                          for c in p5.read_jsonl(out / "runs" / row["session"] / "calls.jsonl")))
         p1.append_jsonl(results, row, lock)
         u = row.get("usage") or {"calls": 0, "input": 0, "output": 0, "nano": 0}
         print(f"[{row['session']:<22}] {row['status']:<5} calls={u['calls']:>3} raw={u['input'] + u['output']:>10,} "
               f"usd={u['nano'] / NANO_PER_USD:.4f} first_cached={row['first_call'].get('cached')} why={row['why']} "
-              f"run_credits={spent[0] / 1e9:.1f}", flush=True)
+              f"run_credits={budget.spent / 1e9:.1f}", flush=True)
         return row
 
     def lane(arm: str) -> None:
@@ -487,6 +504,11 @@ def self_test() -> None:
         env = base_env(Path(tmp) / "envhome")
         assert "COPILOT_PROVIDER_BASE_URL" not in env and "COPILOT_OFFLINE" not in env
         assert "python" not in env["PATH"].lower() and env["GRAPHIFY_NO_AUTO_REFRESH"] == "1"
+    budget = Budget(100)  # credits; each session holds a 60-credit allowance while it runs
+    assert budget.reserve() and not budget.reserve()  # the other arm cannot start on the same remaining allowance
+    budget.settle(50e9)
+    assert not budget.reserve()  # 50 spent + 60 held would pass 100
+    assert Budget(None).reserve()
     print("self-test passed")
 
 
