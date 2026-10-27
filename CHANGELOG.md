@@ -7,6 +7,63 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-26
+
+### Added
+
+- **Pre-registered PRS-6 confirmatory study on real GitHub Copilot CLI `1.0.98`**
+  (`token-master-plugin/docs/PRS6_PROTOCOL.md`, commit `19443fc`; evidence and recount script in
+  `evidence/prs6-copilot-1.0.98-20261026/`):
+  - Verified `Version number: 1.0.98` across all 176 session captures (`0` recount mismatches; per-call
+    `total_nano_aiu` matching calculated USD within `$0.0001`).
+  - **29-task repository benchmark (`P01`–`P24` + `H01, H02, H03, H05, H06`, 116 sessions):** `gpt-6-astra` cut raw
+    tokens by **49.5%** (`2,449,067 → 1,237,510`; 95% CI −55.9% to −42.3%; Holm $p < 0.0001$; lower on 27/29 tasks),
+    cold-repriced cost by **41.5%** (`$8.91 → $5.21`; Holm $p < 0.0001$), and back-to-back cost by **50.2%**
+    (`$6.83 → $3.40`), passing **29/29 vs 29/29**. `claude-opus-5.5` cut raw tokens by **38.0%**
+    (`2,672,316 → 1,655,797`; 95% CI −44.7% to −31.3%; Holm $p < 0.0001$; lower on 27/29 tasks), cold-repriced cost
+    by **34.0%** (`$4.23 → $2.79`; Holm $p < 0.0001$), and back-to-back cost by **40.1%** (`$2.72 → $1.63`), passing
+    **29/29 vs 29/29**.
+  - **15-task Django 5.2 caller replication (`D01`–`D15`, 60 sessions):** `gpt-6-astra` cut raw tokens by **58.5%**
+    (`707,799 → 293,779`; lower on 15/15 tasks), cold cost by **53.5%** (`$3.40 → $1.58`), and back-to-back cost by
+    **70.7%** (`$2.36 → $0.69`), passing **15/15 vs 15/15**. `claude-opus-5.5` cut raw tokens by **53.7%**
+    (`989,925 → 457,875`; lower on 15/15 tasks), cold cost by **46.0%** (`$1.81 → $0.98`), and back-to-back cost by
+    **61.2%** (`$1.11 → $0.43`), passing **15/15 vs 15/15**.
+- **Dynamic capability-aware tool routing (`brainspace_copilot_bridge.py`):** replaced static 11-tool pruning with
+  `CAPABILITY_GROUPS`, `select_excluded_tools()`, and `_installed_names()`. The launcher now inspects CLI flags
+  (`--agent`, `--resume`, `--continue`), prompt intent (`-p` / `--prompt`), installed skills and agents in
+  `<COPILOT_HOME>` and `.github/` / `.claude/`, and `TOKENMASTER_KEEP_TOOLS` to keep needed auxiliary tool families
+  automatically while pruning unused schemas via `--excluded-tools`.
+- **Import-alias resolution in `impact` (`brainspace/symbol_index.py`, `SCHEMA_VERSION = 4`):** `_aliases()` and
+  `_Calls` now resolve `import a.b as c` and `from a import b as c` back to the imported symbol or module name
+  (excluding shadowed function parameters), enabling `impact("django/contrib/auth/__init__.py::login")` to find
+  `auth_login(...)` callers in `django/contrib/auth/views.py` (`D13`) and raising `D01`–`D15` caller recall from
+  `54/56` to `56/56`.
+- **Out-of-sample `/tokenomics` validation on Copilot CLI `1.0.98` (`docs/TOKENOMICS.md`, `tokenomics.py`):**
+  validated the pre-frozen October 23 `1.0.98` calibration against the four PRS-6 runs (`59.0%` to `123.9%` of
+  measured token savings and `56.0%` to `103.6%` of measured USD savings).
+- **Live demo runbook and interactive HTML deck:** added `docs/DEMO_SCRIPT.md` and `docs/tokenomics-demo-slide.html`.
+
+### Changed
+
+- **Plugin-first `README.md` and Swiss editorial `assets/tokenmaster-hero.svg`:** streamlined `README.md` into a
+  concise, scannable guide leading with `copilot plugin install All-The-Vibes/TokenMasterX:token-master-plugin`,
+  `/token-master`, and `/tokenomics`, with full experimental protocols and results linked under
+  `token-master-plugin/docs/`.
+- Bumped plugin and package version metadata to `0.2.0` (`.claude-plugin/marketplace.json`,
+  `token-master-plugin/.claude-plugin/plugin.json`, `brainspace/__init__.py`, `package.json`).
+
+### Fixed
+
+- **Legacy cross-platform test failures:** added `token-master-plugin/evals/repository-cases.json -text` to
+  `.gitattributes` to preserve its pinned CRLF SHA-256 (`f4ebd67e...`) and added `@pytest.mark.skipif` in
+  `tests/test_native_responses.py` when the local October 9 capture file is absent (`4,450 passed, 5 skipped, 0
+  non-WSL failures` across all `106` test files, plus `6/6` study `self-test`s).
+- **Real-CLI evaluation harness (`run_prs5_study.py`, `quick_copilot_ab.py`, `django_ab.py`):** pinned
+  `COPILOT_CLI_DIST_DIR` to the target `CLI_VERSION` package directory, set
+  `COPILOT_PROVIDER_MAX_OUTPUT_TOKENS=32000` for Anthropic models on `1.0.98+`, switched `run_prs5_study.reset_lane`
+  to `robocopy /MIR`, cached `TEMPLATE_MANIFESTS`, and ignored CRLF-only rewrites via `same_content()` in
+  `changed_files()`.
+
 ### Correction: the real-CLI runs used Copilot CLI 1.0.78-3, not 1.0.98 — October 23, 2026
 
 - Every real-CLI A/B run, PRS-5 and the bridge checks passed `--no-auto-update`. With that flag, the WinGet
@@ -25,7 +82,7 @@ and the project aims to follow semantic versioning.
   also names that folder. The documents now say so.
 - With `claude-opus-5.5`, 1.0.98 asked for 32,000 output tokens and stopped when the provider limit was 16,000
   (`evidence/copilot-version-probe-20261023/opus-1.0.98-output-limit.txt`).
-- No A/B run has used 1.0.98. The published savings are for 1.0.78-3.
+- As of October 23, no A/B run had used 1.0.98 yet (subsequently completed on October 26 in `0.2.0` PRS-6 above).
 
 ### `/tokenomics` dashboard for Copilot CLI — October 23, 2026
 
