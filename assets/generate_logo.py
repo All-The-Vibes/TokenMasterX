@@ -197,7 +197,8 @@ def main():
     outputs = {"tokenmasterx-mark.svg": mark_svg(), "tokenmasterx-logo.svg": logo_svg(),
                "tokenmasterx-hero.svg": hero_svg()}
     for name, svg in outputs.items():
-        (HERE / name).write_text(svg + "\n", encoding="utf-8")
+        # Bytes, not text: LF on every OS, matching the repository's eol=lf, so a rerun leaves git clean.
+        (HERE / name).write_bytes((svg + "\n").encode("utf-8"))
         print(f"wrote assets/{name} ({len(svg):,} bytes)")
     if args.preview:
         mark = data_uri(outputs["tokenmasterx-mark.svg"])
