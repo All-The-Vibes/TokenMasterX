@@ -1,8 +1,8 @@
 # TokenMaster
 
-![TokenMaster — Half the tokens. Half the cold-start cost. Zero prompt-cache invalidation on the real GitHub Copilot CLI.](assets/tokenmaster-hero.svg)
+![TokenMaster — Half the tokens. Half the cold-start cost. Prompt-cache friendly on the real GitHub Copilot CLI.](assets/tokenmaster-hero.svg)
 
-**TokenMaster** cuts the tokens and API cost that **GitHub Copilot CLI** spends on coding tasks—without evicting the prompt cache or hurting answer quality.
+**TokenMaster** cuts the tokens and API cost that **GitHub Copilot CLI** spends on coding tasks—while keeping provider prompt caching and answer quality intact.
 
 Across **554 real Copilot CLI sessions** with **GPT-6 Astra** and **Claude Opus 5.5**, TokenMaster cut **raw tokens by 38% to 58%** and **cold-start cost by 34% to 54%** (up to **80%** back to back), passing **88 of 88** tasks on Copilot CLI `1.0.98`.
 
