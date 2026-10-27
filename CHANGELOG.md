@@ -57,6 +57,9 @@ and the project aims to follow semantic versioning.
 
 - Uninstall: `/token-master uninstall` runs both installers with `--uninstall`, and the README documents the full
   removal order, including the backup copies that uninstall keeps.
+- `setup.py` warns when the repository has Rust files but the `--python` runtime cannot import `tree-sitter-rust`:
+  navigation would skip every `.rs` file without saying so. The warning names the plugin's
+  `requirements-runtime.txt`, and setup still succeeds. Python-only repositories skip the check.
 ## [0.2.0] - 2026-10-26
 
 ### Added
