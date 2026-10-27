@@ -612,21 +612,27 @@ def test_rust_impact_knows_what_std_imports_name(tmp_path: Path):
         "    fs::read(path).unwrap_or_default()\n}\n\npub fn read_config() -> Vec<u8> {\n"
         '    std::fs::read("config.toml").unwrap_or_default()\n}\n\npub fn read_cache() -> Vec<u8> {\n'
         '    load("cache.bin").unwrap_or_default()\n}\n\npub fn twice() -> Vec<u8> {\n    read("a.txt")\n}\n\n'
-        'pub fn local_import() -> Vec<u8> {\n    use std::fs::read;\n    read("c.toml").unwrap_or_default()\n}\n',
-        encoding="utf-8")
-    # graphify 0.9.17's edges for this file: std's read in read_config() and local_import() becomes this crate's read()
+        'pub fn local_import() -> Vec<u8> {\n    use std::fs::read;\n    read("c.toml").unwrap_or_default()\n}\n\n'
+        'pub fn explicit() -> Vec<u8> {\n    crate::fs::read("d.txt")\n}\n\n'
+        'pub fn blocks() -> Vec<u8> {\n    {\n        use std::fs::read;\n        let _ = read("e.txt");\n    }\n'
+        '    read("f.txt")\n}\n', encoding="utf-8")
+    # graphify 0.9.17's edges for this file: std's read in read_config(), local_import() and blocks()' inner block
+    # becomes this crate's read(), and blocks()' own read("f.txt") gets no edge
     nodes = [{"id": node, "label": f"{node}()", "source_file": "src/fs.rs", "source_location": location}
              for node, location in (("read", "L4"), ("read_config", "L8"), ("read_cache", "L12"), ("twice", "L16"),
-                                    ("local_import", "L20"))]
+                                    ("local_import", "L20"), ("explicit", "L25"), ("blocks", "L29"))]
     links = [{"source": source, "target": "read", "relation": "calls", "confidence": "EXTRACTED", "source_location": line}
-             for source, line in (("local_import", "L22"), ("read_config", "L9"), ("twice", "L17"))]
+             for source, line in (("blocks", "L32"), ("explicit", "L26"), ("local_import", "L22"), ("read_config", "L9"),
+                                  ("twice", "L17"))]
     (tmp_path / ".token-master").mkdir()
     (tmp_path / ".token-master/graph.json").write_text(json.dumps({"nodes": nodes, "links": links}), encoding="utf-8")
     index = SymbolIndex(tmp_path)
     try:  # not fs::read() after `use std::fs`, std::fs::read(), load() (std's read renamed) or a read() that
-        # `use std::fs::read` brought into one function
+        # `use std::fs::read` brought into one function or block; crate:: names this crate's fs whatever is imported
         assert dispatch(index, "impact", {"symbol": "fs.rs::read"}).splitlines()[1:] == [
-            '  src/fs.rs:17 twice | read("a.txt")']
+            '  src/fs.rs:17 twice | read("a.txt")',
+            '  src/fs.rs:26 explicit | crate::fs::read("d.txt")',
+            '  src/fs.rs:34 blocks [name] | read("f.txt")']
     finally:
         index.close()
 

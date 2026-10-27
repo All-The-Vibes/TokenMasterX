@@ -316,6 +316,8 @@ def _rust_callee(text: str, aliases: Mapping[str, str]) -> tuple[str, str, str] 
         receiver = receiver.replace("::", ".")
         return name, "attr", receiver if _RUST_DOTTED.fullmatch(receiver) else ""
     parts = receiver.split("::") if separator else []
+    if parts and parts[0] in ("crate", "self", "super"):  # crate::read() names this crate's read, whatever
+        aliases = {}                                          # the caller imported as read
     while parts and parts[0] in ("crate", "self", "super"):
         parts.pop(0)
     if not parts:
@@ -370,6 +372,8 @@ def _rust(text: str) -> list[dict[str, Any]]:
             prefix, impl_of = qualname, text_of(name) if kind == "trait" else None
             if kind in ("function", "method", "mod", "trait"):
                 owner, aliases = symbol, aliases.new_child()  # a `use` reaches the end of its module or function
+        elif node.type == "block":  # a `use` inside { } reaches only the end of that block
+            aliases = aliases.new_child()
         elif node.type == "call_expression":
             function = node.child_by_field_name("function")
             if function is not None and function.type == "generic_function":  # f::<T>()
