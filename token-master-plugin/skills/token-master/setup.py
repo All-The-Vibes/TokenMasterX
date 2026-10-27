@@ -242,6 +242,16 @@ def main() -> int:
                 "for 313 code nodes). `impact` then relies on name matches, marked [name]."
             )
 
+    # The navigation runtime indexes .rs files only if it can import the pinned tree-sitter-rust.
+    if any(str(node.get("source_file") or "").endswith(".rs") for node in graph.get("nodes", [])):
+        try:
+            validate_runtime(python, ("tree-sitter", "tree-sitter-rust"))
+        except ValueError:
+            print(f"[token-master] WARNING: the runtime {python} cannot load the Rust grammar (tree-sitter and "
+                  "tree-sitter-rust), so locate, read_symbol and impact will skip this repository's .rs files. Install "
+                  f"{SKILL_DIR.parents[1] / 'requirements-runtime.txt'} into it, as the README's runtime step "
+                  "does, before you restart.")
+
     entry = runtime_entry(python, str(nav_target))
     agent_path = None
     if host != "codex":

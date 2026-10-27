@@ -9,6 +9,20 @@ and the project aims to follow semantic versioning.
 
 ### Fixed
 
+- Graph navigation covers Rust again. Rust became a first-class language in `9b86c8a` (#10), but the v7 symbol index
+  (`brainspace/symbol_index.py`) took code symbols only from `.py` and `.pyi` files, so `locate`, `read_symbol` and
+  `impact` found no Rust function, type or caller. It now parses `.rs` files with the pinned `tree-sitter-rust`:
+  functions, methods, types, traits, inline modules, constants and macros, with callers through `use ... as` aliases
+  and inside macro arguments such as `assert_eq!`. Targets accept Rust paths (`Store::new`,
+  `src/store.rs::Store::new`) and pytest-style `path::Class::method`, which used to return an error. `impact` lists
+  same-language callers only, and leaves out calls that name another concrete type or a standard-library item, such
+  as `std::path::Path::new()` for `Store.new` or `fs::read()` after `use std::fs` for the crate's own `fs::read`,
+  with the graphify edges built on them: graphify 0.9.17 resolves such calls to the file's own function. A call stays
+  listed when it goes through the method's trait (`FromStr::from_str`), a type that implements the trait, a generic
+  parameter or a type alias. A graphify edge that rests on such a path, or on a same-named type from another crate
+  (`dep::Error::new()` for the crate's own `Error.new`), is marked `[inferred]`. Cargo's `target/` build output is
+  not indexed. The index schema moves to version 5, so an existing `.token-master/symbols.sqlite` is rebuilt on
+  first use.
 - `/token-master` runs both Copilot installers: `setup.py` for graph navigation, then `brainspace_setup.py` for the
   `view` hook, the launcher and `/tokenomics` (`skills/token-master/SKILL.md`). It ran only `setup.py` before, so the
   README's launcher command pointed at a file that setup never copied.
@@ -48,6 +62,9 @@ and the project aims to follow semantic versioning.
 
 - Uninstall: `/token-master uninstall` runs both installers with `--uninstall`, and the README documents the full
   removal order, including the backup copies that uninstall keeps.
+- `setup.py` warns when the repository has Rust files but the `--python` runtime cannot import `tree-sitter-rust`:
+  navigation would skip every `.rs` file without saying so. The warning names the plugin's
+  `requirements-runtime.txt`, and setup still succeeds. Python-only repositories skip the check.
 ## [0.2.0] - 2026-10-26
 
 ### Added

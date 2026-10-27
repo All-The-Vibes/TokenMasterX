@@ -4,6 +4,11 @@ Symbols come from a local SQLite index with exact line ranges, one-line signatur
 token costs; graphify (``graphify update``) supplies resolved call edges:
 
 * Python: classes, functions, methods, and module and class constants (stdlib ``ast``).
+* Rust: functions, methods (impl and trait), structs, enums, unions, traits, inline modules, type
+  aliases, constants, statics and macro_rules, with tree-sitter-rust when it is installed.
+  Calls inside macro arguments (assert_eq!(f(x), ...)) are found token by token, and impact checks
+  graphify's Rust edges against the path each call names (graphify 0.9.17 sends Path::new() to the
+  file's own new()).
 * Markdown: sections (heading to the next heading of the same or higher level).
 * JSON: top-level and second-level keys, with their first line as the signature.
 
@@ -23,7 +28,8 @@ graph was built are dropped (their line numbers are stale; name matches cover th
 from __future__ import annotations
 
 import ast
-from collections import defaultdict
+from collections import ChainMap, defaultdict
+import functools
 import hashlib
 import itertools
 import json
@@ -31,18 +37,19 @@ import os
 import re
 import sqlite3
 from pathlib import Path
-from typing import Any, Callable, NamedTuple
+from typing import Any, Callable, Mapping, NamedTuple
 
 from . import tokens
 
 INDEX_PATH = Path(".token-master") / "symbols.sqlite"
 GRAPH_PATH = Path(".token-master") / "graph.json"
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 SKIP_DIRS = {"node_modules", "__pycache__", "graphify-out", "venv"}
 CODE_SUFFIXES = (".py", ".pyi")
+RUST_SUFFIXES = (".rs",)
 DOC_SUFFIXES = (".md", ".markdown")
 DATA_SUFFIXES = (".json",)
-INDEXED_SUFFIXES = CODE_SUFFIXES + DOC_SUFFIXES + DATA_SUFFIXES
+INDEXED_SUFFIXES = CODE_SUFFIXES + RUST_SUFFIXES + DOC_SUFFIXES + DATA_SUFFIXES
 MAX_FILE_BYTES = 4_000_000
 BUDGET = 2400  # tokens per result; request-policy-v6 digests results of unknown tools above 3,000
 MAX_HITS = 25
@@ -50,12 +57,12 @@ MAX_LOOSE = 25  # obj.name() calls on objects of unknown type listed per name be
 MAX_TITLE = 80  # characters kept from a heading or JSON key
 MAX_ECHO = 100  # characters of a caller-supplied argument repeated in a result
 CALLABLE = ("function", "method", "class")
-_COLUMNS = ("id", "path", "start", "end", "line", "name", "qualname", "kind", "tokens", "signature")
+_COLUMNS = ("id", "path", "start", "end", "line", "name", "qualname", "kind", "tokens", "signature", "trait")
 
 _SCHEMA = """
 CREATE TABLE files(path TEXT PRIMARY KEY, mtime_ns INTEGER, size INTEGER);
 CREATE TABLE symbols(id INTEGER PRIMARY KEY, path TEXT, name TEXT, qualname TEXT, kind TEXT,
-    start INTEGER, end INTEGER, line INTEGER, signature TEXT, tokens INTEGER);
+    start INTEGER, end INTEGER, line INTEGER, signature TEXT, tokens INTEGER, trait TEXT);
 CREATE TABLE calls(caller INTEGER, callee TEXT, form TEXT, receiver TEXT, line INTEGER, text TEXT);
 CREATE INDEX symbols_name ON symbols(name);
 CREATE INDEX symbols_qualname ON symbols(qualname);
@@ -66,6 +73,15 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.+?)(?:\s+#+)?\s*$")
 _FENCE = re.compile(r"^\s*(```|~~~)")
 _NESTED = tuple(getattr(ast, name) for name in ("If", "Try", "TryStar", "ExceptHandler", "With", "AsyncWith")
                 if hasattr(ast, name))
+_RUST_KINDS = {"function_item": "function", "function_signature_item": "function", "struct_item": "struct",
+               "enum_item": "enum", "union_item": "union", "trait_item": "trait", "type_item": "type",
+               "mod_item": "mod", "const_item": "constant", "static_item": "constant", "macro_definition": "macro"}
+_RUST_PATH = ("identifier", "self", "super", "crate")  # tokens that can start or continue a path in a macro
+_RUST_STD = ("std", "core", "alloc")  # paths into the standard library, never into this crate
+_RUST_CALLEE = re.compile(r"(?:(.*)(::|\.))?((?!\d)\w+)")
+_RUST_GENERICS = re.compile(r"(?:::)?<[^<>]*>")
+_RUST_NAME = re.compile(r"(?!\d)\w+")
+_RUST_DOTTED = re.compile(r"(?!\d)\w+(?:\.(?!\d)\w+)*")
 
 
 def _count(text: str) -> int:
@@ -92,7 +108,8 @@ def _is_test(path: str) -> bool:
 
 
 def _module_path(path: str) -> str:
-    return path.rsplit(".", 1)[0].removesuffix("/__init__")
+    stem = path.rsplit(".", 1)[0]
+    return stem.removesuffix("/mod") if path.lower().endswith(RUST_SUFFIXES) else stem.removesuffix("/__init__")
 
 
 def _in_module(path: str, module: str) -> bool:
@@ -122,9 +139,10 @@ def _signature(lines: list[str], start: int) -> str:
     return re.sub(r"\s+", " ", " ".join(parts))[:200]
 
 
-def _symbol(name, qualname, kind, start, end, line, signature="", calls=()) -> dict[str, Any]:
+def _symbol(name, qualname, kind, start, end, line, signature="", calls=(), trait="") -> dict[str, Any]:
+    """trait: for a Rust method, the trait it belongs to (Trait in `impl Trait for Type`, or the declaring trait)."""
     return {"name": name, "qualname": qualname, "kind": kind, "start": start, "end": end, "line": line,
-            "signature": signature, "calls": list(calls)}
+            "signature": signature, "calls": list(calls), "trait": trait}
 
 
 def _aliases(node, base: dict[str, str] | None = None) -> dict[str, str]:
@@ -215,6 +233,176 @@ def _python(text: str) -> list[dict[str, Any]]:
     return out
 
 
+@functools.cache
+def _rust_parser():
+    """tree-sitter's Rust parser, or None where the pinned tree-sitter-rust is not installed."""
+    try:
+        import tree_sitter_rust
+        from tree_sitter import Language, Parser
+        return Parser(Language(tree_sitter_rust.language()))
+    except Exception:  # missing, or built for another tree-sitter ABI: Rust files are then not indexed
+        return None
+
+
+def _attached(node) -> bool:
+    """#[attributes] and /// or /** doc comments, which belong to the item after them."""
+    return node.type == "attribute_item" or (node.type in ("line_comment", "block_comment") and any(
+        child.type == "outer_doc_comment_marker" for child in node.children))
+
+
+def _token_calls(macro, source: bytes) -> list[tuple[str, int]]:
+    """Callee text and line of name(...) and a.b.name(...) inside a macro's arguments, which are bare tokens."""
+    found, trees = [], [child for child in macro.children if child.type == "token_tree"]
+    while trees:
+        seq = trees.pop().children
+        for i, token in enumerate(seq):
+            if token.type != "token_tree":
+                continue
+            trees.append(token)
+            if i and seq[i - 1].type == "identifier" and source[token.start_byte:token.start_byte + 1] == b"(":
+                j = i - 1
+                while j > 1 and seq[j - 1].type in (".", "::") and seq[j - 2].type in _RUST_PATH:
+                    j -= 2
+                if j and seq[j - 1].type == "fn":
+                    continue  # a definition, as in cfg_if! { fn page_size() ... }
+                # f(x).name( or v[0].name(: the receiver is an expression, so mark it unknown
+                unknown = "?" + seq[j - 1].type if j and seq[j - 1].type in (".", "::") else ""
+                text = source[seq[j].start_byte:seq[i - 1].end_byte].decode("utf-8", "replace")
+                found.append((unknown + text, seq[j].start_point[0] + 1))
+    return found
+
+
+def _uses(node, source: bytes, prefix: tuple[str, ...] = ()) -> list[tuple[str, tuple[str, ...]]]:
+    """(name in scope, full path) for each name a `use` brings in: use a::{b, c as d} gives (b, a.b), (d, a.c)."""
+    if node is None:
+        return []
+
+    def path_of(child) -> tuple[str, ...]:
+        return tuple(re.findall(r"\w+", source[child.start_byte:child.end_byte].decode("utf-8", "replace"))) \
+            if child is not None else ()
+
+    if node.type in ("identifier", "scoped_identifier"):
+        path = prefix + path_of(node)
+        return [(path[-1], path)] if path else []
+    if node.type == "self":  # use std::io::{self}
+        return [(prefix[-1], prefix)] if prefix else []
+    if node.type == "use_as_clause":
+        alias = node.child_by_field_name("alias")
+        return [(path_of(alias)[-1], prefix + path_of(node.child_by_field_name("path")))] if path_of(alias) else []
+    if node.type == "scoped_use_list":
+        return _uses(node.child_by_field_name("list"), source, prefix + path_of(node.child_by_field_name("path")))
+    if node.type == "use_list":
+        return [found for child in node.named_children for found in _uses(child, source, prefix)]
+    return []  # use a::*: the names are unknown
+
+
+def _rust_callee(text: str, aliases: Mapping[str, str]) -> tuple[str, str, str] | None:
+    """(name, form, receiver) for a callee such as helper, self.save, Store::new or crate::store::late.
+
+    Forms are _Calls' ("bare", "self", "attr") plus "path" for Type::name() and module::name().
+    crate::, self:: and super:: paths stay inside this crate, so such calls count as bare. aliases maps a name a
+    `use` brings in to what it names: helper for `use crate::helper as run`, std.fs for `use std::fs`.
+    """
+    text = "".join(text.split())
+    while (plain := _RUST_GENERICS.sub("", text)) != text:  # Vec::<u8>::new -> Vec::new
+        text = plain
+    match = _RUST_CALLEE.fullmatch(text)
+    if not match:
+        return None  # (self.handler)(x), handlers[i](x), closures called in place
+    receiver, separator, name = match.groups()
+    if (receiver, separator) in (("self", "."), ("Self", "::")):
+        return name, "self", receiver
+    if separator == ".":
+        receiver = receiver.replace("::", ".")
+        return name, "attr", receiver if _RUST_DOTTED.fullmatch(receiver) else ""
+    parts = receiver.split("::") if separator else []
+    if parts and parts[0] in ("crate", "self", "super"):  # crate::read() names this crate's read, whatever
+        aliases = {}                                          # the caller imported as read
+    while parts and parts[0] in ("crate", "self", "super"):
+        parts.pop(0)
+    if not parts:
+        resolved = aliases.get(name, name)
+        if "." in resolved:  # use std::fs::read; read() is a call into std.fs
+            receiver, _, name = resolved.rpartition(".")
+            return name, "path", receiver
+        return resolved, "bare", ""
+    if not all(_RUST_NAME.fullmatch(part) for part in parts):
+        return name, "attr", ""  # <T as Trait>::name
+    return name, "path", ".".join([aliases.get(parts[0], parts[0]), *parts[1:]])
+
+
+def _rust(text: str) -> list[dict[str, Any]]:
+    source = text.encode("utf-8")
+    lines = text.splitlines()
+    out = [_symbol("<module>", "<module>", "module", 1, max(1, len(lines)), 1)]
+    sites: list[tuple[dict[str, Any], ChainMap, str, int]] = []  # classified once every `use a::b as c` is known
+
+    def text_of(node) -> str:  # "" for a field that error recovery left out
+        return source[node.start_byte:node.end_byte].decode("utf-8", "replace") if node is not None else ""
+
+    # (node, qualname prefix, symbol that owns its calls, the trait methods here belong to: Trait in an
+    # `impl Trait for X`, the trait itself in its own body, "" in an inherent impl and None elsewhere, `use ... as`
+    # aliases in scope); an explicit stack, as deep expressions would exhaust Python's recursion limit
+    stack = [(_rust_parser().parse(source).root_node, "", out[0], None, ChainMap())]
+    while stack:
+        node, prefix, owner, impl_of, aliases = stack.pop()
+        kind = _RUST_KINDS.get(node.type)
+        name = node.child_by_field_name("name") if kind else None
+        if node.type == "impl_item":  # methods are Type.name, for inherent and trait impls alike
+            words = re.findall(r"\w+", text_of(node.child_by_field_name("type")).split("<", 1)[0])
+            prefix = ".".join(filter(None, (prefix, words[-1] if words else "")))
+            implemented = re.findall(r"\w+", text_of(node.child_by_field_name("trait")).split("<", 1)[0])
+            impl_of = implemented[-1] if implemented else ""  # impl fmt::Display for X -> Display
+        elif name is not None and not (kind == "mod" and node.child_by_field_name("body") is None):  # mod a;
+            kind = "method" if kind == "function" and impl_of is not None else kind
+            qualname = f"{prefix}.{text_of(name)}" if prefix else text_of(name)
+            first = node
+            while first.prev_sibling is not None and _attached(first.prev_sibling):
+                first = first.prev_sibling
+            body = node.child_by_field_name("body")
+            head = (source[node.start_byte:body.start_byte] if body is not None  # fn f(Point { x, y }: Point)
+                    else source[node.start_byte:node.end_byte].split(b"{", 1)[0])  # const P: Point = Point { .. };
+            symbol = _symbol(text_of(name), qualname, kind, first.start_point[0] + 1, node.end_point[0] + 1,
+                             node.start_point[0] + 1, " ".join(head[:1000].decode("utf-8", "replace").split())[:200],
+                             trait=impl_of if kind == "method" else "")
+            if text_of(name) != "_" and (kind != "constant" or owner["kind"] not in ("function", "method")):
+                out.append(symbol)  # neither const _ nor a function's local constants, which Python skips too
+            if kind == "macro":
+                continue  # macro_rules! bodies are token patterns, not code
+            prefix, impl_of = qualname, text_of(name) if kind == "trait" else None
+            if kind in ("function", "method", "mod", "trait"):
+                owner, aliases = symbol, aliases.new_child()  # a `use` reaches the end of its module or function
+        elif node.type == "block":  # a `use` inside { } reaches only the end of that block
+            aliases = aliases.new_child()
+        elif node.type == "call_expression":
+            function = node.child_by_field_name("function")
+            if function is not None and function.type == "generic_function":  # f::<T>()
+                function = function.child_by_field_name("function")
+            if function is not None and function.end_byte - function.start_byte > 300:  # a.b().c()... chains
+                field = "field" if function.type == "field_expression" else "name"
+                callee = "?." + text_of(function.child_by_field_name(field))  # without re-reading the receiver
+            else:
+                callee = text_of(function)
+            sites.append((owner, aliases, callee, node.start_point[0] + 1))
+        elif node.type == "macro_invocation":
+            sites += [(owner, aliases, *call) for call in _token_calls(node, source)]
+            continue
+        elif node.type in ("attribute_item", "inner_attribute_item"):
+            continue
+        elif node.type == "use_declaration":
+            for in_scope, path in _uses(node.child_by_field_name("argument"), source):
+                if path[0] in _RUST_STD:  # use std::fs: fs::read() is std's, whatever this crate defines
+                    aliases.maps[0][in_scope] = ".".join(path)
+                elif in_scope != path[-1]:  # use crate::helper as run
+                    aliases.maps[0][in_scope] = path[-1]
+            continue
+        stack.extend((child, prefix, owner, impl_of, aliases) for child in reversed(node.named_children))
+    for owner, aliases, callee, line in sites:
+        if found := _rust_callee(callee, aliases):
+            owner["calls"].append((*found, line, lines[line - 1].strip()[:140]))
+    return out
+
+
 def _markdown(text: str) -> list[dict[str, Any]]:
     lines = text.splitlines()
     heads, fenced = [], False
@@ -283,6 +471,8 @@ def _parse(path: str, text: str) -> list[dict[str, Any]]:
     try:
         if lowered.endswith(CODE_SUFFIXES):
             return _python(text)
+        if lowered.endswith(RUST_SUFFIXES):
+            return _rust(text)
         if lowered.endswith(DOC_SUFFIXES):
             return _markdown(text)
         if lowered.endswith(DATA_SUFFIXES):
@@ -321,11 +511,17 @@ class SymbolIndex:
 
     # ------------------------------------------------------------------ indexing
     def _files(self):
+        # Without the grammar, .rs files stay out of the index, so a runtime that has it parses them as new
+        skip = () if _rust_parser() else RUST_SUFFIXES
         for directory, dirs, names in os.walk(self.root):
-            dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS and not d.startswith("."))
+            # Cargo marks its build output (generated code, packaged copies of the sources) with CACHEDIR.TAG
+            dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS and not d.startswith(".")
+                             and not (d == "target" and os.path.isfile(os.path.join(directory, d, "CACHEDIR.TAG"))))
             for name in sorted(names):
                 full = Path(directory) / name
-                if name.lower().endswith(INDEXED_SUFFIXES) and not name.startswith(".") and not full.is_symlink():
+                lowered = name.lower()
+                if (lowered.endswith(INDEXED_SUFFIXES) and not lowered.endswith(skip) and not name.startswith(".")
+                        and not full.is_symlink()):
                     yield full.relative_to(self.root).as_posix(), full
 
     def refresh(self) -> int:
@@ -356,10 +552,10 @@ class SymbolIndex:
         for symbol in _parse(rel, text):
             body = "\n".join(lines[symbol["start"] - 1:symbol["end"]])
             cursor = self.db.execute(
-                "INSERT INTO symbols(path, name, qualname, kind, start, end, line, signature, tokens) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                "INSERT INTO symbols(path, name, qualname, kind, start, end, line, signature, tokens, trait) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 (rel, symbol["name"], symbol["qualname"], symbol["kind"], symbol["start"], symbol["end"],
-                 symbol["line"], symbol["signature"], _count(body)))
+                 symbol["line"], symbol["signature"], _count(body), symbol["trait"]))
             self.db.executemany("INSERT INTO calls(caller, callee, form, receiver, line, text) VALUES (?, ?, ?, ?, ?, ?)",
                                 [(cursor.lastrowid, *call) for call in symbol["calls"]])
 
@@ -448,10 +644,15 @@ class SymbolIndex:
     def _find(self, query: str, broad: bool = False, kinds: tuple[str, ...] | None = None) -> list[sqlite3.Row]:
         """Symbols for path::Name, Class.method, module.name or a bare name; broad adds fuzzy matches."""
         if "::" in query:
-            rel, name = (part.strip() for part in query.rsplit("::", 1))
+            rel, _, name = (part.strip() for part in query.partition("::"))
             paths = set(self._paths(rel))
-            return [r for r in self._rows("qualname = ? OR name IN (?, ?)", (name, name, name[:MAX_TITLE]), kinds)
-                    if r["path"] in paths]
+            if paths:  # path::Name, or path::Class::method (pytest) and path::Type::name (Rust)
+                return [r for r in self._rows("qualname IN (?, ?) OR name IN (?, ?)",
+                                              (name, name.replace("::", "."), name, name[:MAX_TITLE]), kinds)
+                        if r["path"] in paths]
+            if "/" in rel or "\\" in rel or rel.lower().endswith(INDEXED_SUFFIXES):
+                return []  # a file that is not indexed
+            query = re.sub(r"^(?:(?:crate|self|super)::)+", "", query).replace("::", ".")  # Rust: Store::new
         steps: list[Callable[[], list[sqlite3.Row]]] = [
             lambda: self._rows("qualname = ?", (query,), kinds),
             lambda: self._module_rows(query, kinds),
@@ -674,20 +875,12 @@ class SymbolIndex:
         there were more than MAX_LOOSE of them.
         """
         found: dict[tuple[str, int], _Site] = {}
-        if graph:
-            nodes, callers, by_place, sources = graph
-            for source, line, exact in callers.get(by_place.get((target["path"], target["line"], target["name"])), []):
-                path, def_line, name = nodes[source]
-                if not self._unchanged(path, sources, digests):
-                    continue  # edited since the graph was built: its lines are stale; name matches cover it
-                caller = self._symbol_at(path, def_line, name)
-                found.setdefault((path, line), _Site(path, line, caller, caller["qualname"] if caller else name,
-                                                     "" if exact else " [inferred]", "", target["qualname"], False))
         method = target["kind"] == "method"
         parts = target["qualname"].split(".")
         owner = ".".join(parts[:-1]) + "."
         # module.name() for functions and classes, Owner.name() for methods
         qualifier = parts[-2] if method and len(parts) > 1 else _module_path(target["path"]).rsplit("/", 1)[-1]
+        homes = {_module_path(target["path"]).rsplit("/", 1)[-1], *parts[-3:-2]}  # Owner's file and inline mod
 
         def precise(row) -> bool:
             if row["form"] == "bare":
@@ -695,15 +888,65 @@ class SymbolIndex:
             if row["form"] == "self":  # self.name() inside the same class
                 return row["path"] == target["path"] and row["qualname"].startswith(owner)
             receiver = row["receiver"]
+            if row["form"] == "path" and receiver.split(".", 1)[0] in _RUST_STD:  # std::fs::read(), or fs:: from std
+                return False
+            if method and row["form"] == "path" and "." in receiver:  # Rust a::Owner::name(): a must hold Owner
+                module, _, type_name = receiver.rpartition(".")
+                return type_name == qualifier and module.rsplit(".", 1)[-1] in homes
             return not receiver.startswith(("self.", "cls.")) and receiver.rsplit(".", 1)[-1] == qualifier
+
+        concrete: dict[str, bool] = {}
+
+        def other_type(row) -> bool:
+            """Rust's Path::new() names another type. Only this type, an alias of it, a generic parameter, the trait
+            this method implements (FromStr::from_str) or, for a trait's own method, a type implementing that trait
+            can reach it; the standard library only through that trait (std::default::Default::default)."""
+            if row["form"] != "path" or precise(row):
+                return False
+            last = row["receiver"].rsplit(".", 1)[-1]
+            if row["receiver"].split(".", 1)[0] in _RUST_STD:
+                return last != target["trait"]
+            # ponytail: generics are recognised by their usual one-letter names (T::new()), so a call through
+            # fn f<Backend: Store>() is dropped; parse the fn's <...> list if longer names turn out to matter
+            if not last[:1].isupper() or len(last) == 1 or last in (target["trait"], qualifier):
+                return False  # io::Error for this Error: maybe a re-export
+            if last not in concrete:
+                if target["trait"] == qualifier:  # a trait's own method: does Last implement the trait?
+                    found = self.db.execute(
+                        "SELECT 1 FROM symbols WHERE trait = ? AND kind = 'method' AND (qualname LIKE ? ESCAPE '\\' "
+                        "OR qualname LIKE ? ESCAPE '\\') LIMIT 1",
+                        (qualifier, _like(last) + ".%", "%." + _like(last) + ".%")).fetchone()
+                else:  # is there a `type Last = path::to::Owner<...>;`? (not Arc<Owner>: that is Arc)
+                    found = any(re.findall(r"\w+", signature.partition("=")[2].split("<", 1)[0])[-1:] == [qualifier]
+                                for (signature,) in self.db.execute(
+                                    "SELECT signature FROM symbols WHERE name = ? AND kind = 'type'", (last,)))
+                concrete[last] = not found
+            return concrete[last]
 
         rows = self.db.execute(
             f"SELECT {', '.join('s.' + c for c in _COLUMNS)}, c.form, c.receiver, c.line AS call_line, c.text "
-            "FROM calls c JOIN symbols s ON s.id = c.caller WHERE c.callee = ? AND c.form IN (?, ?)",
-            (target["name"], *(("self", "attr") if method else ("bare", "attr")))).fetchall()
+            "FROM calls c JOIN symbols s ON s.id = c.caller WHERE c.callee = ? AND c.form IN (?, ?, 'path') "
+            "AND (s.path LIKE '%.rs') = ?",  # same-language callers: Rust files add nothing to Python's
+            (target["name"], *(("self", "attr") if method else ("bare", "attr")),
+             target["path"].lower().endswith(RUST_SUFFIXES))).fetchall()
+        if graph:
+            nodes, callers, by_place, sources = graph
+            for source, line, exact in callers.get(by_place.get((target["path"], target["line"], target["name"])), []):
+                path, def_line, name = nodes[source]
+                if not self._unchanged(path, sources, digests):
+                    continue  # edited since the graph was built: its lines are stale; name matches cover it
+                caller = self._symbol_at(path, def_line, name)
+                named = [r for r in rows if caller is not None and r["id"] == caller["id"] and r["call_line"] == line]
+                if named and all(map(other_type, named)):
+                    continue  # graphify 0.9.17 resolves Path::new() to the file's own new()
+                # io::Error::new() or Saver::save(s): a path that may lead elsewhere leaves graphify's edge unverified
+                doubtful = named and all(r["form"] == "path" and not precise(r) for r in named)
+                found.setdefault((path, line), _Site(path, line, caller, caller["qualname"] if caller else name,
+                                                     "" if exact and not doubtful else " [inferred]", "",
+                                                     target["qualname"], False))
         extra = [r for r in rows if (r["path"], r["call_line"]) not in found]
         sure = [r for r in extra if precise(r)]
-        unsure = [r for r in extra if not precise(r)]
+        unsure = [r for r in extra if not precise(r) and not other_type(r)]
         hidden = len(unsure) if len(unsure) > MAX_LOOSE else 0
         for r in sure + ([] if hidden else unsure):
             found.setdefault((r["path"], r["call_line"]), _Site(r["path"], r["call_line"], r, r["qualname"],
