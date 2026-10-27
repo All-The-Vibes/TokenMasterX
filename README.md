@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="assets/tokenmasterx-hero.svg" width="100%" alt="TokenMasterX for GitHub Copilot. Half the tokens, same answers. Up to 58% fewer tokens and up to 54% lower cold-start cost, with no drop in pass rate.">
-</p>
+![TokenMasterX for GitHub Copilot. Half the tokens, same answers. Up to 58% fewer tokens and up to 54% lower cold-start cost, with no drop in pass rate.](assets/tokenmasterx-hero.svg)
 
 <p align="center">
   <b>GitHub Copilot on about half the tokens, with the same pass rate.</b><br>
