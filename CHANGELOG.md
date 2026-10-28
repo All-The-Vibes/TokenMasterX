@@ -25,6 +25,13 @@ and the project aims to follow semantic versioning.
 
 ### Changed
 
+- The launcher's lean tool set also removes `run_dynamic_workflow` and `dynamic_workflows_manage`
+  (`skills/token-master/brainspace_copilot_bridge.py`). Copilot CLI sends both under default routing and, from
+  1.0.104, in every mode: 2,210 cl100k tokens on every call. None of the 60 Django sessions of October 27 called them
+  (`evidence/relay-control-20261027/`, `evidence/default-routing-20261027/`). A prompt that mentions a workflow
+  (CI workflows included), a skill or slash command, or `TOKENMASTER_KEEP_TOOLS=workflows` keeps them. Copilot CLI
+  1.0.95-3, 1.0.96-2, 1.0.98-2, 1.0.103 and 1.0.104 all accept the two names in `--excluded-tools`, including builds
+  that do not send these tools. No live run has measured the change yet, and `/tokenomics` does not count it yet.
 - README Quickstart: install from the marketplace (`copilot plugin marketplace add All-The-Vibes/TokenMasterX`, then
   `copilot plugin install token-master@token-master`), with a new "Prepare the runtime" step. Commands use `$HOME`
   instead of `~`, which Windows PowerShell 5.1 passes to native programs literally, and the launcher runs on the

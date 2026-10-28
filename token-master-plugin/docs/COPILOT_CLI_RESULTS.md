@@ -302,7 +302,8 @@ Between runs, resampling the 15 tasks 10,000 times:
 - One part of the rest is measured, and it interacts with routing. In the relay environment, Copilot CLI `1.0.104`
   sends two tool definitions that `1.0.98-2` does not, `run_dynamic_workflow` and `dynamic_workflows_manage`: 2,210
   cl100k tokens on every call (about 2,000 GitHub tokens), about a quarter of TokenMaster's first call and a sixth of
-  stock's. TokenMaster's lean tool set removes neither. PRS-6's requests carried 16 tools in stock and 8 in
+  stock's. TokenMaster's lean tool set removed neither in these runs (it removes both since this run, not yet
+  measured live). PRS-6's requests carried 16 tools in stock and 8 in
   TokenMaster, the control's 18 and 10. Under default routing, though, `1.0.98-2` already listed both tools (this
   run's pilot, in Copilot CLI's event log; the tool lists are in the control's `SETUP_OBSERVATIONS.md`, section 3), and
   D01's first stock call differed by 65 tokens between the two builds (13,519 vs 13,584). In relay mode, Copilot CLI
@@ -589,6 +590,9 @@ Evidence: `evidence/copilot-lean-{astra,opus}-{a,b}-20261019/`. Commit `c5681a7`
   every call. One later stock session called `task` (P13, above). The 11 tools are
   `session_store_sql`, `task`, `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`,
   `read_powershell`, `stop_powershell`, `list_powershell` and `fetch_copilot_cli_documentation`.
+  Every run on this page used these 11. After the relay control, the launcher also removes the
+  two workflow tools (`run_dynamic_workflow`, `dynamic_workflows_manage`); no live run has
+  measured that yet.
   - A probe ran one lookup task per model on October 19. The tools sent fell from 16 to 5
     (`gpt-6-astra`) and from 17 to 6 (`claude-opus-5.5`).
   - The system prompt fell from 7,216 to 5,117 cl100k tokens (`gpt-6-astra`) and from 5,931 to

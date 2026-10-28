@@ -314,6 +314,17 @@ def test_dynamic_tool_routing_keeps_capabilities_matched_by_prompt_or_flags(monk
     assert "sql" not in env_kept and "task" not in env_kept
 
 
+def test_lean_command_drops_the_workflow_tools_unless_a_workflow_is_asked_for(monkeypatch):
+    workflow_tools = {"run_dynamic_workflow", "dynamic_workflows_manage"}  # about 2,200 tokens a call on 1.0.104
+    lookup = bridge_module.lean_command(["copilot", "-p", "Who calls validate_password? Answer with JSON."])
+    assert workflow_tools <= set(lookup[lookup.index("--excluded-tools") + 1:])
+    for prompt in ("Run the nightly-audit workflow on this repo", "Use run_dynamic_workflow to review the diff",
+                   "Start my_audit_workflow", "/review-pr 123"):  # a slash command may start a workflow
+        assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", prompt])), prompt
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "workflows")
+    assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", "hi"]))
+
+
 def test_without_a_provider_url_the_launcher_runs_the_command_directly(monkeypatch):
     monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
     script = "import os, sys; sys.exit(5 if 'COPILOT_PROVIDER_BASE_URL' not in os.environ else 1)"

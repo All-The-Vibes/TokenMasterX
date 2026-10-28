@@ -78,6 +78,9 @@ have made the same model calls.
 
 1. **Lean tool set, per call.** Stock Copilot CLI sends more fixed tokens on every call: the definitions of the 11
    removed tools and the system-prompt text about them. The navigation tools add some back.
+   - The `lean` calibrations were measured with those 11 tools, on builds and routing that did not send the two
+     workflow tools. Where Copilot CLI sends them (default routing, and every mode from 1.0.104), the launcher now
+     also removes them, about 2,000 more tokens per call, which the estimate does not count yet.
    - Fixed tokens saved per main-agent call = `lean` (when the lean tool set was on) − `nav` (when the
      navigation tools were installed).
    - Cost saved per call = those tokens × the call's own cache-read price. Stock reads its fixed prefix from the cache
