@@ -1,0 +1,551 @@
+{
+ "study": "relay control for the default-routing A/B",
+ "kind": "exploratory",
+ "copilot_cli": "1.0.104",
+ "model": "gpt-6-astra",
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 20261022
+ },
+ "audit": {
+  "lanetest-d01": {
+   "sessions": 2,
+   "wrong_version": [],
+   "other_models": [],
+   "uncharged_calls": [],
+   "charge_mismatch": [],
+   "recount_mismatch": [],
+   "failed_calls": [],
+   "infra": [],
+   "nano_total": 18267750000,
+   "clean": true
+  },
+  "pilot-d01": {
+   "sessions": 2,
+   "wrong_version": [],
+   "other_models": [],
+   "uncharged_calls": [],
+   "charge_mismatch": [],
+   "recount_mismatch": [],
+   "failed_calls": [],
+   "infra": [],
+   "nano_total": 34337850000,
+   "clean": true
+  },
+  "relay-common": {
+   "sessions": 10,
+   "wrong_version": [],
+   "other_models": [],
+   "uncharged_calls": [],
+   "charge_mismatch": [],
+   "recount_mismatch": [],
+   "failed_calls": [],
+   "infra": [],
+   "nano_total": 141583600000,
+   "clean": true
+  },
+  "relay-rare": {
+   "sessions": 20,
+   "wrong_version": [],
+   "other_models": [],
+   "uncharged_calls": [],
+   "charge_mismatch": [],
+   "recount_mismatch": [],
+   "failed_calls": [],
+   "infra": [],
+   "nano_total": 176854200000,
+   "clean": true
+  }
+ },
+ "ai_credits_spent": 371.04,
+ "ai_credit_cap": 700,
+ "lane_test": {
+  "pilot-d01/tm": {
+   "lane_root": "C:\\tm-lanes",
+   "status": "pass",
+   "first_call": {
+    "input": 7612,
+    "cached": 0,
+    "cache_write": 7609,
+    "output": 33
+   },
+   "calls": 3,
+   "lane_sources": "built-in skills only (checked before the first session)",
+   "request_chars": 38722,
+   "system_chars": 20051,
+   "tools": 10,
+   "operator_claude_md": false,
+   "skills_listed": 0
+  },
+  "pilot-d01/stock": {
+   "lane_root": "C:\\tm-lanes",
+   "status": "pass",
+   "first_call": {
+    "input": 12784,
+    "cached": 0,
+    "cache_write": 12781,
+    "output": 34
+   },
+   "calls": 3,
+   "lane_sources": "built-in skills only (checked before the first session)",
+   "request_chars": 63997,
+   "system_chars": 28365,
+   "tools": 18,
+   "operator_claude_md": false,
+   "skills_listed": 2
+  },
+  "lanetest-d01/stock": {
+   "lane_root": "C:\\Users\\shyamsridhar\\AppData\\Local\\Temp\\opencode",
+   "status": "pass",
+   "first_call": {
+    "input": 12820,
+    "cached": 8210,
+    "cache_write": 4607,
+    "output": 34
+   },
+   "calls": 3,
+   "lane_sources": {
+    "skills_per_group": {
+     "Builtin skills": 2
+    },
+    "instruction_groups": [
+     "No instruction sources found."
+    ]
+   },
+   "request_chars": 64121,
+   "system_chars": 28489,
+   "tools": 18,
+   "operator_claude_md": false,
+   "skills_listed": 2
+  },
+  "lanetest-d01/tm": {
+   "lane_root": "C:\\Users\\shyamsridhar\\AppData\\Local\\Temp\\opencode",
+   "status": "pass",
+   "first_call": {
+    "input": 7649,
+    "cached": 4672,
+    "cache_write": 2974,
+    "output": 33
+   },
+   "calls": 2,
+   "lane_sources": {
+    "skills_per_group": {
+     "Personal skills": 1,
+     "Builtin skills": 2
+    },
+    "instruction_groups": [
+     "No instruction sources found."
+    ]
+   },
+   "request_chars": 38846,
+   "system_chars": 20137,
+   "tools": 10,
+   "operator_claude_md": false,
+   "skills_listed": 0
+  }
+ },
+ "django_15_tasks": {
+  "tasks": 15,
+  "paired_tasks": 15,
+  "excluded_tasks": [],
+  "sessions_started_utc": [
+   "2026-10-27T23:08:04Z",
+   "2026-10-27T23:20:11Z"
+  ],
+  "passes_of_all_tasks": {
+   "stock": 15,
+   "tm": 15
+  },
+  "passes": {
+   "stock": 15,
+   "tm": 15
+  },
+  "tm_sessions_using_nav": 15,
+  "tm_nav_calls": 21,
+  "pass_rate_ci95": {
+   "stock": [
+    0.7961,
+    1.0
+   ],
+   "tm": [
+    0.7961,
+    1.0
+   ]
+  },
+  "raw_tokens": {
+   "stock": 708801,
+   "tm": 364319,
+   "change": -0.486,
+   "ci95": [
+    -0.5413,
+    -0.419
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05,
+   "holm_p": 0.000122,
+   "verdict": "lower"
+  },
+  "usd_cold": {
+   "stock": 3.6782,
+   "tm": 1.9951,
+   "change": -0.4576,
+   "ci95": [
+    -0.4881,
+    -0.4264
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05,
+   "holm_p": 0.000122,
+   "verdict": "lower"
+  },
+  "usd_as_run": {
+   "stock": 2.3564,
+   "tm": 0.828,
+   "change": -0.6486,
+   "ci95": [
+    -0.7116,
+    -0.5801
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05
+  },
+  "calls": {
+   "stock": 49,
+   "tm": 44,
+   "change": -0.102,
+   "ci95": [
+    -0.1837,
+    0.0
+   ],
+   "tasks_lower": 6,
+   "wilcoxon_p": 0.125
+  },
+  "audit_clean": true,
+  "profile": {
+   "relay_1.0.104": {
+    "stock": {
+     "raw_tokens": 708801,
+     "calls": 49,
+     "raw_tokens_per_call": 14465,
+     "usd_cold": 3.6782,
+     "usd_as_run": 2.3564,
+     "passes": 15,
+     "first_call_median": {
+      "input": 12784,
+      "cached": 8210,
+      "cache_write": 4571
+     }
+    },
+    "tm": {
+     "raw_tokens": 364319,
+     "calls": 44,
+     "raw_tokens_per_call": 8280,
+     "usd_cold": 1.9951,
+     "usd_as_run": 0.828,
+     "passes": 15,
+     "first_call_median": {
+      "input": 7614,
+      "cached": 7447,
+      "cache_write": 164
+     }
+    }
+   },
+   "default_routing_1.0.104": {
+    "stock": {
+     "raw_tokens": 708928,
+     "calls": 47,
+     "raw_tokens_per_call": 15084,
+     "usd_cold": 3.7489,
+     "usd_as_run": 2.2972,
+     "passes": 15,
+     "first_call_median": {
+      "input": 13587,
+      "cached": 9017,
+      "cache_write": 4569
+     }
+    },
+    "tm": {
+     "raw_tokens": 372621,
+     "calls": 44,
+     "raw_tokens_per_call": 8469,
+     "usd_cold": 2.0475,
+     "usd_as_run": 1.2643,
+     "passes": 15,
+     "first_call_median": {
+      "input": 7791,
+      "cached": 4865,
+      "cache_write": 2924
+     }
+    }
+   },
+   "prs6_relay_1.0.98": {
+    "stock": {
+     "raw_tokens": 707799,
+     "calls": 55,
+     "raw_tokens_per_call": 12869,
+     "usd_cold": 3.4033,
+     "usd_as_run": 2.3649,
+     "passes": 15,
+     "first_call_median": {
+      "input": 11200,
+      "cached": 6450,
+      "cache_write": 4749
+     }
+    },
+    "tm": {
+     "raw_tokens": 293779,
+     "calls": 46,
+     "raw_tokens_per_call": 6387,
+     "usd_cold": 1.5818,
+     "usd_as_run": 0.6928,
+     "passes": 15,
+     "first_call_median": {
+      "input": 5906,
+      "cached": 5723,
+      "cache_write": 181
+     }
+    }
+   }
+  },
+  "vs_default_routing": {
+   "tasks": 15,
+   "raw_tokens": {
+    "stock_change": {
+     "point": -0.0002,
+     "ci95": [
+      -0.0554,
+      0.0715
+     ]
+    },
+    "tm_change": {
+     "point": -0.0223,
+     "ci95": [
+      -0.0319,
+      -0.014
+     ]
+    },
+    "saving_difference_pp": {
+     "point": -1.1619,
+     "ci95": [
+      -4.8605,
+      2.0007
+     ]
+    }
+   },
+   "usd_cold": {
+    "stock_change": {
+     "point": -0.0189,
+     "ci95": [
+      -0.048,
+      0.0134
+     ]
+    },
+    "tm_change": {
+     "point": -0.0256,
+     "ci95": [
+      -0.0535,
+      -0.0029
+     ]
+    },
+    "saving_difference_pp": {
+     "point": -0.3769,
+     "ci95": [
+      -2.7078,
+      1.8039
+     ]
+    }
+   },
+   "usd_as_run": {
+    "stock_change": {
+     "point": 0.0258,
+     "ci95": [
+      -0.0182,
+      0.0702
+     ]
+    },
+    "tm_change": {
+     "point": -0.3451,
+     "ci95": [
+      -0.4455,
+      -0.2412
+     ]
+    },
+    "saving_difference_pp": {
+     "point": -19.8977,
+     "ci95": [
+      -25.1056,
+      -14.9064
+     ]
+    }
+   },
+   "calls": {
+    "stock_change": {
+     "point": 0.0426,
+     "ci95": [
+      0.0,
+      0.1087
+     ]
+    },
+    "tm_change": {
+     "point": 0.0,
+     "ci95": [
+      0.0,
+      0.0
+     ]
+    },
+    "saving_difference_pp": {
+     "point": -3.8211,
+     "ci95": [
+      -9.1645,
+      0.0
+     ]
+    }
+   }
+  },
+  "vs_prs6_relay": {
+   "tasks": 15,
+   "raw_tokens": {
+    "stock_change": {
+     "point": 0.0014,
+     "ci95": [
+      -0.0763,
+      0.0839
+     ]
+    },
+    "tm_change": {
+     "point": 0.2401,
+     "ci95": [
+      0.1548,
+      0.3091
+     ]
+    },
+    "saving_difference_pp": {
+     "point": 9.8933,
+     "ci95": [
+      4.9297,
+      14.5454
+     ]
+    }
+   },
+   "usd_cold": {
+    "stock_change": {
+     "point": 0.0808,
+     "ci95": [
+      0.0382,
+      0.1246
+     ]
+    },
+    "tm_change": {
+     "point": 0.2612,
+     "ci95": [
+      0.2138,
+      0.3112
+     ]
+    },
+    "saving_difference_pp": {
+     "point": 7.7608,
+     "ci95": [
+      4.658,
+      10.6069
+     ]
+    }
+   },
+   "usd_as_run": {
+    "stock_change": {
+     "point": -0.0036,
+     "ci95": [
+      -0.121,
+      0.1541
+     ]
+    },
+    "tm_change": {
+     "point": 0.1952,
+     "ci95": [
+      -0.0112,
+      0.4104
+     ]
+    },
+    "saving_difference_pp": {
+     "point": 5.8447,
+     "ci95": [
+      1.7872,
+      9.449
+     ]
+    }
+   },
+   "calls": {
+    "stock_change": {
+     "point": -0.1091,
+     "ci95": [
+      -0.1803,
+      -0.0392
+     ]
+    },
+    "tm_change": {
+     "point": -0.0435,
+     "ci95": [
+      -0.1042,
+      0.0
+     ]
+    },
+    "saving_difference_pp": {
+     "point": 6.1596,
+     "ci95": [
+      -2.5735,
+      14.5672
+     ]
+    }
+   }
+  },
+  "reading": {
+   "raw_tokens": {
+    "tm_stock_ratio": {
+     "relay_1.0.104": 0.514,
+     "default_routing_1.0.104": 0.5256,
+     "prs6_relay_1.0.98": 0.4151
+    },
+    "gap_pp": 11.06,
+    "d_routing_pp": {
+     "point": -1.1619,
+     "ci95": [
+      -4.8605,
+      2.0007
+     ]
+    },
+    "d_rest_pp": {
+     "point": 9.8933,
+     "ci95": [
+      4.9297,
+      14.5454
+     ]
+    },
+    "routing_share_of_gap": 0.105,
+    "verdict": "routing explains none of it"
+   },
+   "usd_cold": {
+    "tm_stock_ratio": {
+     "relay_1.0.104": 0.5424,
+     "default_routing_1.0.104": 0.5462,
+     "prs6_relay_1.0.98": 0.4648
+    },
+    "gap_pp": 8.14,
+    "d_routing_pp": {
+     "point": -0.3769,
+     "ci95": [
+      -2.7078,
+      1.8039
+     ]
+    },
+    "d_rest_pp": {
+     "point": 7.7608,
+     "ci95": [
+      4.658,
+      10.6069
+     ]
+    },
+    "routing_share_of_gap": 0.046,
+    "verdict": "routing explains none of it"
+   }
+  }
+ }
+}

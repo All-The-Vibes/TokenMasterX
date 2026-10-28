@@ -835,7 +835,7 @@ tmc + Graphify (tokenmaster-nav-impact):
             <div style="display: flex; gap: 1.5rem; flex-wrap: wrap; font-size: 0.84rem; color: #d3d2ce;">
               <span><strong style="color: #34d399;">&#9632; CACHE HIT (Read at 0.05&ndash;0.10&times;)</strong> &middot; Byte-identical to prior call</span>
               <span><strong style="color: #f43f5e;">&#9632; CACHE MISS (Write at 1.25&times;)</strong> &middot; At or after first mutated byte</span>
-              <span><strong style="color: #94a3b8;">&#9632; REMOVED BY LEAN SET ($0)</strong> &middot; 11 unused tools stripped</span>
+              <span><strong style="color: #94a3b8;">&#9632; REMOVED BY LEAN SET ($0)</strong> &middot; 13 unused tools stripped</span>
             </div>
 
             <pre id="cacheCodeDiff" style="background: #14130f; padding: 0.95rem; font-size: 0.84rem; line-height: 1.45; color: #e2e8f0;"></pre>
@@ -869,7 +869,7 @@ tmc + Graphify (tokenmaster-nav-impact):
           Plain <code>copilot</code> stays untouched. Typing <code>tmc</code> wraps the launch, trims unused tools, logs a prompt-free launch window, and lets <code>/tokenomics</code> join launch windows with Copilot's SQLite store.
         </p>
         <p class="muted">
-          <strong>Launcher (`brainspace_copilot_bridge.py`):</strong> Appends <code>--excluded-tools</code> for the 11 unused built-in tools and writes millisecond start/end records to <code>~/.copilot/token-master/launches.jsonl</code>. In bring-your-own-model mode, it also starts the local request bridge that keeps the system prompt identical across sessions in the same folder.
+          <strong>Launcher (`brainspace_copilot_bridge.py`):</strong> Appends <code>--excluded-tools</code> for the 13 unused built-in tools and writes millisecond start/end records to <code>~/.copilot/token-master/launches.jsonl</code>. In bring-your-own-model mode, it also starts the local request bridge that keeps the system prompt identical across sessions in the same folder.
         </p>
         <p class="muted">
           <strong>View hook (`settings.json`):</strong> Runs <code>brainspace_posttooluse.py</code> on whole-file <code>view</code> outputs, turning a 29,836-character file into a 5,175-character digest before it enters the transcript.
@@ -913,7 +913,7 @@ tmc + Graphify (tokenmaster-nav-impact):
 
           <div class="slip-group">
             <div class="slip-stage-title">Finale &middot; Interactive /tokenomics &amp; Free ! Shell</div>
-            <div class="slip-row"><span>Run <code>tmc</code>, point to 11 disabled tools in banner</span><span class="slip-dots"></span><span class="slip-time">0:30</span></div>
+            <div class="slip-row"><span>Run <code>tmc</code>, point to the disabled tools in banner</span><span class="slip-dots"></span><span class="slip-time">0:30</span></div>
             <div class="slip-row"><span>Type <code>/tokenomics</code> and <code>/tokenomics session</code></span><span class="slip-dots"></span><span class="slip-time">1:30</span></div>
             <div class="slip-row"><span>Run <code>! tokenomics session --since 20261023</code></span><span class="slip-dots"></span><span class="slip-time">0 tok</span></div>
           </div>

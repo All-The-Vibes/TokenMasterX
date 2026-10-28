@@ -3,9 +3,12 @@
 `brainspace_copilot_bridge.py` starts GitHub Copilot CLI for TokenMaster. It does up to two
 things:
 
-1. **Lean tool set.** The launcher removes 11 built-in Copilot CLI tools that no session called
-   in the October 18 runs. Their definitions and the system-prompt text about them then leave
-   every model call. This works with Copilot CLI's normal GitHub routing and with
+1. **Lean tool set.** The launcher removes 13 built-in Copilot CLI tools: 11 that no session called
+   in the October 18 runs, and `run_dynamic_workflow` and `dynamic_workflows_manage`, which Copilot
+   CLI sends under default routing and, from 1.0.104, in every mode, and which none of the 60
+   sessions of October 27 called. A prompt that asks for one of these tool families (a subagent, a
+   workflow, a skill, ...) keeps it. Their definitions and the system-prompt text about them then
+   leave every model call. This works with Copilot CLI's normal GitHub routing and with
    bring-your-own-model mode.
 2. **Bridge.** In bring-your-own-model (BYOK) mode only, the launcher also starts a local bridge.
    The bridge applies two deterministic rewrites to every model request: the cache-stable system
@@ -39,7 +42,11 @@ stock sessions.
 
 - The launcher adds `--excluded-tools` with these tools: `session_store_sql`, `task`,
   `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`, `read_powershell`,
-  `stop_powershell`, `list_powershell` and `fetch_copilot_cli_documentation`.
+  `stop_powershell`, `list_powershell`, `fetch_copilot_cli_documentation`, `run_dynamic_workflow`
+  and `dynamic_workflows_manage`. A prompt that matches a tool family's intent keeps that family
+  (for the workflow tools: the word "workflow", or a skill or slash command), and so does
+  `TOKENMASTER_KEEP_TOOLS` with the family's name. Copilot CLI 1.0.95-3 to 1.0.104 accept all 13
+  names, including builds that do not send the workflow tools.
 - The model keeps its shell, search, read and edit tools. In the measured runs, `gpt-6-astra`
   kept `powershell`, `rg`, `glob`, `view` and `apply_patch`. `claude-opus-5.5` kept
   `powershell`, `grep`, `glob`, `view`, `create` and `edit`. The TokenMaster navigation tools
@@ -52,10 +59,11 @@ stock sessions.
 - In a probe with one lookup task per model on Copilot CLI 1.0.78-3, the lean tool set cut the
   system prompt from 7,216 to 5,117 cl100k tokens (`gpt-6-astra`). The session used 27,255 → 13,702 raw tokens
   (`gpt-6-astra`) and 42,544 → 19,434 (`claude-opus-5.5`).
-- **Trade-off:** a workload that needs subagents (`task`), skills, session-store search, SQL or
-  background PowerShell loses those tools. Use `--all-tools` for it. No run measured such a
-  workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called `task`; with the
-  lean tool set, the same task passed without it.
+- **Trade-off:** a workload that needs subagents (`task`), skills, session-store search, SQL,
+  background PowerShell or agent workflows loses those tools when its prompt does not ask for them,
+  for example in an interactive session started without `-p`. Use `--all-tools` for it. No run
+  measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
+  `task`; with the lean tool set, the same task passed without it.
 
 ## Bridge (bring-your-own-model mode)
 

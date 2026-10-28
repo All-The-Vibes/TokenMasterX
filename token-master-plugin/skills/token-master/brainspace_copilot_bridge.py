@@ -2,8 +2,10 @@
 """Start GitHub Copilot CLI for TokenMaster: a lean tool set, plus a local bridge in BYOK mode.
 
 Lean tool set: for a Copilot CLI session, the launcher adds --excluded-tools with the built-in
-tools that no session called in the October 18 runs (LEAN_EXCLUDED_TOOLS). It skips this with
---all-tools, when the user already chose tools, or for a Copilot CLI subcommand.
+tools that no session called in the October 18 runs, and the two workflow tools that Copilot CLI
+sends under default routing and, from 1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt that
+asks for a tool family keeps it. The launcher skips this with --all-tools, when the user already
+chose tools, or for a Copilot CLI subcommand.
 
 Bridge (only with a provider URL, Copilot CLI BYOK mode): Copilot CLI sends model requests to
 COPILOT_PROVIDER_BASE_URL. The bridge listens on 127.0.0.1, rewrites each OpenAI Responses or
@@ -83,6 +85,12 @@ CAPABILITY_GROUPS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
         ("fetch_copilot_cli_documentation",),
         re.compile(r"\b(fetch_copilot_cli_documentation|copilot\s+cli\s+(?:docs|documentation|flags|keybindings|settings))\b", re.I),
     ),
+    # Sent under default routing, and in every mode from Copilot CLI 1.0.104 (about 2,200 tokens a call); none of the
+    # 60 sessions of October 27 called them. "_" is a word character, so plain \b would miss "my_audit_workflow".
+    "workflows": (
+        ("run_dynamic_workflow", "dynamic_workflows_manage"),
+        re.compile(r"(?<![a-z0-9])workflows?(?![a-z0-9])", re.I),
+    ),
 }
 LEAN_EXCLUDED_TOOLS = tuple(tool for tools, _ in CAPABILITY_GROUPS.values() for tool in tools)
 _TOOL_FLAGS = ("--available-tools", "--excluded-tools")
@@ -133,6 +141,8 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
             keep.update(CAPABILITY_GROUPS["skills"][0])
         if words & _installed_names("agents"):
             keep.update(CAPABILITY_GROUPS["agents"][0])
+    if "skill" in keep:  # a skill or slash command may start a workflow (the workflow tools' own instructions)
+        keep.update(CAPABILITY_GROUPS["workflows"][0])
     return tuple(tool for tool in LEAN_EXCLUDED_TOOLS if tool not in keep)
 
 
@@ -495,7 +505,7 @@ def main(argv=None) -> int:
     parser.add_argument("--log", help="append one JSON line per model request: usage numbers, no content")
     parser.add_argument("--all-tools", action="store_true",
                         help="keep every built-in Copilot CLI tool (default: exclude the ones no session used in "
-                             "the October 18 runs)")
+                             "the October 18 runs and the two workflow tools)")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command

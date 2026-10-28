@@ -1,0 +1,75 @@
+{
+  "kind": "exploratory, not pre-registered",
+  "model": "gpt-6-astra",
+  "usd_per_million": [
+    10.0,
+    1.0,
+    12.5,
+    50.0
+  ],
+  "provider_price_ratios_seen": [
+    [
+      "cache_read",
+      0.1
+    ],
+    [
+      "cache_write",
+      1.25
+    ],
+    [
+      "input",
+      1.0
+    ],
+    [
+      "output",
+      5.0
+    ]
+  ],
+  "arms": {
+    "stock": {
+      "sessions": 1,
+      "passes": 1,
+      "raw_tokens": 40728,
+      "cached_tokens": 26190,
+      "usd": 0.2167,
+      "calls": 3,
+      "sessions_using_nav": 0,
+      "nav_calls": 0,
+      "warm_starts": 0,
+      "tools_sent": 18,
+      "infra": 0
+    },
+    "tm": {
+      "sessions": 1,
+      "passes": 1,
+      "raw_tokens": 24017,
+      "cached_tokens": 15496,
+      "usd": 0.1266,
+      "calls": 3,
+      "sessions_using_nav": 1,
+      "nav_calls": 1,
+      "warm_starts": 0,
+      "tools_sent": 10,
+      "infra": 0
+    }
+  },
+  "pairs": [
+    {
+      "task": "D01",
+      "repeat": 1,
+      "stock_raw": 40728,
+      "tm_raw": 24017,
+      "stock_usd": 0.2167,
+      "tm_usd": 0.1266,
+      "stock_pass": true,
+      "tm_pass": true,
+      "stock_calls": 3,
+      "tm_calls": 3,
+      "tm_nav_calls": 1
+    }
+  ],
+  "raw_change": -0.4103,
+  "usd_change": -0.4158,
+  "pairs_lower_raw": 1,
+  "pairs_total": 1
+}

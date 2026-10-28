@@ -48,8 +48,8 @@ Say:
 2. "A model has no memory. On every call, Copilot CLI sends the whole prompt again."
 3. "The prompt has a fixed part: the system prompt and the definitions of the built-in tools. Copilot sends
    this fixed part on every call."
-4. "TokenMaster removes 11 built-in tools that no session used in our October 18 runs. The fixed part gets
-   much smaller."
+4. "TokenMaster removes 13 built-in tools: 11 that no session used in our October 18 runs, and two
+   workflow tools that none of our October 27 sessions used. The fixed part gets much smaller."
 
 Show the rehearsal numbers: the same one-word prompt and the same model.
 
@@ -135,7 +135,7 @@ Say: "We have both the 45-task Django scale study on 1.0.78-3 and the pre-regist
 
 ```text
  you ── tmc ──► TokenMaster launcher ──────────────► Copilot CLI 1.0.98 ──► GitHub Copilot API
-                  │ adds --excluded-tools (11 tools)      │
+                  │ adds --excluded-tools (13 tools)      │
                   │ writes a launch record                ├─ view hook: large file view → short digest (v6)
                   ▼                                       ├─ tokenmaster-nav: locate, read_symbol, impact
    ~/.copilot/token-master/launches.jsonl                 ├─ /tokenomics skill → runs tokenomics.py
@@ -148,7 +148,7 @@ Say: "We have both the 45-task Django scale study on 1.0.78-3 and the pre-regist
 | Part | What it does | Where it is |
 | --- | --- | --- |
 | `tmc` | Starts Copilot CLI through the TokenMaster launcher. | PowerShell 7 profile |
-| Launcher | Removes 11 unused built-in tools from every call. Records each launch: time, folder and settings, with no prompt text. | `~/.copilot/token-master/brainspace_copilot_bridge.py` |
+| Launcher | Removes 13 unused built-in tools from every call. Records each launch: time, folder and settings, with no prompt text. | `~/.copilot/token-master/brainspace_copilot_bridge.py` |
 | Bridge | Only in bring-your-own-model mode: makes the system prompt the same for sessions in one folder, so GitHub's cache can reuse it. Your default setup does not use it. | Inside the launcher |
 | Graph tools (`tokenmaster-nav`) | `locate`, `read_symbol` and `impact` answer "where is X?" and "who calls X?" from a prebuilt call graph, in one compact result. | MCP server. The demo adds it for one session only. |
 | View hook (v6) | Turns a large whole-file view into a short digest before the model reads it. | `~/.copilot/settings.json` |
@@ -236,7 +236,7 @@ Window B:
 tmc
 ```
 
-Point at the start-up line "Disabled tools: …". These are the 11 tools that the launcher removed.
+Point at the start-up line "Disabled tools: …". These are the tools that the launcher removed.
 
 In Copilot, type:
 
@@ -281,9 +281,12 @@ Say:
 - **"Is the saving measured or estimated?"** Both. The A/B is measured. The dashboard measures your tokens and
   cost, and it estimates what stock would have cost.
 - **"Does removing tools hurt?"**
-  - The 11 tools are `task` (subagents), `skill`, `sql`, `session_store_sql`, three background-PowerShell
-    tools, three agent tools and `fetch_copilot_cli_documentation`.
-  - No session used them in our October 18 runs. One later stock session used `task`.
+  - The 13 tools are `task` (subagents), `skill`, `sql`, `session_store_sql`, three background-PowerShell
+    tools, three agent tools, `fetch_copilot_cli_documentation`, and the two workflow tools,
+    `run_dynamic_workflow` and `dynamic_workflows_manage`, which Copilot CLI sends under default routing and,
+    from 1.0.104, in every mode.
+  - No session used the first 11 in our October 18 runs; one later stock session used `task`. None of the 60
+    sessions of October 27 used the workflow tools.
   - In the pre-registered PRS-6 study on `1.0.98`, both `stock` and `tm` scored `88/88` (`29/29` on repository tasks and `15/15` on Django `D01`–`D15` for each model).
   - For work that needs the removed tools, run plain `copilot` or `tmc --all-tools`.
 - **"What about Copilot CLI 1.0.98 vs 1.0.78-3? / Which Copilot CLI version did you test?"**
