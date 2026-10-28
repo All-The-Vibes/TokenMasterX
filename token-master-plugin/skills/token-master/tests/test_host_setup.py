@@ -419,3 +419,39 @@ def test_graph_setup_fake_supplier_real_installer_in_temp_home(homes, monkeypatc
         monkeypatch.setattr(sys, "argv", ["setup.py", "--host", host, "--uninstall"])
         assert setup.main() == 0
         assert not config_path(host).is_file() or "tokenmaster-nav" not in config_path(host).read_text("utf-8")
+
+
+@pytest.mark.parametrize("rust, grammar, warned", [(True, False, True), (True, True, False), (False, False, False)])
+def test_graph_setup_warns_when_the_runtime_cannot_index_rust(homes, monkeypatch, capsys, rust, grammar, warned):
+    """The navigation runtime indexes .rs files only if it imports the pinned tree-sitter-rust."""
+    setup = load("setup")
+    repo = homes / "repo"
+    repo.mkdir()
+    source = "lib.rs" if rust else "code.py"
+    (repo / source).write_text("pub fn f() {}\n" if rust else "def f(): pass\n")
+    (repo / "graphify-out").mkdir()
+    (repo / "graphify-out" / "graph.json").write_text(json.dumps({"nodes": [
+        {"id": "f", "label": "f()", "file_type": "code", "source_file": source, "source_location": "L1"}],
+        "links": []}))
+    probes = []
+    real_run = setup.subprocess.run
+    real_which = setup.shutil.which
+    def run(argv, **kwargs):
+        if argv[:2] == ["fixture-graphify", "update"]:
+            return subprocess.CompletedProcess(argv, 0, "")
+        if "tree-sitter-rust" in str(argv[-1]):  # the grammar probe in the --python runtime
+            probes.append(argv)
+            if not grammar:
+                raise subprocess.CalledProcessError(1, argv)
+        return real_run(argv, **kwargs)
+    monkeypatch.setattr(setup.subprocess, "run", run)
+    monkeypatch.setattr(setup.shutil, "which",
+                        lambda name: "fixture-graphify" if name == "graphify" else real_which(name))
+    monkeypatch.setattr(setup, "_git_root", lambda path: path)
+    monkeypatch.setattr(setup, "_supplier", lambda p: {"name": "fixture-graphify", "version": "1"})
+    monkeypatch.setattr(sys, "argv", ["setup.py", str(repo), "--host", "claude", "--python", sys.executable])
+    assert setup.main() == 0  # a warning, never a failed install
+    warnings = [line for line in capsys.readouterr().out.splitlines() if "tree-sitter-rust" in line]
+    assert len(warnings) == warned
+    assert all(line.startswith("[token-master] WARNING") and "requirements-runtime.txt" in line for line in warnings)
+    assert len(probes) == rust  # a Python-only repository never waits for the probe
