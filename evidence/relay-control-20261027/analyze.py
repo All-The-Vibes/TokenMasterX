@@ -119,6 +119,8 @@ def copy_from_local(root: Path) -> dict:
         setup = json.loads((src / "setup.json").read_text(encoding="utf-8"))
         setup["account"] = {"type": account_type(setup["account"]["host"]),
                             "routing": "evaluation relay with Copilot CLI's stored sign-in"}
+        setup["copilot_api"] = re.sub(r"//copilot-api\.[^./]+\.ghe\.com", "//copilot-api.<tenant>.ghe.com",
+                                      setup["copilot_api"])
         (dst / "setup.json").write_text(json.dumps(setup, indent=1) + "\n", encoding="utf-8")
         rows = {r["session"]: r for r in read_jsonl(src / "results.jsonl")}
         for session in sorted((src / "runs").iterdir()):
@@ -319,7 +321,8 @@ def profile(values: dict, tasks: list[str]) -> dict:
     for arm in ("stock", "tm"):
         mine = [values[(t, arm)] for t in tasks]
         raw, calls = sum(v["raw_tokens"] for v in mine), sum(v["calls"] for v in mine)
-        out[arm] = {"raw_tokens": raw, "calls": calls, "raw_tokens_per_call": round(raw / calls) if calls else None,
+        out[arm] = {"raw_tokens": raw, "calls": calls,
+                    "raw_tokens_per_call": int(raw / calls + 0.5) if calls else None,
                     "usd_cold": round(sum(v["usd_cold"] for v in mine), 4),
                     "usd_as_run": round(sum(v["usd_as_run"] for v in mine), 4), "passes": sum(v["pass"] for v in mine),
                     "first_call_median": {k: median([v["first_call"].get(k) or 0 for v in mine])

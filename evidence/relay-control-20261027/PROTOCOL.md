@@ -52,7 +52,7 @@ CLI's home.
   type `openai`, wire API `responses`, provider URL = the relay. In this environment `copilot --version` prints
   `1.0.104`.
 - Relay: `run_prs5_study.Relay`, request bodies unchanged, PRS-6's headers. Upstream: the Copilot API that GitHub
-  names for the account in `/copilot_internal/user` (`https://copilot-api.microsoft.ghe.com`). Sign-in: Copilot CLI's
+  names for the account in `/copilot_internal/user` (`https://copilot-api.<tenant>.ghe.com`). Sign-in: Copilot CLI's
   stored token for the account D104 ran under (`~/.copilot/config.json`, `lastLoggedInUser`), read from Windows
   Credential Manager into memory. PRS-6's relay read an OpenCode sign-in, which no longer exists on this machine.
 - Lanes `C:\tm-lanes\drr` and `C:\tm-lanes\drc`, D104's names, so the working directories in the prompts match D104's.

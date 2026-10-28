@@ -5,7 +5,8 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
 - **Default GitHub routing on Copilot CLI `1.0.104` (October 27, 2026):** the only run without the evaluation
   relay. Copilot CLI signed in and routed every request itself, and its own per-call records gave the tokens and
   GitHub's charges. Django D01–D15 with `gpt-6-astra`, 30 sessions; the protocol was committed before the sessions
-  ([Default GitHub routing](#default-github-routing-on-copilot-cli-10104-october-27-2026)).
+  ([Default GitHub routing](#default-github-routing-on-copilot-cli-10104-october-27-2026)). A relay control on the
+  same client build, account and day followed it.
 - **Pre-registered study PRS-6 on Copilot CLI `1.0.98` (October 26, 2026):** pre-registered before
   any study call ([PRS6_PROTOCOL.md](PRS6_PROTOCOL.md), commit `19443fc`, evidence in
   `evidence/prs6-copilot-1.0.98-20261026/analysis.json`). Pinning `COPILOT_CLI_DIST_DIR` to `1.0.98`
@@ -34,6 +35,13 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   `707,799`) and TokenMaster used 27% more (`372,621` vs `293,779`). In this run each call carried a larger fixed
   prompt than in PRS-6, in both versions. Stock made fewer calls than in PRS-6 (47 vs 55); TokenMaster made about as
   many (44 vs 46).
+- A relay control on `1.0.104`, with this run's client build, account, lanes and day, cut raw tokens by 48.6% (95% CI
+  41.9% to 54.1%) and cold-repriced cost by 45.8%, against 47.4% and 45.4% under default routing. By the rule fixed
+  before its sessions, routing explains none of the gap to PRS-6's 58.5% (its 95% CI allows at most 4.9 of the 11.1
+  points). The gap lies in the other differences between the runs (client build, TokenMaster commit, day, account,
+  lane location), and client build and routing interact. Routing does change the as-run cost: −64.9% through the
+  relay, −45.0% under default routing
+  ([Relay control](#relay-control-on-copilot-cli-10104-same-build-account-and-day)).
 
 ### Pre-registered study PRS-6 (Copilot CLI `1.0.98`, October 26, 2026)
 
@@ -240,29 +248,101 @@ What the numbers show:
 - Each call carried more tokens under default routing: stock 15,084 per call (relay 12,869) and TokenMaster 8,469
   (relay 6,387). Stock made 8 fewer calls than in PRS-6; TokenMaster made 2 fewer. Stock's fewer calls offset its
   larger calls, and TokenMaster's did not.
-- Why the calls are larger, and why stock made fewer of them, was not tested. Routing is one candidate. The two runs
-  also differ in Copilot CLI build (`1.0.104` vs `1.0.98`), account (Copilot CLI's own sign-in vs the relay's), day,
-  and TokenMaster commit (`v0.2.0` vs `19443fc`). The client build looks unlikely to explain the prompt size: in the
-  pilot, stock first calls under default routing were 13,519 tokens on `1.0.98-2` and 13,587 on `1.0.104`. A relay
-  run on `1.0.104` with these tasks would separate routing from the rest.
+- The two runs differ in routing, and also in Copilot CLI build (`1.0.104` vs `1.0.98`), account (Copilot CLI's own
+  sign-in vs the relay's), day, TokenMaster commit (`v0.2.0` vs `19443fc`) and lane location. In this run's pilot,
+  stock first calls under default routing were 13,519 tokens on `1.0.98-2` and 13,587 on `1.0.104`. The relay control
+  below separates routing from the rest on `1.0.104`.
 - The as-run cost saving fell further than the token saving (−70.7% to −45.0%). With the bridge, TokenMaster's first
   calls wrote a median of 181 tokens to GitHub's cache; under default routing, without it, they wrote 2,924. The
   bridge was not switched on and off within one run, so its share of the gap was not tested. Back-to-back stock
   sessions also share a cached prefix under default routing: 14 of 15 stock first calls read a median of 9,017 tokens
   from the cache.
 
+### Relay control on Copilot CLI `1.0.104` (same build, account and day)
+
+The gap between PRS-6 and this run mixes routing with client build, account, day, lane location and TokenMaster
+commit. A control run repeated PRS-6's evaluation relay (bring-your-own-model mode, `run_prs5_study.Relay`) with this
+run's Copilot CLI `1.0.104`, lanes, graphify `0.9.91`, installed TokenMaster files, tasks and orders. The relay sent
+Copilot CLI's own stored sign-in for this run's account to the Copilot API that GitHub names for that account,
+because PRS-6's OpenCode sign-in no longer exists on this machine. The control and this run then differ in routing.
+Copilot CLI posts `/responses` to the local relay, which forwards it over HTTPS, instead of using its own WebSocket
+connection. It sends 18 tools instead of 20 in stock and 10 instead of 12 in TokenMaster: default routing adds
+`web_fetch` and `semantic_code_search`. And in the TokenMaster arm the bridge's cache-stable system prompt and v6
+shaping run, which need a provider URL. The 30 sessions ran on October 27, 23:08–23:20 UTC, about nine hours after
+this run's (the protocol expected about two). The run is exploratory: its protocol and reading rule were committed
+after a D01 pilot and lane test and before the 30 sessions (`evidence/relay-control-20261027/PROTOCOL.md`, commit
+`02f5049`), and the analysis excludes the pilot and the lane test. Audit: all 30 sessions ran `1.0.104` (system prompt
+and event log), `gpt-6-astra` answered every call, every call carried GitHub's charge, equal to its token counts at
+its own prices, and every results row matched its recount. No problem found.
+
+| `gpt-6-astra`, D01–D15 | Relay, `1.0.98` (PRS-6) | Relay, `1.0.104` (control) | Default routing, `1.0.104` |
+| --- | ---: | ---: | ---: |
+| Stock raw tokens | 707,799 | 708,801 | 708,928 |
+| TokenMaster raw tokens | 293,779 | 364,319 | 372,621 |
+| Raw-token change | −58.5% (−64.4%, −52.3%) | −48.6% (−54.1%, −41.9%) | −47.4% (−52.8%, −41.7%) |
+| Cold-repriced cost change | −53.5% (−57.0%, −49.8%) | −45.8% (−48.8%, −42.6%) | −45.4% (−48.2%, −42.7%) |
+| As-run cost change | −70.7% (−76.6%, −63.4%) | −64.9% (−71.2%, −58.0%) | −45.0% (−49.4%, −40.5%) |
+| Model calls, stock → TokenMaster | 55 → 46 | 49 → 44 | 47 → 44 |
+| Raw tokens per call, stock / TokenMaster | 12,869 / 6,387 | 14,465 / 8,280 | 15,084 / 8,469 |
+| TokenMaster first call: input / cached / written (medians) | 5,906 / 5,723 / 181 | 7,614 / 7,447 / 164 | 7,791 / 4,865 / 2,924 |
+| Passed, stock and TokenMaster | 15/15, 15/15 | 15/15, 15/15 | 15/15, 15/15 |
+
+Between runs, resampling the 15 tasks 10,000 times:
+
+- Routing moved TokenMaster's share of stock's raw tokens from 52.6% (default routing) to 51.4% (relay): −1.2 points,
+  95% CI −4.9 to +2.0. For cold-repriced cost the difference is −0.4 points (−2.7 to +1.8). TokenMaster's raw tokens
+  were 2.2% lower through the relay (−3.2% to −1.4%), and stock's were the same (0.0%, −5.5% to +7.2%).
+- The other differences moved it from 41.5% (PRS-6) to 51.4%: +9.9 points (+4.9 to +14.5), and +7.8 points (+4.7 to
+  +10.6) for cold-repriced cost. TokenMaster used 24.0% more raw tokens than in PRS-6 (+15.5% to +30.9%), stock the
+  same (+0.1%, −7.6% to +8.4%), and stock made 11% fewer calls (−18.0% to −3.9%).
+- By the reading rule fixed before the sessions, routing explains none of the 11.1-point raw-token gap or of the
+  8.1-point cold-cost gap between PRS-6 and default routing: the routing CIs include 0, and the CIs for the rest
+  exclude it. The routing CIs still allow up to 4.9 of the 11.1 points (44%) and 2.7 of the 8.1 (33%); the point
+  estimates are 11% and 5%.
+- One part of the rest is measured, and it interacts with routing. In the relay environment, Copilot CLI `1.0.104`
+  sends two tool definitions that `1.0.98-2` does not, `run_dynamic_workflow` and `dynamic_workflows_manage`: 2,210
+  cl100k tokens on every call (about 2,000 GitHub tokens), about a quarter of TokenMaster's first call and a sixth of
+  stock's. TokenMaster's lean tool set removes neither. PRS-6's requests carried 16 tools in stock and 8 in
+  TokenMaster, the control's 18 and 10. Under default routing, though, `1.0.98-2` already listed both tools (this
+  run's pilot, in Copilot CLI's event log; the tool lists are in the control's `SETUP_OBSERVATIONS.md`, section 3), and
+  D01's first stock call differed by 65 tokens between the two builds (13,519 vs 13,584). In relay mode, Copilot CLI
+  `1.0.104` still sends the two tools and `1.0.98-2` does not. So how the gap splits between routing and the rest
+  depends on which build the comparison holds fixed. Taking about 2,000 tokens off each call of the control would put
+  TokenMaster at about 45% of stock's raw tokens instead of 51%, some 6 of the 9.9 points; that arithmetic assumes the
+  sessions would make the same calls without the two tools, which was not tested.
+- Routing does change the as-run cost. Through the relay, TokenMaster's as-run cost was 34.5% lower than under default
+  routing (−44.6% to −24.1%), and its saving against stock was −64.9% instead of −45.0%. Its first calls wrote a
+  median of 164 tokens to GitHub's cache through the relay and 2,924 under default routing; stock's as-run cost was
+  about the same (+2.6%, −1.8% to +7.0%). The bridge's cache-stable system prompt runs only with a provider URL, which
+  fits this, but no run switched the bridge on and off by itself.
+- The control used 371.0 AI credits ($3.71) by GitHub's charges: a D01 pilot 34.3, a D01 lane test 18.3, the study
+  318.4.
+
+Evidence: `evidence/relay-control-20261027/` (`PROTOCOL.md`, `SETUP_OBSERVATIONS.md`, `analysis.json`, `analyze.py`,
+`captures_audit.json`, `dead_upstream_probe*.json` and `dead_upstream_probe.py`, and per shard `results.jsonl`,
+`setup.json`, `summary.json`, `warmup.json` and per-call `calls.jsonl`). Harness:
+`token-master-plugin/evals/relay_control_ab.py`.
+
 ### Setup findings
 
-- Copilot CLI loads `CLAUDE.md` and skills from every ancestor folder of its working directory. The probe's lanes
-  were under `%TEMP%`, inside the operator's profile, which holds a `.claude` folder (a `CLAUDE.md` and 101 skill
+- Copilot CLI loaded `CLAUDE.md` and skills from the ancestor folders of the probe's lanes, which were
+  under `%TEMP%`, inside the operator's profile, which holds a `.claude` folder (a `CLAUDE.md` and 101 skill
   entries), `.copilot` (109) and `.agents` (93). From such a lane, `copilot skill list` showed the operator's skills as
   inherited, and `copilot instruction list` showed a `CLAUDE.md`. The probe's stock first call was 23,463 tokens; a
   stock session of the same build from a lane outside the profile sent 13,519, on a task prompt about 60 tokens longer
   (`SETUP_OBSERVATIONS.md`). The study's lanes were outside the profile, and a check before the first session found
   no inherited skill or instruction file.
-- PRS-6's lanes were also under `%TEMP%`. Whether its sessions loaded the operator's files was not tested, because
-  its captures were deleted. Its stock first calls (median 11,200 tokens) leave no room for the 9,944 extra tokens of
-  the probe's first call, so a load of that size is unlikely.
+- PRS-6's lanes were also under `%TEMP%`, written in the 8.3 form (`C:\Users\<SHORT~1>\...`) that Python's
+  `tempfile.gettempdir()` returns on this machine. Copilot CLI inherits from that form, and not from the same folder
+  written in full. The relay control's probe, which captures the first request without a model call, found the
+  operator's `CLAUDE.md` in it from the 8.3 form, and an `available_skills` list of 25 skills where a clean lane lists
+  the 2 built-in ones: about 10,300 extra cl100k tokens. That held with `1.0.98-2` and `1.0.104`, and with the
+  launcher in place before October 27 (last written May 19, so most likely the one PRS-6 ran). From the long form,
+  the first lane test's sessions and `copilot instruction list` found nothing
+  (`evidence/relay-control-20261027/SETUP_OBSERVATIONS.md`). PRS-6's stock first calls, 11,194 to 11,205 tokens,
+  are within 2.5% of the clean size (about 10,940 for `1.0.98-2`) and far from the inherited one (about 20,250), so
+  its sessions did not carry the operator's files. Why not was not tested: PRS-6's build,
+  `1.0.98`, is no longer on this machine.
 - Under default routing, Copilot CLI's auto-update is on; relay mode turns it off. In the pilot, a session pinned to
   `1.0.98-2` downloaded `1.0.104`, and the next session in the same lane ran `1.0.104`. The study pinned the latest
   release. Setting `COPILOT_AUTO_UPDATE=false` does not help: the launcher then runs its built-in `1.0.49`.
@@ -600,13 +680,15 @@ tokens. Their costs are as run, with sessions back to back.
   runs. On October 19, one stock session (P13) called `task`. Workloads that need subagents
   (`task`), skills, session-store search, SQL or background PowerShell lose these tools.
   `--all-tools` keeps them. Such workloads were not measured.
-- **Routing.** All runs except the October 27 run used bring-your-own-model mode through a relay.
-  The October 27 run used Copilot CLI's default GitHub routing on Django D01–D15 with `gpt-6-astra`
-  only. The repository tasks and `claude-opus-5.5` were not measured with default routing.
-- **Sandbox location.** Copilot CLI loads `CLAUDE.md` and skills from every ancestor folder of its
-  working directory. The October 19–26 runs recorded their lanes under `%TEMP%`, inside the
-  operator's profile folder, which is also the earlier harnesses' default. Whether those sessions
-  loaded the operator's files was not tested ([Setup findings](#setup-findings)).
+- **Routing.** All runs except the October 27 default-routing run used bring-your-own-model mode
+  through a relay, including the October 27 relay control. The default-routing run used Copilot
+  CLI's default GitHub routing on Django D01–D15 with `gpt-6-astra` only. The repository tasks and
+  `claude-opus-5.5` were not measured with default routing.
+- **Sandbox location.** Copilot CLI loaded `CLAUDE.md` and skills from the operator's profile
+  folder when a lane's path was written in its 8.3 form, which is how the October 19–26 runs
+  recorded their lanes under `%TEMP%`. PRS-6's stock first calls (October 26) are within 2.5% of a
+  clean request's size, so its sessions did not load them; the October 19–22 runs were not checked
+  ([Setup findings](#setup-findings)).
 - **No test runs.** No Python was on the agents' PATH, so no task asked an agent to run tests.
 - **Edit grading.** The edit grader fails any content change outside the allowed paths. In the
   October 19 `1.0.78-3` run, a line-ending-only rewrite outside the allowed paths also failed
@@ -630,6 +712,15 @@ $py = ".\.token-master-dev\Scripts\python.exe"
 cd token-master-plugin\evals
 & $py -B default_routing_ab.py --suite django --repo <Django 9e7cc2b6 checkout> --tasks-file ..\..\evidence\django-scale-20261022\tasks.json --tasks D09,D01,D07,D03,D05,D04,D08,D02,D06,D10 --output <new folder>\django-rare --lanes drr --graphify <graphify 0.9.91>\Scripts\graphify.exe --budget-credits 760
 & $py -B default_routing_ab.py --suite django --repo <Django 9e7cc2b6 checkout> --tasks-file ..\..\evidence\django-scale-20261022\tasks.json --tasks D12,D11,D14,D13,D15 --output <new folder>\django-common --lanes drc --graphify <graphify 0.9.91>\Scripts\graphify.exe --budget-credits 400
+cd ..\..
+
+# Relay control (Copilot CLI 1.0.104, October 27): audit the committed per-call records, CIs and the reading rule.
+& $py -B evidence\relay-control-20261027\analyze.py
+
+# Relay control live run: PRS-6's relay with Copilot CLI's stored sign-in. Run both shards at the same time.
+cd token-master-plugin\evals
+& $py -B relay_control_ab.py --repo <Django 9e7cc2b6 checkout> --tasks-file ..\..\evidence\django-scale-20261022\tasks.json --tasks D09,D01,D07,D03,D05,D04,D08,D02,D06,D10 --output <new folder>\relay-rare --lanes drr --graphify <graphify 0.9.91>\Scripts\graphify.exe --budget-credits 320
+& $py -B relay_control_ab.py --repo <Django 9e7cc2b6 checkout> --tasks-file ..\..\evidence\django-scale-20261022\tasks.json --tasks D12,D11,D14,D13,D15 --output <new folder>\relay-common --lanes drc --graphify <graphify 0.9.91>\Scripts\graphify.exe --budget-credits 240
 cd ..\..
 
 # Recount tokens and GitHub's charges from the committed 1.0.78-3 per-call records (no model calls).
@@ -664,3 +755,8 @@ passing `--no-auto-update` to the WinGet launcher selects its bundled `1.0.78-3`
 account names into each lane, and the token stays in Windows Credential Manager. It pins `PACKAGE` (`1.0.104`), keeps
 its lanes in `C:\tm-lanes` (`TM_LANES_ROOT`), and stops before the first session if a lane loads skills or
 instruction files from outside the study.
+
+`relay_control_ab.py` uses the same Copilot CLI sign-in for the relay. It reads the account's token from Windows
+Credential Manager into memory and sends it to the Copilot API that GitHub names for the account. It runs
+`default_routing_ab.py`'s package, lanes and lane check, and stops the run if the Copilot API refuses the sign-in or a
+session runs another Copilot CLI version.
