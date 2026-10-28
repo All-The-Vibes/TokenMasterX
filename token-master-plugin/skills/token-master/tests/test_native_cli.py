@@ -14,10 +14,10 @@ def restore_cli_process_state(monkeypatch):
     # The CLI owns one interpreter process. These unit calls deliberately run
     # in-process, so register all mutated globals for exact restoration.
     existing = os.environ.get("BRAINSPACE_TOKENIZER_FILE")
+    # Register the missing key too: delenv records nothing for an unset key, and the CLI assigns it directly.
+    monkeypatch.setenv("BRAINSPACE_TOKENIZER_FILE", existing if existing is not None else "")
     if existing is None:
-        monkeypatch.delenv("BRAINSPACE_TOKENIZER_FILE", raising=False)
-    else:
-        monkeypatch.setenv("BRAINSPACE_TOKENIZER_FILE", existing)
+        monkeypatch.delenv("BRAINSPACE_TOKENIZER_FILE")
     for name in ("_TRIED", "_ENCODER", "_VERSION"):
         monkeypatch.setattr(tokens, name, getattr(tokens, name))
 
