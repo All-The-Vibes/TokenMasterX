@@ -41,6 +41,11 @@ and the project aims to follow semantic versioning.
   `cl100k_base` vocabulary from `TOKENMASTER_TEST_TOKENIZER_FILE` or tiktoken's cache and skip without it; the pinned
   Ponytail export comes from `TOKENMASTER_TEST_PONYTAIL_EXPORT` or the local copy. Tests that fail before the
   tokenizer loads still run without a vocabulary.
+- `test_native_cli.py` and `test_native_source_cli.py` now restore `BRAINSPACE_TOKENIZER_FILE` after each test even
+  when it was unset. `native_cli` assigns it directly, and their fixtures registered it only when it was already set,
+  because `monkeypatch.delenv(..., raising=False)` records nothing for a missing key. The missing-tokenizer test's
+  temporary path then stayed set for the rest of the run, so a single pytest process on a fresh clone had 62 failed
+  tests and 45 errors in five later files, each of which passed on its own.
 
 ### Changed
 
