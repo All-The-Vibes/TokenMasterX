@@ -107,6 +107,15 @@ def test_fold_paths_refuses_anything_it_cannot_keep_exactly():
     assert fold_paths(f"{DIR}one.py\n[section]\n{DIR}two.py\n{DIR}three.py") is None
 
 
+def test_digests_ignore_a_trailing_newline():
+    listing = "\n".join(f"pkg{i % 4}/file_{i:04}.py" for i in sorted(range(1200), key=lambda i: i % 4)) + "\n"
+    shaped = shape_tool_result("glob", {"pattern": "**/*.py"}, listing, count)
+    assert "more folders" in shaped and " (0)" not in shaped
+    search = "\n".join(f"src\\m{i // 100}.py:{i}:result_{i} = compute({i}) + offset" for i in range(700)) + "\n"
+    shaped = shape_tool_result("grep", {"pattern": "result_"}, search, count)
+    assert "6 more files" in shaped and " (0)" not in shaped
+
+
 def test_outline_skips_comments_and_uses_headings_only_for_docs():
     code = "".join(f"def f{i}(x):\n    # comment {i}\n    return x + {i}\n\n" for i in range(600))
     shaped = shape_tool_result("view", {"path": "big.py"}, code, count)

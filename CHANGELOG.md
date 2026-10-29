@@ -46,6 +46,24 @@ and the project aims to follow semantic versioning.
   because `monkeypatch.delenv(..., raising=False)` records nothing for a missing key. The missing-tokenizer test's
   temporary path then stayed set for the rest of the run, so a single pytest process on a fresh clone had 62 failed
   tests and 45 errors in five later files, each of which passed on its own.
+- Navigation results stay within 2,400 tokens (`brainspace/symbol_index.py`). Footer lines such as `[223 more]` sat
+  outside the budget `_fit` got, and `_lines` compared the header and the body counted apart, so `locate` returned
+  2,401 tokens under cl100k and `read` 2,401 under the fallback estimate. `_assemble` now measures each result whole,
+  footer and newlines included, and shows one entry fewer until it fits; the uncut range and the `read` note are
+  measured the same way.
+- `fold_search` refuses to fold when a line it would copy looks like a folded entry (`  12: text`), which made two
+  different outputs fold to the same text; `fold_paths` keeps trailing newlines. Both folds now give back their
+  exact input.
+- In the native runtime, policy v6 without guidance no longer changes an earlier message, except to stay under a
+  `max_input_tokens` cap. `plan_v6_request`, and the runtime's final wire guard and composition step, measured the
+  whole request on the JSON wire, where a newline or a backslash takes two characters, and reverted every message of
+  the request when that count was not smaller. A fold that saved tokens on the decoded text, which is what a provider
+  bills, could measure no smaller there, so the call missed the provider's cached prefix. v6 shaping is no longer
+  reverted on the whole request's token count; the byte checks remain and cannot fire. When shaping would push the
+  request over a `max_input_tokens` cap, the runtime still sends the unshaped request if it fits, as before, rather
+  than failing the call.
+- A search result that ended in a newline no longer digests to an extra, empty file (`7 more files: ..., (0)`):
+  `_digest_lines` ignores trailing empty lines.
 
 ### Changed
 
@@ -77,6 +95,10 @@ and the project aims to follow semantic versioning.
 - `setup.py` warns when the repository has Rust files but the `--python` runtime cannot import `tree-sitter-rust`:
   navigation would skip every `.rs` file without saying so. The warning names the plugin's
   `requirements-runtime.txt`, and setup still succeeds. Python-only repositories skip the check.
+- `proofs/`: Lean 4 proofs of the invariants behind tool routing, cache-safe shaping, the stable session prefix,
+  the navigation budget and the measurement method. Lean's kernel checks all 37 theorems, with no `sorry` and no
+  added axiom. `test_proof_conformance.py` checks the proofs' hypotheses against the Python. Writing the proofs
+  found eight gaps; four are fixed above, and `proofs/README.md` lists the four that remain.
 ## [0.2.0] - 2026-10-26
 
 ### Added

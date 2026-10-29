@@ -21,7 +21,8 @@ definition outline and SWE-agent's capped search):
   impact(symbol, depth)  callers: graphify's resolved edges first, then call sites the graph
                          did not resolve, matched by name and marked [name]
 
-Every result stays under ``BUDGET`` tokens, so request-level shaping never cuts one.
+Every result is measured as one text, footer and newlines included, and stays within ``BUDGET``
+tokens, so request-level shaping never cuts one.
 Changed files are re-indexed on every call, and graph edges from files edited since the
 graph was built are dropped (their line numbers are stale; name matches cover them).
 """
@@ -96,6 +97,23 @@ def _fit(lines: list[str], budget: int) -> tuple[list[str], int]:
         if used > budget:
             return lines[:index], len(lines) - index
     return lines, 0
+
+
+def _assemble(header: list[str], entries: list[str], footer, budget: int = BUDGET) -> str:
+    """The header, as many leading entries as fit, and ``footer(shown)`` for the rest, within ``budget``.
+
+    _fit's per-line costs are a first guess; the joined text is what gets measured, so footer lines and
+    newlines count too. If the header and footer alone do not fit, the text is cut to fit.
+    """
+    shown = len(_fit(entries, budget - _count("\n".join(header)))[0])
+    while True:
+        text = "\n".join([*header, *entries[:shown], *footer(shown)])
+        if _count(text) <= budget or not shown:
+            break
+        shown -= 1
+    while text and _count(text) > budget:
+        text = text[:len(text) * 4 // 5]
+    return text
 
 
 def _echo(text: str) -> str:
@@ -702,13 +720,10 @@ class SymbolIndex:
                   "(path:lines kind name ~tokens | signature):")
         entries = [f"{r['path']}:{r['start']}-{r['end']} {r['kind']} {r['qualname']} ~{r['tokens']}"
                    + (f" | {r['signature']}" if r["signature"] else "") for r in rows[:MAX_HITS]]
-        shown, _ = _fit(entries, BUDGET - _count(header))
-        lines = [header, *shown]
-        if len(rows) > len(shown):
-            lines.append(f"[{len(rows) - len(shown)} more not shown; use a more specific name.]")
-        return "\n".join(lines)
+        return _assemble([header], entries, lambda shown: (
+            [f"[{len(rows) - shown} more not shown; use a more specific name.]"] if len(rows) > shown else []))
 
-    def _outline(self, rel: str) -> str:
+    def _outline(self, rel: str, lead: tuple[str, ...] = ()) -> str:
         rows = self.db.execute("SELECT start, end, kind, qualname, tokens, signature FROM symbols WHERE path = ? "
                                "AND kind != 'module' ORDER BY start", (rel,)).fetchall()
         module = self.db.execute("SELECT tokens, end FROM symbols WHERE path = ? AND kind = 'module'", (rel,)).fetchone()
@@ -716,13 +731,12 @@ class SymbolIndex:
                   + " (lines kind name ~tokens | signature):")
         entries = [f"{r['start']}-{r['end']} {r['kind']} {r['qualname']} ~{r['tokens']}"
                    + (f" | {r['signature']}" if r["signature"] else "") for r in rows]
-        shown, hidden = _fit(entries, BUDGET - _count(header))
-        lines = [header, *shown]
-        if hidden:
-            lines.append(f"[{hidden} more symbols from line {rows[len(shown)]['start']}; read a range or locate a name.]")
-        if not rows:
-            lines.append("(no symbols indexed; read a line range instead)")
-        return "\n".join(lines)
+
+        def footer(shown: int) -> list[str]:
+            rest = ([f"[{len(rows) - shown} more symbols from line {rows[shown]['start']}; read a range or locate a name.]"]
+                    if shown < len(rows) else [])
+            return rest if rows else ["(no symbols indexed; read a line range instead)"]
+        return _assemble([*lead, header], entries, footer)
 
     def read(self, target: str) -> str:
         self.refresh()
@@ -748,21 +762,21 @@ class SymbolIndex:
         note = self._others_note(target, rows)
         if len(rows) > 1:
             header = f'"{_echo(target)}" matches {len(rows)} symbols; read one of:'
-            options, hidden = _fit([f"  {r['path']}::{r['qualname']} ({r['start']}-{r['end']})" for r in rows],
-                                   BUDGET - _count(header) - _count(note))
-            return "\n".join([header, *options, *([f"  [{hidden} more]"] if hidden else []), *([note] if note else [])])
+            options = [f"  {r['path']}::{r['qualname']} ({r['start']}-{r['end']})" for r in rows]
+            return _assemble([header], options, lambda shown: [
+                *([f"  [{len(options) - shown} more]"] if shown < len(options) else []), *([note] if note else [])])
         row = rows[0]
-        text = self._lines(row["path"], row["start"], row["end"], f"{row['path']}::{row['qualname']}")
-        return text + (f"\n{note}" if note else "")
+        return self._lines(row["path"], row["start"], row["end"], f"{row['path']}::{row['qualname']}",
+                           tail=(note,) if note else ())
 
     def _not_one_file(self, value: str, files: list[str]) -> str:
         if not files:
             return f'Error: no file "{_echo(value)}".'
         header = f'"{_echo(value)}" matches {len(files)} files; use one:'
-        shown, hidden = _fit(files, BUDGET - _count(header))
-        return "\n".join([header, *shown, *([f"[{hidden} more]"] if hidden else [])])
+        return _assemble([header], files, lambda shown: [f"[{len(files) - shown} more]"] if shown < len(files) else [])
 
-    def _lines(self, rel: str, start: int, end: int, label: str, whole_file: bool = False) -> str:
+    def _lines(self, rel: str, start: int, end: int, label: str, whole_file: bool = False,
+               tail: tuple[str, ...] = ()) -> str:
         full = self._inside(rel)
         if full is None or not full.is_file():
             return f'Error: no file "{_echo(rel)}".'
@@ -778,32 +792,33 @@ class SymbolIndex:
         body = [f"{n}. {lines[n - 1]}" for n in range(start, end + 1)]
         header = f"{label} ({start}-{end}):"
         total = _count("\n".join(body))
-        if total + _count(header) <= BUDGET:
-            return "\n".join([header, *body])
+        if total <= BUDGET:
+            whole = "\n".join([header, *body, *tail])
+            if _count(whole) <= BUDGET:
+                return whole
         if whole_file and self.db.execute("SELECT 1 FROM symbols WHERE path = ? AND kind != 'module'",
                                           (rel,)).fetchone():
-            return f"[{rel} is ~{total} tokens; its outline follows. Read a symbol or a range.]\n" + self._outline(rel)
+            return self._outline(rel, lead=(f"[{rel} is ~{total} tokens; its outline follows. Read a symbol or a range.]",))
         header = f"{label} ({start}-{end}) is ~{total} tokens; first lines:"
         members = [f"  {r['start']}-{r['end']} {r['kind']} {r['qualname']} ~{r['tokens']}" for r in self.db.execute(
             "SELECT start, end, kind, qualname, tokens FROM symbols WHERE path = ? AND start > ? AND end <= ? "
             "AND kind != 'module' ORDER BY start", (rel, start, end))]
         members, hidden = _fit(members, BUDGET // 2)
-        room = BUDGET - _count(header) - sum(_count(m) + 1 for m in members) - 60  # 60: the two footer lines
-        shown, _ = _fit(body, room)
-        if not shown:  # one enormous line
+        listed = (["Members (read_symbol one, or a range path:start-end):", *members,
+                   *([f"  [{hidden} more members]"] if hidden else [])] if members else [])
+
+        def footer(shown: int) -> list[str]:
+            last = start + shown - 1
+            rest = [f"[Shown {start}-{last}. Read {rel}:{last + 1}-{end} or a member for the rest.]"] if last < end else []
+            return [*listed, *rest, *tail]
+
+        room = BUDGET - _count("\n".join([header, *footer(0)])) - 1
+        if not _fit(body, room)[0]:  # one enormous line
             cut = body[0]
-            while cut and _count(cut) > room:
+            while cut and _count(cut + " [line cut]") > room:
                 cut = cut[:len(cut) * 3 // 4]
-            shown = [cut + " [line cut]"]
-        last = start + len(shown) - 1
-        parts = [header, *shown]
-        if members:
-            parts += ["Members (read_symbol one, or a range path:start-end):", *members]
-            if hidden:
-                parts.append(f"  [{hidden} more members]")
-        if last < end:
-            parts.append(f"[Shown {start}-{last}. Read {rel}:{last + 1}-{end} or a member for the rest.]")
-        return "\n".join(parts)
+            body = [cut + " [line cut]"]
+        return _assemble([header], body, footer)
 
     def impact(self, symbol: str, depth: Any = 1) -> str:
         self.refresh()
@@ -853,20 +868,17 @@ class SymbolIndex:
                     frontier.append(site.caller)
             if not frontier:
                 break
-        shown, hidden = _fit(entries, BUDGET - _count(header) - _count(note))
-        lines = [header, *shown]
-        if hidden:
-            lines.append(f"[{hidden} more lines not shown; use path::Name or a lower depth.]")
+        unlisted = []
         if loose:
             top = sorted(loose.items(), key=lambda item: -item[1])
             names = ", ".join(f"{count} calls to .{name}()" for name, count in top[:3])
             more = f" and {len(top) - 3} more names" if len(top) > 3 else ""
-            lines.append(f"[Not listed: {names}{more} on objects of unknown type; grep to check.]")
+            unlisted.append(f"[Not listed: {names}{more} on objects of unknown type; grep to check.]")
         if not seen and not loose:
-            lines.append("  none found (dynamic calls, callbacks and string dispatch are invisible; grep to be sure)")
-        if note:
-            lines.append(note)
-        return "\n".join(lines)
+            unlisted.append("  none found (dynamic calls, callbacks and string dispatch are invisible; grep to be sure)")
+        return _assemble([header], entries, lambda shown: [
+            *([f"[{len(entries) - shown} more lines not shown; use path::Name or a lower depth.]"]
+              if shown < len(entries) else []), *unlisted, *([note] if note else [])])
 
     def _sites(self, target: sqlite3.Row, graph, digests: dict[str, bool]) -> tuple[list[_Site], int]:
         """Call sites of one symbol: graph edges first, then name matches the graph did not resolve.

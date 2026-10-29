@@ -8,7 +8,8 @@ saved (PRS-1).
 
 * Search output (``path:line:text``) is folded under one header per file.
 * Path lists (glob, files-with-matches, counts, directory views) are folded by
-  directory. Both folds are lossless.
+  directory. Both folds are lossless: unfolding gives back the exact text, and a fold
+  that could not is refused.
 * A result still larger than its budget becomes a bounded digest that states what
   was left out and how to fetch it: a narrower search, ``view_range``, or
   ``forceReadLargeFiles``. Explicit ranged or forced reads are never shortened, and
@@ -35,6 +36,7 @@ _READ_TOOLS = frozenset({"view", "read", "read_file"})
 
 _MATCH = re.compile(r"^((?:[A-Za-z]:)?[^:\r\n]+?):(\d+):(.*)$")
 _TAIL = re.compile(r"^(\d+)([:-])(.*)$")
+_ENTRY_LIKE = re.compile(r"^  \d+[:-] ")  # how fold_search prints an owned line
 _SUSPECT_PATH = re.compile(r"[\"'=(){}<>]|\s{2,}|^\s")
 _NOTICE = re.compile(r"^\[.*\]$")
 _PATH = re.compile(r"^(?:[A-Za-z]:)?[^\s:*?\"<>|]+(?: [^\s:*?\"<>|]+)*(?::\d+)?$")
@@ -83,6 +85,8 @@ def fold_search(text: str) -> str | None:
         owner = current if current is not None and _owner(current, line) else next(
             (path for path in longest_first if _owner(path, line)), None)
         if owner is None:
+            if _ENTRY_LIKE.match(line):
+                return None  # copied as it is, it would read back as an entry under the header above
             current = None
             out.append(line)
             continue
@@ -127,13 +131,13 @@ def fold_paths(text: str) -> str | None:
             out.append(head or ".")
             current = head
         out.append("  " + name)
-    result = "\n".join(out + notices)
+    result = "\n".join(out + notices) + text[len(text.rstrip("\n")):]
     return result if len(result) < len(text) else None
 
 
 def _digest_lines(text: str, budget: int, count: Callable[[str], int], total: int, kind: str,
                   folded: bool) -> str:
-    lines = text.split("\n")
+    lines = text.rstrip("\n").split("\n")
     notices = [line for line in lines if _NOTICE.match(line)]
     body = [line for line in lines if not _NOTICE.match(line)]
     kept: list[str] = []
@@ -271,8 +275,8 @@ def shape_tool_result(name: str, arguments: dict[str, Any], content: Any, count:
                 digest = _digest_other(text, budget, count, total)
             if len(digest) < len(text):
                 text = digest
-    # Accept only a strict saving of this message alone, so the request-level guards
-    # never need to revert it and its bytes never depend on other messages.
+    # Accept only a strict saving of this message alone, counted on the decoded text a provider bills rather
+    # than its JSON escaping, so whether it is shaped never depends on other messages.
     if text != content and count(text) < count(content) and _wire_size(text) <= _wire_size(content):
         return text
     return content
@@ -312,8 +316,10 @@ def plan_v6_request(
         return unchanged("no_oversized_or_foldable_results")
     wire = serialize_request(candidate)
     after_tokens, after_bytes = count(wire), len(wire.encode("utf-8"))
-    if after_tokens >= before_tokens or after_bytes > before_bytes:
-        return unchanged("shaping_not_smaller")
+    # Each shaped message has fewer tokens as text and no more bytes as a JSON string, so the request
+    # has no more bytes. Its token count measured on the JSON wire can still be higher, since a newline
+    # or a backslash is two characters there, but the provider bills the decoded text. The plan is never
+    # reverted on that count: a reverted plan would change every earlier message and miss the cached prefix.
     return RequestPlan(candidate, wire, "transformed", "cache_native_shaping_v6", policy.policy_id,
                        changed_message_indices=tuple(changed), tokens_before=before_tokens,
                        tokens_after=after_tokens, wire_bytes_before=before_bytes, wire_bytes_after=after_bytes)

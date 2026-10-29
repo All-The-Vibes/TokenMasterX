@@ -78,6 +78,8 @@ If you already uninstalled the plugin, install it again, run step 1, then uninst
 3. **Cache-Safe Output Shaping (`request_policy.py`)** — Folds `rg`/`glob` output losslessly and compacts oversized `view` reads **once** when appended. Never rewrites earlier messages, so the provider's prompt cache stays valid.
 4. **Cache-Stable BYOK Bridge (`stable_session_prefix`)** — Moves the per-session `Session folder:` UUID out of the system prompt in BYOK mode so sessions in the same folder share the cached prompt on call 1.
 
+The invariants behind these four are stated as theorems and checked by Lean 4 in [proofs/](proofs/README.md), along with the gaps the proofs found.
+
 ---
 
 ## `/tokenomics` — `ccusage` for Copilot CLI
