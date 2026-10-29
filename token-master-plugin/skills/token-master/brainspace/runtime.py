@@ -247,7 +247,9 @@ class RuntimeSession:
         if backend == "local" and policy.version in NONEXPANDING_VERSIONS:
             # V4/V5/V6's contract includes every wrapper/recovery/guidance token.
             # Neither a raw-policy caller nor a registry selection can turn
-            # that versioned guarantee off with the legacy optional flag.
+            # that versioned guarantee off with the legacy optional flag. V6
+            # measures every call too, but keeps its per-message shaping when
+            # only the whole request's token count is not smaller (see _prepare).
             require_nonexpanding_input = True
         self.policy, self.mode, self.ponytail = policy, mode, ponytail
         self.require_nonexpanding_input = require_nonexpanding_input
@@ -715,7 +717,15 @@ class RuntimeSession:
         # augmented-wire guard can discard it. No second reducer invocation.
         projection, projection_changed, projection_reason = candidate, changed, reason
         projection_metrics = _wire_metrics(wire, after) if original_wire is not None else None
-        if changed and (after >= before or len(wire.encode("utf-8")) > len(baseline_wire.encode("utf-8"))):
+        # v6 decides each message on its own (v6_shaping). Reverting it on the whole request's token
+        # count would change earlier messages and miss the provider's cached prefix, so under v6 only
+        # the byte check applies; a shaped v6 message never adds bytes. A guidance message is not shaping:
+        # with one inserted (RuntimePolicy rejects v6 with guidance), the usual guard applies. It also
+        # applies when the shaped request would exceed max_input_tokens, so the unshaped one goes out if it fits.
+        cache_native = (self.backend == "local" and self.policy.version == "request-policy-v6" and insertion is None
+                        and (self.policy.max_input_tokens is None or after <= self.policy.max_input_tokens))
+        if changed and ((after >= before and not cache_native)
+                        or len(wire.encode("utf-8")) > len(baseline_wire.encode("utf-8"))):
             candidate, wire, after, changed = augmented, baseline_wire, before, ()
             reason = "final_wire_guard_reversion"
         candidate_reason = reason
@@ -725,9 +735,10 @@ class RuntimeSession:
         if original_wire is not None:
             if wire == original_wire:
                 composition_decision = "original_unchanged"
-            elif (after < original_tokens
+            elif ((after < original_tokens or cache_native)
                   and len(wire.encode("utf-8")) <= len(original_wire.encode("utf-8"))):
-                composition_decision = "nonexpanding_composition"
+                composition_decision = ("nonexpanding_composition" if after < original_tokens
+                                        else "cache_native_composition")
             else:
                 # Delete ONLY the message inserted by this _augment invocation,
                 # never a matching original message or required recovery schema.
