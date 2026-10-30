@@ -69,11 +69,24 @@ and the project aims to follow semantic versioning.
 
 - The launcher's lean tool set also removes `run_dynamic_workflow` and `dynamic_workflows_manage`
   (`skills/token-master/brainspace_copilot_bridge.py`). Copilot CLI sends both under default routing and, from
-  1.0.104, in every mode: 2,210 cl100k tokens on every call. None of the 60 Django sessions of October 27 called them
-  (`evidence/relay-control-20261027/`, `evidence/default-routing-20261027/`). A prompt that mentions a workflow
-  (CI workflows included), a skill or slash command, or `TOKENMASTER_KEEP_TOOLS=workflows` keeps them. Copilot CLI
-  1.0.95-3, 1.0.96-2, 1.0.98-2, 1.0.103 and 1.0.104 all accept the two names in `--excluded-tools`, including builds
-  that do not send these tools. No live run has measured the change yet, and `/tokenomics` does not count it yet.
+  1.0.104, in every mode: 2,041 cl100k tokens on every call as Copilot CLI sends them (2,210 at first, counted on JSON
+  re-serialized with spaces; `evidence/skill-agents-cost-20261029/`). None of the 60 Django sessions of October 27
+  called them (`evidence/relay-control-20261027/`, `evidence/default-routing-20261027/`). A prompt that mentions a
+  workflow (CI workflows included), a skill or slash command, or `TOKENMASTER_KEEP_TOOLS=workflows` keeps them. Copilot
+  CLI 1.0.95-3, 1.0.96-2, 1.0.98-2, 1.0.103 and 1.0.104 all accept the two names in `--excluded-tools`, including
+  builds that do not send these tools. No live run has measured the change yet, and `/tokenomics` does not count it
+  yet.
+- A prompt given with `-p` that starts a skill (a slash command, "use the X skill", or the name of a skill installed in
+  `<COPILOT_HOME>/skills`, `.github/skills` or `.claude/skills`) now also keeps the subagent tools `task`,
+  `read_agent`, `write_agent` and `list_agents` (`skills/token-master/brainspace_copilot_bridge.py`). A skill may hand
+  work to a subagent, and the lean tool set left such sessions without `task`; `TOKENMASTER_KEEP_TOOLS=skills` (or
+  `skill`) keeps them too. Requests that Copilot CLI 1.0.104 sent to a closed upstream (`gpt-6-astra`, Responses API,
+  BYOK mode) put the cost at about 2,670 cl100k tokens a call with no custom agents installed: about 1,690 for the
+  four definitions and about 985 for the subagent instructions Copilot CLI adds to its system prompt. With the
+  operator's custom agents listed in `task` it was about 5,010 (`evidence/skill-agents-cost-20261029/`). A prompt that
+  fires a skill trigger without starting a skill, such as one with a path like `/src/app.py` or a word that names an
+  installed skill (`loop`), now pays this too. `/tokenomics` still credits these sessions with the full lean saving,
+  as it does every launch whose prompt keeps a family.
 - README Quickstart: install from the marketplace (`copilot plugin marketplace add All-The-Vibes/TokenMasterX`, then
   `copilot plugin install token-master@token-master`), with a new "Prepare the runtime" step. Commands use `$HOME`
   instead of `~`, which Windows PowerShell 5.1 passes to native programs literally, and the launcher runs on the
@@ -96,7 +109,7 @@ and the project aims to follow semantic versioning.
   navigation would skip every `.rs` file without saying so. The warning names the plugin's
   `requirements-runtime.txt`, and setup still succeeds. Python-only repositories skip the check.
 - `proofs/`: Lean 4 proofs of the invariants behind tool routing, cache-safe shaping, the stable session prefix,
-  the navigation budget and the measurement method. Lean's kernel checks all 37 theorems, with no `sorry` and no
+  the navigation budget and the measurement method. Lean's kernel checks all 38 theorems, with no `sorry` and no
   added axiom. `test_proof_conformance.py` checks the proofs' hypotheses against the Python. Writing the proofs
   found eight gaps; four are fixed above, and `proofs/README.md` lists the four that remain.
 ## [0.2.0] - 2026-10-26

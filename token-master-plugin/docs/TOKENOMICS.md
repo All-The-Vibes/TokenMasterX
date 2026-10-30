@@ -81,6 +81,10 @@ have made the same model calls.
    - The `lean` calibrations were measured with those 11 tools, on builds and routing that did not send the two
      workflow tools. Where Copilot CLI sends them (default routing, and every mode from 1.0.104), the launcher now
      also removes them, about 2,000 more tokens per call, which the estimate does not count yet.
+   - A prompt can keep tool families, and the launch record does not say which. A prompt that starts a skill keeps
+     `skill`, the workflow tools and the four subagent tools; the subagent tools alone add back about 2,670 tokens a
+     call on 1.0.104 (`gpt-6-astra`, Responses API). The estimate still credits the full `lean` amount for such
+     launches.
    - Fixed tokens saved per main-agent call = `lean` (when the lean tool set was on) − `nav` (when the
      navigation tools were installed).
    - Cost saved per call = those tokens × the call's own cache-read price. Stock reads its fixed prefix from the cache

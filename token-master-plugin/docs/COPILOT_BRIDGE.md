@@ -44,9 +44,22 @@ stock sessions.
   `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`, `read_powershell`,
   `stop_powershell`, `list_powershell`, `fetch_copilot_cli_documentation`, `run_dynamic_workflow`
   and `dynamic_workflows_manage`. A prompt that matches a tool family's intent keeps that family
-  (for the workflow tools: the word "workflow", or a skill or slash command), and so does
-  `TOKENMASTER_KEEP_TOOLS` with the family's name. Copilot CLI 1.0.95-3 to 1.0.104 accept all 13
-  names, including builds that do not send the workflow tools.
+  (for the workflow tools: the word "workflow", or a skill or slash command; for the subagent tools: a
+  request for subagents, or a skill or slash command), and so does `TOKENMASTER_KEEP_TOOLS` with the
+  family's name; keeping `skills` (or `skill`) also keeps the workflow and subagent tools. Copilot CLI
+  1.0.95-3 to 1.0.104 accept all 13 names, including builds that do not send the workflow tools.
+- A skill may hand work to a subagent, so a prompt that starts one keeps the four subagent tools.
+  Measured on Copilot CLI 1.0.104 with `gpt-6-astra` over the Responses API in BYOK mode, that adds
+  about 2,670 cl100k tokens to every call with no custom agents installed: about 1,690 for the tool
+  definitions and about 985 for the subagent instructions Copilot CLI adds to its system prompt.
+  `task` lists the installed custom agents, so the cost grows with them: about 5,010 tokens a call
+  with the operator's agents
+  ([evidence/skill-agents-cost-20261029](../../evidence/skill-agents-cost-20261029/probe.py)).
+  The skill triggers also fire on some prompts that start no skill, such as a path like
+  `/src/app.py` or a word that names an installed skill (`loop`, `pdf`), and those prompts pay the
+  same. The launcher reads the prompt only from `-p` or `--prompt`; a prompt given with `-i` keeps
+  nothing. It reads installed skill names from `<COPILOT_HOME>/skills`, `.github/skills` and
+  `.claude/skills`, not from the `.agents/skills` folders that Copilot CLI 1.0.104 also loads.
 - The model keeps its shell, search, read and edit tools. In the measured runs, `gpt-6-astra`
   kept `powershell`, `rg`, `glob`, `view` and `apply_patch`. `claude-opus-5.5` kept
   `powershell`, `grep`, `glob`, `view`, `create` and `edit`. The TokenMaster navigation tools
