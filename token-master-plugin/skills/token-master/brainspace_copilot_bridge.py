@@ -3,10 +3,10 @@
 
 Lean tool set: for a Copilot CLI session, the launcher adds --excluded-tools with the built-in
 tools that no session called in the October 18 runs, and the two workflow tools that Copilot CLI
-sends under default routing and, from 1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt that
-asks for a tool family keeps it, and a prompt that starts a skill also keeps the workflow and
-subagent tools, which the skill may use. The launcher skips this with --all-tools, when the user
-already chose tools, or for a Copilot CLI subcommand.
+sends under default routing and, from 1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt given
+with -p or -i that asks for a tool family keeps it, and a prompt that starts a skill also keeps the
+workflow and subagent tools, which the skill may use. The launcher skips this with --all-tools, when
+the user already chose tools, or for a Copilot CLI subcommand.
 
 Bridge (only with a provider URL, Copilot CLI BYOK mode): Copilot CLI sends model requests to
 COPILOT_PROVIDER_BASE_URL. The bridge listens on 127.0.0.1, rewrites each OpenAI Responses or
@@ -59,6 +59,10 @@ MAX_BODY = 64 * 1024 * 1024
 _HOP = frozenset({"host", "content-length", "connection", "keep-alive", "proxy-authorization",
                   "proxy-connection", "te", "trailer", "transfer-encoding", "upgrade", "accept-encoding"})
 _LOOPBACK = ("127.0.0.1", "localhost", "::1")
+# A negated invocation names no skill or agent to keep, so it leaves the text that skill and agent names are read from:
+# "do not use the review skill", "never run `/x`", "without using auditor", "don't ask the auditor agent".
+_NEGATED = re.compile(r"(?:not|n't|n\u2019t|\bnever|\bwithout|\bdont|\bavoid)\s+(?:use|using|load|invoke|run|apply|ask)"
+                      r"\s+(?:(?:the|my|our)\s+)?[`'\"(\[]?/?[\w:-]+(?:\s+(?:skill|agent)\b)?", re.I)
 # Auxiliary Copilot CLI tool families and the intent patterns that require them.
 # Core coding tools (view, edit, create, rg, glob, powershell, report_intent) are always kept.
 CAPABILITY_GROUPS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
@@ -70,9 +74,12 @@ CAPABILITY_GROUPS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
         ("task", "read_agent", "write_agent", "list_agents"),
         re.compile(r"\b(subagents?|parallel\s+agents?|multi-agent|spawn\s+(?:an?\s+)?agent|delegate\s+to\s+(?:an?\s+)?agent|read_agent|write_agent|list_agents)\b", re.I),
     ),
+    # "use the X skill" for any X but an article, and "use the skill tool". A slash or a bare name counts only when it
+    # names an installed skill.
     "skills": (
         ("skill",),
-        re.compile(r"(?:^|\s)/[a-z][\w-]*\b|\bskill://|\b(?:use|load|invoke|run)\s+(?:the\s+)?[\w-]+\s+skill\b", re.I),
+        re.compile(r"\b(?:use|using|load|invoke|run|apply)\s+(?:(?:the|my|our)\s+)?(?:(?!(?:the|my|our)\b)[\w:-]+\s+skill"
+                   r"|skill\s+tool)\b|\bskill://", re.I),
     ),
     "sql": (
         ("sql",),
@@ -95,22 +102,77 @@ CAPABILITY_GROUPS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
 }
 LEAN_EXCLUDED_TOOLS = tuple(tool for tools, _ in CAPABILITY_GROUPS.values() for tool in tools)
 _TOOL_FLAGS = ("--available-tools", "--excluded-tools")
+# A slash command at the start of a prompt or after a space, quote or bracket, in any case, with trailing punctuation
+# ignored: "/review-pr", "`/plugin:skill`". Copilot CLI 1.0.104 treats one as a skill only when it names an installed
+# skill, so a path or a route ("/src/app.py", "POST /users") keeps nothing.
+_SLASH = re.compile(r"(?:^|[\s`'\"(\[])/([a-z0-9][\w:.-]*?)[`'\")\].,;:!?]*(?=\s|$)", re.I)
+# An installed skill or agent named right after a verb ("run humanizer", "ask the auditor"); "ask" names agents only.
+_NAMED = re.compile(r"\b(use|using|run|invoke|load|apply|ask)\s+(?:(?:the|my|our)\s+)?([a-z0-9][\w:-]*)", re.I)
+_AGENT_NAMED = re.compile(r"\b([a-z0-9][\w:-]*)\s+agent\b", re.I)  # "the auditor agent"
+# Built-in commands that, at the start of an interactive Copilot CLI 1.0.104 prompt, tell the model to use
+# task(agent_type=...); /fleet also tracks its subagents in the sql tool's todos table. /rubber-duck is unconfirmed:
+# it sent no request in that probe.
+_AGENT_COMMANDS = ("fleet", "review", "security-review", "research")
 
 
-def _installed_names(subfolder: str) -> set[str]:
-    """Installed skill or agent names in <COPILOT_HOME> and the current repository."""
-    copilot = Path(os.environ.get("COPILOT_HOME") or Path.home() / ".copilot")
-    cwd = Path.cwd()
+def _flag_values(command: list[str], *flags: str) -> list[str]:
+    """The values of these flags in a Copilot CLI command: "-p text", "--prompt text" or "--prompt=text"."""
+    rest, values = command[1:], []
+    for index, arg in enumerate(rest):
+        head, eq, val = arg.partition("=")
+        if head in flags:
+            values.append(val if eq else (rest[index + 1] if index + 1 < len(rest) else ""))
+    return values
+
+
+def _installed_names(subfolder: str, command: list[str] = ()) -> set[str]:
+    """Installed skill or agent names, from where Copilot CLI 1.0.104 loads them: .github, .agents and .claude in the
+    working folder (-C) and its parents up to the repository root, <COPILOT_HOME> (and ~/.agents while COPILOT_HOME is
+    unset), installed plugins, the --add-dir and --plugin-dir folders, and for skills also .claude/commands, the folders
+    of `copilot skill add` and COPILOT_SKILLS_DIRS, and Copilot CLI's built-in skills. A name is a folder's entry, or at
+    any depth the folder of a SKILL.md or the stem of an .agent.md file."""
+    home = os.environ.get("COPILOT_HOME")
+    copilot = Path(home) if home else Path.home() / ".copilot"
+    start = Path(os.path.abspath(Path.cwd().joinpath(*_flag_values(command, "-C")[-1:])))
+    roots = [copilot / subfolder, *([] if home else [Path.home() / ".agents" / subfolder]),
+             *(copilot / "installed-plugins").glob(f"*/*/{subfolder}"),
+             *(start / folder / ".github" / subfolder for folder in _flag_values(command, "--add-dir")),
+             *(start / folder / subfolder for folder in _flag_values(command, "--plugin-dir"))]
+    if subfolder == "skills":
+        try:  # `copilot skill add <folder>` writes {"skillDirectories": [...]} there
+            custom = json.loads((copilot / "settings.json").read_text(encoding="utf-8-sig")).get("skillDirectories")
+        except (OSError, ValueError, AttributeError):
+            custom = None
+        roots += [Path(folder) for folder in custom if isinstance(folder, str)] if isinstance(custom, list) else []
+        roots += [Path(folder.strip()) for folder in os.environ.get("COPILOT_SKILLS_DIRS", "").split(",") if folder.strip()]
+        packages = [copilot / "pkg", *([Path(os.environ["LOCALAPPDATA"]) / "copilot" / "pkg"]
+                                       if os.environ.get("LOCALAPPDATA") else [])]
+        roots += [path for package in packages for path in package.glob("*/*/builtin")]
+    profile = os.path.normcase(os.path.realpath(Path.home()))
+    for folder in (start, *start.parents):
+        # From a folder outside any repository, Copilot CLI 1.0.105 read ~/.agents/skills but not ~/.claude/skills,
+        # also from an 8.3 short path such as C:\Users\SHYAMS~1, hence the real path.
+        claude = [] if os.path.normcase(os.path.realpath(folder)) == profile else [folder / ".claude" / subfolder] + (
+            [folder / ".claude" / "commands"] if subfolder == "skills" else [])
+        roots += [folder / ".github" / subfolder, folder / ".agents" / subfolder, *claude]
+        if (folder / ".git").exists():
+            break
     names: set[str] = set()
-    for root in (copilot / subfolder, cwd / ".github" / subfolder, cwd / ".claude" / subfolder):
+    for root in dict.fromkeys(os.path.normcase(os.path.abspath(path)) for path in roots):
         try:
-            for entry in root.iterdir() if root.is_dir() else ():
-                stem = entry.name.split(".")[0].lower()
-                if len(stem) >= 3 and stem != "token-master":
-                    names.add(stem)
+            names.update(entry.name.split(".")[0].lower() for entry in os.scandir(root))
         except OSError:
-            pass
-    return names
+            continue
+        # ponytail: walks every file under each root, about 0.3 s for the 130 skills here and more from a folder
+        # outside any repository, and only when a prompt has a slash command or a verb; cache the names if launches
+        # feel it. Skills sit up to five folders deep here, so a depth cap would miss some.
+        for folder, _, files in os.walk(root):
+            if subfolder == "skills" and "SKILL.md" in files:
+                names.add(os.path.basename(folder).lower())
+            elif subfolder == "agents":
+                names.update(name.split(".")[0].lower() for name in files if name.endswith(".agent.md"))
+    # Any length: Copilot CLI 1.0.105 lists skills named `ui` and `x`, and a name counts only after a slash or a verb.
+    return {name for name in names if name}
 
 
 def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
@@ -122,25 +184,34 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
             keep.update(CAPABILITY_GROUPS[token][0])
         else:
             keep.add(token)
-    prompts: list[str] = []
-    rest = command[1:]
-    for index, arg in enumerate(rest):
-        head, eq, val = arg.partition("=")
-        if head in ("-p", "--prompt"):
-            prompts.append(val if eq else (rest[index + 1] if index + 1 < len(rest) else ""))
-        elif head == "--agent":
+    for arg in command[1:]:
+        head = arg.partition("=")[0]
+        if head in ("--agent", "--fleet"):
             keep.update(CAPABILITY_GROUPS["agents"][0])
-        elif head in ("--resume", "--continue"):
+        if head == "--fleet":  # fleet mode tracks its subagents in the sql tool's todos table
+            keep.update(CAPABILITY_GROUPS["sql"][0])
+        if head in ("--resume", "--continue") or arg[:2] == "-r":  # -r, -r ID, -rID
             keep.update(CAPABILITY_GROUPS["session_history"][0])
-    prompt_text = "\n".join(prompts).lower()
-    if prompt_text:
-        for tools, pattern in CAPABILITY_GROUPS.values():
-            if pattern.search(prompt_text):
+    prompts = [prompt.lower() for prompt in _flag_values(command, "-p", "--prompt", "-i", "--interactive")]
+    commands = {match.group(1) for prompt in prompts if (match := re.match(r"\s*/([a-z][\w-]*)(?=\s|$)", prompt))}
+    if commands & set(_AGENT_COMMANDS):
+        keep.update(CAPABILITY_GROUPS["agents"][0])
+    if "fleet" in commands:
+        keep.update(CAPABILITY_GROUPS["sql"][0])
+    prompt_text = "\n".join(prompts)
+    named_text = _NEGATED.sub(" ", " ".join(prompt_text.split()))  # skill and agent names only; other families as is
+    if prompt_text.strip():
+        for family, (tools, pattern) in CAPABILITY_GROUPS.items():
+            if pattern.search(named_text if family == "skills" else prompt_text):
                 keep.update(tools)
-        words = set(re.findall(r"[a-z0-9][\w-]*", prompt_text))
-        if words & _installed_names("skills"):
-            keep.update(CAPABILITY_GROUPS["skills"][0])
-        if words & _installed_names("agents"):
+        named = _NAMED.findall(named_text)
+        wanted = {match.group(1) for match in _SLASH.finditer(named_text)} | {n for verb, n in named if verb != "ask"}
+        if wanted:
+            skills = _installed_names("skills", command)
+            if any(name in skills or name.rsplit(":", 1)[-1] in skills for name in wanted):
+                keep.update(CAPABILITY_GROUPS["skills"][0])
+        agents = {name for _, name in named} | set(_AGENT_NAMED.findall(named_text))
+        if agents and agents & _installed_names("agents", command):
             keep.update(CAPABILITY_GROUPS["agents"][0])
     if "skill" in keep:
         # A skill or slash command may start a workflow (the workflow tools' own instructions) or hand work to a
@@ -197,13 +268,16 @@ def _nav_installed(command: list[str] = ()) -> bool:
 
 
 def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool) -> int:
-    """run_child, plus a start and an end record (folder, lean tool set, bridge, navigation tools; no prompt text)."""
+    """run_child, plus a start and an end record (folder, lean tool set and the tools it excluded, bridge, navigation
+    tools; no prompt text)."""
     if Path(command[0]).stem.lower() != "copilot":
         return run_child(parser, command, env)
     launch_id = hashlib.sha256(f"{time.time_ns()}-{os.getpid()}".encode()).hexdigest()[:16]
     now = lambda: datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")  # noqa: E731
+    # lean_command appends the flag and the tool names last; they come from LEAN_EXCLUDED_TOOLS, never from the prompt.
+    excluded = command[command.index("--excluded-tools") + 1:] if lean and "--excluded-tools" in command else []
     _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": os.getcwd(), "lean": lean,
-                    "bridge": bridge, "nav": _nav_installed(command)})
+                    "excluded": excluded, "bridge": bridge, "nav": _nav_installed(command)})
     try:
         return run_child(parser, command, env)
     finally:

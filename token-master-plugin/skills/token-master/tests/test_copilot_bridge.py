@@ -4,7 +4,9 @@ from __future__ import annotations
 import importlib.util
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import os
 from pathlib import Path
+import subprocess
 import sys
 import threading
 import urllib.error
@@ -314,12 +316,13 @@ def test_dynamic_tool_routing_keeps_capabilities_matched_by_prompt_or_flags(monk
     assert "sql" not in env_kept and "task" not in env_kept
 
 
-def test_lean_command_drops_the_workflow_tools_unless_a_workflow_is_asked_for(monkeypatch):
+def test_lean_command_drops_the_workflow_tools_unless_a_workflow_is_asked_for(monkeypatch, tmp_path):
     workflow_tools = {"run_dynamic_workflow", "dynamic_workflows_manage"}  # about 2,040 tokens a call on 1.0.104
     lookup = bridge_module.lean_command(["copilot", "-p", "Who calls validate_password? Answer with JSON."])
     assert workflow_tools <= set(lookup[lookup.index("--excluded-tools") + 1:])
+    skill_home(tmp_path, monkeypatch, "review-pr")
     for prompt in ("Run the nightly-audit workflow on this repo", "Use run_dynamic_workflow to review the diff",
-                   "Start my_audit_workflow", "/review-pr 123"):  # a slash command may start a workflow
+                   "Start my_audit_workflow", "/review-pr 123"):  # a skill's slash command may start a workflow
         assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", prompt])), prompt
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "workflows")
     assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", "hi"]))
@@ -335,13 +338,181 @@ def test_a_prompt_that_starts_a_skill_keeps_the_subagent_tools(monkeypatch, tmp_
     monkeypatch.delenv("TOKENMASTER_KEEP_TOOLS", raising=False)
     monkeypatch.setenv("COPILOT_HOME", str(tmp_path))
     monkeypatch.chdir(tmp_path)
+    (tmp_path / ".git").mkdir()
     (tmp_path / "skills" / "impeccable").mkdir(parents=True)
+    (tmp_path / "skills" / "review-pr").mkdir(parents=True)
     for prompt in ("/review-pr 123", "Use the tokenomics skill", "Run impeccable on this UI"):
         assert not agent_tools & excluded(["copilot", "-p", prompt]), prompt
     for command in (["copilot", "-p", "fix the failing test in parser.py"], ["copilot"]):
         assert agent_tools <= excluded(command), command
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "skills")
     assert not agent_tools & excluded(["copilot", "-p", "hi"])
+
+
+def skill_home(tmp_path, monkeypatch, *skills):
+    """An empty Copilot home with these skills, and a repository root as the working folder."""
+    monkeypatch.delenv("TOKENMASTER_KEEP_TOOLS", raising=False)
+    monkeypatch.delenv("COPILOT_SKILLS_DIRS", raising=False)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "localappdata"))  # no Copilot CLI package, so no built-in skills
+    monkeypatch.setenv("COPILOT_HOME", str(tmp_path / "home"))
+    (tmp_path / "home").mkdir(exist_ok=True)
+    for name in skills:
+        (tmp_path / "home" / "skills" / name).mkdir(parents=True)
+    (tmp_path / "repo" / ".git").mkdir(parents=True)
+    monkeypatch.chdir(tmp_path / "repo")
+
+
+def kept_tools(command):
+    return set(bridge_module.LEAN_EXCLUDED_TOOLS) - set(bridge_module.select_excluded_tools(command))
+
+
+def test_only_an_installed_skill_named_by_a_slash_or_a_verb_keeps_the_skill_tools(monkeypatch, tmp_path):
+    skill_home(tmp_path, monkeypatch, "loop", "humanizer", "review-pr", "token-master")
+    for prompt in ("/review-pr 123", "Please run /review-pr on 123", "/REVIEW-PR, now", "Run `/review-pr` on 123",
+                   "(/review-pr 123)", "/token-master uninstall", "Use the humanizer skill",
+                   "Review this using the humanizer skill", "Run humanizer on the README", "Use the humanizer on README.md",
+                   "Don't forget to use the humanizer skill", "Fetch skill://humanizer/notes.md",
+                   "Use the skill tool to list the available skills"):
+        assert "skill" in kept_tools(["copilot", "-p", prompt]), prompt
+    for prompt in ("Fix the bug in /src/app.py", "POST /users returns 400", "the /login route is broken",
+                   "fix the infinite loop in parser.py", "/review-prs 123", "the humanizer output looks odd",
+                   "Seed the database with sample skills", "use the skills table for the join", "ask humanizer to tidy up",
+                   "Do not use the review skill", "never run the humanizer skill on code comments",
+                   "don't use the humanizer skill", "don\u2019t use the humanizer skill", "dont use the humanizer skill",
+                   "avoid using the humanizer skill", "without using the humanizer skill", "do not  use the humanizer skill",
+                   "never run /review-pr here", "don't run `/review-pr` here", 'never use "/review-pr" here',
+                   "avoid using (/review-pr)", "Why does the launcher exclude the skill tool?"):
+        assert not kept_tools(["copilot", "-p", prompt]), prompt
+
+
+def test_one_and_two_character_skill_names_count(monkeypatch, tmp_path):
+    # Copilot CLI 1.0.105 lists skills named `ui` and `x` (PR #19 review); an explicit invocation keeps their tool too.
+    skill_home(tmp_path, monkeypatch, "ui", "x")
+    for prompt in ("/ui Review the page", "Use ui to review the page", "/x go"):
+        assert "skill" in kept_tools(["copilot", "-p", prompt]), prompt
+    for prompt in ("the ui looks off", "x marks the spot", "Fix the bug in /src/app.py"):
+        assert not kept_tools(["copilot", "-p", prompt]), prompt
+
+
+def test_a_negation_cancels_only_skill_and_agent_names(monkeypatch, tmp_path):
+    skill_home(tmp_path, monkeypatch)
+    workflow_tools = {"run_dynamic_workflow", "dynamic_workflows_manage"}
+    assert kept_tools(["copilot", "-p", "Never run the workflow on main"]) == workflow_tools
+    assert kept_tools(["copilot", "-p", "don't run subagents in parallel, run them one at a time"]) == {
+        "task", "read_agent", "write_agent", "list_agents"}
+    assert kept_tools(["copilot", "-p", "never run sql scratchpad queries against prod"]) == {"sql"}
+
+
+def test_a_prompt_given_with_i_counts_like_one_given_with_p(monkeypatch, tmp_path):
+    skill_home(tmp_path, monkeypatch, "review-pr")
+    for command in (["copilot", "-i", "/review-pr 123"], ["copilot", "--interactive=/review-pr 123"],
+                    ["copilot", "--interactive", "Use the humanizer skill"]):
+        assert "skill" in kept_tools(command), command
+    assert not kept_tools(["copilot", "-i", "fix the failing test in parser.py"])
+
+
+def test_skill_names_come_from_every_folder_copilot_cli_reads(monkeypatch, tmp_path):
+    def skill(*parts):
+        tmp_path.joinpath(*parts).mkdir(parents=True)
+        tmp_path.joinpath(*parts, "SKILL.md").write_text("---\nname: x\ndescription: x\n---\n", encoding="utf-8")
+
+    monkeypatch.delenv("TOKENMASTER_KEEP_TOOLS", raising=False)
+    monkeypatch.delenv("COPILOT_HOME", raising=False)
+    for variable in ("USERPROFILE", "HOME"):
+        monkeypatch.setenv(variable, str(tmp_path / "profile"))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "localappdata"))
+    monkeypatch.setenv("COPILOT_SKILLS_DIRS", f"{tmp_path / 'env-a'}, {tmp_path / 'env-b'}")
+    (tmp_path / ".git").mkdir()  # keeps every walk inside tmp_path
+    skill("profile", ".copilot", "skills", "group", "nested-skill")
+    skill("profile", ".agents", "skills", "home-agents-skill")
+    skill("profile", ".claude", "skills", "home-claude-skill")  # Copilot CLI does not read it
+    skill("profile", ".copilot", "installed-plugins", "market", "plug", "skills", "plugin-skill")
+    skill("localappdata", "copilot", "pkg", "win32-x64", "9.9.9", "builtin", "builtin-skill")
+    skill("env-a", "env-skill-a")
+    skill("env-b", "env-skill-b")
+    skill("custom", "custom-skill")
+    (tmp_path / "profile" / ".copilot" / "settings.json").write_text(
+        json.dumps({"skillDirectories": [str(tmp_path / "custom")]}), encoding="utf-8")
+    skill("w", ".github", "skills", "outside-skill")  # above the repository root
+    skill("w", "repo", ".agents", "skills", "repo-skill")
+    skill("w", "repo", ".github", "skills", "repo-github-skill")
+    (tmp_path / "w" / "repo" / ".claude" / "commands").mkdir(parents=True)
+    (tmp_path / "w" / "repo" / ".claude" / "commands" / "claude-command.md").write_text("Do it.", encoding="utf-8")
+    skill("w", "other", ".claude", "skills", "other-skill")
+    skill("w", "added", ".github", "skills", "added-skill")
+    skill("w", "plugin", "skills", "dir-plugin-skill")
+    for repo in ("repo", "other"):
+        (tmp_path / "w" / repo / ".git").mkdir()
+    (tmp_path / "w" / "repo" / "src").mkdir()
+    monkeypatch.chdir(tmp_path / "w" / "repo" / "src")
+    names = bridge_module._installed_names("skills")
+    assert {"nested-skill", "home-agents-skill", "plugin-skill", "builtin-skill", "env-skill-a", "env-skill-b",
+            "custom-skill", "repo-skill", "repo-github-skill", "claude-command"} <= names
+    assert not {"outside-skill", "other-skill", "added-skill", "dir-plugin-skill", "home-claude-skill"} & names
+    assert "skill" in kept_tools(["copilot", "-p", "/plug:plugin-skill go"])
+    flags = ["copilot", "-C", "../../other", "--add-dir", "../added", "--plugin-dir", str(tmp_path / "w" / "plugin")]
+    names = bridge_module._installed_names("skills", flags)
+    assert {"other-skill", "added-skill", "dir-plugin-skill"} <= names and "repo-skill" not in names
+    (tmp_path / "profile" / "work").mkdir()
+    monkeypatch.chdir(tmp_path / "profile" / "work")  # outside any repository: the walk passes the profile
+    names = bridge_module._installed_names("skills")
+    assert "home-agents-skill" in names and "home-claude-skill" not in names
+    monkeypatch.setenv("COPILOT_HOME", str(tmp_path / "profile" / ".copilot"))  # then Copilot CLI skips ~/.agents
+    monkeypatch.chdir(tmp_path / "w" / "repo")
+    names = bridge_module._installed_names("skills")
+    assert "nested-skill" in names and "home-agents-skill" not in names
+
+
+def test_the_profile_under_another_name_still_skips_its_claude_skills(monkeypatch, tmp_path):
+    """Copilot CLI 1.0.105 skipped ~/.claude/skills from an 8.3 short path too. A junction (or a symlink) gives the
+    profile a second name the same way."""
+    profile = tmp_path / "profile"
+    (profile / ".claude" / "skills" / "home-claude-skill").mkdir(parents=True)
+    (profile / ".claude" / "skills" / "home-claude-skill" / "SKILL.md").write_text("---\nname: x\n---\n", encoding="utf-8")
+    (profile / "work").mkdir()
+    (tmp_path / ".git").mkdir()
+    alias = tmp_path / "alias"
+    try:
+        if os.name == "nt":
+            subprocess.run(["cmd", "/c", "mklink", "/J", str(alias), str(profile)], check=True, capture_output=True)
+        else:
+            alias.symlink_to(profile, target_is_directory=True)
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip("cannot make a junction or a symlink here")
+    for variable in ("COPILOT_HOME", "COPILOT_SKILLS_DIRS"):
+        monkeypatch.delenv(variable, raising=False)
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "localappdata"))
+    for variable in ("USERPROFILE", "HOME"):
+        monkeypatch.setenv(variable, str(profile))
+    monkeypatch.chdir(alias / "work")
+    assert "home-claude-skill" not in bridge_module._installed_names("skills")
+
+
+def test_agent_names_need_an_invocation_too(monkeypatch, tmp_path):
+    skill_home(tmp_path, monkeypatch)
+    (tmp_path / "home" / "agents").mkdir()
+    (tmp_path / "home" / "agents" / "auditor.agent.md").write_text("# auditor", encoding="utf-8")
+    agent_tools = {"task", "read_agent", "write_agent", "list_agents"}
+    for prompt in ("Ask auditor to check this diff", "Ask the auditor to check this diff", "use auditor to verify the fix",
+                   "the auditor agent should look"):
+        assert kept_tools(["copilot", "-p", prompt]) == agent_tools, prompt
+    for prompt in ("the auditor report is wrong", "do not use auditor for this", "don't ask the auditor agent"):
+        assert not kept_tools(["copilot", "-p", prompt]), prompt
+
+
+def test_fleet_agent_commands_and_short_resume_keep_what_they_use(monkeypatch, tmp_path):
+    skill_home(tmp_path, monkeypatch)
+    agent_tools = {"task", "read_agent", "write_agent", "list_agents"}
+    # In an interactive Copilot CLI 1.0.104 session these commands tell the model to use task(agent_type=...), and fleet
+    # mode tracks its subagents in the sql tool's todos table (evidence/skill-trigger-20261029/tty_captures.json).
+    for command in (["copilot", "--fleet", "-p", "Add docstrings"], ["copilot", "-i", "/fleet Add docstrings"]):
+        assert kept_tools(command) == agent_tools | {"sql"}, command
+    for prompt in ("/review", "/security-review", "/research how does parse work"):
+        assert kept_tools(["copilot", "-p", prompt]) == agent_tools, prompt
+    for prompt in ("/rubber-duck critique app.py", "POST /review returns 500", "check the /fleet status page"):
+        assert not kept_tools(["copilot", "-p", prompt]), prompt  # unconfirmed, or not at the start
+    for command in (["copilot", "-r"], ["copilot", "-r", "abc123"], ["copilot", "-rabc123"]):
+        assert kept_tools(command) == {"session_store_sql"}, command
 
 
 def test_without_a_provider_url_the_launcher_runs_the_command_directly(monkeypatch):

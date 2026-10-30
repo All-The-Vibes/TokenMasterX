@@ -62,7 +62,7 @@ it is `! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "<python>" "<
 | --- | --- | --- |
 | `<COPILOT_HOME>/session-store.db`, table `assistant_usage_events` | Copilot CLI, for every model call | Model, API, token counts, cache reads and writes, GitHub's charge and price per token type |
 | `<COPILOT_HOME>/session-store.db`, table `sessions` | Copilot CLI | Session folder and repository |
-| `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, and whether the lean tool set, the bridge and the navigation tools were on |
+| `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, whether the lean tool set, the bridge and the navigation tools were on, and which tools the lean tool set excluded |
 
 - The dashboard opens the database read-only. If Copilot CLI holds it, the dashboard reads a private copy.
 - The launch records hold no prompt text. A session counts as a TokenMaster session if its folder matches a launch
@@ -81,12 +81,18 @@ have made the same model calls.
    - The `lean` calibrations were measured with those 11 tools, on builds and routing that did not send the two
      workflow tools. Where Copilot CLI sends them (default routing, and every mode from 1.0.104), the launcher now
      also removes them, about 2,000 more tokens per call, which the estimate does not count yet.
-   - A prompt can keep tool families, and the launch record does not say which. A prompt that starts a skill keeps
-     `skill`, the workflow tools and the four subagent tools; the subagent tools alone add back about 2,670 tokens a
-     call on 1.0.104 (`gpt-6-astra`, Responses API). The estimate still credits the full `lean` amount for such
-     launches.
-   - Fixed tokens saved per main-agent call = `lean` (when the lean tool set was on) − `nav` (when the
-     navigation tools were installed).
+   - A prompt or a flag can keep some of the 11 tools: a prompt that starts a skill keeps `skill`, the workflow tools
+     and the four subagent tools. The launch record lists the tools that the launcher excluded (names only), and the
+     estimate credits their share of `lean`. Each of the 11 tools has a weight, `LEAN_WEIGHTS` in `tokenomics.py`:
+     what keeping it adds to a call on Copilot CLI 1.0.104 (`gpt-6-astra`, Responses API, three skills installed),
+     its family's cost split over the family's tools by definition size (`evidence/skill-trigger-20261029/`). A
+     launch that kept the four subagent tools gets 56% of `lean`; one whose prompt started a skill (`skill` and the
+     subagent tools), 48%; one started with `--fleet` (the subagent tools and `sql`), 44%. Launch records written
+     before this change do not list the tools, and get the full `lean`.
+   - The weights come from 1.0.104, `lean` from 1.0.98, and one set of weights serves both APIs. `skill` weighs 438
+     with three skills installed; with the 128 skills of the test machine, keeping it adds about 3,990 tokens.
+   - Fixed tokens saved per main-agent call = `lean` × the excluded tools' share (when the lean tool set was on) −
+     `nav` (when the navigation tools were installed).
    - Cost saved per call = those tokens × the call's own cache-read price. Stock reads its fixed prefix from the cache
      after its first call.
 2. **First call, per session.** The first call of a session writes most of its prompt to GitHub's cache.

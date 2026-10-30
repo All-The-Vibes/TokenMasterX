@@ -65,7 +65,10 @@ def fallback_counter(monkeypatch):
 @pytest.fixture
 def no_installed_assets(tmp_path, monkeypatch):
     monkeypatch.setenv("COPILOT_HOME", str(tmp_path / "copilot-home"))
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "localappdata"))  # no Copilot CLI package: no built-in skills
+    monkeypatch.delenv("COPILOT_SKILLS_DIRS", raising=False)
     monkeypatch.chdir(tmp_path)
+    (tmp_path / ".git").mkdir()  # a repository root: Copilot CLI's skill folders above it are not read
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
 
 
@@ -86,10 +89,12 @@ def test_routing_fired_families_are_kept(no_installed_assets):
 
 
 def test_routing_flags_environment_and_workflows(no_installed_assets, monkeypatch):
-    """Routing.fired_family_kept for --agent and --resume, Routing.env_tool_kept, Routing.workflows_follow_skill and
-    Routing.agents_follow_skill."""
+    """Routing.fired_family_kept for --agent, --fleet, --resume and -r, Routing.env_tool_kept,
+    Routing.workflows_follow_skill and Routing.agents_follow_skill."""
     assert not set(FAMILIES["agents"]) & set(bridge.select_excluded_tools(["copilot", "--agent", "x"]))
-    assert "session_store_sql" not in bridge.select_excluded_tools(["copilot", "--resume"])
+    assert not {"sql", *FAMILIES["agents"]} & set(bridge.select_excluded_tools(["copilot", "--fleet"]))
+    for flag in ("--resume", "-r"):
+        assert "session_store_sql" not in bridge.select_excluded_tools(["copilot", flag])
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "sql,skill")
     excluded = bridge.select_excluded_tools(["copilot"])
     assert not {"sql", "skill", "run_dynamic_workflow", "dynamic_workflows_manage", *FAMILIES["agents"]} & set(excluded)

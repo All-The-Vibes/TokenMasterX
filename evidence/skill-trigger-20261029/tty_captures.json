@@ -1,0 +1,550 @@
+{
+ "probe": "first requests of -i sessions in a console window, Copilot CLI 1.0.104",
+ "results": {
+  "tty-fleet": {
+   "args": [
+    "-i",
+    "/fleet Add a docstring to every function in src/app.py."
+   ],
+   "edited": false,
+   "captured": 4,
+   "requests": [
+    {
+     "request_cl100k_tokens": 14598,
+     "system_cl100k_tokens": 6233,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:01.412-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14598,
+     "system_cl100k_tokens": 6233,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:01.412-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14598,
+     "system_cl100k_tokens": 6233,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:01.412-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+    }
+   ]
+  },
+  "tty-demo": {
+   "args": [
+    "-i",
+    "/demo-skill README.md"
+   ],
+   "edited": false,
+   "captured": 3,
+   "requests": [
+    {
+     "request_cl100k_tokens": 14190,
+     "system_cl100k_tokens": 6231,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [
+      "user"
+     ],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:18.139-05:00</current_datetime>\\n\\nThe user explicitly invoked the \\\"/demo-skill\\\" skill. Follow its instructions now.\\n\\n<skill-context name=\\\"demo-skill\\\">\\nBase directory for this skill: C:\\\\tm-lanes\\\\skill-trigger\\\\home\\\\copilot\\\\skills\\\\demo-skill\\n\\nDEMO-SKILL-BODY-7731: read the named file and report its first line.\\n\\n\\nARGUMENTS: README.md\\n</skill-context>\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14190,
+     "system_cl100k_tokens": 6231,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [
+      "user"
+     ],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:18.139-05:00</current_datetime>\\n\\nThe user explicitly invoked the \\\"/demo-skill\\\" skill. Follow its instructions now.\\n\\n<skill-context name=\\\"demo-skill\\\">\\nBase directory for this skill: C:\\\\tm-lanes\\\\skill-trigger\\\\home\\\\copilot\\\\skills\\\\demo-skill\\n\\nDEMO-SKILL-BODY-7731: read the named file and report its first line.\\n\\n\\nARGUMENTS: README.md\\n</skill-context>\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14190,
+     "system_cl100k_tokens": 6231,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [
+      "user"
+     ],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:18.139-05:00</current_datetime>\\n\\nThe user explicitly invoked the \\\"/demo-skill\\\" skill. Follow its instructions now.\\n\\n<skill-context name=\\\"demo-skill\\\">\\nBase directory for this skill: C:\\\\tm-lanes\\\\skill-trigger\\\\home\\\\copilot\\\\skills\\\\demo-skill\\n\\nDEMO-SKILL-BODY-7731: read the named file and report its first line.\\n\\n\\nARGUMENTS: README.md\\n</skill-context>\"}]"
+    }
+   ]
+  },
+  "tty-review": {
+   "args": [
+    "-i",
+    "/review"
+   ],
+   "edited": true,
+   "captured": 4,
+   "requests": [
+    {
+     "request_cl100k_tokens": 14128,
+     "system_cl100k_tokens": 6232,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:33.174-05:00</current_datetime>\\n\\nThe user has requested a code review via the /review command. Use the task tool with agent_type: \\\"code-review\\\" to perform a code review.\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14128,
+     "system_cl100k_tokens": 6232,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:33.174-05:00</current_datetime>\\n\\nThe user has requested a code review via the /review command. Use the task tool with agent_type: \\\"code-review\\\" to perform a code review.\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14128,
+     "system_cl100k_tokens": 6232,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:33.174-05:00</current_datetime>\\n\\nThe user has requested a code review via the /review command. Use the task tool with agent_type: \\\"code-review\\\" to perform a code review.\"}]"
+    }
+   ]
+  },
+  "tty-security-review": {
+   "args": [
+    "-i",
+    "/security-review"
+   ],
+   "edited": true,
+   "captured": 3,
+   "requests": [
+    {
+     "request_cl100k_tokens": 14443,
+     "system_cl100k_tokens": 6232,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:47.996-05:00</current_datetime>\\n\\nThe user has requested a security-focused code review via the /security-review command. Use the task tool with agent_type: \\\"security-review\\\" to perform the review. Analyze staged and unstaged changes for high-confidence security vulnerabilities.\\n\\nAfter the security review task completes, you MUST present the findings as a summary table using this exact format. Use the emoji indicators shown below for each severity level \u2014 these MUST be used exactly as specified for consistent color coding:\\n\\n- \ud83d\udd34 CRITICAL\\n- \ud83d\udfe0 HIGH\\n- \ud83d\udfe1 MEDIUM\\n- \u26aa LOW\\n\\n| # | Severity | File | Lines | Vulnerability | Confidence |\\n|---|----------|------|-------|---------------|------------|\\n| 1 | \ud83d\udd34 CRITICAL | src/auth.ts | 42-45 | SQL injection in user query | 9/10 |\\n| 2 | \ud83d\udfe0 HIGH     | src/api.ts  | 12    | Missing input validation    | 8/10 |\\n\\nThen, if any issues were found, use the ask_user tool (if available) to offer follow-up actions with these choices:\\n- \\\"Fix highest severity issues\\\" \u2014 If selected, list the top issues ranked by severity then confidence, and ask which to fix. Then implement the fixes.\\n- \\\"Fix all issues\\\" \u2014 Implement fixes for all reported vulnerabilities with minimal, surgical changes.\\n- \\\"Commit a summary of findings\\\" \u2014 Create a SECURITY-REVIEW.md file documenting all findings and commit it.\\n\\nIf the ask_user tool is not available, present the follow-up options as a numbered list and ask the user to reply with their choice.\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14443,
+     "system_cl100k_tokens": 6232,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:47.996-05:00</current_datetime>\\n\\nThe user has requested a security-focused code review via the /security-review command. Use the task tool with agent_type: \\\"security-review\\\" to perform the review. Analyze staged and unstaged changes for high-confidence security vulnerabilities.\\n\\nAfter the security review task completes, you MUST present the findings as a summary table using this exact format. Use the emoji indicators shown below for each severity level \u2014 these MUST be used exactly as specified for consistent color coding:\\n\\n- \ud83d\udd34 CRITICAL\\n- \ud83d\udfe0 HIGH\\n- \ud83d\udfe1 MEDIUM\\n- \u26aa LOW\\n\\n| # | Severity | File | Lines | Vulnerability | Confidence |\\n|---|----------|------|-------|---------------|------------|\\n| 1 | \ud83d\udd34 CRITICAL | src/auth.ts | 42-45 | SQL injection in user query | 9/10 |\\n| 2 | \ud83d\udfe0 HIGH     | src/api.ts  | 12    | Missing input validation    | 8/10 |\\n\\nThen, if any issues were found, use the ask_user tool (if available) to offer follow-up actions with these choices:\\n- \\\"Fix highest severity issues\\\" \u2014 If selected, list the top issues ranked by severity then confidence, and ask which to fix. Then implement the fixes.\\n- \\\"Fix all issues\\\" \u2014 Implement fixes for all reported vulnerabilities with minimal, surgical changes.\\n- \\\"Commit a summary of findings\\\" \u2014 Create a SECURITY-REVIEW.md file documenting all findings and commit it.\\n\\nIf the ask_user tool is not available, present the follow-up options as a numbered list and ask the user to reply with their choice.\"}]"
+    },
+    {
+     "request_cl100k_tokens": 14443,
+     "system_cl100k_tokens": 6232,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:05:47.996-05:00</current_datetime>\\n\\nThe user has requested a security-focused code review via the /security-review command. Use the task tool with agent_type: \\\"security-review\\\" to perform the review. Analyze staged and unstaged changes for high-confidence security vulnerabilities.\\n\\nAfter the security review task completes, you MUST present the findings as a summary table using this exact format. Use the emoji indicators shown below for each severity level \u2014 these MUST be used exactly as specified for consistent color coding:\\n\\n- \ud83d\udd34 CRITICAL\\n- \ud83d\udfe0 HIGH\\n- \ud83d\udfe1 MEDIUM\\n- \u26aa LOW\\n\\n| # | Severity | File | Lines | Vulnerability | Confidence |\\n|---|----------|------|-------|---------------|------------|\\n| 1 | \ud83d\udd34 CRITICAL | src/auth.ts | 42-45 | SQL injection in user query | 9/10 |\\n| 2 | \ud83d\udfe0 HIGH     | src/api.ts  | 12    | Missing input validation    | 8/10 |\\n\\nThen, if any issues were found, use the ask_user tool (if available) to offer follow-up actions with these choices:\\n- \\\"Fix highest severity issues\\\" \u2014 If selected, list the top issues ranked by severity then confidence, and ask which to fix. Then implement the fixes.\\n- \\\"Fix all issues\\\" \u2014 Implement fixes for all reported vulnerabilities with minimal, surgical changes.\\n- \\\"Commit a summary of findings\\\" \u2014 Create a SECURITY-REVIEW.md file documenting all findings and commit it.\\n\\nIf the ask_user tool is not available, present the follow-up options as a numbered list and ask the user to reply with their choice.\"}]"
+    }
+   ]
+  },
+  "tty-research": {
+   "args": [
+    "-i",
+    "/research how does src/app.py split its input"
+   ],
+   "edited": false,
+   "captured": 3,
+   "requests": [
+    {
+     "request_cl100k_tokens": 17196,
+     "system_cl100k_tokens": 6230,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:06:01.791-05:00</current_datetime>\\n\\n<orchestrator_constraint>\\n## MANDATORY CONSTRAINT \u2014 READ BEFORE DOING ANYTHING\\n\\nYou are a **RESEARCH ORCHESTRATOR**. You delegate ALL investigation to the research subagent. Think of yourself as an experienced project manager with an understanding of how to create thorough research reports. You plan research tasks, then delegate to a specialized researcher for execution. This is very important.\\n\\n**You are ONLY allowed to use these tools:**\\n| Tool | Purpose |\\n|------|---------|\\n| `task` | Dispatch the research subagent (agent_type: \\\"research\\\") |\\n| `create` / `apply_patch` / `str_replace_editor` | Save the final report to a file \u2014 use whichever one is in your tool list |\\n| `view` | ONLY for reading task output temp files from subagents (paths under the system temp directory, e.g. /tmp/ on Linux, /var/folders/ or /private/var/ on macOS, C:\\\\Users\\\\<user>\\\\AppData\\\\Local\\\\Temp\\\\ on Windows) |\\n\\n**You must NEVER use ANY of these tools \u2014 not even once:**\\n- `bash` \u2014 forbidden (the research directory already exists)\\n- `grep`, `glob` \u2014 forbidden (delegate to subagent)\\n- `web_fetch`, `web_search` \u2014 forbidden (delegate to subagent)\\n- `github-mcp-server-*` (any GitHub tool) \u2014 forbidden (delegate to subagent)\\n- `read_agent` \u2014 forbidden (use sync mode, not background)\\n- `ask_user` \u2014 forbidden (fully autonomous workflow)\\n- Any other tool not in the allowed list above\\n\\n**`view` restriction:** You may ONLY use `view` to read task tool output files (temp file paths). Do NOT use `view` on source code, repos, or any other file.\\n\\n**If you catch yourself about to use a forbidden tool, STOP and dispatch a research subagent instead.**\\n\\nThis constraint applies for the ENTIRE session. There are no exceptions.\\n</orchestrator_constraint>\\n\\n<research_task>\\nThe user has requested deep research on the following topic:\\n\\n**how does src/app.py split its input**\\n\\n**Note:** GitHub search tools are not available for the research subagent. Instruct it to use local tools only (grep, glob, view) to search within the current repository.\\n\\nYour job is to plan the research, delegate search work to the research subagent via the `task` tool, evaluate findings, and synthesize a comprehensive report.\\n</research_task>\\n\\n<research_orchestration_instructions>\\n\\n## Fully Autonomous Operation\\n\\nThis is a completely autonomous research workflow:\\n- Work with the research query as given\\n- Make reasonable assumptions when details are unclear\\n- Note assumptions in your final Confidence Assessment\\n\\n## Step 1: Classify the Research Query\\n\\nIdentify the query type to determine research scope and final report structure:\\n\\n**Query Type 1: Process/How-to Questions**\\nExamples: \\\"How do I raise rate limits?\\\", \\\"How do I get access to X?\\\"\\n- Focus on steps, procedures, contacts, policies, runbooks\\n- Code/diagrams only if directly relevant\\n\\n**Query Type 2: Concept"
+    },
+    {
+     "request_cl100k_tokens": 17196,
+     "system_cl100k_tokens": 6230,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:06:01.791-05:00</current_datetime>\\n\\n<orchestrator_constraint>\\n## MANDATORY CONSTRAINT \u2014 READ BEFORE DOING ANYTHING\\n\\nYou are a **RESEARCH ORCHESTRATOR**. You delegate ALL investigation to the research subagent. Think of yourself as an experienced project manager with an understanding of how to create thorough research reports. You plan research tasks, then delegate to a specialized researcher for execution. This is very important.\\n\\n**You are ONLY allowed to use these tools:**\\n| Tool | Purpose |\\n|------|---------|\\n| `task` | Dispatch the research subagent (agent_type: \\\"research\\\") |\\n| `create` / `apply_patch` / `str_replace_editor` | Save the final report to a file \u2014 use whichever one is in your tool list |\\n| `view` | ONLY for reading task output temp files from subagents (paths under the system temp directory, e.g. /tmp/ on Linux, /var/folders/ or /private/var/ on macOS, C:\\\\Users\\\\<user>\\\\AppData\\\\Local\\\\Temp\\\\ on Windows) |\\n\\n**You must NEVER use ANY of these tools \u2014 not even once:**\\n- `bash` \u2014 forbidden (the research directory already exists)\\n- `grep`, `glob` \u2014 forbidden (delegate to subagent)\\n- `web_fetch`, `web_search` \u2014 forbidden (delegate to subagent)\\n- `github-mcp-server-*` (any GitHub tool) \u2014 forbidden (delegate to subagent)\\n- `read_agent` \u2014 forbidden (use sync mode, not background)\\n- `ask_user` \u2014 forbidden (fully autonomous workflow)\\n- Any other tool not in the allowed list above\\n\\n**`view` restriction:** You may ONLY use `view` to read task tool output files (temp file paths). Do NOT use `view` on source code, repos, or any other file.\\n\\n**If you catch yourself about to use a forbidden tool, STOP and dispatch a research subagent instead.**\\n\\nThis constraint applies for the ENTIRE session. There are no exceptions.\\n</orchestrator_constraint>\\n\\n<research_task>\\nThe user has requested deep research on the following topic:\\n\\n**how does src/app.py split its input**\\n\\n**Note:** GitHub search tools are not available for the research subagent. Instruct it to use local tools only (grep, glob, view) to search within the current repository.\\n\\nYour job is to plan the research, delegate search work to the research subagent via the `task` tool, evaluate findings, and synthesize a comprehensive report.\\n</research_task>\\n\\n<research_orchestration_instructions>\\n\\n## Fully Autonomous Operation\\n\\nThis is a completely autonomous research workflow:\\n- Work with the research query as given\\n- Make reasonable assumptions when details are unclear\\n- Note assumptions in your final Confidence Assessment\\n\\n## Step 1: Classify the Research Query\\n\\nIdentify the query type to determine research scope and final report structure:\\n\\n**Query Type 1: Process/How-to Questions**\\nExamples: \\\"How do I raise rate limits?\\\", \\\"How do I get access to X?\\\"\\n- Focus on steps, procedures, contacts, policies, runbooks\\n- Code/diagrams only if directly relevant\\n\\n**Query Type 2: Concept"
+    },
+    {
+     "request_cl100k_tokens": 17196,
+     "system_cl100k_tokens": 6230,
+     "available_skills_cl100k_tokens": 241,
+     "tool_cl100k_tokens": {
+      "powershell": 638,
+      "read_powershell": 233,
+      "stop_powershell": 106,
+      "list_powershell": 91,
+      "apply_patch": 251,
+      "view": 197,
+      "fetch_copilot_cli_documentation": 51,
+      "skill": 190,
+      "run_dynamic_workflow": 1192,
+      "dynamic_workflows_manage": 849,
+      "sql": 153,
+      "session_store_sql": 1620,
+      "read_agent": 295,
+      "list_agents": 273,
+      "write_agent": 500,
+      "rg": 352,
+      "glob": 125,
+      "task": 635
+     },
+     "roles": [
+      "system",
+      "user"
+     ],
+     "marker_in": [],
+     "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are an interactive tool that helps users with software engineering tasks.\\n\\n# Tone and style\\n* Lead with th",
+     "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T22:06:01.791-05:00</current_datetime>\\n\\n<orchestrator_constraint>\\n## MANDATORY CONSTRAINT \u2014 READ BEFORE DOING ANYTHING\\n\\nYou are a **RESEARCH ORCHESTRATOR**. You delegate ALL investigation to the research subagent. Think of yourself as an experienced project manager with an understanding of how to create thorough research reports. You plan research tasks, then delegate to a specialized researcher for execution. This is very important.\\n\\n**You are ONLY allowed to use these tools:**\\n| Tool | Purpose |\\n|------|---------|\\n| `task` | Dispatch the research subagent (agent_type: \\\"research\\\") |\\n| `create` / `apply_patch` / `str_replace_editor` | Save the final report to a file \u2014 use whichever one is in your tool list |\\n| `view` | ONLY for reading task output temp files from subagents (paths under the system temp directory, e.g. /tmp/ on Linux, /var/folders/ or /private/var/ on macOS, C:\\\\Users\\\\<user>\\\\AppData\\\\Local\\\\Temp\\\\ on Windows) |\\n\\n**You must NEVER use ANY of these tools \u2014 not even once:**\\n- `bash` \u2014 forbidden (the research directory already exists)\\n- `grep`, `glob` \u2014 forbidden (delegate to subagent)\\n- `web_fetch`, `web_search` \u2014 forbidden (delegate to subagent)\\n- `github-mcp-server-*` (any GitHub tool) \u2014 forbidden (delegate to subagent)\\n- `read_agent` \u2014 forbidden (use sync mode, not background)\\n- `ask_user` \u2014 forbidden (fully autonomous workflow)\\n- Any other tool not in the allowed list above\\n\\n**`view` restriction:** You may ONLY use `view` to read task tool output files (temp file paths). Do NOT use `view` on source code, repos, or any other file.\\n\\n**If you catch yourself about to use a forbidden tool, STOP and dispatch a research subagent instead.**\\n\\nThis constraint applies for the ENTIRE session. There are no exceptions.\\n</orchestrator_constraint>\\n\\n<research_task>\\nThe user has requested deep research on the following topic:\\n\\n**how does src/app.py split its input**\\n\\n**Note:** GitHub search tools are not available for the research subagent. Instruct it to use local tools only (grep, glob, view) to search within the current repository.\\n\\nYour job is to plan the research, delegate search work to the research subagent via the `task` tool, evaluate findings, and synthesize a comprehensive report.\\n</research_task>\\n\\n<research_orchestration_instructions>\\n\\n## Fully Autonomous Operation\\n\\nThis is a completely autonomous research workflow:\\n- Work with the research query as given\\n- Make reasonable assumptions when details are unclear\\n- Note assumptions in your final Confidence Assessment\\n\\n## Step 1: Classify the Research Query\\n\\nIdentify the query type to determine research scope and final report structure:\\n\\n**Query Type 1: Process/How-to Questions**\\nExamples: \\\"How do I raise rate limits?\\\", \\\"How do I get access to X?\\\"\\n- Focus on steps, procedures, contacts, policies, runbooks\\n- Code/diagrams only if directly relevant\\n\\n**Query Type 2: Concept"
+    }
+   ]
+  },
+  "tty-rubber-duck": {
+   "args": [
+    "-i",
+    "/rubber-duck critique src/app.py"
+   ],
+   "edited": false,
+   "captured": 0,
+   "requests": []
+  }
+ }
+}

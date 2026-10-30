@@ -34,20 +34,80 @@ installed. Against stock Copilot CLI, they used about half the raw tokens
    ([TOKENOMICS.md](TOKENOMICS.md)).
 
 The launcher appends a start record and an end record for each Copilot CLI launch to
-`<COPILOT_HOME>/token-master/launches.jsonl`: time, folder, and whether the lean tool set, the bridge and the
-navigation tools were on. The records hold no prompt text. `/tokenomics` uses them to tell TokenMaster sessions from
-stock sessions.
+`<COPILOT_HOME>/token-master/launches.jsonl`: time, folder, whether the lean tool set, the bridge and the navigation
+tools were on, and the names of the tools that the lean tool set excluded. The records hold no prompt text.
+`/tokenomics` uses them to tell TokenMaster sessions from stock sessions, and to credit only the tools a launch
+removed.
 
 ## Lean tool set
 
 - The launcher adds `--excluded-tools` with these tools: `session_store_sql`, `task`,
   `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`, `read_powershell`,
   `stop_powershell`, `list_powershell`, `fetch_copilot_cli_documentation`, `run_dynamic_workflow`
-  and `dynamic_workflows_manage`. A prompt that matches a tool family's intent keeps that family
-  (for the workflow tools: the word "workflow", or a skill or slash command; for the subagent tools: a
-  request for subagents, or a skill or slash command), and so does `TOKENMASTER_KEEP_TOOLS` with the
-  family's name; keeping `skills` (or `skill`) also keeps the workflow and subagent tools. Copilot CLI
-  1.0.95-3 to 1.0.104 accept all 13 names, including builds that do not send the workflow tools.
+  and `dynamic_workflows_manage`. A prompt given with `-p`, `--prompt`, `-i` or `--interactive` that
+  matches a tool family's intent keeps that family (for the workflow tools: the word "workflow"; for the
+  subagent tools: a request for subagents), and so does `TOKENMASTER_KEEP_TOOLS` with the family's name.
+  A prompt that starts a skill keeps `skill`, and keeping `skills` (or `skill`) also keeps the workflow
+  and subagent tools. Copilot CLI 1.0.95-3 to 1.0.104 accept all 13 names, including builds that do not
+  send the workflow tools.
+- A prompt starts a skill when it holds one of these:
+  - a slash command that names an installed skill, in any case, at the start of the prompt or after a
+    space, quote, backtick or bracket: `/review-pr 123`, ``run `/review-pr` on 123``, `/plugin:skill`;
+  - "use", "using", "load", "invoke", "run" or "apply", then a name and "skill", as in
+    `use the humanizer skill`;
+  - an installed skill's name right after one of those verbs, with or without "the", "my" or "our"
+    in between: `run humanizer on the README`, `use the humanizer on README.md`;
+  - "use the skill tool" (or another of those verbs), or `skill://`.
+
+  Before it looks for skill and agent names, the launcher drops each negated invocation: "not", "n't",
+  "never", "without", "dont" or "avoid", then one of those verbs or "ask", then a name. So
+  `do not use the review skill` and ``never run `/review-pr` `` keep nothing, while the other families
+  still see the whole prompt: `never run the workflow on main` keeps the workflow tools. Paths and
+  routes keep nothing (`/src/app.py`, `POST /users`, `the /login route`), and so does an installed
+  skill's name used as a plain word (`fix the infinite loop in parser.py` with a `loop` skill
+  installed). Some prompts still keep the skill tools without starting a skill, for example
+  `the asyncio run loop hangs` and `use pdf export` when `loop` and `pdf` are installed. With the 127
+  skills that Copilot CLI listed on the test machine, the 145 coding prompts in this repository's evals
+  kept the skill tools twice under the earlier rules (both times for `loop`) and never under these
+  ([evidence/skill-trigger-20261029](../../evidence/skill-trigger-20261029/corpus_check.py)).
+- The slash command needs `skill`. In prompt mode (`-p`), Copilot CLI 1.0.104 passes it to the model
+  as text, and lists the installed skills in its system prompt only while `skill` is kept, so without
+  `skill` the model cannot load the skill. In an interactive session in a terminal, Copilot CLI puts
+  the skill's text into the prompt itself; its changelog says skill commands work mid-input from
+  1.0.44 and in any case from 1.0.71. Keeping `skill` adds 438 cl100k tokens a call with three skills
+  installed and about 3,990 with the test machine's 128 skills, of which Copilot CLI listed 20; almost
+  all of it is the list of skills. With the workflow and subagent tools, a prompt that starts a skill
+  costs about 5,150 to 8,700 tokens a call with no custom agents installed, and about 11,000 with the
+  operator's agents listed in `task` (`gpt-6-astra`, Responses API, BYOK mode;
+  [evidence/skill-trigger-20261029](../../evidence/skill-trigger-20261029/probe.py)).
+- The launcher reads installed skill names where Copilot CLI looks for them, at any depth:
+  `.github/skills`, `.agents/skills` and `.claude/skills` in the working folder (or the `-C` folder) and
+  each folder above it up to the repository root, except `~/.claude/skills`; `.claude/commands`, whose
+  files Copilot CLI 1.0.105 loads as skills; `<COPILOT_HOME>/skills`; `~/.agents/skills` while
+  `COPILOT_HOME` is unset; installed plugins; the `.github/skills` folder of each `--add-dir` folder and
+  the `skills` folder of each `--plugin-dir` folder; the folders of `copilot skill add`
+  (`skillDirectories` in `<COPILOT_HOME>/settings.json`) and of `COPILOT_SKILLS_DIRS`, which separates
+  them with commas; and Copilot CLI's built-in skills. Names of any length count: Copilot CLI 1.0.105
+  lists one- and two-letter skill names such as `ui`. In six setups it found every skill that
+  `copilot skill list` (Copilot CLI 1.0.105) showed, and 1 to 7 names more, which count only after a
+  slash or a verb. It reads the folders only for a prompt with a slash command or one of those verbs,
+  in under 0.4 s here
+  ([evidence/skill-trigger-20261029](../../evidence/skill-trigger-20261029/scan_check.py)).
+- Custom-agent names follow the same rule. An installed agent's name keeps the subagent tools right
+  after one of those verbs or "ask", with or without "the", "my" or "our" in between
+  (`ask the auditor to check this diff`), or right before "agent" (`the auditor agent`). A name that
+  only appears in the prompt, or follows a negation, keeps nothing.
+- Some flags and commands keep a family by themselves. `--agent` keeps the subagent tools. `--fleet`
+  keeps them and `sql`, and so does `/fleet` at the start of a prompt: fleet mode tells the model to
+  dispatch subagents with `task` and to track them in the `sql` tool's `todos` table. `/review`,
+  `/security-review` and `/research` at the start of a prompt keep the subagent tools: in an
+  interactive Copilot CLI 1.0.104 session each tells the model to use `task` with the agent type of the
+  same name (`code-review` for `/review`). The same text later in a prompt, as in
+  `POST /review returns 500`, keeps nothing. `/rubber-duck` is unconfirmed and keeps nothing: it sent no
+  request in that probe. `--resume`, `-r` (also `-r ID` and `-rID`) and `--continue` keep session
+  history.
+- The launcher sees only the prompt it is given. Prompts typed later in an interactive session, and a
+  prompt piped on stdin, keep nothing: pass `--all-tools` or set `TOKENMASTER_KEEP_TOOLS` for those.
 - A skill may hand work to a subagent, so a prompt that starts one keeps the four subagent tools.
   Measured on Copilot CLI 1.0.104 with `gpt-6-astra` over the Responses API in BYOK mode, that adds
   about 2,670 cl100k tokens to every call with no custom agents installed: about 1,690 for the tool
@@ -55,11 +115,6 @@ stock sessions.
   `task` lists the installed custom agents, so the cost grows with them: about 5,010 tokens a call
   with the operator's agents
   ([evidence/skill-agents-cost-20261029](../../evidence/skill-agents-cost-20261029/probe.py)).
-  The skill triggers also fire on some prompts that start no skill, such as a path like
-  `/src/app.py` or a word that names an installed skill (`loop`, `pdf`), and those prompts pay the
-  same. The launcher reads the prompt only from `-p` or `--prompt`; a prompt given with `-i` keeps
-  nothing. It reads installed skill names from `<COPILOT_HOME>/skills`, `.github/skills` and
-  `.claude/skills`, not from the `.agents/skills` folders that Copilot CLI 1.0.104 also loads.
 - The model keeps its shell, search, read and edit tools. In the measured runs, `gpt-6-astra`
   kept `powershell`, `rg`, `glob`, `view` and `apply_patch`. `claude-opus-5.5` kept
   `powershell`, `grep`, `glob`, `view`, `create` and `edit`. The TokenMaster navigation tools

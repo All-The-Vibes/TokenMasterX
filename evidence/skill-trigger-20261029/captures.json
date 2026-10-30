@@ -1,0 +1,2668 @@
+{
+ "probe": "first requests to a closed upstream, Copilot CLI 1.0.104",
+ "version": "GitHub Copilot CLI 1.0.104.",
+ "model": "gpt-6-astra",
+ "bridge_sha256": "122c24bbfe1c3a74579e123e64410b9f396928e8f56bec532f3778253855eaf2",
+ "tokenizer": {
+  "tokenizer_id": "cl100k_base",
+  "tokenizer_version": "0.14.0",
+  "vocabulary_id": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+  "protocol_id": "canonical-json-or-text/ordinary",
+  "protocol_version": "1",
+  "exact_reference": true,
+  "provider_native": false
+ },
+ "results": {
+  "A": {
+   "review/all-tools": {
+    "args": [
+     "-p",
+     "/review"
+    ],
+    "excluded": [],
+    "edited": true,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14133,
+      "system_cl100k_tokens": 6273,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:22.852-05:00</current_datetime>\\n\\n/review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14133,
+      "system_cl100k_tokens": 6273,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:22.852-05:00</current_datetime>\\n\\n/review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14133,
+      "system_cl100k_tokens": 6273,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:22.852-05:00</current_datetime>\\n\\n/review\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "review/lean": {
+    "args": [
+     "-p",
+     "/review"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": true,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6066,
+      "system_cl100k_tokens": 4373,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:35.890-05:00</current_datetime>\\n\\n/review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6066,
+      "system_cl100k_tokens": 4373,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:35.890-05:00</current_datetime>\\n\\n/review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6066,
+      "system_cl100k_tokens": 4373,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:35.890-05:00</current_datetime>\\n\\n/review\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "security-review/all-tools": {
+    "args": [
+     "-p",
+     "/security-review"
+    ],
+    "excluded": [],
+    "edited": true,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14131,
+      "system_cl100k_tokens": 6270,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:49.525-05:00</current_datetime>\\n\\n/security-review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14131,
+      "system_cl100k_tokens": 6270,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:49.525-05:00</current_datetime>\\n\\n/security-review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14131,
+      "system_cl100k_tokens": 6270,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:53:49.525-05:00</current_datetime>\\n\\n/security-review\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "security-review/lean": {
+    "args": [
+     "-p",
+     "/security-review"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": true,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6070,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:02.272-05:00</current_datetime>\\n\\n/security-review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6070,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:02.272-05:00</current_datetime>\\n\\n/security-review\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6070,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:02.272-05:00</current_datetime>\\n\\n/security-review\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "research/all-tools": {
+    "args": [
+     "-p",
+     "/research how does src/app.py split its input"
+    ],
+    "excluded": [],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14137,
+      "system_cl100k_tokens": 6271,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:15.019-05:00</current_datetime>\\n\\n/research how does src/app.py split its input\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14137,
+      "system_cl100k_tokens": 6271,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:15.019-05:00</current_datetime>\\n\\n/research how does src/app.py split its input\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14137,
+      "system_cl100k_tokens": 6271,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:15.019-05:00</current_datetime>\\n\\n/research how does src/app.py split its input\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "research/lean": {
+    "args": [
+     "-p",
+     "/research how does src/app.py split its input"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6068,
+      "system_cl100k_tokens": 4370,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:27.569-05:00</current_datetime>\\n\\n/research how does src/app.py split its input\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6068,
+      "system_cl100k_tokens": 4370,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:27.569-05:00</current_datetime>\\n\\n/research how does src/app.py split its input\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6068,
+      "system_cl100k_tokens": 4370,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:27.569-05:00</current_datetime>\\n\\n/research how does src/app.py split its input\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "rubber-duck/all-tools": {
+    "args": [
+     "-p",
+     "/rubber-duck critique src/app.py"
+    ],
+    "excluded": [],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14138,
+      "system_cl100k_tokens": 6275,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:41.025-05:00</current_datetime>\\n\\n/rubber-duck critique src/app.py\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14138,
+      "system_cl100k_tokens": 6275,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:41.025-05:00</current_datetime>\\n\\n/rubber-duck critique src/app.py\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14138,
+      "system_cl100k_tokens": 6275,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:41.025-05:00</current_datetime>\\n\\n/rubber-duck critique src/app.py\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "rubber-duck/lean": {
+    "args": [
+     "-p",
+     "/rubber-duck critique src/app.py"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6076,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:53.941-05:00</current_datetime>\\n\\n/rubber-duck critique src/app.py\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6076,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:53.941-05:00</current_datetime>\\n\\n/rubber-duck critique src/app.py\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6076,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:54:53.941-05:00</current_datetime>\\n\\n/rubber-duck critique src/app.py\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "fleet-slash/all-tools": {
+    "args": [
+     "-p",
+     "/fleet Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14146,
+      "system_cl100k_tokens": 6273,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:07.084-05:00</current_datetime>\\n\\n/fleet Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14146,
+      "system_cl100k_tokens": 6273,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:07.084-05:00</current_datetime>\\n\\n/fleet Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14146,
+      "system_cl100k_tokens": 6273,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:07.084-05:00</current_datetime>\\n\\n/fleet Add a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "fleet-slash/lean": {
+    "args": [
+     "-p",
+     "/fleet Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6074,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:19.974-05:00</current_datetime>\\n\\n/fleet Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6074,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:19.974-05:00</current_datetime>\\n\\n/fleet Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6074,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:19.974-05:00</current_datetime>\\n\\n/fleet Add a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "fleet-flag/all-tools": {
+    "args": [
+     "--fleet",
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14636,
+      "system_cl100k_tokens": 6275,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:32.347-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14636,
+      "system_cl100k_tokens": 6275,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:32.347-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14636,
+      "system_cl100k_tokens": 6275,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:32.347-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "fleet-flag/lean": {
+    "args": [
+     "--fleet",
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6566,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:45.241-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6566,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:45.241-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6566,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:45.241-05:00</current_datetime>\\n\\nYou are now in fleet mode. Dispatch sub-agents (via the task tool) in parallel to do the work.\\n\\n**Getting Started**\\n1. Check for existing todos: `SELECT id, title, status FROM todos WHERE status != 'done'`\\n2. If todos exist, dispatch them in parallel (respecting dependencies)\\n3. If no todos exist, help decompose the work into todos first. Try to structure todos to minimize dependencies and maximize parallel execution.\\n\\n**Parallel Execution**\\n- Dispatch independent todos simultaneously\\n- Never dispatch just a single background subagent. Prefer one sync subagent, or better, prefer to efficiently dispatch multiple background subagents in the same turn.\\n- Only serialize todos with true dependencies (check todo_deps)\\n- Query ready todos: `SELECT * FROM todos WHERE status = 'pending' AND id NOT IN (SELECT todo_id FROM todo_deps td JOIN todos t ON td.depends_on = t.id WHERE t.status != 'done')`\\n\\n**Sub-Agent Instructions**\\nWhen dispatching a sub-agent, include these instructions in your prompt:\\n1. Update the todo status when finished:\\n   - Success: `UPDATE todos SET status = 'done' WHERE id = '<todo-id>'`\\n   - Blocked: `UPDATE todos SET status = 'blocked' WHERE id = '<todo-id>'`\\n2. Always return a response summarizing:\\n   - What was completed\\n   - Whether the todo is fully done or needs more work\\n   - Any blockers or questions that need resolution\\n\\n**Coordination**\\n- After sub-agents return, check todo status in SQL (source of truth)\\n- If status is still 'in_progress', the sub-agent may have failed to update - investigate\\n- Use the sub-agent's response to understand context, but trust SQL for status\\n\\n**After Sub-Agents Complete**\\n- Check the work done by sub-agents and validate the original request is fully satisfied\\n- Ensure the work done by sub-agents (both implementation and testing) is sensible, robust, and handles edge cases, not just the happy path\\n- If the original request is not fully satisfied, decompose remaining work into new todos and dispatch more sub-agents as needed\\n\\nNow proceed with the user's request using fleet mode.\\n\\nUser request: Add a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "plain/all-tools": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14140,
+      "system_cl100k_tokens": 6272,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:57.773-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14140,
+      "system_cl100k_tokens": 6272,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:57.773-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14140,
+      "system_cl100k_tokens": 6272,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:55:57.773-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "plain/lean": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6076,
+      "system_cl100k_tokens": 4372,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:10.959-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6076,
+      "system_cl100k_tokens": 4372,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:10.959-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6076,
+      "system_cl100k_tokens": 4372,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:10.959-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   }
+  },
+  "B": {
+   "stock": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 14145,
+      "system_cl100k_tokens": 6272,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:23.247-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14145,
+      "system_cl100k_tokens": 6272,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:23.247-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 14145,
+      "system_cl100k_tokens": 6272,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "skill": 190,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "sql": 153,
+       "session_store_sql": 1620,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:23.247-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "lean": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6078,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:36.422-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6078,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:36.422-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6078,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:36.422-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-session_history": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 7697,
+      "system_cl100k_tokens": 4375,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "session_store_sql": 1620,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:48.579-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 7697,
+      "system_cl100k_tokens": 4375,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "session_store_sql": 1620,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:48.579-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 7697,
+      "system_cl100k_tokens": 4375,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "session_store_sql": 1620,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:56:48.579-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-agents": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 8752,
+      "system_cl100k_tokens": 5359,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:01.747-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 8752,
+      "system_cl100k_tokens": 5359,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:01.747-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 8752,
+      "system_cl100k_tokens": 5359,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "read_agent": 295,
+       "list_agents": 273,
+       "write_agent": 500,
+       "rg": 352,
+       "glob": 125,
+       "task": 626
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:01.747-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-skills": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6516,
+      "system_cl100k_tokens": 4622,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:14.385-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6516,
+      "system_cl100k_tokens": 4622,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:14.385-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6516,
+      "system_cl100k_tokens": 4622,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:14.385-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-sql": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6752,
+      "system_cl100k_tokens": 4894,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "sql": 153,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:26.963-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6752,
+      "system_cl100k_tokens": 4894,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "sql": 153,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:26.963-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6752,
+      "system_cl100k_tokens": 4894,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "sql": 153,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:26.963-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-background_shell": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6506,
+      "system_cl100k_tokens": 4373,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:39.927-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6506,
+      "system_cl100k_tokens": 4373,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:39.927-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6506,
+      "system_cl100k_tokens": 4373,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "read_powershell": 233,
+       "stop_powershell": 106,
+       "list_powershell": 91,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:39.927-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-copilot_docs": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6267,
+      "system_cl100k_tokens": 4516,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:53.083-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6267,
+      "system_cl100k_tokens": 4516,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:53.083-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6267,
+      "system_cl100k_tokens": 4516,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "fetch_copilot_cli_documentation": 51,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:57:53.083-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "keep-workflows": {
+    "args": [
+     "-p",
+     "Add a docstring to every function in src/app.py."
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 8116,
+      "system_cl100k_tokens": 4375,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:05.865-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 8116,
+      "system_cl100k_tokens": 4375,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:05.865-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     },
+     {
+      "request_cl100k_tokens": 8116,
+      "system_cl100k_tokens": 4375,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "run_dynamic_workflow": 1192,
+       "dynamic_workflows_manage": 849,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:05.865-05:00</current_datetime>\\n\\nAdd a docstring to every function in src/app.py.\"}]"
+     }
+    ],
+    "exit_tail": ""
+   }
+  },
+  "C": {
+   "start": {
+    "args": [
+     "-p",
+     "/demo-skill README.md"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6512,
+      "system_cl100k_tokens": 4624,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:18.753-05:00</current_datetime>\\n\\n/demo-skill README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6512,
+      "system_cl100k_tokens": 4624,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:18.753-05:00</current_datetime>\\n\\n/demo-skill README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6512,
+      "system_cl100k_tokens": 4624,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:18.753-05:00</current_datetime>\\n\\n/demo-skill README.md\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "mid": {
+    "args": [
+     "-p",
+     "Please run /demo-skill on README.md"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6515,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:31.346-05:00</current_datetime>\\n\\nPlease run /demo-skill on README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6515,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:31.346-05:00</current_datetime>\\n\\nPlease run /demo-skill on README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6515,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:31.346-05:00</current_datetime>\\n\\nPlease run /demo-skill on README.md\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "case-punct": {
+    "args": [
+     "-p",
+     "/Demo-Skill, README.md"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6513,
+      "system_cl100k_tokens": 4627,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:44.646-05:00</current_datetime>\\n\\n/Demo-Skill, README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6513,
+      "system_cl100k_tokens": 4627,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:44.646-05:00</current_datetime>\\n\\n/Demo-Skill, README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6513,
+      "system_cl100k_tokens": 4627,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:44.646-05:00</current_datetime>\\n\\n/Demo-Skill, README.md\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "no-skill-tool": {
+    "args": [
+     "-p",
+     "/demo-skill README.md"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "skill",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6072,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:56.888-05:00</current_datetime>\\n\\n/demo-skill README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6072,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:56.888-05:00</current_datetime>\\n\\n/demo-skill README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6072,
+      "system_cl100k_tokens": 4374,
+      "available_skills_cl100k_tokens": 0,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:58:56.888-05:00</current_datetime>\\n\\n/demo-skill README.md\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "bare-verb": {
+    "args": [
+     "-p",
+     "Run demo-skill on README.md"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 4,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6510,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:59:09.639-05:00</current_datetime>\\n\\nRun demo-skill on README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6510,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:59:09.639-05:00</current_datetime>\\n\\nRun demo-skill on README.md\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6510,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:59:09.639-05:00</current_datetime>\\n\\nRun demo-skill on README.md\"}]"
+     }
+    ],
+    "exit_tail": ""
+   },
+   "path": {
+    "args": [
+     "-p",
+     "Fix the bug in /src/app.py"
+    ],
+    "excluded": [
+     "session_store_sql",
+     "task",
+     "read_agent",
+     "write_agent",
+     "list_agents",
+     "sql",
+     "read_powershell",
+     "stop_powershell",
+     "list_powershell",
+     "fetch_copilot_cli_documentation",
+     "run_dynamic_workflow",
+     "dynamic_workflows_manage"
+    ],
+    "edited": false,
+    "captured": 3,
+    "requests": [
+     {
+      "request_cl100k_tokens": 6507,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:59:23.098-05:00</current_datetime>\\n\\nFix the bug in /src/app.py\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6507,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:59:23.098-05:00</current_datetime>\\n\\nFix the bug in /src/app.py\"}]"
+     },
+     {
+      "request_cl100k_tokens": 6507,
+      "system_cl100k_tokens": 4623,
+      "available_skills_cl100k_tokens": 241,
+      "tool_cl100k_tokens": {
+       "powershell": 638,
+       "apply_patch": 251,
+       "view": 197,
+       "skill": 190,
+       "rg": 352,
+       "glob": 125
+      },
+      "roles": [
+       "system",
+       "user"
+      ],
+      "marker_in": [],
+      "system_head": "{\"role\":\"system\",\"content\":[{\"type\":\"input_text\",\"text\":\"You are the GitHub Copilot CLI, a terminal assistant built by GitHub. You are running in non-interactive mode and have no way to communicate with the user. You must work on the task u",
+      "last_user_text": "[{\"type\":\"input_text\",\"text\":\"<current_datetime>2026-10-29T21:59:23.098-05:00</current_datetime>\\n\\nFix the bug in /src/app.py\"}]"
+     }
+    ],
+    "exit_tail": ""
+   }
+  }
+ }
+}

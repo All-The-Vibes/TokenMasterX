@@ -72,21 +72,54 @@ and the project aims to follow semantic versioning.
   1.0.104, in every mode: 2,041 cl100k tokens on every call as Copilot CLI sends them (2,210 at first, counted on JSON
   re-serialized with spaces; `evidence/skill-agents-cost-20261029/`). None of the 60 Django sessions of October 27
   called them (`evidence/relay-control-20261027/`, `evidence/default-routing-20261027/`). A prompt that mentions a
-  workflow (CI workflows included), a skill or slash command, or `TOKENMASTER_KEEP_TOOLS=workflows` keeps them. Copilot
+  workflow (CI workflows included) or starts a skill, or `TOKENMASTER_KEEP_TOOLS=workflows`, keeps them. Copilot
   CLI 1.0.95-3, 1.0.96-2, 1.0.98-2, 1.0.103 and 1.0.104 all accept the two names in `--excluded-tools`, including
   builds that do not send these tools. No live run has measured the change yet, and `/tokenomics` does not count it
   yet.
-- A prompt given with `-p` that starts a skill (a slash command, "use the X skill", or the name of a skill installed in
-  `<COPILOT_HOME>/skills`, `.github/skills` or `.claude/skills`) now also keeps the subagent tools `task`,
-  `read_agent`, `write_agent` and `list_agents` (`skills/token-master/brainspace_copilot_bridge.py`). A skill may hand
-  work to a subagent, and the lean tool set left such sessions without `task`; `TOKENMASTER_KEEP_TOOLS=skills` (or
-  `skill`) keeps them too. Requests that Copilot CLI 1.0.104 sent to a closed upstream (`gpt-6-astra`, Responses API,
-  BYOK mode) put the cost at about 2,670 cl100k tokens a call with no custom agents installed: about 1,690 for the
-  four definitions and about 985 for the subagent instructions Copilot CLI adds to its system prompt. With the
-  operator's custom agents listed in `task` it was about 5,010 (`evidence/skill-agents-cost-20261029/`). A prompt that
-  fires a skill trigger without starting a skill, such as one with a path like `/src/app.py` or a word that names an
-  installed skill (`loop`), now pays this too. `/tokenomics` still credits these sessions with the full lean saving,
-  as it does every launch whose prompt keeps a family.
+- A prompt that starts a skill now also keeps the subagent tools `task`, `read_agent`, `write_agent` and `list_agents`
+  (`skills/token-master/brainspace_copilot_bridge.py`). A skill may hand work to a subagent, and the lean tool set
+  left such sessions without `task`; `TOKENMASTER_KEEP_TOOLS=skills` (or `skill`) keeps them too. Requests that
+  Copilot CLI 1.0.104 sent to a closed upstream (`gpt-6-astra`, Responses API, BYOK mode) put the cost at about 2,670
+  cl100k tokens a call with no custom agents installed: about 1,690 for the four definitions and about 985 for the
+  subagent instructions Copilot CLI adds to its system prompt. With the operator's custom agents listed in `task` it
+  was about 5,010 (`evidence/skill-agents-cost-20261029/`).
+- The launcher decides that a prompt starts a skill only from an explicit invocation, so a path, a route or a plain
+  word no longer keeps the skill, workflow and subagent tools (`skills/token-master/brainspace_copilot_bridge.py`).
+  A slash command counts when it names an installed skill, in any case, at the start of the prompt or after a space,
+  quote, backtick or bracket: `/src/app.py`, `POST /users` and `the /login route` keep nothing. Copilot CLI's
+  changelog says skill commands work mid-input from 1.0.44 and in any case from 1.0.71. "use the X skill" (or
+  "using", "load", "invoke", "run", "apply") counts, as do "use the skill tool" and an installed skill's name right
+  after one of those verbs, with or without "the", "my" or "our" (`Run humanizer on the README`). A name used as a
+  plain word does not count (`fix the infinite loop in parser.py` with a `loop` skill installed). Before it reads skill
+  and agent names, the launcher drops negated invocations ("not", "n't", "never", "without", "dont" or "avoid", then
+  a verb and a name), so `Do not use the review skill` keeps nothing; the other families still see the whole prompt.
+  Custom-agent names follow the same rule, with "ask" (`Ask the auditor to check this diff`) and "<name> agent". With
+  the 127 skills Copilot CLI listed on the test machine, the 145 coding prompts in the repository's evals kept the
+  skill tools twice before and never after (`evidence/skill-trigger-20261029/`). In prompt mode Copilot CLI passes a
+  slash command to the model as text and lists the installed skills only while `skill` is kept, so these prompts need
+  it. Keeping `skill` adds 438 cl100k tokens a call with three skills installed and about 3,990 with the 128 skills
+  of the test machine (Copilot CLI listed 20 of them), so a prompt that starts a skill costs about 5,150 to 8,700
+  tokens a call with the workflow and subagent tools and no custom agents, and about 11,000 with the operator's
+  agents.
+- The launcher also reads the prompt of `-i` and `--interactive`, and installed skill names from the folders that
+  Copilot CLI loads skills from, at any depth: `.github/skills`, `.agents/skills` and `.claude/skills` from the
+  working folder (or `-C`) up to the repository root, except `~/.claude/skills`, and `.claude/commands`;
+  `<COPILOT_HOME>/skills`; `~/.agents/skills` while `COPILOT_HOME` is unset; installed plugins; `--add-dir` and
+  `--plugin-dir` folders; `copilot skill add` folders and `COPILOT_SKILLS_DIRS`; and Copilot CLI's built-in skills.
+  Names of any length count, since Copilot CLI lists one- and two-letter skill names such as `ui`. In six setups it
+  found every skill that `copilot skill list` (Copilot CLI 1.0.105) showed, each scan in under 0.4 s.
+- `--fleet`, and `/fleet` at the start of a prompt, keep the subagent tools and `sql`; `/review`, `/security-review`
+  and `/research` at the start of a prompt keep the subagent tools; `-r` (also `-r ID` and `-rID`) keeps session
+  history like `--resume`. In an interactive Copilot CLI 1.0.104 session (requests sent to a closed upstream),
+  `/review`, `/security-review` and `/research` tell the model to use `task` with an agent type, and fleet mode
+  dispatches subagents with `task` and tracks them in the `sql` tool's `todos` table. `/rubber-duck` is unconfirmed:
+  it sent no request, and keeps nothing.
+- `/tokenomics` credits each launch with the part of the `lean` saving that it removed. The launcher's start record
+  lists the tools it excluded (tool names, no prompt text), and each of the 11 calibrated tools has a weight: what
+  keeping it adds to a call on Copilot CLI 1.0.104 (`gpt-6-astra`, Responses API), its family's cost split over the
+  family's tools by definition size. A launch that kept the subagent tools gets 56% of `lean` instead of all of it,
+  one whose prompt started a skill 48%, one with `--fleet` 44%. Records written before this change get the full
+  `lean`, as before.
 - README Quickstart: install from the marketplace (`copilot plugin marketplace add All-The-Vibes/TokenMasterX`, then
   `copilot plugin install token-master@token-master`), with a new "Prepare the runtime" step. Commands use `$HOME`
   instead of `~`, which Windows PowerShell 5.1 passes to native programs literally, and the launcher runs on the

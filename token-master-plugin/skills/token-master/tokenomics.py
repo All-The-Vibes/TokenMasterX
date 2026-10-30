@@ -11,7 +11,8 @@ Data, read locally and never changed:
 Actual tokens and cost are measured. Savings are estimated (docs/TOKENOMICS.md). The estimate assumes that stock
 Copilot CLI would have made the same model calls:
 - Lean tool set: every main-agent call sent fewer fixed tokens than stock Copilot CLI ("lean"), less the navigation
-  tools' definitions when they were installed ("nav"). These tokens are priced at the call's cache-read price.
+  tools' definitions when they were installed ("nav"). A launch whose prompt kept some of the lean tools gets the share
+  of "lean" that its excluded tools weigh (LEAN_WEIGHTS). These tokens are priced at the call's cache-read price.
 - First call: stock Copilot CLI's first call sends the same prompt plus those fixed tokens, and reads only its usual
   cached prefix: the median first-call cache read of this store's own stock sessions with the same model, else the
   calibration's "stock_first_cached". It writes the rest to the prompt cache. The difference to the actual
@@ -51,6 +52,12 @@ CALIBRATIONS = {
 CLI_VERSION = "1.0.98"  # the installed build that the launcher runs; other versions send other fixed prompts
 CALIBRATION = CALIBRATIONS[CLI_VERSION]
 CALIBRATION_SOURCE = "Copilot CLI 1.0.98, probe of October 23, 2026"
+# What each of the 11 tools behind "lean" adds to a call when a launch keeps it, in cl100k tokens: its definition and
+# the system-prompt text Copilot CLI sends with it. Each family's cost, split over its tools by definition size;
+# Copilot CLI 1.0.104, gpt-6-astra, Responses API (evidence/skill-trigger-20261029). Only the shares are used.
+LEAN_WEIGHTS = {"session_store_sql": 1619, "task": 988, "read_agent": 466, "write_agent": 789, "list_agents": 431,
+                "skill": 438, "sql": 674, "read_powershell": 232, "stop_powershell": 106, "list_powershell": 91,
+                "fetch_copilot_cli_documentation": 189}
 BENCHMARK = ("Measured on Copilot CLI 1.0.98 (PRS-6, 29 repo tasks + 15 Django tasks, Oct 26, 2026): full TokenMaster "
              "used 49.5%–58.5% (gpt-6-astra) and 38.0%–53.7% (claude-opus-5.5) fewer raw tokens than stock; on "
              "1.0.78-3 (45 Django tasks, Oct 22, 2026): 53.4% and 51.6% fewer.")
@@ -162,9 +169,11 @@ def load_launches(path: Path) -> list[dict]:
         if end and "." not in stamp:
             end += timedelta(seconds=1)  # records before October 23, 2026 hold whole seconds; cover the last one
         end = end or start + LAUNCH_TIMEOUT
+        excluded = record.get("excluded")
         launches.append({"id": launch_id, "start": start, "end": end, "cwd": norm(record.get("cwd")),
                          "lean": bool(record.get("lean")), "bridge": bool(record.get("bridge")),
-                         "nav": bool(record.get("nav"))})
+                         "nav": bool(record.get("nav")),
+                         "excluded": [t for t in excluded if isinstance(t, str)] if isinstance(excluded, list) else None})
     return sorted(launches, key=lambda launch: launch["start"])
 
 
@@ -173,6 +182,14 @@ def norm(folder: str | None) -> str:
 
 
 # ----------------------------------------------------------------------------------------------- savings
+
+def lean_share(launch: dict) -> float:
+    """The part of "lean" that a launch removed: its excluded tools' weight over all of LEAN_WEIGHTS. Launches recorded
+    before the launcher listed its excluded tools keep the whole credit."""
+    if launch.get("excluded") is None:
+        return 1.0
+    return sum(LEAN_WEIGHTS.get(tool, 0) for tool in set(launch["excluded"])) / sum(LEAN_WEIGHTS.values())
+
 
 def stock_first_cached(calls: list[dict]) -> dict:
     """Per model: the median tokens that this store's own stock sessions read from the cache on their first call."""
@@ -211,7 +228,8 @@ def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibratio
         read, write = call["prices"].get("cache_read"), call["prices"].get("cache_write")
         if not call["main"] or calibration is None or read is None:
             continue  # subagent calls and uncalibrated APIs get no estimate
-        fixed = (calibration["lean"] if launch["lean"] else 0) - (calibration["nav"] if launch["nav"] else 0)
+        lean = round(calibration["lean"] * lean_share(launch)) if launch["lean"] else 0
+        fixed = lean - (calibration["nav"] if launch["nav"] else 0)
         call.update(saved_tokens=fixed, lean_nano=fixed * read, estimated=True)
         key = (call["session"], launch["id"])
         cached = call["cache_read"] + call["cache_write"]
@@ -521,6 +539,7 @@ def as_json(report: str, data: dict) -> dict:
         rows.append(row)
     return {"report": report, "source": str(data["store"]), "launches": len(data["launches"]), "rows": rows,
             "totals": plain(data["total"]), "estimate": {"cli_version": CLI_VERSION, "calibration": CALIBRATION,
+                                                         "lean_weights": LEAN_WEIGHTS,
                                                          "source": CALIBRATION_SOURCE,
                                                          "assumes": "stock Copilot CLI would have made the same calls",
                                                          "validation": "72% to 125% of the measured token saving, "
