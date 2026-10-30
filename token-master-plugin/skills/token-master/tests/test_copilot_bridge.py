@@ -315,7 +315,7 @@ def test_dynamic_tool_routing_keeps_capabilities_matched_by_prompt_or_flags(monk
 
 
 def test_lean_command_drops_the_workflow_tools_unless_a_workflow_is_asked_for(monkeypatch):
-    workflow_tools = {"run_dynamic_workflow", "dynamic_workflows_manage"}  # about 2,200 tokens a call on 1.0.104
+    workflow_tools = {"run_dynamic_workflow", "dynamic_workflows_manage"}  # about 2,040 tokens a call on 1.0.104
     lookup = bridge_module.lean_command(["copilot", "-p", "Who calls validate_password? Answer with JSON."])
     assert workflow_tools <= set(lookup[lookup.index("--excluded-tools") + 1:])
     for prompt in ("Run the nightly-audit workflow on this repo", "Use run_dynamic_workflow to review the diff",
@@ -323,6 +323,25 @@ def test_lean_command_drops_the_workflow_tools_unless_a_workflow_is_asked_for(mo
         assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", prompt])), prompt
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "workflows")
     assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", "hi"]))
+
+
+def test_a_prompt_that_starts_a_skill_keeps_the_subagent_tools(monkeypatch, tmp_path):
+    agent_tools = {"task", "read_agent", "write_agent", "list_agents"}  # about 2,670 tokens a call on 1.0.104
+
+    def excluded(command):
+        lean = bridge_module.lean_command(command)
+        return set(lean[lean.index("--excluded-tools") + 1:])
+
+    monkeypatch.delenv("TOKENMASTER_KEEP_TOOLS", raising=False)
+    monkeypatch.setenv("COPILOT_HOME", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "skills" / "impeccable").mkdir(parents=True)
+    for prompt in ("/review-pr 123", "Use the tokenomics skill", "Run impeccable on this UI"):
+        assert not agent_tools & excluded(["copilot", "-p", prompt]), prompt
+    for command in (["copilot", "-p", "fix the failing test in parser.py"], ["copilot"]):
+        assert agent_tools <= excluded(command), command
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "skills")
+    assert not agent_tools & excluded(["copilot", "-p", "hi"])
 
 
 def test_without_a_provider_url_the_launcher_runs_the_command_directly(monkeypatch):

@@ -4,8 +4,9 @@
 Lean tool set: for a Copilot CLI session, the launcher adds --excluded-tools with the built-in
 tools that no session called in the October 18 runs, and the two workflow tools that Copilot CLI
 sends under default routing and, from 1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt that
-asks for a tool family keeps it. The launcher skips this with --all-tools, when the user already
-chose tools, or for a Copilot CLI subcommand.
+asks for a tool family keeps it, and a prompt that starts a skill also keeps the workflow and
+subagent tools, which the skill may use. The launcher skips this with --all-tools, when the user
+already chose tools, or for a Copilot CLI subcommand.
 
 Bridge (only with a provider URL, Copilot CLI BYOK mode): Copilot CLI sends model requests to
 COPILOT_PROVIDER_BASE_URL. The bridge listens on 127.0.0.1, rewrites each OpenAI Responses or
@@ -85,7 +86,7 @@ CAPABILITY_GROUPS: dict[str, tuple[tuple[str, ...], re.Pattern[str]]] = {
         ("fetch_copilot_cli_documentation",),
         re.compile(r"\b(fetch_copilot_cli_documentation|copilot\s+cli\s+(?:docs|documentation|flags|keybindings|settings))\b", re.I),
     ),
-    # Sent under default routing, and in every mode from Copilot CLI 1.0.104 (about 2,200 tokens a call); none of the
+    # Sent under default routing, and in every mode from Copilot CLI 1.0.104 (about 2,040 tokens a call); none of the
     # 60 sessions of October 27 called them. "_" is a word character, so plain \b would miss "my_audit_workflow".
     "workflows": (
         ("run_dynamic_workflow", "dynamic_workflows_manage"),
@@ -141,8 +142,12 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
             keep.update(CAPABILITY_GROUPS["skills"][0])
         if words & _installed_names("agents"):
             keep.update(CAPABILITY_GROUPS["agents"][0])
-    if "skill" in keep:  # a skill or slash command may start a workflow (the workflow tools' own instructions)
+    if "skill" in keep:
+        # A skill or slash command may start a workflow (the workflow tools' own instructions) or hand work to a
+        # subagent. Keeping the agent tools adds about 2,670 cl100k tokens a call on 1.0.104 with no custom agents
+        # installed: their definitions and the subagent instructions Copilot CLI then adds to its system prompt.
         keep.update(CAPABILITY_GROUPS["workflows"][0])
+        keep.update(CAPABILITY_GROUPS["agents"][0])
     return tuple(tool for tool in LEAN_EXCLUDED_TOOLS if tool not in keep)
 
 

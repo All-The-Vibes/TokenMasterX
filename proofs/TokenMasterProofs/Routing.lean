@@ -51,17 +51,18 @@ def core : List Tool := [.view, .edit, .create, .rg, .glob, .powershell, .report
 
 /-- What `select_excluded_tools` reads: which families fired (a prompt pattern, `--agent`,
 `--resume` or `--continue`, an installed skill or agent name in the prompt) and the tools
-named in `TOKENMASTER_KEEP_TOOLS`. -/
+`TOKENMASTER_KEEP_TOOLS` names, directly or by their family's name. -/
 structure Signals where
   fires : Group → Bool
   env : List Tool
 
-/-- `keep` before the workflow rule. -/
+/-- `keep` before the skill rule. -/
 def keep₀ (s : Signals) : List Tool := s.env ++ (Group.all.filter s.fires).flatMap Group.tools
 
-/-- `keep`: a kept `skill` tool also keeps the workflow tools, since a skill may start a workflow. -/
+/-- `keep`: a kept `skill` tool also keeps the workflow tools and the subagent tools, since a skill may start a
+workflow or hand work to a subagent. -/
 def keep (s : Signals) : List Tool :=
-  if Tool.skill ∈ keep₀ s then keep₀ s ++ Group.tools .workflows else keep₀ s
+  if Tool.skill ∈ keep₀ s then keep₀ s ++ Group.tools .workflows ++ Group.tools .agents else keep₀ s
 
 /-- `select_excluded_tools`: the lean list without anything kept, in order. -/
 def excluded (s : Signals) : List Tool := leanExcluded.filter (fun t => decide (t ∉ keep s))
@@ -73,6 +74,10 @@ private theorem every_group_listed (g : Group) : g ∈ Group.all := by cases g <
 private theorem keep₀_sub_keep (s : Signals) {t : Tool} (h : t ∈ keep₀ s) : t ∈ keep s := by
   unfold keep
   split <;> simp [h]
+
+private theorem keep_of_skill (s : Signals) (h : Tool.skill ∈ keep₀ s) :
+    keep s = keep₀ s ++ Group.tools .workflows ++ Group.tools .agents := by
+  simp [keep, h]
 
 /-- Routing only removes tools from `LEAN_EXCLUDED_TOOLS`; it never excludes anything else. -/
 theorem excluded_subset_lean (s : Signals) : ∀ t ∈ excluded s, t ∈ leanExcluded :=
@@ -105,8 +110,15 @@ theorem env_tool_kept (s : Signals) {t : Tool} (h : t ∈ s.env) : t ∉ exclude
 /-- Keeping `skill` keeps both workflow tools. -/
 theorem workflows_follow_skill (s : Signals) (h : Tool.skill ∈ keep₀ s) :
     Tool.run_dynamic_workflow ∉ excluded s ∧ Tool.dynamic_workflows_manage ∉ excluded s := by
-  have hk : keep s = keep₀ s ++ Group.tools .workflows := by simp [keep, h]
-  constructor <;> apply kept_not_excluded <;> rw [hk] <;> simp [Group.tools]
+  constructor <;> apply kept_not_excluded <;> rw [keep_of_skill s h] <;> simp [Group.tools]
+
+/-- Keeping `skill` keeps the four subagent tools. -/
+theorem agents_follow_skill (s : Signals) (h : Tool.skill ∈ keep₀ s) :
+    ∀ t ∈ Group.tools .agents, t ∉ excluded s := by
+  intro t ht
+  apply kept_not_excluded
+  rw [keep_of_skill s h]
+  exact List.mem_append_right _ ht
 
 /-- With no signal at all, the whole lean list is excluded. -/
 theorem nothing_fires_excludes_all (s : Signals) (hf : ∀ g, s.fires g = false) (he : s.env = []) :

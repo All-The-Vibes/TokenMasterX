@@ -309,7 +309,8 @@ Source: `select_excluded_tools` and `CAPABILITY_GROUPS` in `brainspace_copilot_b
 `LEAN_EXCLUDED_TOOLS` is every family's tools in source order: 13 tools in 7 families. The excluded
 list is that list filtered by a `keep` set, built from the families whose trigger fired (a prompt
 pattern, `--agent`, `--resume` or `--continue`, an installed skill or agent name in the prompt) and
-the tools in `TOKENMASTER_KEEP_TOOLS`. A kept `skill` also keeps the two workflow tools.
+the tools in `TOKENMASTER_KEEP_TOOLS`. A kept `skill` also keeps the two workflow tools and the four
+subagent tools, since a skill may start a workflow or hand work to a subagent.
 
 **Theorem 13.** For every set of signals:
 
@@ -320,6 +321,8 @@ the tools in `TOKENMASTER_KEEP_TOOLS`. A kept `skill` also keeps the two workflo
   tool of a family that fired, and a tool named in `TOKENMASTER_KEEP_TOOLS` are not excluded.
 - `Routing.workflows_follow_skill`: keeping `skill` keeps `run_dynamic_workflow` and
   `dynamic_workflows_manage`.
+- `Routing.agents_follow_skill`: keeping `skill` keeps `task`, `read_agent`, `write_agent` and
+  `list_agents`.
 - `Routing.nothing_fires_excludes_all`: with no signal, all 13 tools are excluded.
 
 *Proof.* Membership in a filtered list. The core tools are not in the lean list, which Lean checks by
@@ -329,7 +332,7 @@ What this does not cover is whether a prompt's need fires a trigger: that is the
 expressions' job, and they miss some phrasings. "have an agent review this diff" fires no family,
 so `task` is excluded (finding 2). `test_routing_lists_match_the_lean_model` checks that the code's
 families are exactly the model's, tool by tool, and three more tests check each trigger, `--agent`,
-`--resume`, `TOKENMASTER_KEEP_TOOLS` and the no-signal case on the real function.
+`--resume`, `TOKENMASTER_KEEP_TOOLS`, the skill rule and the no-signal case on the real function.
 
 The excluded list is computed at launch and passed as a flag, so it stays the same for the life of
 the process. A resumed session runs the launcher again, which recomputes the list from the new

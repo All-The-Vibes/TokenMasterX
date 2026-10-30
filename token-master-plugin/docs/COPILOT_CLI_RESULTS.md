@@ -300,17 +300,18 @@ Between runs, resampling the 15 tasks 10,000 times:
   exclude it. The routing CIs still allow up to 4.9 of the 11.1 points (44%) and 2.7 of the 8.1 (33%); the point
   estimates are 11% and 5%.
 - One part of the rest is measured, and it interacts with routing. In the relay environment, Copilot CLI `1.0.104`
-  sends two tool definitions that `1.0.98-2` does not, `run_dynamic_workflow` and `dynamic_workflows_manage`: 2,210
-  cl100k tokens on every call (about 2,000 GitHub tokens), about a quarter of TokenMaster's first call and a sixth of
+  sends two tool definitions that `1.0.98-2` does not, `run_dynamic_workflow` and `dynamic_workflows_manage`: 2,041
+  cl100k tokens on every call as Copilot CLI sends them (about 1,840 GitHub tokens; an earlier count of 2,210 used
+  JSON re-serialized with spaces), about a quarter of TokenMaster's first call and a seventh of
   stock's. TokenMaster's lean tool set removed neither in these runs (it removes both since this run, not yet
   measured live). PRS-6's requests carried 16 tools in stock and 8 in
   TokenMaster, the control's 18 and 10. Under default routing, though, `1.0.98-2` already listed both tools (this
   run's pilot, in Copilot CLI's event log; the tool lists are in the control's `SETUP_OBSERVATIONS.md`, section 3), and
   D01's first stock call differed by 65 tokens between the two builds (13,519 vs 13,584). In relay mode, Copilot CLI
   `1.0.104` still sends the two tools and `1.0.98-2` does not. So how the gap splits between routing and the rest
-  depends on which build the comparison holds fixed. Taking about 2,000 tokens off each call of the control would put
-  TokenMaster at about 45% of stock's raw tokens instead of 51%, some 6 of the 9.9 points; that arithmetic assumes the
-  sessions would make the same calls without the two tools, which was not tested.
+  depends on which build the comparison holds fixed. Taking about 1,840 tokens off each call of the control would put
+  TokenMaster at about 46% of stock's raw tokens instead of 51%, about 5.6 of the 9.9 points; that arithmetic assumes
+  the sessions would make the same calls without the two tools, which was not tested.
 - Routing does change the as-run cost. Through the relay, TokenMaster's as-run cost was 34.5% lower than under default
   routing (−44.6% to −24.1%), and its saving against stock was −64.9% instead of −45.0%. Its first calls wrote a
   median of 164 tokens to GitHub's cache through the relay and 2,924 under default routing; stock's as-run cost was

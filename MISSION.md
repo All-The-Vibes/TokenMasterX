@@ -51,7 +51,8 @@ Django pilot was never replicated
 1. **Send less fixed overhead (lean tool set).** The TokenMaster launcher removes 13 built-in
    Copilot CLI tools: 11 that no session called in the October 18 runs, and two workflow tools that
    none of the October 27 sessions called.
-   - Their definitions and the system-prompt text about them leave every call.
+   - Unless the prompt, a flag or `TOKENMASTER_KEEP_TOOLS` keeps them, their definitions and the system-prompt text
+     about them leave every call.
    - In a probe on Copilot CLI 1.0.78-3, the `gpt-6-astra` system prompt fell from 7,216 to
      5,117 tokens.
    - Most of the Copilot CLI saving came with this change.
