@@ -214,3 +214,36 @@ def test_launch_without_an_end_record_counts_for_a_bounded_time(tmp_path):
     loaded = {l["id"]: l for l in tokenomics.load_launches(tmp_path / "copilot-home" / "token-master" / "launches.jsonl")}
     assert loaded["t"]["end"] - loaded["t"]["start"] == tokenomics.LAUNCH_TIMEOUT
     assert datetime(2026, 10, 20, 11, 0, 5, tzinfo=timezone.utc) <= loaded["t"]["end"]
+
+
+def test_the_lean_credit_covers_only_the_tools_a_launch_removed(tmp_path, monkeypatch):
+    monkeypatch.setenv("COPILOT_HOME", str(tmp_path))
+    monkeypatch.delenv("TOKENMASTER_KEEP_TOOLS", raising=False)
+    monkeypatch.setattr(bridge, "run_child", lambda parser, command, env: 0)
+    command = bridge.lean_command(["copilot", "-p", "spawn a subagent for this secret task"])
+    bridge.run_recorded(None, command, {}, lean=True, bridge=False)
+    registry = tmp_path / "token-master" / "launches.jsonl"
+    record = json.loads(registry.read_text(encoding="utf-8").splitlines()[0])
+    agents = set(bridge.CAPABILITY_GROUPS["agents"][0])
+    assert record["excluded"] == [tool for tool in bridge.LEAN_EXCLUDED_TOOLS if tool not in agents]
+    assert "secret" not in json.dumps(record) and tokenomics.load_launches(registry)[0]["excluded"] == record["excluded"]
+    registry.write_text(json.dumps({"event": "start", "id": "m", "at": "2026-10-30T12:00:00.000Z", "lean": True,
+                                    "excluded": ["sql", ["sql"], 3]}) + "\n", encoding="utf-8")
+    assert tokenomics.load_launches(registry)[0]["excluded"] == ["sql"]  # a damaged record does not break the report
+    lean, weights = tokenomics.CALIBRATION["responses"]["lean"], tokenomics.LEAN_WEIGHTS
+    at = datetime(2026, 10, 30, 12, tzinfo=timezone.utc)
+    prices = {"input": 1e6, "cache_read": 1e5, "cache_write": 1.25e6, "output": 5e6}
+
+    def saved(**launch):
+        calls = [{"session": "s", "at": at, "model": "gpt-6-astra", "api": "responses", "input": 9000, "output": 10,
+                  "cache_read": 8000, "cache_write": 1000, "nano": 0, "prices": prices, "main": True}]
+        tokenomics.estimate(calls, {"s": {"cwd": "C:/r"}}, [{
+            "id": "x", "start": at - timedelta(minutes=1), "end": at + timedelta(minutes=5),
+            "cwd": tokenomics.norm("C:/r"), "lean": True, "bridge": False, "nav": False, **launch}])
+        return calls[0]["saved_tokens"]
+
+    # The 11 calibrated tools carry the weights; the workflow tools are not in the 1.0.98 calibration.
+    assert set(weights) == set(bridge.LEAN_EXCLUDED_TOOLS) - {"run_dynamic_workflow", "dynamic_workflows_manage"}
+    assert saved(excluded=list(bridge.LEAN_EXCLUDED_TOOLS)) == saved() == lean  # all removed, or an older record
+    share = 1 - sum(weights[tool] for tool in agents) / sum(weights.values())
+    assert saved(excluded=record["excluded"]) == round(lean * share) < lean
