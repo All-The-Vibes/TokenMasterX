@@ -106,7 +106,8 @@ and the project aims to follow semantic versioning.
   working folder (or `-C`) up to the repository root, except `~/.claude/skills`, and `.claude/commands`;
   `<COPILOT_HOME>/skills`; `~/.agents/skills` while `COPILOT_HOME` is unset; installed plugins; `--add-dir` and
   `--plugin-dir` folders; `copilot skill add` folders and `COPILOT_SKILLS_DIRS`; and Copilot CLI's built-in skills.
-  In six setups it found every skill that `copilot skill list` (Copilot CLI 1.0.105) showed, each scan in under 0.4 s.
+  Names of any length count, since Copilot CLI lists one- and two-letter skill names such as `ui`. In six setups it
+  found every skill that `copilot skill list` (Copilot CLI 1.0.105) showed, each scan in under 0.4 s.
 - `--fleet`, and `/fleet` at the start of a prompt, keep the subagent tools and `sql`; `/review`, `/security-review`
   and `/research` at the start of a prompt keep the subagent tools; `-r` (also `-r ID` and `-rID`) keeps session
   history like `--resume`. In an interactive Copilot CLI 1.0.104 session (requests sent to a closed upstream),

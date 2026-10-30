@@ -385,6 +385,15 @@ def test_only_an_installed_skill_named_by_a_slash_or_a_verb_keeps_the_skill_tool
         assert not kept_tools(["copilot", "-p", prompt]), prompt
 
 
+def test_one_and_two_character_skill_names_count(monkeypatch, tmp_path):
+    # Copilot CLI 1.0.105 lists skills named `ui` and `x` (PR #19 review); an explicit invocation keeps their tool too.
+    skill_home(tmp_path, monkeypatch, "ui", "x")
+    for prompt in ("/ui Review the page", "Use ui to review the page", "/x go"):
+        assert "skill" in kept_tools(["copilot", "-p", prompt]), prompt
+    for prompt in ("the ui looks off", "x marks the spot", "Fix the bug in /src/app.py"):
+        assert not kept_tools(["copilot", "-p", prompt]), prompt
+
+
 def test_a_negation_cancels_only_skill_and_agent_names(monkeypatch, tmp_path):
     skill_home(tmp_path, monkeypatch)
     workflow_tools = {"run_dynamic_workflow", "dynamic_workflows_manage"}

@@ -87,7 +87,8 @@ removed.
   `COPILOT_HOME` is unset; installed plugins; the `.github/skills` folder of each `--add-dir` folder and
   the `skills` folder of each `--plugin-dir` folder; the folders of `copilot skill add`
   (`skillDirectories` in `<COPILOT_HOME>/settings.json`) and of `COPILOT_SKILLS_DIRS`, which separates
-  them with commas; and Copilot CLI's built-in skills. In six setups it found every skill that
+  them with commas; and Copilot CLI's built-in skills. Names of any length count: Copilot CLI 1.0.105
+  lists one- and two-letter skill names such as `ui`. In six setups it found every skill that
   `copilot skill list` (Copilot CLI 1.0.105) showed, and 1 to 7 names more, which count only after a
   slash or a verb. It reads the folders only for a prompt with a slash command or one of those verbs,
   in under 0.4 s here

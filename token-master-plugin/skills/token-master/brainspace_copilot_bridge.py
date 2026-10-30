@@ -171,7 +171,8 @@ def _installed_names(subfolder: str, command: list[str] = ()) -> set[str]:
                 names.add(os.path.basename(folder).lower())
             elif subfolder == "agents":
                 names.update(name.split(".")[0].lower() for name in files if name.endswith(".agent.md"))
-    return {name for name in names if len(name) >= 3}
+    # Any length: Copilot CLI 1.0.105 lists skills named `ui` and `x`, and a name counts only after a slash or a verb.
+    return {name for name in names if name}
 
 
 def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
