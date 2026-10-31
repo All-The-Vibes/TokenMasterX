@@ -9,6 +9,27 @@ and the project aims to follow semantic versioning.
 
 ### Fixed
 
+- A Copilot CLI session resumed through the launcher with `--lean` gets the `--excluded-tools` it started with
+  (`skills/token-master/brainspace_copilot_bridge.py`). The launcher routed every launch again, and `--resume` and
+  `--continue` kept `session_store_sql`, so a resume changed the list: 12 tools excluded instead of 13 after a plain
+  launch, and 5 tools different after a launch with `-p "spawn an agent to review this"`. In probes with Copilot CLI
+  1.0.105, a resume's first request started with the earlier request's whole input and carried the new launch's tools,
+  and microsoft/TokenEconomizer's `docs/PLUGIN.md` reports the same on 1.0.102. Providers cache a prompt by its prefix,
+  tools first in Anthropic's documented order, so another list cannot read the history from the cache; no run has
+  measured that cost or the saving. The start record in `launches.jsonl` now names the session a launch resumes, and a
+  resume gets the list of the session's latest launch that resumed it, else of the launch that started it: the only
+  new launch in the session's folder that saw it start in its first two minutes, and saw no other session start.
+  `TOKENMASTER_KEEP_TOOLS` still adds tools on a `--lean` resume. The launcher finds the session as Copilot
+  CLI 1.0.105 did in probes (`evidence/session-tools-20261030/`): an ID, or a prefix of 7 or more characters, after
+  `--resume` or `-r`; an ID after `--session-id`; and for `--continue` the session updated last in
+  `<COPILOT_HOME>/session-store.db`, which with `-p` means in any folder (14 of 14 runs) and without it means in the
+  working folder's GitHub repository, else in the folder, else anywhere (9 of 9 runs). Copilot CLI's changelog
+  promises the folder and repository preference for `--continue` in general; prompt mode ignored it. A resume the
+  launcher cannot tie to a record (a session started without the launcher or with the user's own tool flags, a session
+  name, a picker, two launches at once in one folder) is routed as before. The start record's folder is now the `-C`
+  folder when one is given, so `/tokenomics` also matches those sessions. `Routing.resume_same_list` and
+  `Routing.resume_chain_keeps_first_list` prove that a resume keeps the recorded list, and `proofs/README.md` moves
+  this gap from its findings to its fixes.
 - Graph navigation covers Rust again. Rust became a first-class language in `9b86c8a` (#10), but the v7 symbol index
   (`brainspace/symbol_index.py`) took code symbols only from `.py` and `.pyi` files, so `locate`, `read_symbol` and
   `impact` found no Rust function, type or caller. It now parses `.rs` files with the pinned `tree-sitter-rust`:
@@ -67,6 +88,20 @@ and the project aims to follow semantic versioning.
 
 ### Changed
 
+- The launcher's lean tool set is opt-in (`skills/token-master/brainspace_copilot_bridge.py`). By default the launcher
+  now passes the Copilot CLI command through unchanged, so Copilot CLI sends every built-in tool. `--lean` before `--`
+  turns the lean tool set on: it removes the 13 tools on its fixed list unless the prompt, a flag or
+  `TOKENMASTER_KEEP_TOOLS` keeps their family. Removing tools from a fixed list or by prompt keywords, without evidence
+  of what a session needs, is now an explicit choice. `--all-tools` is still accepted and changes nothing; it cannot
+  be combined with `--lean`. `TOKENMASTER_KEEP_TOOLS`, the prompt rules and the resume reuse apply only with `--lean`,
+  and a resume without `--lean` sends every tool. The launcher adds no other removal, and never touches `web_search`
+  or switches off `github-mcp-server`. The published savings (the README, `COPILOT_CLI_RESULTS.md`, PRS-6) were
+  measured with the lean tool set on, so they apply with `--lean`, and the eval harnesses now pass it:
+  `default_routing_ab.py`, and `run_prs5_study.py` with the three that reuse it (`django_ab.py`,
+  `quick_copilot_ab.py`, `relay_control_ab.py`). No run has measured the new default.
+  `Routing.default_excludes_nothing` proves that a launch without `--lean` excludes nothing. The README, MISSION.md,
+  SKILL.md, COPILOT_BRIDGE.md, COPILOT_CLI_RESULTS.md, `docs/DEMO_SCRIPT.md` and the demo deck describe the new
+  default; the demo's `tmc` wrapper has to pass `--lean`.
 - The launcher's lean tool set also removes `run_dynamic_workflow` and `dynamic_workflows_manage`
   (`skills/token-master/brainspace_copilot_bridge.py`). Copilot CLI sends both under default routing and, from
   1.0.104, in every mode: 2,041 cl100k tokens on every call as Copilot CLI sends them (2,210 at first, counted on JSON
@@ -142,9 +177,9 @@ and the project aims to follow semantic versioning.
   navigation would skip every `.rs` file without saying so. The warning names the plugin's
   `requirements-runtime.txt`, and setup still succeeds. Python-only repositories skip the check.
 - `proofs/`: Lean 4 proofs of the invariants behind tool routing, cache-safe shaping, the stable session prefix,
-  the navigation budget and the measurement method. Lean's kernel checks all 38 theorems, with no `sorry` and no
+  the navigation budget and the measurement method. Lean's kernel checks all 46 theorems, with no `sorry` and no
   added axiom. `test_proof_conformance.py` checks the proofs' hypotheses against the Python. Writing the proofs
-  found eight gaps; four are fixed above, and `proofs/README.md` lists the four that remain.
+  found eight gaps; five are fixed above, and `proofs/README.md` lists the three that remain.
 ## [0.2.0] - 2026-10-26
 
 ### Added

@@ -1,0 +1,386 @@
+{
+ "premise": {
+  "resume_same_list_same_tools": true,
+  "resume_same_list_same_instructions": true,
+  "resume_history_prefix_kept": true,
+  "resume_other_list_other_tools": true,
+  "tool_difference": [
+   "session_store_sql"
+  ]
+ },
+ "steps": [
+  {
+   "marker": "alpha-one",
+   "cwd": "alpha",
+   "flags": [],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 6.1,
+   "session": "a3a2c9fe-dc0e-49c8-b799-0608374d6371",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "alpha-two",
+   "cwd": "alpha",
+   "flags": [
+    "--resume",
+    "a3a2c9fe-dc0e-49c8-b799-0608374d6371"
+   ],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 5.5,
+   "session": "a3a2c9fe-dc0e-49c8-b799-0608374d6371",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "alpha-three",
+   "cwd": "alpha",
+   "flags": [
+    "--resume",
+    "a3a2c9fe-dc0e-49c8-b799-0608374d6371"
+   ],
+   "excluded": 12,
+   "exit": 1,
+   "seconds": 6.9,
+   "session": "a3a2c9fe-dc0e-49c8-b799-0608374d6371",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "session_store_sql",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "beta-one",
+   "cwd": "beta",
+   "flags": [],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 5.9,
+   "session": "cbe50f2a-4606-4261-b620-6095ae14c244",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "other-one",
+   "cwd": "other",
+   "flags": [],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 5.0,
+   "session": "7d701f97-1aa7-4eaa-a925-4e908d73dd99",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "cont-alpha-root",
+   "cwd": "alpha",
+   "flags": [
+    "--continue"
+   ],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 6.1,
+   "session": "7d701f97-1aa7-4eaa-a925-4e908d73dd99",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "cont-beta-sub",
+   "cwd": "beta\\sub",
+   "flags": [
+    "--continue"
+   ],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 4.9,
+   "session": "7d701f97-1aa7-4eaa-a925-4e908d73dd99",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "cont-other2",
+   "cwd": "other2",
+   "flags": [
+    "--continue"
+   ],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 4.7,
+   "session": "7d701f97-1aa7-4eaa-a925-4e908d73dd99",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "alpha-feature",
+   "cwd": "alpha",
+   "flags": [],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 6.6,
+   "session": "1b30c8b6-d1cb-47e2-aa77-27458af4780e",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "cont-alpha-main",
+   "cwd": "alpha",
+   "flags": [
+    "--continue"
+   ],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 6.4,
+   "session": "1b30c8b6-d1cb-47e2-aa77-27458af4780e",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "alpha-sub",
+   "cwd": "alpha\\sub",
+   "flags": [],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 6.1,
+   "session": "2ed79713-ebe5-4529-b459-afd0b1b25a73",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  },
+  {
+   "marker": "cont-alpha-root-2",
+   "cwd": "alpha",
+   "flags": [
+    "--continue"
+   ],
+   "excluded": 13,
+   "exit": 1,
+   "seconds": 4.9,
+   "session": "2ed79713-ebe5-4529-b459-afd0b1b25a73",
+   "requests": 1,
+   "tools": [
+    "apply_patch",
+    "github-mcp-server-get_copilot_space",
+    "github-mcp-server-get_file_contents",
+    "github-mcp-server-list_copilot_spaces",
+    "github-mcp-server-search_code",
+    "github-mcp-server-search_users",
+    "glob",
+    "powershell",
+    "rg",
+    "semantic_code_search",
+    "view",
+    "web_fetch",
+    "web_search"
+   ],
+   "instructions": "<0 chars>"
+  }
+ ],
+ "sessions": {
+  "1b30c8b6-d1cb-47e2-aa77-27458af4780e": {
+   "cwd": "C:\\tm-lanes\\resume-probe\\alpha",
+   "start": "2026-10-31T01:19:44.596Z",
+   "markers": [
+    "alpha-feature",
+    "cont-alpha-main"
+   ]
+  },
+  "2ed79713-ebe5-4529-b459-afd0b1b25a73": {
+   "cwd": "C:\\tm-lanes\\resume-probe\\alpha\\sub",
+   "start": "2026-10-31T01:20:02.409Z",
+   "markers": [
+    "alpha-sub",
+    "cont-alpha-root-2"
+   ]
+  },
+  "7d701f97-1aa7-4eaa-a925-4e908d73dd99": {
+   "cwd": "C:\\tm-lanes\\resume-probe\\other",
+   "start": "2026-10-31T01:19:15.896Z",
+   "markers": [
+    "other-one",
+    "cont-alpha-root",
+    "cont-beta-sub",
+    "cont-other2"
+   ]
+  },
+  "a3a2c9fe-dc0e-49c8-b799-0608374d6371": {
+   "cwd": "C:\\tm-lanes\\resume-probe\\alpha",
+   "start": "2026-10-31T01:18:43.304Z",
+   "markers": [
+    "alpha-one",
+    "alpha-two",
+    "alpha-three"
+   ]
+  },
+  "cbe50f2a-4606-4261-b620-6095ae14c244": {
+   "cwd": "C:\\tm-lanes\\resume-probe\\beta",
+   "start": "2026-10-31T01:19:07.742Z",
+   "markers": [
+    "beta-one"
+   ]
+  }
+ }
+}

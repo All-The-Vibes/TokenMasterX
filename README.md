@@ -1,15 +1,15 @@
 ![TokenMasterX for GitHub Copilot. Half the tokens, same answers. Up to 58% fewer tokens and up to 54% lower cold-start cost, with no drop in pass rate.](assets/tokenmasterx-hero.svg)
 
 <p align="center">
-  <b>GitHub Copilot on about half the tokens, with the same pass rate.</b><br>
-  It drops tool definitions a task never calls, finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.
+  <b>GitHub Copilot on about half the tokens, with the same pass rate, when you start it with <code>--lean</code>.</b><br>
+  With <code>--lean</code> it drops 13 built-in tool definitions unless the prompt asks for their family; it finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.
 </p>
 
 <p align="center">
   <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a>
 </p>
 
-<p align="center"><sub>Measured in a pre-registered study on GitHub Copilot CLI, in bring-your-own-model mode, with GPT-6 Astra and Claude Opus 5.5. Costs come from GitHub's own per-call billing.</sub></p>
+<p align="center"><sub>Measured in a pre-registered study on GitHub Copilot CLI, in bring-your-own-model mode, with GPT-6 Astra and Claude Opus 5.5, with the lean tool set on; the launcher now turns it on only with <code>--lean</code>. Costs come from GitHub's own per-call billing.</sub></p>
 
 ---
 
@@ -47,17 +47,17 @@ Start `copilot` in the repository and type **`/token-master`**. It indexes the r
 
 Type **`/tokenomics`** anytime to view your token usage, GitHub charges, and TokenMaster savings.
 
-### 4. Start Copilot CLI with dynamic tool routing (recommended)
+### 4. Start Copilot CLI through the launcher
 
-Once `/token-master` has configured your host (or after running `brainspace_setup.py --host copilot` manually), start `copilot` through the installed launcher so unused auxiliary tool schemas are pruned automatically. Use the runtime's Python: in BYOK mode the launcher's shaping needs its `tiktoken`.
+Once `/token-master` has configured your host (or after running `brainspace_setup.py --host copilot` manually), start `copilot` through the installed launcher. Use the runtime's Python: in BYOK mode the launcher's shaping needs its `tiktoken`.
 
 ```powershell
 & "$HOME\.copilot\token-master-runtime\Scripts\python.exe" "$HOME\.copilot\token-master\brainspace_copilot_bridge.py" -- copilot
 ```
 
-- **Normal GitHub sign-in:** Applies **Dynamic Tool Routing** (`--excluded-tools`), **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook**, and **`/tokenomics`**.
+- **Normal GitHub sign-in:** **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook** and **`/tokenomics`** work in any Copilot CLI session once installed; the launcher adds **Dynamic Tool Routing** (`--excluded-tools`) with `--lean`.
 - **BYOK mode (`COPILOT_PROVIDER_BASE_URL` set):** Also activates the local **prompt-cache bridge** (`stable_session_prefix` + wire-level `rg`/`glob` shaping).
-- **Keep all built-in tools:** Pass `--all-tools` before `--` (or set `TOKENMASTER_KEEP_TOOLS=agents,sql`).
+- **Lean tool set is opt-in:** By default the launcher sends every built-in Copilot CLI tool. Add `--lean` before `--` to remove 13 auxiliary tool definitions unless the prompt asks for their family. The published savings were measured with the lean tool set on, so they apply with `--lean`. With it, `TOKENMASTER_KEEP_TOOLS=agents,sql` keeps tool families. `--all-tools` is still accepted and changes nothing.
 
 ## Uninstall
 
@@ -73,7 +73,7 @@ If you already uninstalled the plugin, install it again, run step 1, then uninst
 
 ## How It Works
 
-1. **Dynamic Tool Routing (`brainspace_copilot_bridge.py`)** — Stock Copilot CLI sends JSON schemas for SQL scratchpads, session-store SQL, background job managers, subagents, agent workflows, skills, and CLI docs on every turn (~5,500 to ~11,500 tokens/call). TokenMaster inspects your prompt, flags (`--agent`, `--resume`), and installed skills/agents—keeping the capabilities your task needs and pruning the rest via `--excluded-tools`.
+1. **Dynamic Tool Routing (`brainspace_copilot_bridge.py --lean`)** — Opt-in. Stock Copilot CLI sends JSON schemas for SQL scratchpads, session-store SQL, background job managers, subagents, agent workflows, skills, and CLI docs on every turn (~5,500 to ~11,500 tokens/call). With `--lean`, TokenMaster removes those 13 tools via `--excluded-tools`, and keeps a family when your prompt, flags (`--agent`, `--resume`) or installed skills and agents ask for it. Those are keyword rules, and they miss some phrasings. Without `--lean`, every built-in tool is sent.
 2. **Graph Code Navigation (`tokenmaster-nav`)** — Combines [Graphify](https://github.com/safishamsi/graphify) call edges with a local SQLite AST index into 3 compact tools (`locate`, `read_symbol`, `impact`), capped under 2,400 tokens. Answers "who calls X?" in one turn instead of dumping 100k+ tokens of `rg`. Covers Python and Rust today.
 3. **Cache-Safe Output Shaping (`request_policy.py`)** — Folds `rg`/`glob` output losslessly and compacts oversized `view` reads **once** when appended. Never rewrites earlier messages, so the provider's prompt cache stays valid.
 4. **Cache-Stable BYOK Bridge (`stable_session_prefix`)** — Moves the per-session `Session folder:` UUID out of the system prompt in BYOK mode so sessions in the same folder share the cached prompt on call 1.
@@ -110,7 +110,7 @@ Or type `/tokenomics` inside an interactive Copilot CLI session.
 
 ## Benchmark Summary (GitHub Copilot CLI)
 
-All runs used the `copilot.exe` binary against `api.githubcopilot.com`, verified against GitHub's per-call `copilot_usage` bills. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
+All runs used the `copilot.exe` binary against `api.githubcopilot.com`, verified against GitHub's per-call `copilot_usage` bills. Every TokenMaster run had the lean tool set on, which the launcher now applies only with `--lean`. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
 
 | Benchmark | CLI Version | Model | Raw Tokens (`Stock → TM`) | Cold Cost | Back-to-Back Cost | Passed (`Stock vs TM`) |
 | :--- | :--- | :--- | ---: | ---: | ---: | ---: |
@@ -125,7 +125,7 @@ All runs used the `copilot.exe` binary against `api.githubcopilot.com`, verified
 
 ## Experimental Status & Documentation
 
-> **Experimental Disclaimer:** TokenMaster is an experimental research toolkit, not an official GitHub product. Default GitHub routing applies Dynamic Tool Routing, Graph Navigation (`tokenmaster-nav`), and the `view` output hook; the prompt-cache bridge requires BYOK mode (`COPILOT_PROVIDER_BASE_URL`). In interactive TUI sessions started without `-p`, pass `--all-tools` or `TOKENMASTER_KEEP_TOOLS` if you need subagents, agent workflows or background PowerShell polling mid-session.
+> **Experimental Disclaimer:** TokenMaster is an experimental research toolkit, not an official GitHub product. Default GitHub routing applies Graph Navigation (`tokenmaster-nav`) and the `view` output hook, and Dynamic Tool Routing only with `--lean`; the prompt-cache bridge requires BYOK mode (`COPILOT_PROVIDER_BASE_URL`). With `--lean`, in interactive TUI sessions started without `-p`, set `TOKENMASTER_KEEP_TOOLS` or leave out `--lean` if you need subagents, agent workflows or background PowerShell polling mid-session.
 
 All full experimental reports, pre-registered protocols, negative results (`v1`–`v5`), and raw evidence live under `token-master-plugin/docs/` and `evidence/`:
 

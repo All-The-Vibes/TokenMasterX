@@ -26,6 +26,8 @@
 
    (`tmc` and `tokenomics` are also installed in `C:\Users\shyamsridhar\.local\bin\`, which is on your `PATH`, so they work even if you skip `. $PROFILE`. Using `copilot.exe` for the stock commands bypasses any shell wrapper.)
 
+   `tmc` has to start the launcher with `--lean` before `--`. Since October 30 the launcher sends every built-in tool without it, and the numbers in this script come from runs with the lean tool set on.
+
 3. In window B, check the setup:
 
    ```powershell
@@ -135,7 +137,7 @@ Say: "We have both the 45-task Django scale study on 1.0.78-3 and the pre-regist
 
 ```text
  you ── tmc ──► TokenMaster launcher ──────────────► Copilot CLI 1.0.98 ──► GitHub Copilot API
-                  │ adds --excluded-tools (13 tools)      │
+                  │ --lean: --excluded-tools (13 tools)   │
                   │ writes a launch record                ├─ view hook: large file view → short digest (v6)
                   ▼                                       ├─ tokenmaster-nav: locate, read_symbol, impact
    ~/.copilot/token-master/launches.jsonl                 ├─ /tokenomics skill → runs tokenomics.py
@@ -148,7 +150,7 @@ Say: "We have both the 45-task Django scale study on 1.0.78-3 and the pre-regist
 | Part | What it does | Where it is |
 | --- | --- | --- |
 | `tmc` | Starts Copilot CLI through the TokenMaster launcher. | PowerShell 7 profile |
-| Launcher | Removes 13 unused built-in tools from every call. Records each launch: time, folder and settings, with no prompt text. | `~/.copilot/token-master/brainspace_copilot_bridge.py` |
+| Launcher | With `--lean`, removes 13 unused built-in tools from every call. Records each launch: time, folder and settings, with no prompt text. | `~/.copilot/token-master/brainspace_copilot_bridge.py` |
 | Bridge | Only in bring-your-own-model mode: makes the system prompt the same for sessions in one folder, so GitHub's cache can reuse it. Your default setup does not use it. | Inside the launcher |
 | Graph tools (`tokenmaster-nav`) | `locate`, `read_symbol` and `impact` answer "where is X?" and "who calls X?" from a prebuilt call graph, in one compact result. | MCP server. The demo adds it for one session only. |
 | View hook (v6) | Turns a large whole-file view into a short digest before the model reads it. | `~/.copilot/settings.json` |
@@ -288,7 +290,7 @@ Say:
   - No session used the first 11 in our October 18 runs; one later stock session used `task`. None of the 60
     sessions of October 27 used the workflow tools.
   - In the pre-registered PRS-6 study on `1.0.98`, both `stock` and `tm` scored `88/88` (`29/29` on repository tasks and `15/15` on Django `D01`–`D15` for each model).
-  - For work that needs the removed tools, run plain `copilot` or `tmc --all-tools`.
+  - For work that needs the removed tools, run plain `copilot`, or the launcher without `--lean`, which since October 30 sends every built-in tool.
 - **"What about Copilot CLI 1.0.98 vs 1.0.78-3? / Which Copilot CLI version did you test?"**
   - The October 18–22 exploratory runs used Copilot CLI `1.0.78-3` because `--no-auto-update` selected the WinGet launcher's bundled build. We caught that in the session captures, corrected the documents, and pinned the version gate.
   - We then ran the pre-registered **PRS-6 study on Copilot CLI `1.0.98`** (`token-master-plugin/docs/PRS6_PROTOCOL.md`, commit `19443fc`, `evidence/prs6-copilot-1.0.98-20261026/analysis.json`, 176 sessions, `88/88` pass rate in both arms):

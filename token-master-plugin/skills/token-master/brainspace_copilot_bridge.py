@@ -1,12 +1,15 @@
 #!/usr/bin/env python
-"""Start GitHub Copilot CLI for TokenMaster: a lean tool set, plus a local bridge in BYOK mode.
+"""Start GitHub Copilot CLI for TokenMaster: a lean tool set with --lean, plus a local bridge in BYOK mode.
 
-Lean tool set: for a Copilot CLI session, the launcher adds --excluded-tools with the built-in
-tools that no session called in the October 18 runs, and the two workflow tools that Copilot CLI
-sends under default routing and, from 1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt given
-with -p or -i that asks for a tool family keeps it, and a prompt that starts a skill also keeps the
-workflow and subagent tools, which the skill may use. The launcher skips this with --all-tools, when
-the user already chose tools, or for a Copilot CLI subcommand.
+Lean tool set (only with --lean; by default Copilot CLI gets every built-in tool): for a Copilot CLI
+session, the launcher adds --excluded-tools with the built-in tools that no session called in the
+October 18 runs, and the two workflow tools that Copilot CLI sends under default routing and, from
+1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt given with -p or -i that asks for a tool
+family keeps it, and a prompt that starts a skill also keeps the workflow and subagent tools, which
+the skill may use. A launch that resumes a session gets the list that the launcher last gave the
+session (recorded in launches.jsonl), so the tool list stays the same across a resume. Even with
+--lean, the launcher leaves the command alone when the user already chose tools, or for a Copilot
+CLI subcommand.
 
 Bridge (only with a provider URL, Copilot CLI BYOK mode): Copilot CLI sends model requests to
 COPILOT_PROVIDER_BASE_URL. The bridge listens on 127.0.0.1, rewrites each OpenAI Responses or
@@ -20,11 +23,11 @@ therefore sends the same bytes for its history, and the provider's prefix cache 
 - request-policy-v6 shaping of grep, glob and whole-file view results
   (brainspace.v6_shaping.shape_tool_result; PRS-2 and PRS-3). Other tool results pass through.
 
-  python brainspace_copilot_bridge.py [--all-tools] [--upstream URL] [--log usage.jsonl] -- copilot [args...]
+  python brainspace_copilot_bridge.py [--lean] [--upstream URL] [--log usage.jsonl] -- copilot [args...]
   python brainspace_copilot_bridge.py [--upstream URL]          (serve only; prints the base URL)
 
 Without a provider URL, Copilot CLI keeps its normal GitHub routing and the launcher applies only
-the lean tool set. See docs/COPILOT_BRIDGE.md.
+the lean tool set, when --lean asks for it. See docs/COPILOT_BRIDGE.md.
 """
 from __future__ import annotations
 
@@ -36,13 +39,14 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import threading
 import time
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -113,6 +117,9 @@ _AGENT_NAMED = re.compile(r"\b([a-z0-9][\w:-]*)\s+agent\b", re.I)  # "the audito
 # task(agent_type=...); /fleet also tracks its subagents in the sql tool's todos table. /rubber-duck is unconfirmed:
 # it sent no request in that probe.
 _AGENT_COMMANDS = ("fleet", "review", "security-review", "research")
+# In the probes, Copilot CLI 1.0.105 started each launch's session within 9 s of it, and its session store keeps that
+# start time even when the session's first message comes minutes later.
+STARTUP = timedelta(minutes=2)
 
 
 def _flag_values(command: list[str], *flags: str) -> list[str]:
@@ -125,6 +132,11 @@ def _flag_values(command: list[str], *flags: str) -> list[str]:
     return values
 
 
+def _working_folder(command: list[str]) -> Path:
+    """The folder a Copilot CLI command works in: its last -C folder, else the current one."""
+    return Path(os.path.abspath(Path.cwd().joinpath(*_flag_values(command, "-C")[-1:])))
+
+
 def _installed_names(subfolder: str, command: list[str] = ()) -> set[str]:
     """Installed skill or agent names, from where Copilot CLI 1.0.104 loads them: .github, .agents and .claude in the
     working folder (-C) and its parents up to the repository root, <COPILOT_HOME> (and ~/.agents while COPILOT_HOME is
@@ -133,7 +145,7 @@ def _installed_names(subfolder: str, command: list[str] = ()) -> set[str]:
     any depth the folder of a SKILL.md or the stem of an .agent.md file."""
     home = os.environ.get("COPILOT_HOME")
     copilot = Path(home) if home else Path.home() / ".copilot"
-    start = Path(os.path.abspath(Path.cwd().joinpath(*_flag_values(command, "-C")[-1:])))
+    start = _working_folder(command)
     roots = [copilot / subfolder, *([] if home else [Path.home() / ".agents" / subfolder]),
              *(copilot / "installed-plugins").glob(f"*/*/{subfolder}"),
              *(start / folder / ".github" / subfolder for folder in _flag_values(command, "--add-dir")),
@@ -222,14 +234,116 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
     return tuple(tool for tool in LEAN_EXCLUDED_TOOLS if tool not in keep)
 
 
-def lean_command(command: list[str]) -> list[str]:
-    """Copilot CLI sessions get dynamic --excluded-tools, unless the user already chose tools or runs a subcommand."""
+def _resume_flag(command: list[str]) -> tuple[str, str] | None:
+    """The first of --continue, --resume, -r and --session-id in a Copilot CLI command, and its value ("" for none).
+    As Copilot CLI 1.0.105 reads them, a value follows "=", sticks to -r ("-rID"), or is the next argument unless that
+    starts with "-"."""
+    rest = command[1:]
+    for index, arg in enumerate(rest):
+        head, eq, value = arg.partition("=")
+        following = rest[index + 1] if index + 1 < len(rest) and not rest[index + 1].startswith("-") else ""
+        if arg == "--continue":
+            return arg, ""
+        if head in ("--resume", "--session-id"):
+            return head, value if eq else following
+        if arg[:2] == "-r":
+            return "-r", arg[2:] or following
+    return None
+
+
+def _copilot_sessions() -> dict[str, tuple]:
+    """{session ID: (folder in normcase form, repository, created_at, updated_at)} from Copilot CLI's session store,
+    read-only; {} without one. A column the store lacks reads as None."""
+    path = launch_registry().parents[1] / "session-store.db"
+    try:  # a short timeout: never hold a launch up
+        connection = sqlite3.connect(f"{path.resolve().as_uri()}?mode=ro", uri=True, timeout=1)
+        try:
+            columns = {row[1] for row in connection.execute("pragma table_info(sessions)")}
+            wanted = ", ".join(name if name in columns else "null"
+                               for name in ("id", "cwd", "repository", "created_at", "updated_at"))
+            rows = connection.execute(f"select {wanted} from sessions").fetchall()
+        finally:
+            connection.close()
+    except sqlite3.Error:
+        return {}
+    return {sid: (os.path.normcase(os.path.normpath(folder)) if folder else "", *rest) for sid, folder, *rest in rows}
+
+
+def resumed_session(command: list[str]) -> str | None:
+    """The existing session a Copilot CLI command resumes, found as Copilot CLI 1.0.105 did in the probes
+    (evidence/session-tools-20261030): the ID, or an ID prefix of 7 or more characters that one session starts with,
+    after --resume or -r; the ID after --session-id; for --continue, the session updated last, which without -p (an
+    interactive session, or a prompt piped on stdin) is the one updated last in the working folder's GitHub repository,
+    or else in the folder, if either has one. None for a new session, a session name or task ID, and a bare --resume or
+    -r."""
+    found = _resume_flag(command)
+    if not found:
+        return None
+    flag, value = found
+    if flag == "--continue":
+        sessions = _copilot_sessions()
+        if not _flag_values(command, "-p", "--prompt"):
+            here = _working_folder(command)
+            root = next((str(folder) for folder in (here, *here.parents) if (folder / ".git").exists()), None)
+            inside = os.path.normcase(os.path.join(root, "")) if root else None
+            # The repository, as the store names it, of the sessions already started in this folder's checkout.
+            repos = {repo for folder, repo, *_ in sessions.values()
+                     if repo and inside and os.path.join(folder, "").startswith(inside)}
+            scoped = {sid: row for sid, row in sessions.items()
+                      if (row[1] in repos if repos else row[0] == os.path.normcase(str(here)))}
+            sessions = scoped or sessions
+        return max(sessions, key=lambda session: sessions[session][3] or "", default=None)
+    try:  # a folder per session, and from older Copilot CLI versions, an <ID>.jsonl file
+        ids = {name.removesuffix(".jsonl") for name in os.listdir(launch_registry().parents[1] / "session-state")}
+    except OSError:
+        return None
+    if value in ids:
+        return value
+    matches = [name for name in ids if flag != "--session-id" and len(value) >= 7 and name.startswith(value)]
+    return matches[0] if len(matches) == 1 else None
+
+
+def recorded_tools(session: str) -> list[str] | None:
+    """The --excluded-tools that the launcher last gave a session: those of the latest launch that resumed it, else of
+    the launch that started it, which is the one new launch in the session's folder whose first STARTUP saw this
+    session start and no other. None when no launch can be tied to the session, or its record lists no tools (written
+    before the launcher recorded them, or the user chose the tools)."""
+    from tokenomics import load_launches, parse_time  # installed next to this script
+    try:
+        launches = load_launches(launch_registry())  # in start order
+    except Exception:  # noqa: BLE001 - a damaged launches.jsonl must not stop a launch
+        return None
+    mine = [launch for launch in launches if launch["session"] == session]
+    if not mine:
+        sessions = {sid: (folder, parse_time(created)) for sid, (folder, _, created, _) in _copilot_sessions().items()}
+        folder, created = sessions.get(session, ("", None))
+
+        def first(launch, at):  # at within the launch's first STARTUP; a session starts after its launch does
+            return at is not None and launch["start"] < at <= min(launch["end"], launch["start"] + STARTUP)
+
+        mine = [launch for launch in launches
+                if launch["session"] is None and folder and launch["cwd"] == folder and first(launch, created)]
+        if len(mine) != 1 or any(where == folder and first(mine[0], at)
+                                 for sid, (where, at) in sessions.items() if sid != session):
+            mine = []  # two launches, or two sessions: which list went where is a guess
+    return mine[-1]["excluded"] if mine else None
+
+
+def lean_command(command: list[str], session: str | None = None) -> list[str]:
+    """Copilot CLI sessions get dynamic --excluded-tools, unless the user already chose tools or runs a subcommand. A
+    launch that resumes `session` gets the list the launcher last gave it, if one is recorded, less what
+    TOKENMASTER_KEEP_TOOLS keeps: Copilot CLI resends the session's history with the new launch's tools, so another
+    list changes the start of every request it sends."""
     if not command or Path(command[0]).stem.lower() != "copilot":
         return command
     rest = command[1:]
     if (rest and not rest[0].startswith("-")) or any(arg.split("=")[0] in _TOOL_FLAGS for arg in rest):
         return command
-    excluded = select_excluded_tools(command)
+    excluded = recorded_tools(session) if session else None
+    if excluded is None:
+        excluded = select_excluded_tools(command)
+    else:  # the routing of a launch with no prompt or flags: only LEAN_EXCLUDED_TOOLS, less TOKENMASTER_KEEP_TOOLS
+        excluded = [tool for tool in excluded if tool in select_excluded_tools(command[:1])]
     return [*command, "--excluded-tools", *excluded] if excluded else command
 
 
@@ -267,17 +381,22 @@ def _nav_installed(command: list[str] = ()) -> bool:
     return False
 
 
-def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool) -> int:
-    """run_child, plus a start and an end record (folder, lean tool set and the tools it excluded, bridge, navigation
-    tools; no prompt text)."""
+def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool, session: str | None = None) -> int:
+    """run_child, plus a start and an end record (the folder Copilot CLI works in, lean tool set and the tools it
+    excluded, the session it resumes, bridge, navigation tools; no prompt text)."""
     if Path(command[0]).stem.lower() != "copilot":
         return run_child(parser, command, env)
     launch_id = hashlib.sha256(f"{time.time_ns()}-{os.getpid()}".encode()).hexdigest()[:16]
     now = lambda: datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")  # noqa: E731
     # lean_command appends the flag and the tool names last; they come from LEAN_EXCLUDED_TOOLS, never from the prompt.
-    excluded = command[command.index("--excluded-tools") + 1:] if lean and "--excluded-tools" in command else []
-    _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": os.getcwd(), "lean": lean,
-                    "excluded": excluded, "bridge": bridge, "nav": _nav_installed(command)})
+    # None when the user chose the tools: a resume cannot give the session that list again.
+    if lean and "--excluded-tools" in command:
+        excluded = command[command.index("--excluded-tools") + 1:]
+    else:
+        excluded = None if any(arg.split("=")[0] in _TOOL_FLAGS for arg in command[1:]) else []
+    _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": str(_working_folder(command)),
+                    "lean": lean, "excluded": excluded, "session": session, "bridge": bridge,
+                    "nav": _nav_installed(command)})
     try:
         return run_child(parser, command, env)
     finally:
@@ -579,25 +698,31 @@ def main(argv=None) -> int:
     parser.add_argument("--upstream", default=os.environ.get("COPILOT_PROVIDER_BASE_URL"),
                         help="Responses or Anthropic API base URL (default: the current COPILOT_PROVIDER_BASE_URL). "
                              "Without one, Copilot CLI keeps its normal routing and the launcher applies only the "
-                             "lean tool set.")
+                             "lean tool set, with --lean.")
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--log", help="append one JSON line per model request: usage numbers, no content")
-    parser.add_argument("--all-tools", action="store_true",
-                        help="keep every built-in Copilot CLI tool (default: exclude the ones no session used in "
-                             "the October 18 runs and the two workflow tools)")
+    tool_set = parser.add_mutually_exclusive_group()
+    tool_set.add_argument("--lean", action="store_true",
+                          help="exclude the built-in tools that no session used in the October 18 runs and the two "
+                               "workflow tools, unless the prompt, a flag or TOKENMASTER_KEEP_TOOLS keeps them; a "
+                               "resume gets its session's recorded list (default: every built-in tool)")
+    tool_set.add_argument("--all-tools", action="store_true",
+                          help="every built-in tool, which is now the default; kept so existing commands still work")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     original = list(command)
-    if command and not args.all_tools:
-        command = lean_command(command)
+    session = resumed_session(command) if command else None
+    if command and args.lean:
+        command = lean_command(command, session)
     lean = command != original
+    lean_state = "on" if lean else "on, nothing to exclude" if args.lean else "off"
     if not args.upstream:
         if not command:
             parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL to serve the bridge")
-        print("[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set "
-              f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
-        return run_recorded(parser, command, dict(os.environ), lean=lean, bridge=False)
+        print(f"[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set {lean_state}",
+              file=sys.stderr)
+        return run_recorded(parser, command, dict(os.environ), lean=lean, bridge=False, session=session)
     provider = os.environ.get("COPILOT_PROVIDER_TYPE") or "openai"
     if provider not in ("openai", "anthropic") or \
             (provider == "openai" and (os.environ.get("COPILOT_PROVIDER_WIRE_API") or "responses") != "responses"):
@@ -618,7 +743,7 @@ def main(argv=None) -> int:
     with bridge:
         print(f"[tokenmaster] bridge {bridge.url} -> {bridge.upstream}; cache-stable system prompt on; "
               f"v6 shaping {'on' if count else 'off (verified tokenizer unavailable)'}; lean tool set "
-              f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
+              f"{lean_state}", file=sys.stderr)
         if not command:
             print(f"COPILOT_PROVIDER_BASE_URL={bridge.url}", flush=True)
             try:
@@ -629,7 +754,7 @@ def main(argv=None) -> int:
         env = {**os.environ, "COPILOT_PROVIDER_BASE_URL": bridge.url}
         if provider == "openai":
             env["COPILOT_PROVIDER_WIRE_API"] = "responses"
-        return run_recorded(parser, command, env, lean=lean, bridge=True)
+        return run_recorded(parser, command, env, lean=lean, bridge=True, session=session)
 
 
 if __name__ == "__main__":

@@ -172,7 +172,7 @@ def load_launches(path: Path) -> list[dict]:
         excluded = record.get("excluded")
         launches.append({"id": launch_id, "start": start, "end": end, "cwd": norm(record.get("cwd")),
                          "lean": bool(record.get("lean")), "bridge": bool(record.get("bridge")),
-                         "nav": bool(record.get("nav")),
+                         "nav": bool(record.get("nav")), "session": record.get("session"),
                          "excluded": [t for t in excluded if isinstance(t, str)] if isinstance(excluded, list) else None})
     return sorted(launches, key=lambda launch: launch["start"])
 

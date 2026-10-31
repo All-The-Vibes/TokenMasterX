@@ -427,7 +427,7 @@ def run_session(out: Path, arm: str, task: dict, repeat: int, relay: Relay, *, s
     args = [COPILOT, "-p", task["prompt"], *FLAGS]
     if arm == "tm":
         bridge = root / "home" / "copilot" / "token-master" / "brainspace_copilot_bridge.py"
-        args = [sys.executable, "-B", str(bridge), "--log", str(run_dir / "bridge.jsonl"), "--", *args]
+        args = [sys.executable, "-B", str(bridge), "--lean", "--log", str(run_dir / "bridge.jsonl"), "--", *args]
     relay.session_dir = run_dir
     started = time.time()
     try:
