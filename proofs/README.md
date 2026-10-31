@@ -26,6 +26,7 @@ definitions have. Section 7 covers the method.
 | `plan_request` with policies v1 to v4 never grows a request or touches a protected message | Proven | `Policy.greedy_never_expands`, `Policy.protected_unchanged` |
 | The `rg` and glob folds are lossless | Proven: `fold_paths` gives back its exact input, and `fold_search` refuses any input it could not give back (section 3) | `Folds.unfoldPaths_foldPaths`, `Folds.unfold_foldSearchChecked` |
 | Routing drops only auxiliary tools, and keeps every family whose trigger fires | Proven; the triggers miss some phrasings (finding 2) | `Routing.excluded_subset_lean`, `Routing.fired_family_kept` |
+| A resume that the launcher ties to the session's record gets the `--excluded-tools` the session started with | Proven for the model; which record applies is the launcher's lookup, which the conformance tests check (section 4) | `Routing.resume_same_list`, `Routing.resume_chain_keeps_first_list` |
 | Sessions whose system prompts differ only in the folder path get the same system prompt | Proven | `SessionPrefix.system_same_across_sessions` |
 | Navigation results stay under 2,400 tokens | Proven, in the navigation server's counter: every result is measured whole and cut to fit (section 6) | `NavCap.assemble_le` |
 | The measurement definitions have the properties the protocol relies on | Proven; `analyze.py`'s outputs match them on the recorded data; the interval's coverage is assumed | `Measurement.resample_within_task_range` |
@@ -54,7 +55,7 @@ To list the axioms a theorem depends on, run `lake env lean` on a file that impo
 | --- | --- | --- |
 | `shape_tool_result` depends only on the tool name, the arguments and the output | sections 1, 2 | Holds by reading the code: it reads nothing else, and the counter is fixed for a session. The tests only show that it gives the same output twice |
 | A new item never reuses a call id the earlier history mentions | sections 1, 2 | Assumed: Copilot CLI gives every call a new id |
-| The client sends the same instructions and tool list on every call of a session | section 1 | Assumed. The test fixture builds them equal, so it cannot check the client. A resumed session recomputes the excluded tools (finding 3) |
+| The client sends the same instructions and tool list on every call of a session | section 1 | Assumed. The test fixture builds them equal, so it cannot check the client. A resume that the launcher ties to the session's record passes the recorded `--excluded-tools` again (section 4), and given the same list, Copilot CLI 1.0.105 sent the same tools and the earlier input on a resume in one probe (`evidence/session-tools-20261030`). Other resumes, and `--all-tools` or `TOKENMASTER_KEEP_TOOLS` on a resume, may change the list |
 | The provider's cached prefix puts the instructions and the tool list before the items | section 1 | Assumed. Anthropic documents the order tools, system, messages; Theorem 3 needs only both before the items |
 | The token counter never raises | section 1 | False for a lone surrogate (finding 1) |
 | A request's bytes are a fixed part plus each content's escaped size | section 2 | Follows from how `json.dumps` writes a string; not tested |
@@ -64,7 +65,7 @@ To list the axioms a theorem depends on, run `lake env lean` on a file that impo
 | An owning path is never itself an entry line, and an owned line has digits and a `:` or `-` | section 3 | Checked: `test_fold_search_round_trip` adds match lines whose path looks like an entry. With `_SUSPECT_PATH`'s whitespace rules removed, the test fails |
 | No copied search line looks like a folded entry | section 3 | Guaranteed by the code: `fold_search` refuses such input (Theorem 11) |
 | The model's tool families are the code's | section 4 | Checked: `test_routing_lists_match_the_lean_model` |
-| The folder path has no newline and no surrounding whitespace | section 5 | No newline by the regular expression; whitespace is stripped (finding 4) |
+| The folder path has no newline and no surrounding whitespace | section 5 | No newline by the regular expression; whitespace is stripped (finding 3) |
 | The empty text fits the budget | section 6 | Holds for both the exact count and the fallback estimate, which count it as 0 |
 | A cache write never costs less than a cache read | section 7 | Checked: `test_cache_writes_never_cost_less_than_reads`, on the one price pair the recorded calls have |
 
@@ -301,10 +302,10 @@ generates 3,000 search outputs, some with match lines whose path looks like an e
 rest fold and unfold to their exact input. Letting `_PATH` accept a leading space, removing the
 whitespace rules from `_SUSPECT_PATH`, or removing the refusal makes the matching test fail.
 
-## 4. Tool routing drops only auxiliary tools
+## 4. Tool routing drops only auxiliary tools, and a resume keeps its session's list
 
-Source: `select_excluded_tools` and `CAPABILITY_GROUPS` in `brainspace_copilot_bridge.py`. Lean:
-`TokenMasterProofs/Routing.lean`.
+Source: `select_excluded_tools`, `CAPABILITY_GROUPS`, `recorded_tools` and `lean_command` in
+`brainspace_copilot_bridge.py`. Lean: `TokenMasterProofs/Routing.lean`.
 
 `LEAN_EXCLUDED_TOOLS` is every family's tools in source order: 13 tools in 7 families. The excluded
 list is that list filtered by a `keep` set, built from the families whose trigger fired (a prompt
@@ -312,6 +313,13 @@ pattern; `--agent`, `--fleet`, `--resume`, `-r` or `--continue`; a slash command
 an installed skill or agent, or a built-in agent command such as `/review`) and the tools in
 `TOKENMASTER_KEEP_TOOLS`. A kept `skill` also keeps the two workflow tools and the four
 subagent tools, since a skill may start a workflow or hand work to a subagent.
+
+The excluded list is computed at launch and passed as a flag, so it stays the same for the life of
+the process. A resumed session runs the launcher again, and Copilot CLI sends the session's history
+with the new launch's tools. So a launch that resumes a session sends the list recorded for it
+instead: `resumed r s` is the recorded list `r`, less what the resume's `TOKENMASTER_KEEP_TOOLS` alone
+keeps (which also drops anything outside `LEAN_EXCLUDED_TOOLS`), or, with no record, the routed list
+for the resume's own signals `s`.
 
 **Theorem 13.** For every set of signals:
 
@@ -326,8 +334,26 @@ subagent tools, since a skill may start a workflow or hand work to a subagent.
   `list_agents`.
 - `Routing.nothing_fires_excludes_all`: with no signal, all 13 tools are excluded.
 
+For a routed launch that resumes a session, whatever list was recorded for it:
+
+- `Routing.resume_same_list`: if the first launch's list is recorded, a resume sends it again,
+  whatever prompt and routing flags the resume has, as long as its `TOKENMASTER_KEEP_TOOLS` names
+  nothing the first launch's did not.
+- `Routing.resume_chain_keeps_first_list`: so does every later resume that the launcher ties to the
+  session, each given the list the launch before it recorded.
+- `Routing.resumed_env_kept`: a tool named in the resume's `TOKENMASTER_KEEP_TOOLS` is not excluded.
+- `Routing.resumed_subset_lean`, `Routing.resumed_core_never_excluded`: a resume excludes only
+  tools in `LEAN_EXCLUDED_TOOLS`, so never a core tool.
+- `Routing.resume_without_record`: with no record, a resume is routed like any launch.
+
+`--all-tools` and the user's own tool flags skip routing, so the model does not cover them: a resume
+with `--all-tools` sends every tool, and later resumes keep that list.
+
 *Proof.* Membership in a filtered list. The core tools are not in the lean list, which Lean checks by
-evaluation; each other fact follows from the tool being in `keep`. ∎
+evaluation; each other fact follows from the tool being in `keep`. What `TOKENMASTER_KEEP_TOOLS`
+alone keeps, a launch whose own `TOKENMASTER_KEEP_TOOLS` names at least those tools keeps too, so its
+routed list passes the resume's filter unchanged, and the chain follows by induction on the
+resumes. ∎
 
 What this does not cover is whether a prompt's need fires a trigger: that is the regular
 expressions' job, and they miss some phrasings. "have an agent review this diff" fires no family,
@@ -336,9 +362,16 @@ families are exactly the model's, tool by tool, and three more tests check each 
 `--fleet`, `--resume`, `-r`, `TOKENMASTER_KEEP_TOOLS`, the skill rule and the no-signal case on the real
 function.
 
-The excluded list is computed at launch and passed as a flag, so it stays the same for the life of
-the process. A resumed session runs the launcher again, which recomputes the list from the new
-command line, so the tool list can change at a resume (finding 3).
+Nor does it cover which record applies; the model takes the record as given. `recorded_tools` takes
+the latest launch that resumed the session, else the launch that started it: the only new launch in
+the session's folder that saw the session start in its first two minutes, and saw no other session
+start there. `test_routing_resume_keeps_the_first_list` starts a session with each trigger's prompt
+through `main`, resumes it with every trigger's prompt, and checks the list each time; it also checks
+that a tool `TOKENMASTER_KEEP_TOOLS` names is kept on a resume, that a recorded core tool is not
+excluded, and that a session no launch recorded is routed as before. A resume that the launcher
+cannot tie to a record still gets a newly routed list: a session started without the launcher, with
+the user's own tool flags or with `--worktree`, one that two launches may have started, one named by
+its name or a task ID, and a bare `--resume`, which opens a picker.
 
 ## 5. Sessions in one folder can share a cached system prompt
 
@@ -372,7 +405,7 @@ newline of each side comes right after the path. Two lists that agree up to thei
 neither of which has a newline before it, agree on what comes before it and on the rest. ∎
 
 Python strips whitespace around the path before moving it, so that whitespace is not recovered
-(finding 4). `test_session_prefix_same_system_and_recoverable_folder` checks both theorems on the
+(finding 3). `test_session_prefix_same_system_and_recoverable_folder` checks both theorems on the
 real function.
 
 ## 6. Navigation results stay within 2,400 tokens
@@ -496,14 +529,15 @@ they are not fixed. Findings 1 and 2 have a `test_finding_*` test that reproduce
    bridge fails that call and every later call that resends the output.
 2. The routing triggers miss some phrasings: "have an agent review this diff" excludes `task`
    (section 4).
-3. A resumed session recomputes `--excluded-tools`, so the tool list, part of the cached prefix, can
-   change at a resume (section 4).
-4. Whitespace around the session folder path is not recovered after the move (section 5).
+3. Whitespace around the session folder path is not recovered after the move (section 5).
 
 ## Fixed
 
 These gaps were found the same way and are fixed; the sections above describe the code as it is now.
 
+- A resumed session ran the routing again, and `--resume` and `--continue` kept `session_store_sql`,
+  so the tool list, part of the cached prefix, changed at a resume. A resume that the launcher ties
+  to the session's record now sends the recorded list; other resumes are routed again (section 4).
 - Navigation results could exceed `BUDGET`: footers sat outside the budget, and the uncut `read`
   branch did not count one newline (2,401 tokens observed). Every result is now measured whole
   (section 6).

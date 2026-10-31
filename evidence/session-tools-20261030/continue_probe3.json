@@ -1,0 +1,80 @@
+{
+ "sessions": {
+  "one (alpha)": "7ede27c9-ce5a-471a-ba5a-05f7c3107574",
+  "two (beta)": "f8e9c4ea-af13-4896-a543-3e9c755f93b8"
+ },
+ "steps": [
+  {
+   "marker": "p3-one",
+   "cwd": "alpha",
+   "flags": [],
+   "exit": 1,
+   "seconds": 16.0,
+   "session": [
+    "7ede27c9-ce5a-471a-ba5a-05f7c3107574"
+   ]
+  },
+  {
+   "marker": "p3-two",
+   "cwd": "beta",
+   "flags": [],
+   "exit": 1,
+   "seconds": 7.0,
+   "session": [
+    "f8e9c4ea-af13-4896-a543-3e9c755f93b8"
+   ]
+  },
+  {
+   "marker": "p3-tty-continue",
+   "cwd": "alpha",
+   "flags": [
+    "--continue",
+    "-i"
+   ],
+   "interactive": true,
+   "seconds": 10.4,
+   "session": [
+    "7ede27c9-ce5a-471a-ba5a-05f7c3107574"
+   ]
+  },
+  {
+   "marker": "p3-hold",
+   "cwd": "alpha",
+   "flags": [
+    "--resume",
+    "7ede27c9-ce5a-471a-ba5a-05f7c3107574"
+   ],
+   "held": true,
+   "session": [
+    "7ede27c9-ce5a-471a-ba5a-05f7c3107574"
+   ]
+  },
+  {
+   "marker": "p3-while-held",
+   "cwd": "beta",
+   "flags": [
+    "--continue"
+   ],
+   "exit": 1,
+   "seconds": 6.0,
+   "session": [
+    "7ede27c9-ce5a-471a-ba5a-05f7c3107574"
+   ]
+  },
+  {
+   "marker": "p3-after-release",
+   "cwd": "beta",
+   "flags": [
+    "--continue"
+   ],
+   "exit": 1,
+   "seconds": 6.6,
+   "session": [
+    "7ede27c9-ce5a-471a-ba5a-05f7c3107574"
+   ]
+  }
+ ],
+ "first_input_roles": [
+  "system"
+ ]
+}

@@ -11,6 +11,9 @@ flags, installed skill and agent names, and `TOKENMASTER_KEEP_TOOLS`.
 
 The model keeps the families and the filter exact. Which families fire is a parameter: the
 regular expressions, flag parsing and installed-name lookup are covered by the conformance tests.
+
+A launch that resumes a session sends the list recorded for the session instead (`recorded_tools`
+in `lean_command`). Which record applies is a parameter too: the conformance tests cover the lookup.
 -/
 namespace TokenMasterProofs.Routing
 
@@ -127,5 +130,76 @@ theorem nothing_fires_excludes_all (s : Signals) (hf : ∀ g, s.fires g = false)
     simp [keep₀, he, hf]
   have hk : keep s = [] := by simp [keep, h0]
   simp [excluded, hk]
+
+/-- The signals of a launch with no prompt and no flags: `TOKENMASTER_KEEP_TOOLS` alone. -/
+def envOnly (s : Signals) : Signals := ⟨fun _ => false, s.env⟩
+
+/-- `lean_command` for a routed launch that resumes a session: the list the launcher last gave the session, less what
+the resume's `TOKENMASTER_KEEP_TOOLS` alone keeps (which also drops anything outside `LEAN_EXCLUDED_TOOLS`), or, with
+no record, the list routed from the resume's own prompt and flags. `--all-tools` and the user's own tool flags skip
+routing, and the model does not cover them. -/
+def resumed (recorded : Option (List Tool)) (s : Signals) : List Tool :=
+  match recorded with
+  | some l => l.filter (fun t => decide (t ∈ excluded (envOnly s)))
+  | none => excluded s
+
+/-- A resume excludes nothing outside `LEAN_EXCLUDED_TOOLS`, whatever was recorded. -/
+theorem resumed_subset_lean (r : Option (List Tool)) (s : Signals) : ∀ t ∈ resumed r s, t ∈ leanExcluded := by
+  cases r with
+  | none => exact excluded_subset_lean s
+  | some l => exact fun t ht => excluded_subset_lean _ t (of_decide_eq_true (List.mem_filter.mp ht).2)
+
+/-- No core coding tool is excluded on a resume either. -/
+theorem resumed_core_never_excluded (r : Option (List Tool)) (s : Signals) : ∀ t ∈ core, t ∉ resumed r s :=
+  fun t ht hex => core_disjoint t ht (resumed_subset_lean r s t hex)
+
+/-- A tool named in the resume's `TOKENMASTER_KEEP_TOOLS` is not excluded, whatever was recorded. -/
+theorem resumed_env_kept (r : Option (List Tool)) (s : Signals) {t : Tool} (h : t ∈ s.env) : t ∉ resumed r s := by
+  cases r with
+  | none => exact env_tool_kept s h
+  | some l => exact fun ht => env_tool_kept (envOnly s) h (of_decide_eq_true (List.mem_filter.mp ht).2)
+
+/-- With no record, a resume is routed like any launch. -/
+theorem resume_without_record (s : Signals) : resumed none s = excluded s := rfl
+
+/-- What `TOKENMASTER_KEEP_TOOLS` alone keeps, a launch whose own `TOKENMASTER_KEEP_TOOLS` names at least those tools
+keeps too. -/
+private theorem envOnly_keep_sub (s₀ s : Signals) (h : ∀ t ∈ s.env, t ∈ s₀.env) :
+    ∀ t ∈ keep (envOnly s), t ∈ keep s₀ := by
+  have h0 : keep₀ (envOnly s) = s.env := by simp [keep₀, envOnly]
+  intro t ht
+  unfold keep at ht
+  split at ht
+  · rename_i hs
+    rw [h0] at hs ht
+    rw [keep_of_skill s₀ (List.mem_append_left _ (h _ hs))]
+    simp only [List.mem_append] at ht ⊢
+    rcases ht with (ht | ht) | ht
+    · exact Or.inl (Or.inl (List.mem_append_left _ (h t ht)))
+    · exact Or.inl (Or.inr ht)
+    · exact Or.inr ht
+  · rw [h0] at ht
+    exact keep₀_sub_keep s₀ (List.mem_append_left _ (h t ht))
+
+/-- A resume of a session whose first launch's list is recorded sends that list again, whatever prompt and routing
+flags the resume has, as long as its `TOKENMASTER_KEEP_TOOLS` names nothing the first launch's did not. -/
+theorem resume_same_list (s₀ s : Signals) (h : ∀ t ∈ s.env, t ∈ s₀.env) :
+    resumed (some (excluded s₀)) s = excluded s₀ := by
+  apply List.filter_eq_self.mpr
+  intro t ht
+  have hnot : t ∉ keep s₀ := of_decide_eq_true (List.mem_filter.mp ht).2
+  exact decide_eq_true (List.mem_filter.mpr ⟨excluded_subset_lean s₀ t ht,
+    decide_eq_true fun hk => hnot (envOnly_keep_sub s₀ s h t hk)⟩)
+
+/-- Any number of resumes that the launcher ties to the session, each given the list the launch before it recorded,
+all send the first launch's list, as long as none of their `TOKENMASTER_KEEP_TOOLS` names more than the first's. -/
+theorem resume_chain_keeps_first_list (s₀ : Signals) (resumes : List Signals)
+    (h : ∀ s ∈ resumes, ∀ t ∈ s.env, t ∈ s₀.env) :
+    resumes.foldl (fun l s => resumed (some l) s) (excluded s₀) = excluded s₀ := by
+  induction resumes with
+  | nil => rfl
+  | cons s rest ih =>
+    simp only [List.foldl, resume_same_list s₀ s (h s (List.mem_cons_self ..))]
+    exact ih fun s' hs' => h s' (List.mem_cons_of_mem _ hs')
 
 end TokenMasterProofs.Routing

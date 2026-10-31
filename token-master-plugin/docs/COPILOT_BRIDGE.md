@@ -34,10 +34,11 @@ installed. Against stock Copilot CLI, they used about half the raw tokens
    ([TOKENOMICS.md](TOKENOMICS.md)).
 
 The launcher appends a start record and an end record for each Copilot CLI launch to
-`<COPILOT_HOME>/token-master/launches.jsonl`: time, folder, whether the lean tool set, the bridge and the navigation
-tools were on, and the names of the tools that the lean tool set excluded. The records hold no prompt text.
-`/tokenomics` uses them to tell TokenMaster sessions from stock sessions, and to credit only the tools a launch
-removed.
+`<COPILOT_HOME>/token-master/launches.jsonl`: time, the folder Copilot CLI works in (the `-C` folder when one is
+given), whether the lean tool set, the bridge and the navigation tools were on, the names of the tools that the lean
+tool set excluded, and the ID of the session the launch resumes. The records hold no prompt text. `/tokenomics` uses
+them to tell TokenMaster sessions from stock sessions, and to credit only the tools a launch removed. The launcher
+uses them to give a resumed session its tool list again ([Resumed sessions](#resumed-sessions)).
 
 ## Lean tool set
 
@@ -104,8 +105,9 @@ removed.
   interactive Copilot CLI 1.0.104 session each tells the model to use `task` with the agent type of the
   same name (`code-review` for `/review`). The same text later in a prompt, as in
   `POST /review returns 500`, keeps nothing. `/rubber-duck` is unconfirmed and keeps nothing: it sent no
-  request in that probe. `--resume`, `-r` (also `-r ID` and `-rID`) and `--continue` keep session
-  history.
+  request in that probe. When the launcher has no tool list recorded for the session it resumes
+  ([Resumed sessions](#resumed-sessions)), `--resume`, `-r` (also `-r ID` and `-rID`) and `--continue`
+  keep session history.
 - The launcher sees only the prompt it is given. Prompts typed later in an interactive session, and a
   prompt piped on stdin, keep nothing: pass `--all-tools` or set `TOKENMASTER_KEEP_TOOLS` for those.
 - A skill may hand work to a subagent, so a prompt that starts one keeps the four subagent tools.
@@ -132,6 +134,60 @@ removed.
   for example in an interactive session started without `-p`. Use `--all-tools` for it. No run
   measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
   `task`; with the lean tool set, the same task passed without it.
+
+## Resumed sessions
+
+A resumed session sends its whole history again, with the tool list of the new launch. In probes
+with Copilot CLI 1.0.105, a resume's first request started with the earlier request's whole input,
+system message included, and carried the new launch's tools: with the same `--excluded-tools` the
+same tools, and with `session_store_sql` kept, that tool more
+([evidence/session-tools-20261030](../../evidence/session-tools-20261030/resume_probe.py)).
+Providers cache a prompt by its prefix, and Anthropic documents the order tools, system prompt,
+messages, so a resume with another tool list cannot read the history from the cache. No run has
+measured that cost, or what keeping the list saves. Before this change the launcher routed every
+launch again, and `--resume` and `--continue` kept `session_store_sql`: a session started with a
+plain launch went from 13 excluded tools to 12 on a resume, and one started with
+`-p "spawn an agent to review this"` changed 5 tools.
+
+- A launch that resumes a session gets the `--excluded-tools` that the launcher last gave the
+  session, whatever prompt and routing flags the resume has. The list comes from `launches.jsonl`:
+  the latest launch that resumed the session, else the launch that started it. A launch started a
+  session if it is the only new launch in the session's folder that saw the session start in its
+  first two minutes, and it saw no other session start there in that time. In the probes, Copilot
+  CLI 1.0.105 started each launch's session within 9 s of it, and its session store keeps that start
+  time even when the session's first message comes minutes later.
+- The launcher finds the session the way Copilot CLI 1.0.105 did in probes:
+  - after `--resume` or `-r`, the session ID, or an ID prefix of 7 or more characters that only one
+    session starts with;
+  - after `--session-id`, the session ID;
+  - for `--continue` with `-p`, the session with the latest `updated_at` in Copilot CLI's session
+    store (`<COPILOT_HOME>/session-store.db`), in any folder. All 14 prompt-mode runs resumed that
+    session: from other folders, from repositories with a GitHub remote, from another branch, in a
+    console window, and while another Copilot CLI process had the session open;
+  - for `--continue` without `-p`, in an interactive session or with the prompt piped on stdin, the
+    session updated last in the working folder's GitHub repository, in any folder or clone of it;
+    else in the working folder; else anywhere. All 8 interactive runs and the 1 piped run matched
+    that.
+
+  Copilot CLI's changelog says that `--continue` prefers the current folder (1.0.35) and the current
+  repository (1.0.64). The probes found that true without `-p` only
+  ([evidence/session-tools-20261030](../../evidence/session-tools-20261030/)). The launcher learns a
+  folder's repository from the sessions already started in that folder's checkout. So in a fresh
+  clone or worktree, or at the root of a repository that holds another repository, it can pick
+  another session than Copilot CLI does, and then send that session's list.
+- `--all-tools` and `TOKENMASTER_KEEP_TOOLS` still add tools on a resume, and later resumes keep the
+  list that resume sent.
+- Without a recorded list, the launcher routes a resume like any launch, as before, and `--resume`,
+  `-r` and `--continue` keep session history. That happens for:
+  - a session started without the launcher, or with `--worktree`, which runs it in another folder;
+  - a session that the launcher cannot tie to one launch: two new launches in its folder started
+    it within two minutes, or another session started there in that time;
+  - a session given by its name or a task ID, and a bare `--resume` or `-r`, which opens a picker
+    when there is more than one session;
+  - a launch with your own `--available-tools` or `--excluded-tools`, which the launcher cannot
+    give a resume again;
+  - launches recorded before the launcher listed the tools it excluded, and a session store that
+    cannot be read.
 
 ## Bridge (bring-your-own-model mode)
 

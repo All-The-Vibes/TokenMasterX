@@ -3,14 +3,18 @@ from __future__ import annotations
 
 import importlib.util
 import json
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import os
 from pathlib import Path
+import sqlite3
 import subprocess
 import sys
 import threading
+import time
 import urllib.error
 import urllib.request
+import uuid
 
 import pytest
 
@@ -521,3 +525,220 @@ def test_without_a_provider_url_the_launcher_runs_the_command_directly(monkeypat
     assert bridge_module.main(["--", sys.executable, "-c", script]) == 5
     with pytest.raises(SystemExit):
         bridge_module.main([])  # nothing to run and nothing to serve
+
+
+def stamp():
+    time.sleep(0.002)  # Copilot CLI writes times to the millisecond; keep each one apart
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+class FakeCopilot:
+    """Stands in for Copilot CLI 1.0.105 in run_child. It keeps each command it gets and, as the real one does, a
+    folder in <COPILOT_HOME>/session-state and a row in session-store.db per session. --resume, -r and --session-id
+    resume the session whose ID starts with their value, and --continue the session updated last (prompt mode's rule;
+    the tests that use it from an interactive launch have all their sessions in one folder)."""
+
+    def __init__(self, home):
+        self.home, self.commands, self.session = home, [], None
+        (home / "session-state").mkdir(parents=True, exist_ok=True)
+        self.sql("create table if not exists sessions (id text primary key, cwd text, repository text, "
+                 "created_at text, updated_at text)")
+
+    def sql(self, statement, *values):
+        db = sqlite3.connect(self.home / "session-store.db")
+        try:
+            rows = db.execute(statement, values).fetchall()
+            db.commit()
+            return rows
+        finally:
+            db.close()
+
+    def add(self, session, folder, created, repository=None):
+        (self.home / "session-state" / session).mkdir()
+        self.sql("insert into sessions values (?, ?, ?, ?, ?)", session, folder, repository, created, created)
+
+    def __call__(self, parser, command, env):
+        self.commands.append(command)
+        ids = [row[0] for row in self.sql("select id from sessions order by updated_at")]
+        target = ids[-1] if "--continue" in command and ids else None
+        for flag in ("--resume", "-r", "--session-id"):
+            if flag in command[:-1]:
+                target = next((i for i in ids if i.startswith(command[command.index(flag) + 1])), None)
+        if target:
+            self.sql("update sessions set updated_at = ? where id = ?", stamp(), target)
+        else:
+            target = str(uuid.uuid4())
+            folder = command[command.index("-C") + 1] if "-C" in command[:-1] else "."
+            self.add(target, os.path.abspath(folder), stamp())
+        self.session = target
+        return 0
+
+    def excluded(self):
+        command = self.commands[-1]
+        return command[command.index("--excluded-tools") + 1:] if "--excluded-tools" in command else []
+
+
+@pytest.fixture
+def copilot(tmp_path, monkeypatch):
+    """main() runs this fake Copilot CLI, without a provider URL, in an empty Copilot home and a repository root."""
+    skill_home(tmp_path, monkeypatch)
+    monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
+    fake = FakeCopilot(tmp_path / "home")
+    monkeypatch.setattr(bridge_module, "run_child", fake)
+    return fake
+
+
+def test_a_resumed_session_sends_the_tool_list_it_started_with(copilot, monkeypatch):
+    # Copilot CLI sends the old history with the new launch's tools, so a resume that routed again (12 tools, with
+    # session_store_sql kept) changed the start of every request the session sent.
+    lean, agents = set(bridge_module.LEAN_EXCLUDED_TOOLS), set(bridge_module.CAPABILITY_GROUPS["agents"][0])
+    bridge_module.main(["--", "copilot"])
+    plain = copilot.session
+    assert set(copilot.excluded()) == lean
+    bridge_module.main(["--", "copilot", "-p", "spawn an agent to review this"])
+    kept, first = copilot.session, copilot.excluded()
+    assert set(first) == lean - agents
+    bridge_module.main(["--", "copilot", "--continue", "-p", "now fix what it found"])
+    assert copilot.session == kept and copilot.excluded() == first
+    bridge_module.main(["--", "copilot", "--resume", plain, "-p", "spawn an agent to review this"])
+    assert copilot.session == plain and set(copilot.excluded()) == lean  # the resume's own prompt changes nothing
+    bridge_module.main(["--", "copilot", "-r", kept[:8]])
+    assert copilot.session == kept and copilot.excluded() == first
+    bridge_module.main(["--", "copilot", "--session-id", kept, "-p", "look at previous sessions"])
+    assert copilot.session == kept and copilot.excluded() == first
+    elsewhere = copilot.home.parent / "elsewhere"
+    elsewhere.mkdir()
+    bridge_module.main(["--", "copilot", "-C", str(elsewhere), "-p", "spawn an agent to review this"])
+    other = copilot.session
+    bridge_module.main(["--", "copilot", "--resume", other])  # tied through the -C folder it ran in
+    assert copilot.excluded() == first
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "sql,skills")  # still keeps tools, as on any launch
+    bridge_module.main(["--", "copilot", "--resume", plain])
+    with_keep = copilot.excluded()
+    assert set(with_keep) == set(bridge_module.select_excluded_tools(["copilot"])) != lean
+    monkeypatch.delenv("TOKENMASTER_KEEP_TOOLS")
+    bridge_module.main(["--", "copilot", "--resume", plain])  # and later resumes keep the list it sent
+    assert copilot.excluded() == with_keep
+
+
+def test_a_resume_without_a_record_routes_as_before(copilot):
+    def routed(command):
+        return list(bridge_module.select_excluded_tools(command))
+
+    for command in (["copilot", "--continue"], ["copilot", "--resume", "no-such-session"]):
+        bridge_module.main(["--", *command])  # nothing to resume yet: Copilot CLI starts a new session
+        assert copilot.excluded() == routed(command), command
+    copilot(None, ["copilot"], {})  # a session started without the launcher
+    stock = copilot.session
+    for command in (["copilot", "--resume", stock], ["copilot", "-r"], ["copilot", "--resume", "my session name"]):
+        bridge_module.main(["--", *command])
+        assert copilot.excluded() == routed(command) and "session_store_sql" not in copilot.excluded(), command
+    registry = bridge_module.launch_registry()
+    registry.write_text(registry.read_text(encoding="utf-8").replace(', "excluded": [', ', "old": ['), encoding="utf-8")
+    bridge_module.main(["--", "copilot", "--continue"])  # records written before the launcher listed its tools
+    assert copilot.excluded() == routed(["copilot", "--continue"])
+
+
+def test_the_latest_launch_of_a_session_sets_its_list(copilot):
+    bridge_module.main(["--", "copilot", "-p", "spawn an agent to review this"])
+    session = copilot.session
+    bridge_module.main(["--all-tools", "--", "copilot", "--resume", session])
+    assert copilot.excluded() == []
+    bridge_module.main(["--", "copilot", "--resume", session])  # every tool, as the last launch sent
+    assert copilot.excluded() == []
+    records = [json.loads(line) for line in bridge_module.launch_registry().read_text(encoding="utf-8").splitlines()]
+    assert [r["session"] for r in records if r["event"] == "start"] == [None, session, session]
+
+
+def test_resumed_session_reads_ids_prefixes_and_continue(copilot):
+    elsewhere, here = str(copilot.home.parent / "elsewhere"), os.getcwd()  # here: a repository root
+    one, two, three, four, five = (f"aaaaaaa{n}-0000-4000-8000-000000000000" for n in range(1, 6))
+    copilot.add(one, elsewhere, stamp())
+    copilot.add(two, elsewhere, stamp())
+    for flags in (["--resume", one], [f"--resume={one}"], ["-r", one[:8]], [f"-r{one[:8]}"], ["--session-id", one],
+                  ["--allow-all-tools", "--resume", one[:9], "-p", "x"]):
+        assert bridge_module.resumed_session(["copilot", *flags]) == one, flags
+    for flags in ([], ["-r"], ["--resume", "-p", "x"], ["-r", "aaaaaaa"], ["-r", one[:6]], ["--session-id", one[:8]],
+                  ["--session-id", str(uuid.uuid4())]):
+        assert bridge_module.resumed_session(["copilot", *flags]) is None, flags
+    lone = "bbbbbbb1-0000-4000-8000-000000000000"
+    copilot.add(lone, elsewhere, "2026-10-01T00:00:00.000Z")
+    (copilot.home / "session-state" / f"{lone}.jsonl").write_text("", encoding="utf-8")  # as older versions kept one
+    assert bridge_module.resumed_session(["copilot", "-r", lone[:7]]) == lone
+    assert bridge_module.resumed_session(["copilot", "-r", lone[:6]]) is None  # 7 characters at least
+
+    def continued(*flags):
+        return bridge_module.resumed_session(["copilot", "--continue", *flags])
+
+    # Prompt mode takes the session updated last in any folder; without -p (an interactive session, or a prompt piped
+    # on stdin) it is the one updated last in the working folder's GitHub repository, else in the folder, else
+    # anywhere (evidence/session-tools-20261030).
+    assert continued("-p", "x") == continued() == two
+    copilot.add(three, here, stamp())
+    copilot.sql("update sessions set updated_at = ? where id = ?", stamp(), two)
+    assert continued("-p", "x") == two and continued() == three and continued("-C", elsewhere) == two
+    copilot.add(four, os.path.join(here, "sub"), stamp(), "octo/repo")
+    copilot.add(five, elsewhere, stamp())
+    assert continued("-p", "x") == five and continued() == four  # the repository's session, though not this folder's
+    copilot.add(six := "aaaaaaa6-0000-4000-8000-000000000000", str(copilot.home.parent / "clone"), stamp(), "octo/repo")
+    assert continued() == six  # another clone of the same GitHub repository counts too
+    copilot.sql("create table older as select id, cwd, created_at, updated_at from sessions")
+    copilot.sql("drop table sessions")
+    copilot.sql("alter table older rename to sessions")  # a store without the repository column
+    assert continued("-p", "x") == six and continued() == three
+
+
+def test_a_session_that_no_one_launch_alone_started_is_routed_as_before(copilot):
+    """A session is tied to the launch that started it only when that new launch saw it start, and no other session,
+    in its folder in its first two minutes, and no other new launch saw it start. In the probes Copilot CLI 1.0.105
+    started each launch's session within 9 s. Otherwise which list went where is a guess."""
+    base, folder = datetime.now(timezone.utc) - timedelta(days=1), os.getcwd()
+    other = str(copilot.home.parent / "elsewhere")
+
+    def at(seconds):
+        return (base + timedelta(seconds=seconds)).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+    def launch(name, start, end=None, cwd=folder, resumes=None):
+        bridge_module._record_launch({"event": "start", "id": name, "at": at(start), "cwd": cwd, "lean": True,
+                                      "excluded": ["sql"], "session": resumes})
+        if end is not None:
+            bridge_module._record_launch({"event": "end", "id": name, "at": at(end)})
+
+    launch("alone", 0, 60)
+    copilot.add("s-alone", folder, at(2))
+    launch("calm", 500, 560)
+    copilot.add("s-calm", folder, at(502))
+    copilot.add("s-calm-elsewhere", other, at(505))  # another folder's session does not count
+    launch("first", 1000, 1600)
+    launch("second", 1003, 1600)
+    copilot.add("s-overlap", folder, at(1007))  # two launches saw it start
+    launch("busy", 2000, 2600)
+    copilot.add("s-busy", folder, at(2002))
+    copilot.add("s-stranger", folder, at(2030))  # another session in that launch's first two minutes
+    launch("killed", 3000)  # no end record
+    copilot.add("s-late", folder, at(6600))  # an hour later
+    launch("away", 7000, 7060, cwd=other)
+    copilot.add("s-away", folder, at(7002))  # the only launch then ran in another folder
+    launch("resuming", 8000, 8060, resumes="s-old")
+    copilot.add("s-during-resume", folder, at(8002))  # a launch that resumed a session started none
+    for session in ("s-alone", "s-calm"):
+        bridge_module.main(["--", "copilot", "--resume", session])
+        assert copilot.excluded() == ["sql"], session
+    for session in ("s-overlap", "s-busy", "s-stranger", "s-late", "s-away", "s-during-resume"):
+        command = ["copilot", "--resume", session]
+        bridge_module.main(["--", *command])
+        assert copilot.excluded() == list(bridge_module.select_excluded_tools(command)), session
+
+
+def test_the_users_own_tools_and_a_damaged_record_route_as_before(copilot):
+    bridge_module.main(["--", "copilot", "--excluded-tools", "sql", "-p", "fix the parser"])
+    own = copilot.session
+    records = [json.loads(line) for line in bridge_module.launch_registry().read_text(encoding="utf-8").splitlines()]
+    assert copilot.commands[-1] == ["copilot", "--excluded-tools", "sql", "-p", "fix the parser"]
+    assert records[0]["excluded"] is None  # the launcher cannot give the session that list again
+    command = ["copilot", "--resume", own]
+    bridge_module.main(["--", *command])
+    assert copilot.excluded() == list(bridge_module.select_excluded_tools(command))
+    bridge_module._record_launch({"event": "start", "id": "damaged", "at": 1})  # valid JSON, wrong types
+    assert bridge_module.main(["--", *command]) == 0  # no traceback: a damaged record never stops a launch
+    assert copilot.excluded() == list(bridge_module.select_excluded_tools(command))

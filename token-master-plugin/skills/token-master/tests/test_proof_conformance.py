@@ -8,10 +8,13 @@ the gap was fixed, and the README's findings need the same update.
 from __future__ import annotations
 
 import json
+import os
 import random
 import re
+import sqlite3
 import sys
 from dataclasses import replace
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -108,6 +111,59 @@ def test_routing_nothing_fires_excludes_all(no_installed_assets):
 def test_finding_routing_patterns_miss_some_phrasings(no_installed_assets):
     """Findings: the theorems keep a family whose trigger fires; this request for an agent fires none."""
     assert "task" in bridge.select_excluded_tools(["copilot", "-p", "have an agent review this diff"])
+
+
+def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monkeypatch):
+    """Routing.resume_same_list and Routing.resume_chain_keeps_first_list, on main() with a stand-in for Copilot CLI:
+    a session started with each trigger's prompt gets its first list back on every resume, whatever the resume's own
+    prompt. Routing.resumed_env_kept: a tool TOKENMASTER_KEEP_TOOLS names is kept on a resume too.
+    Routing.resumed_subset_lean: a recorded tool outside LEAN_EXCLUDED_TOOLS is not excluded. And
+    Routing.resume_without_record: a session no launch recorded is routed as before."""
+    home = tmp_path / "copilot-home"
+    (home / "session-state").mkdir(parents=True)
+    store = sqlite3.connect(home / "session-store.db", isolation_level=None)
+    store.execute("create table sessions (id text primary key, cwd text, repository text, created_at text, "
+                  "updated_at text)")
+    sent = []
+
+    def now():
+        return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+    def copilot(parser, command, env):  # starts a session unless the command resumes one
+        sent.append(command)
+        if "--resume" not in command:
+            session = f"{len(sent):08d}-0000-4000-8000-000000000000"
+            (home / "session-state" / session).mkdir()
+            store.execute("insert into sessions values (?, ?, ?, ?, ?)", (session, os.getcwd(), None, now(), now()))
+        return 0
+
+    def excluded(command):
+        return command[command.index("--excluded-tools") + 1:] if "--excluded-tools" in command else []
+
+    monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
+    monkeypatch.setattr(bridge, "run_child", copilot)
+    for prompt in TRIGGERS.values():
+        bridge.main(["--", "copilot", "-p", prompt])
+        session, first = f"{len(sent):08d}-0000-4000-8000-000000000000", excluded(sent[-1])
+        assert first == list(bridge.select_excluded_tools(["copilot", "-p", prompt]))
+        for other in TRIGGERS.values():
+            bridge.main(["--", "copilot", "--resume", session, "-p", other])
+            assert excluded(sent[-1]) == first, (prompt, other)
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "background_shell")
+    bridge.main(["--", "copilot", "--resume", session])
+    assert excluded(sent[-1]) == [tool for tool in first if tool not in FAMILIES["background_shell"]] != first
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
+    edited = {"event": "start", "id": "edited", "at": now(), "cwd": os.getcwd(), "lean": True,
+              "excluded": ["view", "sql", "powershell"], "session": session}
+    for event in (edited, {"event": "end", "id": "edited", "at": now()}):
+        bridge._record_launch(event)
+    bridge.main(["--", "copilot", "--resume", session])
+    assert excluded(sent[-1]) == ["sql"]
+    copilot(None, ["copilot"], {})  # a session started without the launcher
+    command = ["copilot", "--resume", f"{len(sent):08d}-0000-4000-8000-000000000000", "-p", "spawn an agent for this"]
+    bridge.main(["--", *command])
+    assert excluded(sent[-1]) == list(bridge.select_excluded_tools(command))
+    store.close()
 
 
 def _unfold_paths(text: str) -> str:
