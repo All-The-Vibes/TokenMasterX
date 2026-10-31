@@ -177,8 +177,9 @@ Details by model:
 
 Every other run on this page sent Copilot CLI's requests through the evaluation relay in bring-your-own-model mode.
 This run did not. Copilot CLI signed in with its own stored login and sent every request to GitHub's Copilot API
-itself. Without a provider URL, the TokenMaster launcher adds the lean tool set, and `tokenmaster-nav` and the v6
-`view` hook load. The bridge does not run, so there is no cache-stable system prompt and no request shaping.
+itself. Without a provider URL, the TokenMaster launcher added the lean tool set (since October 30 it does so only
+with `--lean`), and `tokenmaster-nav` and the v6 `view` hook loaded. The bridge does not run, so there is no
+cache-stable system prompt and no request shaping.
 
 The protocol and its decision rule were committed before the 30 study sessions
 (`evidence/default-routing-20261027/PROTOCOL.md`, commit `1c84310`). The run is exploratory: unlike PRS-6, the
@@ -684,7 +685,7 @@ tokens. Their costs are as run, with sessions back to back.
 - **Excluded tools.** The 11 tools were chosen because no session called them in the October 18
   runs. On October 19, one stock session (P13) called `task`. Workloads that need subagents
   (`task`), skills, session-store search, SQL or background PowerShell lose these tools.
-  `--all-tools` keeps them. Such workloads were not measured.
+  Since October 30 the launcher removes them only with `--lean`. Such workloads were not measured.
 - **Routing.** All runs except the October 27 default-routing run used bring-your-own-model mode
   through a relay, including the October 27 relay control. The default-routing run used Copilot
   CLI's default GitHub routing on Django D01–D15 with `gpt-6-astra` only. The repository tasks and

@@ -1,14 +1,15 @@
 #!/usr/bin/env python
-"""Start GitHub Copilot CLI for TokenMaster: a lean tool set, plus a local bridge in BYOK mode.
+"""Start GitHub Copilot CLI for TokenMaster: a lean tool set with --lean, plus a local bridge in BYOK mode.
 
-Lean tool set: for a Copilot CLI session, the launcher adds --excluded-tools with the built-in
-tools that no session called in the October 18 runs, and the two workflow tools that Copilot CLI
-sends under default routing and, from 1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt given
-with -p or -i that asks for a tool family keeps it, and a prompt that starts a skill also keeps the
-workflow and subagent tools, which the skill may use. A launch that resumes a session gets the list
-that the launcher last gave the session (recorded in launches.jsonl), so the tool list stays the same
-across a resume. The launcher skips this with --all-tools, when the user already chose tools, or for
-a Copilot CLI subcommand.
+Lean tool set (only with --lean; by default Copilot CLI gets every built-in tool): for a Copilot CLI
+session, the launcher adds --excluded-tools with the built-in tools that no session called in the
+October 18 runs, and the two workflow tools that Copilot CLI sends under default routing and, from
+1.0.104, in every mode (LEAN_EXCLUDED_TOOLS). A prompt given with -p or -i that asks for a tool
+family keeps it, and a prompt that starts a skill also keeps the workflow and subagent tools, which
+the skill may use. A launch that resumes a session gets the list that the launcher last gave the
+session (recorded in launches.jsonl), so the tool list stays the same across a resume. Even with
+--lean, the launcher leaves the command alone when the user already chose tools, or for a Copilot
+CLI subcommand.
 
 Bridge (only with a provider URL, Copilot CLI BYOK mode): Copilot CLI sends model requests to
 COPILOT_PROVIDER_BASE_URL. The bridge listens on 127.0.0.1, rewrites each OpenAI Responses or
@@ -22,11 +23,11 @@ therefore sends the same bytes for its history, and the provider's prefix cache 
 - request-policy-v6 shaping of grep, glob and whole-file view results
   (brainspace.v6_shaping.shape_tool_result; PRS-2 and PRS-3). Other tool results pass through.
 
-  python brainspace_copilot_bridge.py [--all-tools] [--upstream URL] [--log usage.jsonl] -- copilot [args...]
+  python brainspace_copilot_bridge.py [--lean] [--upstream URL] [--log usage.jsonl] -- copilot [args...]
   python brainspace_copilot_bridge.py [--upstream URL]          (serve only; prints the base URL)
 
 Without a provider URL, Copilot CLI keeps its normal GitHub routing and the launcher applies only
-the lean tool set. See docs/COPILOT_BRIDGE.md.
+the lean tool set, when --lean asks for it. See docs/COPILOT_BRIDGE.md.
 """
 from __future__ import annotations
 
@@ -317,8 +318,8 @@ def recorded_tools(session: str) -> list[str] | None:
         sessions = {sid: (folder, parse_time(created)) for sid, (folder, _, created, _) in _copilot_sessions().items()}
         folder, created = sessions.get(session, ("", None))
 
-        def first(launch, at):  # at within the launch's first STARTUP
-            return at is not None and launch["start"] <= at <= min(launch["end"], launch["start"] + STARTUP)
+        def first(launch, at):  # at within the launch's first STARTUP; a session starts after its launch does
+            return at is not None and launch["start"] < at <= min(launch["end"], launch["start"] + STARTUP)
 
         mine = [launch for launch in launches
                 if launch["session"] is None and folder and launch["cwd"] == folder and first(launch, created)]
@@ -697,25 +698,30 @@ def main(argv=None) -> int:
     parser.add_argument("--upstream", default=os.environ.get("COPILOT_PROVIDER_BASE_URL"),
                         help="Responses or Anthropic API base URL (default: the current COPILOT_PROVIDER_BASE_URL). "
                              "Without one, Copilot CLI keeps its normal routing and the launcher applies only the "
-                             "lean tool set.")
+                             "lean tool set, with --lean.")
     parser.add_argument("--port", type=int, default=0)
     parser.add_argument("--log", help="append one JSON line per model request: usage numbers, no content")
-    parser.add_argument("--all-tools", action="store_true",
-                        help="keep every built-in Copilot CLI tool (default: exclude the ones no session used in "
-                             "the October 18 runs and the two workflow tools)")
+    tool_set = parser.add_mutually_exclusive_group()
+    tool_set.add_argument("--lean", action="store_true",
+                          help="exclude the built-in tools that no session used in the October 18 runs and the two "
+                               "workflow tools, unless the prompt, a flag or TOKENMASTER_KEEP_TOOLS keeps them; a "
+                               "resume gets its session's recorded list (default: every built-in tool)")
+    tool_set.add_argument("--all-tools", action="store_true",
+                          help="every built-in tool, which is now the default; kept so existing commands still work")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     original = list(command)
     session = resumed_session(command) if command else None
-    if command and not args.all_tools:
+    if command and args.lean:
         command = lean_command(command, session)
     lean = command != original
+    lean_state = "on" if lean else "on, nothing to exclude" if args.lean else "off"
     if not args.upstream:
         if not command:
             parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL to serve the bridge")
-        print("[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set "
-              f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
+        print(f"[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set {lean_state}",
+              file=sys.stderr)
         return run_recorded(parser, command, dict(os.environ), lean=lean, bridge=False, session=session)
     provider = os.environ.get("COPILOT_PROVIDER_TYPE") or "openai"
     if provider not in ("openai", "anthropic") or \
@@ -737,7 +743,7 @@ def main(argv=None) -> int:
     with bridge:
         print(f"[tokenmaster] bridge {bridge.url} -> {bridge.upstream}; cache-stable system prompt on; "
               f"v6 shaping {'on' if count else 'off (verified tokenizer unavailable)'}; lean tool set "
-              f"{'off' if args.all_tools else 'on'}", file=sys.stderr)
+              f"{lean_state}", file=sys.stderr)
         if not command:
             print(f"COPILOT_PROVIDER_BASE_URL={bridge.url}", flush=True)
             try:

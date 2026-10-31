@@ -263,9 +263,9 @@ def run_session(out: Path, arm: str, task: dict, repeat: int, *, suffix: str = "
     clear_history(home)
     env = cli_env(home)
     args = [p5.COPILOT, "-p", task["prompt"], *p5.FLAGS]
-    if arm == "tm":  # no provider URL: the launcher adds the lean tool set and starts Copilot CLI unchanged otherwise
-        args = [sys.executable, "-B", str(home / "copilot" / "token-master" / "brainspace_copilot_bridge.py"), "--",
-                *args]
+    if arm == "tm":  # no provider URL: --lean adds the lean tool set, and Copilot CLI starts unchanged otherwise
+        args = [sys.executable, "-B", str(home / "copilot" / "token-master" / "brainspace_copilot_bridge.py"), "--lean",
+                "--", *args]
     started = time.time()
     since = datetime.fromtimestamp(started, timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
     code, stdout, stderr = p5.run_copilot(args, lane, env)

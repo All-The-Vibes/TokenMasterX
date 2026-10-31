@@ -13,6 +13,7 @@ import random
 import re
 import sqlite3
 import sys
+import time
 from dataclasses import replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -117,8 +118,9 @@ def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monk
     """Routing.resume_same_list and Routing.resume_chain_keeps_first_list, on main() with a stand-in for Copilot CLI:
     a session started with each trigger's prompt gets its first list back on every resume, whatever the resume's own
     prompt. Routing.resumed_env_kept: a tool TOKENMASTER_KEEP_TOOLS names is kept on a resume too.
-    Routing.resumed_subset_lean: a recorded tool outside LEAN_EXCLUDED_TOOLS is not excluded. And
-    Routing.resume_without_record: a session no launch recorded is routed as before."""
+    Routing.resumed_subset_lean: a recorded tool outside LEAN_EXCLUDED_TOOLS is not excluded.
+    Routing.resume_without_record: a session no launch recorded is routed as before. And
+    Routing.default_excludes_nothing: a session with a recorded list, resumed without --lean, gets every tool."""
     home = tmp_path / "copilot-home"
     (home / "session-state").mkdir(parents=True)
     store = sqlite3.connect(home / "session-store.db", isolation_level=None)
@@ -126,15 +128,18 @@ def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monk
                   "updated_at text)")
     sent = []
 
-    def now():
-        return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+    def now(after=""):  # to the millisecond, as Copilot CLI writes it, and later than `after`: the clock can step 15.6 ms
+        while (stamp := datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")) <= after:
+            time.sleep(0.001)
+        return stamp
 
-    def copilot(parser, command, env):  # starts a session unless the command resumes one
+    def copilot(parser, command, env):  # starts a session unless the command resumes one, after the last launch record
         sent.append(command)
         if "--resume" not in command:
             session = f"{len(sent):08d}-0000-4000-8000-000000000000"
             (home / "session-state" / session).mkdir()
-            store.execute("insert into sessions values (?, ?, ?, ?, ?)", (session, os.getcwd(), None, now(), now()))
+            started = now(json.loads(bridge.launch_registry().read_text(encoding="utf-8").splitlines()[-1])["at"])
+            store.execute("insert into sessions values (?, ?, ?, ?, ?)", (session, os.getcwd(), None, started, started))
         return 0
 
     def excluded(command):
@@ -143,27 +148,49 @@ def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monk
     monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
     monkeypatch.setattr(bridge, "run_child", copilot)
     for prompt in TRIGGERS.values():
-        bridge.main(["--", "copilot", "-p", prompt])
+        bridge.main(["--lean", "--", "copilot", "-p", prompt])
         session, first = f"{len(sent):08d}-0000-4000-8000-000000000000", excluded(sent[-1])
         assert first == list(bridge.select_excluded_tools(["copilot", "-p", prompt]))
         for other in TRIGGERS.values():
-            bridge.main(["--", "copilot", "--resume", session, "-p", other])
+            bridge.main(["--lean", "--", "copilot", "--resume", session, "-p", other])
             assert excluded(sent[-1]) == first, (prompt, other)
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "background_shell")
-    bridge.main(["--", "copilot", "--resume", session])
+    bridge.main(["--lean", "--", "copilot", "--resume", session])
     assert excluded(sent[-1]) == [tool for tool in first if tool not in FAMILIES["background_shell"]] != first
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
     edited = {"event": "start", "id": "edited", "at": now(), "cwd": os.getcwd(), "lean": True,
               "excluded": ["view", "sql", "powershell"], "session": session}
     for event in (edited, {"event": "end", "id": "edited", "at": now()}):
         bridge._record_launch(event)
-    bridge.main(["--", "copilot", "--resume", session])
+    bridge.main(["--lean", "--", "copilot", "--resume", session])
     assert excluded(sent[-1]) == ["sql"]
     copilot(None, ["copilot"], {})  # a session started without the launcher
     command = ["copilot", "--resume", f"{len(sent):08d}-0000-4000-8000-000000000000", "-p", "spawn an agent for this"]
-    bridge.main(["--", *command])
+    bridge.main(["--lean", "--", *command])
     assert excluded(sent[-1]) == list(bridge.select_excluded_tools(command))
+    earlier = "00000001-0000-4000-8000-000000000000"  # started and resumed with --lean, so its list is recorded
+    bridge.main(["--", "copilot", "--resume", earlier])
+    assert sent[-1] == ["copilot", "--resume", earlier]  # Routing.default_excludes_nothing, with a record
     store.close()
+
+
+def test_routing_default_sends_every_tool(no_installed_assets, monkeypatch):
+    """Routing.default_excludes_nothing and Routing.lean_launch_is_routed, on main(): without --lean the command reaches
+    Copilot CLI unchanged, whatever the prompt, flags or TOKENMASTER_KEEP_TOOLS, so every built-in tool is sent; with
+    --lean it gets the routed --excluded-tools."""
+    sent = []
+    monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
+    monkeypatch.setattr(bridge, "run_child", lambda parser, command, env: sent.append(command) or 0)
+    for keep in ("", "sql"):
+        monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", keep)
+        for prompt in TRIGGERS.values():
+            for flags in ([], ["--resume", "abcdef12"], ["--continue"], ["--agent", "x"]):
+                command = ["copilot", *flags, "-p", prompt]
+                bridge.main(["--", *command])
+                assert sent[-1] == command
+                bridge.main(["--lean", "--", *command])
+                routed = list(bridge.select_excluded_tools(command))
+                assert sent[-1] == ([*command, "--excluded-tools", *routed] if routed else command)
 
 
 def _unfold_paths(text: str) -> str:

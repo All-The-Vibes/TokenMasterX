@@ -113,10 +113,11 @@ policy. For Copilot, setup does not install the `brainspace` MCP server unless
 Setup also copies the launcher to `<COPILOT_HOME>/token-master/`. Start Copilot CLI
 with `<runtime-python> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot`;
 in bring-your-own-model mode its v6 shaping needs the runtime's `tiktoken`.
-The launcher excludes 13 built-in tools: 11 that no session called in the October 18 runs,
-and two workflow tools that none of the October 27 sessions called. A prompt that asks for one
-of these tool families keeps it, a prompt that starts a skill also keeps the workflow and subagent
-tools, and `--all-tools` keeps them all. In bring-your-own-model mode, the
+By default the launcher sends every built-in tool. With `--lean` before `--`, it excludes 13
+built-in tools: 11 that no session called in the October 18 runs, and two workflow tools that
+none of the October 27 sessions called. A prompt that asks for one of these tool families keeps
+it, and a prompt that starts a skill also keeps the workflow and subagent tools. The published
+savings were measured with `--lean`. In bring-your-own-model mode, the
 launcher also runs a local bridge
 that applies the cache-stable system prompt and v6 shaping. See
 `docs/COPILOT_BRIDGE.md` and `docs/COPILOT_CLI_RESULTS.md` for the measured effect

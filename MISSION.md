@@ -48,16 +48,18 @@ Django pilot was never replicated
 
 ## What we are building
 
-1. **Send less fixed overhead (lean tool set).** The TokenMaster launcher removes 13 built-in
-   Copilot CLI tools: 11 that no session called in the October 18 runs, and two workflow tools that
-   none of the October 27 sessions called.
+1. **Send less fixed overhead (lean tool set, opt-in).** With `--lean`, the TokenMaster launcher
+   removes 13 built-in Copilot CLI tools: 11 that no session called in the October 18 runs, and two
+   workflow tools that none of the October 27 sessions called. Since October 30 it is off by
+   default: without `--lean`, the launcher sends every built-in tool.
    - Unless the prompt, a flag or `TOKENMASTER_KEEP_TOOLS` keeps them, their definitions and the system-prompt text
      about them leave every call.
    - In a probe on Copilot CLI 1.0.78-3, the `gpt-6-astra` system prompt fell from 7,216 to
      5,117 tokens.
-   - Most of the Copilot CLI saving came with this change.
-   - One later stock session called `task`, one of the removed tools. `--all-tools` keeps every
-     tool for work that needs subagents, skills or background PowerShell.
+   - Most of the Copilot CLI saving came with this change. The published results were measured with
+     it on, so they apply with `--lean`.
+   - One later stock session called `task`, one of the removed tools. Without `--lean`, every tool
+     stays for work that needs subagents, skills or background PowerShell.
 2. **One system prompt for every session in a folder (bridge).** Copilot CLI writes each session's
    folder into its system prompt, so no two sessions send the same system prompt.
    - In bring-your-own-model mode, the bridge moves that line to the first user message. The

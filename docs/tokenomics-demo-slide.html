@@ -866,10 +866,10 @@ tmc + Graphify (tokenmaster-nav-impact):
       <div class="arch-col" data-reveal>
         <h2 class="head">THE ARCHITECTURE</h2>
         <p class="lead" style="color: var(--bg);">
-          Plain <code>copilot</code> stays untouched. Typing <code>tmc</code> wraps the launch, trims unused tools, logs a prompt-free launch window, and lets <code>/tokenomics</code> join launch windows with Copilot's SQLite store.
+          Plain <code>copilot</code> stays untouched. Typing <code>tmc</code>, which starts the launcher with <code>--lean</code>, wraps the launch, trims unused tools, logs a prompt-free launch window, and lets <code>/tokenomics</code> join launch windows with Copilot's SQLite store.
         </p>
         <p class="muted">
-          <strong>Launcher (`brainspace_copilot_bridge.py`):</strong> Appends <code>--excluded-tools</code> for the 13 unused built-in tools and writes millisecond start/end records to <code>~/.copilot/token-master/launches.jsonl</code>. In bring-your-own-model mode, it also starts the local request bridge that keeps the system prompt identical across sessions in the same folder.
+          <strong>Launcher (`brainspace_copilot_bridge.py`):</strong> With <code>--lean</code>, appends <code>--excluded-tools</code> for the 13 unused built-in tools; without it, sends every built-in tool. Writes millisecond start/end records to <code>~/.copilot/token-master/launches.jsonl</code>. In bring-your-own-model mode, it also starts the local request bridge that keeps the system prompt identical across sessions in the same folder.
         </p>
         <p class="muted">
           <strong>View hook (`settings.json`):</strong> Runs <code>brainspace_posttooluse.py</code> on whole-file <code>view</code> outputs, turning a 29,836-character file into a 5,175-character digest before it enters the transcript.
@@ -1174,7 +1174,7 @@ tmc
           <strong>Does removing eleven built-in tools hurt quality?</strong> In our October 18 runs, zero sessions called any of the eleven tools. In the pre-registered PRS-6 study on Copilot CLI <code>1.0.98</code> (176 sessions), both stock and TokenMaster scored <strong>88/88</strong> (<code>29/29</code> on repository tasks and <code>15/15</code> on Django <code>D01</code>–<code>D15</code> for each model). Across the earlier 90-session Django and 54-session repository runs on <code>1.0.78-3</code>, TokenMaster scored 88/90 and 53/54 against stock's 90/90 and 54/54, with every miss traced to a model error.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>What if a task needs subagents or background PowerShell?</strong> Pass <code>tmc --all-tools</code> or run plain <code>copilot</code>. The launcher leaves every built-in tool in place when <code>--all-tools</code> is given.
+          <strong>What if a task needs subagents or background PowerShell?</strong> Start the launcher without <code>--lean</code>, or run plain <code>copilot</code>. Since October 30 the launcher leaves every built-in tool in place unless <code>--lean</code> is given.
         </p>
         <p class="faq-item" data-reveal>
           <strong>What about Copilot CLI 1.0.98 vs 1.0.78-3?</strong> The October 18–22 harnesses passed <code>--no-auto-update</code>, which caused the WinGet launcher to run its bundled <code>1.0.78-3</code> build. After fixing the version gate, we pre-registered and ran <strong>PRS-6 on Copilot CLI <code>1.0.98</code></strong> (commit <code>19443fc</code>, 176 sessions, <code>88/88</code> passes in both arms): on the 29-task repository benchmark, <code>gpt-6-astra</code> cut raw tokens by <strong>&minus;49.5%</strong> (<code>2,449,067 &rarr; 1,237,510</code>, cold cost &minus;41.5%, as-run &minus;50.2%) and <code>claude-opus-5.5</code> by <strong>&minus;38.0%</strong> (<code>2,672,316 &rarr; 1,655,797</code>, cold cost &minus;34.0%, as-run &minus;40.1%); on the 15-task Django 5.2 replication (<code>D01</code>–<code>D15</code>), raw tokens dropped <strong>&minus;58.5%</strong> (<code>707,799 &rarr; 293,779</code>, cold &minus;53.5%, as-run &minus;70.7%) and <strong>&minus;53.7%</strong> (<code>989,925 &rarr; 457,875</code>, cold &minus;46.0%, as-run &minus;61.2%), lower on all 15 tasks for both models.

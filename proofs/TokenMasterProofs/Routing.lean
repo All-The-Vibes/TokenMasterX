@@ -1,13 +1,14 @@
 /-!
 # Tool routing
 
-Source: `select_excluded_tools` and `CAPABILITY_GROUPS` in
+Source: `select_excluded_tools`, `CAPABILITY_GROUPS`, `lean_command` and `main` in
 `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py`.
 
-The launcher starts Copilot CLI with `--excluded-tools` set to the auxiliary tools a session
-does not need. `LEAN_EXCLUDED_TOOLS` is every family's tools in source order, and
-`select_excluded_tools` removes from it every tool in a `keep` set built from the prompt, the
-flags, installed skill and agent names, and `TOKENMASTER_KEEP_TOOLS`.
+With `--lean`, the launcher starts Copilot CLI with `--excluded-tools` set to the auxiliary tools a
+session does not need; without it, Copilot CLI gets every built-in tool (`launched`).
+`LEAN_EXCLUDED_TOOLS` is every family's tools in source order, and `select_excluded_tools` removes
+from it every tool in a `keep` set built from the prompt, the flags, installed skill and agent names,
+and `TOKENMASTER_KEEP_TOOLS`.
 
 The model keeps the families and the filter exact. Which families fire is a parameter: the
 regular expressions, flag parsing and installed-name lookup are covered by the conformance tests.
@@ -201,5 +202,17 @@ theorem resume_chain_keeps_first_list (s₀ : Signals) (resumes : List Signals)
   | cons s rest ih =>
     simp only [List.foldl, resume_same_list s₀ s (h s (List.mem_cons_self ..))]
     exact ih fun s' hs' => h s' (List.mem_cons_of_mem _ hs')
+
+/-- What `main` passes as `--excluded-tools`: with `--lean`, the routed list of a new session or the recorded list of a
+resumed one (`resumed`); without it, nothing, so Copilot CLI gets every built-in tool. -/
+def launched (lean : Bool) (recorded : Option (List Tool)) (s : Signals) : List Tool :=
+  if lean then resumed recorded s else []
+
+/-- By default, without `--lean`, the launcher excludes no tool, whatever the prompt, the flags,
+`TOKENMASTER_KEEP_TOOLS` or a session's record. -/
+theorem default_excludes_nothing (r : Option (List Tool)) (s : Signals) : launched false r s = [] := rfl
+
+/-- With `--lean`, a launch excludes what routing and the session's record give. -/
+theorem lean_launch_is_routed (r : Option (List Tool)) (s : Signals) : launched true r s = resumed r s := rfl
 
 end TokenMasterProofs.Routing

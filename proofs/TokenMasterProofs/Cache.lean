@@ -11,12 +11,12 @@ each tool output using the name and arguments of the call with the same id. Pyth
 in a dict, so the last call with an id wins.
 
 Assumptions: the client sends the same instructions and tool list on every call of a session (the
-tool list is fixed by `--excluded-tools` at launch, and a resume that the launcher ties to the
-session's record passes the recorded list again, `Routing.resume_same_list`; other resumes, and
-`--all-tools` or `TOKENMASTER_KEEP_TOOLS` on a resume, may change it), a new item never reuses an id
-the earlier history mentions, and `shape` is a total function: the code's token counter raises on a
-lone surrogate, and then the bridge fails the call. proofs/README.md says which of these the
-conformance tests check.
+tool list is fixed at launch, by `--excluded-tools` with `--lean`; a `--lean` resume that the
+launcher ties to the session's record passes the recorded list again, `Routing.resume_same_list`;
+other resumes, a resume without `--lean`, or `TOKENMASTER_KEEP_TOOLS` on a resume may change it), a
+new item never reuses an id the earlier history mentions, and `shape` is a total function: the
+code's token counter raises on a lone surrogate, and then the bridge fails the call.
+proofs/README.md says which of these the conformance tests check.
 -/
 namespace TokenMasterProofs.Cache
 

@@ -3,20 +3,21 @@
 `brainspace_copilot_bridge.py` starts GitHub Copilot CLI for TokenMaster. It does up to two
 things:
 
-1. **Lean tool set.** The launcher removes 13 built-in Copilot CLI tools: 11 that no session called
-   in the October 18 runs, and `run_dynamic_workflow` and `dynamic_workflows_manage`, which Copilot
-   CLI sends under default routing and, from 1.0.104, in every mode, and which none of the 60
-   sessions of October 27 called. A prompt that asks for one of these tool families (a subagent, a
-   workflow, a skill, ...) keeps it. Their definitions and the system-prompt text about them then
-   leave every model call. This works with Copilot CLI's normal GitHub routing and with
-   bring-your-own-model mode.
+1. **Lean tool set, with `--lean`.** The launcher removes 13 built-in Copilot CLI tools: 11 that no
+   session called in the October 18 runs, and `run_dynamic_workflow` and `dynamic_workflows_manage`,
+   which Copilot CLI sends under default routing and, from 1.0.104, in every mode, and which none of
+   the 60 sessions of October 27 called. A prompt that asks for one of these tool families (a
+   subagent, a workflow, a skill, ...) keeps it. Their definitions and the system-prompt text about
+   them then leave every model call. This works with Copilot CLI's normal GitHub routing and with
+   bring-your-own-model mode. It is off by default since October 30: without `--lean`, the launcher
+   sends every built-in tool.
 2. **Bridge.** In bring-your-own-model (BYOK) mode only, the launcher also starts a local bridge.
    The bridge applies two deterministic rewrites to every model request: the cache-stable system
    prompt and v6 shaping.
 
-Copilot CLI runs measured the launcher and bridge in BYOK mode, with graph navigation
-installed. Against stock Copilot CLI, they used about half the raw tokens
-([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)).
+Copilot CLI runs measured the launcher, with the lean tool set on, and the bridge in BYOK mode, with
+graph navigation installed. Against stock Copilot CLI, they used about half the raw tokens
+([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)). Those savings therefore apply with `--lean`.
 
 ## Install and run
 
@@ -28,8 +29,8 @@ installed. Against stock Copilot CLI, they used about half the raw tokens
 2. Optional: install graph navigation for a repository with
    `python setup.py <repo> --host copilot --python <runtime>`. This step needs graphify.
 3. Start Copilot CLI through the launcher:
-   `python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot [args...]`.
-   Plain `copilot` stays unchanged.
+   `python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot [args...]`, and add
+   `--lean` before `--` for the lean tool set. Plain `copilot` stays unchanged.
 4. Optional: type `/tokenomics` in an interactive session for the usage and savings dashboard
    ([TOKENOMICS.md](TOKENOMICS.md)).
 
@@ -42,7 +43,11 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
 
 ## Lean tool set
 
-- The launcher adds `--excluded-tools` with these tools: `session_store_sql`, `task`,
+- The lean tool set is opt-in. Without `--lean`, the launcher passes the Copilot CLI command
+  through unchanged, and Copilot CLI sends every built-in tool; `TOKENMASTER_KEEP_TOOLS` and the
+  rules below then do nothing. `--all-tools` is still accepted and changes nothing; it cannot be
+  combined with `--lean`.
+- With `--lean`, the launcher adds `--excluded-tools` with these tools: `session_store_sql`, `task`,
   `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`, `read_powershell`,
   `stop_powershell`, `list_powershell`, `fetch_copilot_cli_documentation`, `run_dynamic_workflow`
   and `dynamic_workflows_manage`. A prompt given with `-p`, `--prompt`, `-i` or `--interactive` that
@@ -109,7 +114,7 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
   ([Resumed sessions](#resumed-sessions)), `--resume`, `-r` (also `-r ID` and `-rID`) and `--continue`
   keep session history.
 - The launcher sees only the prompt it is given. Prompts typed later in an interactive session, and a
-  prompt piped on stdin, keep nothing: pass `--all-tools` or set `TOKENMASTER_KEEP_TOOLS` for those.
+  prompt piped on stdin, keep nothing: leave out `--lean` or set `TOKENMASTER_KEEP_TOOLS` for those.
 - A skill may hand work to a subagent, so a prompt that starts one keeps the four subagent tools.
   Measured on Copilot CLI 1.0.104 with `gpt-6-astra` over the Responses API in BYOK mode, that adds
   about 2,670 cl100k tokens to every call with no custom agents installed: about 1,690 for the tool
@@ -121,18 +126,17 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
   kept `powershell`, `rg`, `glob`, `view` and `apply_patch`. `claude-opus-5.5` kept
   `powershell`, `grep`, `glob`, `view`, `create` and `edit`. The TokenMaster navigation tools
   stay when they are installed.
-- The launcher leaves the command unchanged in four cases:
-  - You pass `--all-tools` to the launcher.
+- Even with `--lean`, the launcher leaves the command unchanged in three cases:
   - You already pass `--available-tools` or `--excluded-tools` to Copilot CLI.
   - You run a Copilot CLI subcommand.
   - The command's program is not named `copilot`, for example `-- npx @github/copilot`.
 - In a probe with one lookup task per model on Copilot CLI 1.0.78-3, the lean tool set cut the
   system prompt from 7,216 to 5,117 cl100k tokens (`gpt-6-astra`). The session used 27,255 → 13,702 raw tokens
   (`gpt-6-astra`) and 42,544 → 19,434 (`claude-opus-5.5`).
-- **Trade-off:** a workload that needs subagents (`task`), skills, session-store search, SQL,
-  background PowerShell or agent workflows loses those tools when its prompt does not ask for them,
-  for example in an interactive session started without `-p`. Use `--all-tools` for it. No run
-  measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
+- **Trade-off:** with `--lean`, a workload that needs subagents (`task`), skills, session-store
+  search, SQL, background PowerShell or agent workflows loses those tools when its prompt does not ask
+  for them, for example in an interactive session started without `-p`. Leave out `--lean` for it. No
+  run measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
   `task`; with the lean tool set, the same task passed without it.
 
 ## Resumed sessions
@@ -149,13 +153,16 @@ launch again, and `--resume` and `--continue` kept `session_store_sql`: a sessio
 plain launch went from 13 excluded tools to 12 on a resume, and one started with
 `-p "spawn an agent to review this"` changed 5 tools.
 
-- A launch that resumes a session gets the `--excluded-tools` that the launcher last gave the
-  session, whatever prompt and routing flags the resume has. The list comes from `launches.jsonl`:
-  the latest launch that resumed the session, else the launch that started it. A launch started a
-  session if it is the only new launch in the session's folder that saw the session start in its
-  first two minutes, and it saw no other session start there in that time. In the probes, Copilot
-  CLI 1.0.105 started each launch's session within 9 s of it, and its session store keeps that start
-  time even when the session's first message comes minutes later.
+- With `--lean`, a launch that resumes a session gets the `--excluded-tools` that the launcher last
+  gave the session, whatever prompt and routing flags the resume has. The list comes from
+  `launches.jsonl`: the latest launch that resumed the session, else the launch that started it. A
+  launch started a session if it is the only new launch in the session's folder that saw the session
+  start in its first two minutes, and it saw no other session start there in that time. In the
+  probes, Copilot CLI 1.0.105 started each launch's session within 9 s of it, and its session store
+  keeps that start time even when the session's first message comes minutes later.
+- A resume without `--lean` sends every built-in tool, like any launch without it, so pass `--lean`
+  again when you resume a session you started with it. A `--lean` resume of a session whose last
+  launch had no `--lean` sends every tool too, since that is the list the session last had.
 - The launcher finds the session the way Copilot CLI 1.0.105 did in probes:
   - after `--resume` or `-r`, the session ID, or an ID prefix of 7 or more characters that only one
     session starts with;
@@ -175,10 +182,10 @@ plain launch went from 13 excluded tools to 12 on a resume, and one started with
   folder's repository from the sessions already started in that folder's checkout. So in a fresh
   clone or worktree, or at the root of a repository that holds another repository, it can pick
   another session than Copilot CLI does, and then send that session's list.
-- `--all-tools` and `TOKENMASTER_KEEP_TOOLS` still add tools on a resume, and later resumes keep the
-  list that resume sent.
-- Without a recorded list, the launcher routes a resume like any launch, as before, and `--resume`,
-  `-r` and `--continue` keep session history. That happens for:
+- `TOKENMASTER_KEEP_TOOLS` still adds tools on a `--lean` resume, and later resumes keep the list
+  that resume sent.
+- Without a recorded list, the launcher routes a `--lean` resume like any `--lean` launch, as before,
+  and `--resume`, `-r` and `--continue` keep session history. That happens for:
   - a session started without the launcher, or with `--worktree`, which runs it in another folder;
   - a session that the launcher cannot tie to one launch: two new launches in its folder started
     it within two minutes, or another session started there in that time;
@@ -217,9 +224,10 @@ plain launch went from 13 excluded tools to 12 on a resume, and one started with
 
 ## Requirements and limits
 
-- **Without a provider URL, the launcher applies only the lean tool set.** Copilot CLI keeps its
-  normal GitHub routing, which has no setting for its API URL. The cache-stable system prompt and
-  the bridge's v6 shaping need BYOK mode. Graph navigation and the v6 `view` hook still work.
+- **Without a provider URL, the launcher applies only the lean tool set, and only with `--lean`.**
+  Copilot CLI keeps its normal GitHub routing, which has no setting for its API URL. The
+  cache-stable system prompt and the bridge's v6 shaping need BYOK mode. Graph navigation and the
+  v6 `view` hook still work.
   No run measured this configuration.
 - v6 shaping needs the verified cl100k tokenizer. Without it, the bridge still applies the
   cache-stable system prompt, and it prints a warning.
