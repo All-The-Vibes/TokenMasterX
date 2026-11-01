@@ -135,9 +135,11 @@ def logo_svg():
             + f'<g {move}><g filter="url(#glow)" opacity=".5">{"".join(glow)}</g>{"".join(body)}</g></svg>')
 
 
-# Measured November 1, 2026: evidence/lean-20261101 and evidence/default-nolean-20261101 (README caption).
-STATS = [("WITH --lean", "53%", "fewer tokens"), ("WITH --lean", "54%", "lower cold-start cost"),
-         ("NO FLAGS", "19%", "fewer tokens")]
+# Measured November 1, 2026: evidence/lean-20261101 and evidence/default-nolean-20261101 (README caption). "Up to" is
+# the best pooled result of any run under GitHub's default routing (52.6% raw tokens, 54.4% cold-start cost); the
+# no-flags range is that run's 95% CI (8.5% to 28.7%, point estimate 19.1%).
+STATS = [("UP TO · WITH --lean", "53%", "fewer tokens"), ("UP TO · WITH --lean", "54%", "lower cold-start cost"),
+         ("NO FLAGS", "9–29%", "fewer tokens")]
 
 
 def hero_svg():
@@ -156,8 +158,8 @@ def hero_svg():
             f'letter-spacing="-1.5" fill="url(#lime)">{number}</text>'
             f'<text x="{cx:g}" y="484" text-anchor="middle" font-family="{SANS}" font-size="17" font-weight="500" '
             f'fill="{INK}">{label}</text>')
-    label = ("TokenMasterX for GitHub Copilot. About half the tokens with --lean: 53% fewer tokens and 54% lower "
-             "cold-start cost. 19% fewer tokens with no flags.")
+    label = ("TokenMasterX for GitHub Copilot. About half the tokens with --lean: up to 53% fewer tokens and up to "
+             "54% lower cold-start cost. 9 to 29% fewer tokens with no flags.")
     return (svg_open(width, height, label)
             + '<defs><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">'
             f'<rect x="9" y="9" width="4" height="4" rx="1" fill="{INK}" opacity=".05"/></pattern>'
