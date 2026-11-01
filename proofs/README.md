@@ -84,7 +84,7 @@ or `other`. Let $L_h(i)$ be the last call in $h$ with id $i$; Python keeps the c
 the last one wins. The shaping map is
 
 ```math
-S(h) = \operatorname{map}\bigl(s_{L_h}\bigr)(h),
+S(h) = \mathrm{map}\bigl(s_{L_h}\bigr)(h),
 \qquad
 s_L(\mathtt{output}(i, b)) =
 \begin{cases}
@@ -99,29 +99,29 @@ arguments: a function of the tool name, the arguments and the output, and of not
 bridge is $B(h) = S(P(h))$, where $P$ prepends the folder header to the first user item.
 
 **Theorem 1** (`Cache.shaping_prefix_stable`). If no call in $e$ has an id that an item of $h$
-mentions, then $S(h)$ is a prefix of $S(h \mathbin{+\!\!+} e)$.
+mentions, then $S(h)$ is a prefix of $`S(h \mathbin{+\!\!+} e)`$.
 
-*Proof.* $S(h \mathbin{+\!\!+} e)$ is $\operatorname{map}(s_{L'})(h) \mathbin{+\!\!+} \operatorname{map}(s_{L'})(e)$
-with $L' = L_{h \mathbin{+\!\!+} e}$. Take an output item $\mathtt{output}(i, b)$ of $h$. By
-hypothesis $e$ contains no call with id $i$, so the calls with id $i$ in $h \mathbin{+\!\!+} e$ are
+*Proof.* $`S(h \mathbin{+\!\!+} e)`$ is $`\mathrm{map}(s_{L'})(h) \mathbin{+\!\!+} \mathrm{map}(s_{L'})(e)`$
+with $`L' = L_{h \mathbin{+\!\!+} e}`$. Take an output item $\mathtt{output}(i, b)$ of $h$. By
+hypothesis $e$ contains no call with id $i$, so the calls with id $i$ in $`h \mathbin{+\!\!+} e`$ are
 exactly those in $h$, $L'(i) = L_h(i)$, and the item is shaped as in $S(h)$. $s$ leaves every other
 item unchanged. The first part therefore equals $S(h)$. ∎
 
 **Theorem 2** (`Cache.bridge_prefix_stable`). If $h$ also contains a user item, $B(h)$ is a prefix of
-$B(h \mathbin{+\!\!+} e)$.
+$`B(h \mathbin{+\!\!+} e)`$.
 
 *Proof.* $P$ changes only the first user item, which lies in $h$, so
-$P(h \mathbin{+\!\!+} e) = P(h) \mathbin{+\!\!+} e$. $P$ changes no id, so the hypothesis of Theorem 1
+$`P(h \mathbin{+\!\!+} e) = P(h) \mathbin{+\!\!+} e`$. $P$ changes no id, so the hypothesis of Theorem 1
 holds for $P(h)$ and $e$, and Theorem 1 gives the result. ∎
 
 **Theorem 3** (`Cache.cache_prefix_kept`). Serialize a request as a header $H$ (the instructions and
 the tool list), then the first item's encoding, then a comma and the encoding of each later item.
 If $H$ is the same on both calls, the serialization of $B(h)$ is a prefix of the serialization of
-$B(h \mathbin{+\!\!+} e)$.
+$`B(h \mathbin{+\!\!+} e)`$.
 
-*Proof.* By Theorem 2, $B(h \mathbin{+\!\!+} e) = B(h) \mathbin{+\!\!+} t$ for some $t$. The
+*Proof.* By Theorem 2, $`B(h \mathbin{+\!\!+} e) = B(h) \mathbin{+\!\!+} t`$ for some $t$. The
 encoding of a later item does not depend on the items after it, so the encoding of
-$B(h) \mathbin{+\!\!+} t$ is the encoding of $B(h)$ followed by the encodings of $t$. ∎
+$`B(h) \mathbin{+\!\!+} t`$ is the encoding of $B(h)$ followed by the encodings of $t$. ∎
 
 Every byte the provider cached for the previous call, up to the end of its last item, is sent again
 unchanged, provided the assumptions in the table above hold: unique call ids, the same instructions
@@ -252,7 +252,7 @@ the empty head.
 is `.` itself, unfolding gives back every path, every notice and every trailing empty line, in order:
 
 ```math
-\mathit{unfold}\bigl(\mathit{fold}(es) \mathbin{+\!\!+} ts\bigr) = \operatorname{map}(\mathit{head} \mathbin{+\!\!+} \mathit{name})(es) \mathbin{+\!\!+} ts.
+\mathit{unfold}\bigl(\mathit{fold}(es) \mathbin{+\!\!+} ts\bigr) = \mathrm{map}(\mathit{head} \mathbin{+\!\!+} \mathit{name})(es) \mathbin{+\!\!+} ts.
 ```
 
 *Proof.* By induction on the entries, carrying the current head. When the head is unchanged, the
@@ -409,8 +409,8 @@ each has exactly one folder line; the theorem says the path itself no longer sta
 rewritten first user messages have equal paths and equal original messages:
 
 ```math
-\ell \mathbin{+\!\!+} p_1 \mathbin{+\!\!+} \texttt{"\textbackslash n\textbackslash n"} \mathbin{+\!\!+} t_1
-= \ell \mathbin{+\!\!+} p_2 \mathbin{+\!\!+} \texttt{"\textbackslash n\textbackslash n"} \mathbin{+\!\!+} t_2
+\ell \mathbin{+\!\!+} p_1 \mathbin{+\!\!+} \mathtt{"\backslash n\backslash n"} \mathbin{+\!\!+} t_1
+= \ell \mathbin{+\!\!+} p_2 \mathbin{+\!\!+} \mathtt{"\backslash n\backslash n"} \mathbin{+\!\!+} t_2
 \implies p_1 = p_2 \wedge t_1 = t_2,
 ```
 
@@ -492,7 +492,7 @@ call with $r$ cache-read tokens and prices $p_{\mathrm{read}}, p_{\mathrm{write}
 
 **Theorem 20** (`Measurement.cold_term_is_coldened_charge`). The added term is exactly how much more
 that call would be charged on a cold cache, with every cache read turned into a cache write.
-*Proof:* expand both charges; everything cancels except $r\,p_{\mathrm{write}} - r\,p_{\mathrm{read}}$. ∎
+*Proof:* expand both charges; everything cancels except $`r\,p_{\mathrm{write}} - r\,p_{\mathrm{read}}`$. ∎
 
 **Theorem 21** (`Measurement.asRun_le_cold`). If $p_{\mathrm{read}} \le p_{\mathrm{write}}$ and
 $r \ge 0$, then $\mathit{asRun} \le \mathit{cold}$. ∎
