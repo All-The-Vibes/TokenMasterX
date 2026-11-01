@@ -1,8 +1,14 @@
-# Copilot CLI results (October 18–27, 2026)
+# Copilot CLI results (October 18 to November 1, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
-- **Default GitHub routing on Copilot CLI `1.0.104` (October 27, 2026):** the only run without the evaluation
+- **Default setup and `--lean` on Copilot CLI `1.0.105` (November 1, 2026):** two runs under default GitHub routing on
+  the same day, build, tasks and model, each with its own stock arm: TokenMaster as the launcher starts it by default
+  (no `--lean`, every built-in tool kept), and with `--lean`. Django D01-D15 with `gpt-6-astra`, 30 sessions each;
+  each protocol was frozen and hashed before its sessions
+  ([Default setup and `--lean`](#default-setup-and---lean-on-copilot-cli-10105-november-1-2026)). The README hero
+  quotes these runs.
+- **Default GitHub routing on Copilot CLI `1.0.104` (October 27, 2026):** the first run without the evaluation
   relay. Copilot CLI signed in and routed every request itself, and its own per-call records gave the tokens and
   GitHub's charges. Django D01–D15 with `gpt-6-astra`, 30 sessions; the protocol was committed before the sessions
   ([Default GitHub routing](#default-github-routing-on-copilot-cli-10104-october-27-2026)). A relay control on the
@@ -22,15 +28,32 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
 ## Summary
 
+### Default setup and `--lean` (Copilot CLI `1.0.105`, November 1, 2026)
+
+- **With `--lean`:** raw tokens `702,831` → **`333,094` (−52.6%; 95% CI −56.5% to −48.5%; lower on 15 of 15
+  tasks)**. Cold-repriced cost `$3.74` → **`$1.71` (−54.4%; 95% CI −56.0% to −52.6%)**. As-run cost `$2.29` →
+  **`$1.21` (−47.3%)**.
+- **Default setup, no flags:** raw tokens `768,899` → **`621,988` (−19.1%; 95% CI −28.7% to −8.5%; lower on 13 of 15
+  tasks)**. Cold-repriced cost `$3.85` → **`$3.32` (−13.9%; 95% CI −17.1% to −10.6%)**. As-run cost `$2.40` →
+  **`$1.81` (−24.4%)**.
+- Both savings are "lower" by the rule each protocol froze before its sessions. Both arms passed 15/15 in both runs.
+- The two savings come from different places. `--lean` cuts the fixed prompt of every request: the median first
+  call fell from 13,589 to 6,034 input tokens, and Copilot CLI counted 1,945 tokens of tool definitions against
+  stock's 7,819. Without `--lean` the request is slightly larger (8,200 tokens of tool definitions) and the saving
+  comes from fewer calls (51 → 43) through `tokenmaster-nav`, which all 15 sessions used.
+- Limits: 15 short "who calls X?" lookups of 3 to 4 calls each, one model, one build. The two stock arms, configured
+  the same, differed by 8.6% in raw tokens, so the task bootstrap understates session-to-session noise; against the
+  other run's stock arm, `--lean` saves 56.7% and the default setup 11.5%.
+
 ### Default GitHub routing (Copilot CLI `1.0.104`, October 27, 2026)
 
 - Django D01–D15 with `gpt-6-astra` and no relay, 30 sessions: raw tokens `708,928` → **`372,621` (−47.4%; 95% CI
   −52.8% to −41.7%; lower on 15 of 15 tasks)**. Cold-repriced cost `$3.75` → **`$2.05` (−45.4%; 95% CI −48.2% to
   −42.7%)**. As-run cost `$2.30` → **`$1.26` (−45.0%)**. Passed **15/15 stock, 15/15 TokenMaster**.
-- The README's headline figures, up to 58% fewer tokens and up to 54% lower cold-start cost (the top of its 38% to 58%
-  and 34% to 54% ranges) with no drop in pass rate, come from PRS-6's relay run on these tasks. Under default routing,
-  58% and 54% do not hold: the 95% CIs end at 52.8% and 48.2%. The pass-rate claim holds, and both results fall
-  inside the README's ranges.
+- The README's earlier headline figures, up to 58% fewer tokens and up to 54% lower cold-start cost (the top of its 38%
+  to 58% and 34% to 54% ranges) with no drop in pass rate, came from PRS-6's relay run on these tasks. Under default
+  routing, 58% and 54% did not hold: the 95% CIs end at 52.8% and 48.2%. The pass-rate claim held, and both results
+  fall inside those ranges. Since November 1 the README quotes the `1.0.105` runs above instead.
 - Compared with PRS-6's relay run on the same tasks and model, stock used the same raw tokens (`708,928` vs
   `707,799`) and TokenMaster used 27% more (`372,621` vs `293,779`). In this run each call carried a larger fixed
   prompt than in PRS-6, in both versions. Stock made fewer calls than in PRS-6 (47 vs 55); TokenMaster made about as
@@ -90,6 +113,63 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   pre-registered PRS-6 study measured Copilot CLI `1.0.98`
   ([Pre-registered study PRS-6](#pre-registered-study-prs-6-on-copilot-cli-1098-october-26-2026) and
   [Copilot CLI version](#copilot-cli-version)).
+
+## Default setup and `--lean` on Copilot CLI `1.0.105` (November 1, 2026)
+
+Since PR #20 the launcher sends every built-in tool unless it is started with `--lean`, and no earlier run measured
+that default. Two exploratory runs on November 1 measure it and `--lean` on one build. Each repeats the October 27
+default-routing run (same harness, Django tasks and orders, model, flags, account and lane checks) with the TokenMaster
+arm set one way, and each has its own stock arm, run at the same time. Each protocol was written and its SHA-256
+recorded before its sessions: `evidence/default-nolean-20261101/PROTOCOL.md`, with one amendment before any session
+that raised the install step's timeout after both shards' graphify indexing ran past it, and
+`evidence/lean-20261101/PROTOCOL.md`.
+
+| Parameter | Value |
+| --- | --- |
+| Session start times | November 1, 2026: 16:12 to 16:20 UTC (default setup), 20:54 to 21:02 UTC (`--lean`) |
+| Client | Copilot CLI `1.0.105` in all 60 sessions, read from each session's event log |
+| Routing | Copilot CLI's default GitHub routing with its own sign-in. No `COPILOT_PROVIDER_BASE_URL`, no relay. |
+| Model and flags | `gpt-6-astra` with `--reasoning-effort low --allow-all-tools --no-ask-user --disable-builtin-mcps --output-format json` |
+| Arms | Stock; TokenMaster `e28d1ad` (`setup.py` with graphify `0.9.91`, `brainspace_setup.py`) started through the launcher without `--lean` (first run) or with it (second run). The launch records (`launches.jsonl`) show `"lean": false` on all 15 starts of the first run and `"lean": true` with the same 13 excluded tools on all 15 of the second. |
+| Harness | `token-master-plugin/evals/default_routing_ab.py` at `e28d1ad`, through each folder's `run.py` |
+| Measurement and statistics | As on October 27: Copilot CLI's own per-call records, paired bootstrap over tasks (10,000 resamples, seed 20261022), exact Wilcoxon, Holm over raw tokens and cold-repriced cost |
+| Audit | All 60 sessions: version, model, one Copilot session per run, GitHub's charge equal to its token counts and to the CLI's own total, results recounted from the per-call records. No problem found. |
+
+| Django D01-D15, `gpt-6-astra`, `1.0.105` | Stock | TokenMaster | Change (95% CI) | Wilcoxon / Holm $p$ |
+| --- | ---: | ---: | ---: | ---: |
+| Default setup: raw tokens | 768,899 | **621,988** | **−19.1%** (−28.7%, −8.5%; lower on 13/15) | $p = 0.0020$ / $0.0020$ |
+| Default setup: cost, every first call cold | $3.85 | **$3.32** | **−13.9%** (−17.1%, −10.6%; lower on 15/15) | $p < 0.0001$ / $0.0001$ |
+| Default setup: cost, as run | $2.40 | **$1.81** | **−24.4%** (−35.5%, −8.5%) | $p = 0.0067$ |
+| Default setup: model calls | 51 | 43 | −15.7% (−25.0%, −5.7%) | $p = 0.035$ |
+| `--lean`: raw tokens | 702,831 | **333,094** | **−52.6%** (−56.5%, −48.5%; lower on 15/15) | $p < 0.0001$ / $0.0001$ |
+| `--lean`: cost, every first call cold | $3.74 | **$1.71** | **−54.4%** (−56.0%, −52.6%; lower on 15/15) | $p < 0.0001$ / $0.0001$ |
+| `--lean`: cost, as run | $2.29 | **$1.21** | **−47.3%** (−49.4%, −44.9%) | $p < 0.0001$ |
+| `--lean`: model calls | 47 | 50 | +6.4% (−2.1%, +15.2%) | $p = 0.375$ (n.s.) |
+| Passed, stock and TokenMaster | | | 15/15 and 15/15 in both runs | |
+
+What the numbers show:
+
+- `--lean` cuts the fixed prompt of every request. The median first call fell from 13,589 to 6,034 input tokens, and
+  Copilot CLI counted 1,945 tokens of tool definitions against stock's 7,819. The number of calls barely moved. These
+  sessions had 3 to 4 calls; a per-request saving should be a smaller share of a longer session, which was not
+  measured.
+- The default setup sends a slightly larger request than stock (8,200 tokens of tool definitions, with
+  `tokenmaster-nav` added and nothing removed) and saves through fewer calls (51 → 43). All 15 sessions used
+  `tokenmaster-nav` (21 calls). Each of these tasks asks the question `impact` answers in one call, so other work
+  should save less.
+- Between the runs, on the same day and build, the `--lean` saving exceeds the default setup's by 33.5 points of raw
+  tokens (95% CI 24.0 to 43.2) and 40.5 points of cold-repriced cost (36.7 to 44.1). That is a comparison across two
+  runs. The two stock arms, configured the same, differed by 8.6% in raw tokens (768,899 vs 702,831): stock took a
+  fourth call on D03, D04, D12 and D15 in the earlier run. The bootstrap resamples tasks only, so these CIs understate
+  session-to-session noise. Against the other run's stock arm, `--lean` saves 56.7% and the default setup 11.5%.
+- The cold-repriced cost prices each session's first call as a cache miss. GitHub's charges as run fell 47.3% with
+  `--lean` and 24.4% in the default setup.
+- The runs used 421.6 AI credits ($4.22) and 349.6 ($3.50). A first attempt at the default-setup run stopped during
+  setup, before any session, when graphify's index in both shards ran past the 900-second install timeout.
+
+Evidence: `evidence/default-nolean-20261101/` and `evidence/lean-20261101/` (`PROTOCOL.md`, `PROTOCOL.sha256`, `run.py`,
+`analyze.py`, `analysis.json`, and per shard `results.jsonl`, `setup.json`, `summary.json`, `launches.jsonl` and
+per-call `calls.jsonl`).
 
 ## Pre-registered study PRS-6 on Copilot CLI `1.0.98` (October 26, 2026)
 
@@ -710,6 +790,14 @@ $py = ".\.token-master-dev\Scripts\python.exe"
 
 # PRS-6 (Copilot CLI 1.0.98, October 26): recount captures, verify 1.0.98 version and nano_aiu, and compute CIs / Wilcoxon / Holm p.
 & $py -B evidence\prs6-copilot-1.0.98-20261026\analyze.py
+
+# Default setup and --lean (Copilot CLI 1.0.105, November 1): audit the committed per-call records, CIs and decisions.
+& $py -B evidence\default-nolean-20261101\analyze.py
+& $py -B evidence\lean-20261101\analyze.py
+
+# Their live runs: as the default-routing live run below, through each folder's run.py, with --lanes dnr/dnc and
+# --budget-credits 430/280 (default setup) or --lanes dlr/dlc and 370/250 (--lean). Set GRAPHIFY_NO_AUTO_REFRESH=1.
+& $py -B evidence\default-nolean-20261101\run.py --suite django --repo <Django 9e7cc2b6 checkout> --tasks-file evidence\django-scale-20261022\tasks.json --tasks D09,D01,D07,D03,D05,D04,D08,D02,D06,D10 --output <new folder>\django-rare --lanes dnr --graphify <graphify 0.9.91>\Scripts\graphify.exe --budget-credits 430
 
 # Default GitHub routing (Copilot CLI 1.0.104, October 27): audit the committed per-call records, CIs and the hero check.
 & $py -B evidence\default-routing-20261027\analyze.py

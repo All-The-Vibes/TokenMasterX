@@ -1,0 +1,187 @@
+{
+ "study": "TokenMaster with --lean vs stock, default GitHub routing",
+ "kind": "exploratory; decision rule frozen in PROTOCOL.md",
+ "copilot_cli": "1.0.105",
+ "model": "gpt-6-astra",
+ "bootstrap": {
+  "draws": 10000,
+  "seed": 20261022
+ },
+ "audit": {
+  "django-common": {
+   "sessions": 10,
+   "wrong_version": [],
+   "other_models": [],
+   "several_copilot_sessions": [],
+   "charge_mismatch": [],
+   "cli_total_mismatch": [],
+   "recount_mismatch": [],
+   "infra": [],
+   "nano_total": 143185650000,
+   "clean": true
+  },
+  "django-rare": {
+   "sessions": 20,
+   "wrong_version": [],
+   "other_models": [],
+   "several_copilot_sessions": [],
+   "charge_mismatch": [],
+   "cli_total_mismatch": [],
+   "recount_mismatch": [],
+   "infra": [],
+   "nano_total": 206402200000,
+   "clean": true
+  }
+ },
+ "ai_credits_spent": 349.59,
+ "ai_credit_cap": 620,
+ "django_15_tasks": {
+  "tasks": 15,
+  "paired_tasks": 15,
+  "excluded_tasks": [],
+  "sessions_started_utc": [
+   "2026-11-01T20:54:31Z",
+   "2026-11-01T21:02:32Z"
+  ],
+  "passes_of_all_tasks": {
+   "stock": 15,
+   "tm": 15
+  },
+  "passes": {
+   "stock": 15,
+   "tm": 15
+  },
+  "pass_rate_ci95": {
+   "stock": [
+    0.7961,
+    1.0
+   ],
+   "tm": [
+    0.7961,
+    1.0
+   ]
+  },
+  "stock_only_passes": [],
+  "tm_only_passes": [],
+  "failure_reasons": {
+   "stock": {},
+   "tm": {}
+  },
+  "first_call_median": {
+   "stock": {
+    "input": 13589,
+    "cached": 9017,
+    "cache_write": 4569
+   },
+   "tm": {
+    "input": 6034,
+    "cached": 3105,
+    "cache_write": 2926
+   }
+  },
+  "warm_first_calls": {
+   "stock": 14,
+   "tm": 14
+  },
+  "tm_sessions_using_nav": 15,
+  "tm_nav_calls": 24,
+  "subagent_calls": {
+   "stock": 0,
+   "tm": 0
+  },
+  "raw_tokens": {
+   "stock": 702831,
+   "tm": 333094,
+   "change": -0.5261,
+   "ci95": [
+    -0.5652,
+    -0.4845
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05,
+   "holm_p": 0.000122,
+   "verdict": "lower"
+  },
+  "usd_cold": {
+   "stock": 3.7412,
+   "tm": 1.7064,
+   "change": -0.5439,
+   "ci95": [
+    -0.5602,
+    -0.5257
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05,
+   "holm_p": 0.000122,
+   "verdict": "lower"
+  },
+  "usd_as_run": {
+   "stock": 2.2894,
+   "tm": 1.2065,
+   "change": -0.473,
+   "ci95": [
+    -0.4942,
+    -0.4492
+   ],
+   "tasks_lower": 15,
+   "wilcoxon_p": 6.1e-05
+  },
+  "calls": {
+   "stock": 47,
+   "tm": 50,
+   "change": 0.0638,
+   "ci95": [
+    -0.0208,
+    0.1522
+   ],
+   "tasks_lower": 1,
+   "wilcoxon_p": 0.375
+  },
+  "decision": {
+   "audit_clean": true,
+   "raw_tokens": {
+    "change": -0.5261,
+    "ci95": [
+     -0.5652,
+     -0.4845
+    ],
+    "holm_p": 0.000122,
+    "verdict": "lower"
+   },
+   "usd_cold": {
+    "change": -0.5439,
+    "ci95": [
+     -0.5602,
+     -0.5257
+    ],
+    "holm_p": 0.000122,
+    "verdict": "lower"
+   },
+   "headline_saving_allowed": true
+  },
+  "against_default_setup_same_build": {
+   "note": "two runs on the same day and Copilot CLI build; each saving is against its own stock arm",
+   "paired_tasks": 15,
+   "raw_tokens": {
+    "lean_change": -0.5261,
+    "default_change": -0.1911,
+    "lean_minus_default": -0.335,
+    "ci95": [
+     -0.4318,
+     -0.2398
+    ],
+    "stock_lean_over_stock_default": -0.0859
+   },
+   "usd_cold": {
+    "lean_change": -0.5439,
+    "default_change": -0.1391,
+    "lean_minus_default": -0.4048,
+    "ci95": [
+     -0.4407,
+     -0.3673
+    ],
+    "stock_lean_over_stock_default": -0.029
+   }
+  }
+ }
+}

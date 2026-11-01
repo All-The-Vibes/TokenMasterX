@@ -1,7 +1,7 @@
-![TokenMasterX for GitHub Copilot. Half the tokens, same answers. Up to 58% fewer tokens and up to 54% lower cold-start cost, with no drop in pass rate.](assets/tokenmasterx-hero.svg)
+![TokenMasterX for GitHub Copilot. About half the tokens with --lean: 53% fewer tokens and 54% lower cold-start cost. 19% fewer tokens with no flags.](assets/tokenmasterx-hero.svg)
 
 <p align="center">
-  <b>GitHub Copilot on about half the tokens, with the same pass rate, when you start it with <code>--lean</code>.</b><br>
+  <b>GitHub Copilot on about half the tokens with <code>--lean</code>, and 19% fewer with no flags.</b><br>
   With <code>--lean</code> it drops 13 built-in tool definitions unless the prompt asks for their family; it finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.
 </p>
 
@@ -9,7 +9,7 @@
   <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a>
 </p>
 
-<p align="center"><sub>Measured in a pre-registered study on GitHub Copilot CLI, in bring-your-own-model mode, with GPT-6 Astra and Claude Opus 5.5, with the lean tool set on; the launcher now turns it on only with <code>--lean</code>. Costs come from GitHub's own per-call billing.</sub></p>
+<p align="center"><sub>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on short Django caller lookups. 95% CIs: 48 to 57%, 53 to 56% and 9 to 29%. Each saving is against its own stock run on the same day. The cost figure prices each session's first call as a cache miss; the bill itself fell 47% with <code>--lean</code>. Token counts and charges come from GitHub's own per-call records.</sub></p>
 
 ---
 
@@ -110,10 +110,12 @@ Or type `/tokenomics` inside an interactive Copilot CLI session.
 
 ## Benchmark Summary (GitHub Copilot CLI)
 
-All runs used the `copilot.exe` binary against `api.githubcopilot.com`, verified against GitHub's per-call `copilot_usage` bills. Every TokenMaster run had the lean tool set on, which the launcher now applies only with `--lean`. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
+All runs used the `copilot.exe` binary against GitHub's Copilot API. The November 1 rows ran under Copilot CLI's default GitHub routing and read each call's tokens and charge from Copilot CLI's own per-call records; the older rows went through an evaluation relay and were checked against GitHub's per-call `copilot_usage` bills. Every TokenMaster run had the lean tool set on except the **no flags** row, which measures the launcher's default since it made `--lean` opt-in. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
 
 | Benchmark | CLI Version | Model | Raw Tokens (`Stock → TM`) | Cold Cost | Back-to-Back Cost | Passed (`Stock vs TM`) |
 | :--- | :--- | :--- | ---: | ---: | ---: | ---: |
+| **Django 5.2 (15 tasks), default routing, `--lean`, Nov 1** | `1.0.105` | `gpt-6-astra` | **−52.6%** (`703k → 333k`) | **−54.4%** (`$3.74 → $1.71`) | **−47.3%** (`$2.29 → $1.21`) | **15/15 vs 15/15** |
+| **Django 5.2 (15 tasks), default routing, no flags, Nov 1** | `1.0.105` | `gpt-6-astra` | **−19.1%** (`769k → 622k`) | **−13.9%** (`$3.85 → $3.32`) | **−24.4%** (`$2.40 → $1.81`) | **15/15 vs 15/15** |
 | **This Repo (29 tasks, pre-registered)** | `1.0.98` | `gpt-6-astra` | **−49.5%** (`2.45M → 1.24M`) | **−41.5%** (`$8.91 → $5.21`) | **−50.2%** (`$6.83 → $3.40`) | **29/29 vs 29/29** |
 | **This Repo (29 tasks, pre-registered)** | `1.0.98` | `claude-opus-5.5` | **−38.0%** (`2.67M → 1.66M`) | **−34.0%** (`$4.23 → $2.79`) | **−40.1%** (`$2.72 → $1.63`) | **29/29 vs 29/29** |
 | **Django 5.2 (15 tasks, pre-registered)** | `1.0.98` | `gpt-6-astra` | **−58.5%** (`708k → 294k`) | **−53.5%** (`$3.40 → $1.58`) | **−70.7%** (`$2.36 → $0.69`) | **15/15 vs 15/15** |
@@ -129,7 +131,7 @@ All runs used the `copilot.exe` binary against `api.githubcopilot.com`, verified
 
 All full experimental reports, pre-registered protocols, negative results (`v1`–`v5`), and raw evidence live under `token-master-plugin/docs/` and `evidence/`:
 
-- **[Copilot CLI Results (`1.0.98` & `1.0.78-3`)](token-master-plugin/docs/COPILOT_CLI_RESULTS.md)** · **[Pre-Registered `1.0.98` Protocol (PRS-6)](token-master-plugin/docs/PRS6_PROTOCOL.md)**
+- **[Copilot CLI Results (`1.0.105`, `1.0.98` & `1.0.78-3`)](token-master-plugin/docs/COPILOT_CLI_RESULTS.md)** · **[Pre-Registered `1.0.98` Protocol (PRS-6)](token-master-plugin/docs/PRS6_PROTOCOL.md)**
 - **[Launcher & BYOK Bridge Guide](token-master-plugin/docs/COPILOT_BRIDGE.md)** · **[`/tokenomics` Dashboard & Estimator Validation](token-master-plugin/docs/TOKENOMICS.md)**
 - **[Replica Studies & Negative Results](token-master-plugin/docs/README.md):** [PRS-4](token-master-plugin/docs/PRS4_RESULTS.md) · [PRS-3](token-master-plugin/docs/PRS3_RESULTS.md) · [PRS-2](token-master-plugin/docs/PRS2_RESULTS.md) · [PRS-1 (why history rewriting fails)](token-master-plugin/docs/PRS1_RESULTS.md)
 - **[15-Minute Demo Script](docs/DEMO_SCRIPT.md)** · **[Interactive HTML Demo Deck](docs/tokenomics-demo-slide.html)**

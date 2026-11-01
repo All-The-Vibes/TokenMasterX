@@ -88,6 +88,13 @@ and the project aims to follow semantic versioning.
 
 ### Changed
 
+- The README hero and tagline quote two runs on Copilot CLI 1.0.105 under GitHub's default routing (November 1,
+  2026), each against its own stock arm on the same day: with `--lean`, 52.6% fewer raw tokens (95% CI 48.5% to
+  56.5%) and 54.4% lower cold-start cost (52.6% to 56.0%); with no flags, 19.1% fewer raw tokens (8.5% to 28.7%). They
+  replace "up to 58% fewer tokens" and "up to 54% lower cold-start cost", the best cell of PRS-6's relay run, which the
+  October 27 default-routing run did not reach. The runs used 15 short
+  Django caller lookups and one model; `COPILOT_CLI_RESULTS.md` has the tables and limits, including an 8.6% gap
+  between the two stock arms. `assets/generate_logo.py` draws the new hero.
 - The launcher's lean tool set is opt-in (`skills/token-master/brainspace_copilot_bridge.py`). By default the launcher
   now passes the Copilot CLI command through unchanged, so Copilot CLI sends every built-in tool. `--lean` before `--`
   turns the lean tool set on: it removes the 13 tools on its fixed list unless the prompt, a flag or
@@ -180,6 +187,9 @@ and the project aims to follow semantic versioning.
   the navigation budget and the measurement method. Lean's kernel checks all 46 theorems, with no `sorry` and no
   added axiom. `test_proof_conformance.py` checks the proofs' hypotheses against the Python. Writing the proofs
   found eight gaps; five are fixed above, and `proofs/README.md` lists the three that remain.
+- `evidence/default-nolean-20261101/` and `evidence/lean-20261101/`: the protocols (hashed before the sessions),
+  wrappers around `evals/default_routing_ab.py`, analyses and per-call records of the two November 1 runs.
+
 ## [0.2.0] - 2026-10-26
 
 ### Added
