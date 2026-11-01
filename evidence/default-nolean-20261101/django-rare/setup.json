@@ -1,0 +1,125 @@
+{
+ "kind": "exploratory, not pre-registered; default GitHub routing",
+ "suite": "django",
+ "model": "gpt-6-astra",
+ "account": {
+  "type": "GitHub Enterprise Cloud with data residency (*.ghe.com)",
+  "routing": "Copilot CLI default sign-in"
+ },
+ "versions": {
+  "stock": "GitHub Copilot CLI 1.0.105.",
+  "tm": "GitHub Copilot CLI 1.0.105."
+ },
+ "package": "1.0.105",
+ "launcher": "C:\\Users\\shyamsridhar\\AppData\\Local\\Microsoft\\WinGet\\Packages\\GitHub.Copilot_Microsoft.Winget.Source_8wekyb3d8bbwe\\copilot.exe",
+ "launcher_sha256": "077683115fbebc5d921f6a2b8db828e66113e670198f6ca5bf2c588ceea9939b",
+ "package_sha256": "697931137fe20c3a8c99ef4d9e7647f69adfc5a90bb0a8c4d021368829095d3d",
+ "flags": [
+  "--model",
+  "gpt-6-astra",
+  "--reasoning-effort",
+  "low",
+  "--allow-all-tools",
+  "--no-ask-user",
+  "--disable-builtin-mcps",
+  "--output-format",
+  "json"
+ ],
+ "install": {
+  "setup.py": {
+   "exit": 0,
+   "tail": "  C:\\tm-lanes\\dnr\\l2\\home\\copilot\\agents\\token-master.agent.md\n  server: C:\\tm-lanes\\dnr\\l2\\home\\copilot\\token-master\\navigation_mcp.py\n  mcp config: C:\\tm-lanes\\dnr\\l2\\home\\copilot\\mcp-config.json\nRestart Copilot (or start it with `copilot --agent token-master`) to activate navigation.\n{\"host\": \"copilot\", \"configuration_clients\": [\"cli\"], \"mcp\": \"model-invoked\", \"hook_configuration_supported\": true, \"hook_launch_form\": \"exec-argv\", \"hook_output_contract\": {\"capability_id\": \"copilot-posttooluse-2026-10-09\", \"host\": \"copilot\", \"event\": \"postToolUse\", \"replacement_field\": \"modifiedResult.textResultForLlm\", \"documented_min_version\": null, \"documented_replacement_cap\": null, \"runtime_verified\": false, \"requires_explicit_opt_in\": true, \"qualified_tool_family\": \"pure successful view text; conservative JSON only\"}, \"transparent_replacement\": false, \"runtime_verified\": false, \"contract_review_date\": \"2026-10-09\", \"note\": \"MCP by default; native view-text hook requires --copilot-output-hook. Registration is not proof of host acceptance or token savings.\"}\nC:\\Users\\shyamsridhar\\code\\TokenMaster\\.token-master-dev\\Lib\\site-packages\\pydantic_settings\\sources\\utils.py:47: IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition: its annotation contains an unresolved forward reference, so settings sources may fail to correctly resolve its value. Call `model_rebuild()` on the model where the field is defined, once all the referenced types are defined.\n  warnings.warn(\n"
+  },
+  "brainspace_setup.py": {
+   "exit": 0,
+   "tail": "[brainspace] configured: C:\\tm-lanes\\dnr\\l2\\home\\copilot\\mcp-config.json\n{\n  \"host\": \"copilot\",\n  \"configuration_clients\": [\n    \"cli\"\n  ],\n  \"mcp\": \"model-invoked\",\n  \"hook_configuration_supported\": true,\n  \"hook_launch_form\": \"exec-argv\",\n  \"hook_output_contract\": {\n    \"capability_id\": \"copilot-posttooluse-2026-10-09\",\n    \"host\": \"copilot\",\n    \"event\": \"postToolUse\",\n    \"replacement_field\": \"modifiedResult.textResultForLlm\",\n    \"documented_min_version\": null,\n    \"documented_replacement_cap\": null,\n    \"runtime_verified\": false,\n    \"requires_explicit_opt_in\": true,\n    \"qualified_tool_family\": \"pure successful view text; conservative JSON only\"\n  },\n  \"transparent_replacement\": false,\n  \"runtime_verified\": false,\n  \"contract_review_date\": \"2026-10-09\",\n  \"note\": \"MCP by default; native view-text hook requires --copilot-output-hook. Registration is not proof of host acceptance or token savings.\",\n  \"hook_installed\": true,\n  \"mcp_installed\": false,\n  \"tokenomics_skill\": \"C:\\\\tm-lanes\\\\dnr\\\\l2\\\\home\\\\copilot\\\\skills\\\\tokenomics\\\\SKILL.md\"\n}\nRuntime acceptance is NOT verified by installation. Uninstall retains package files and data.\n"
+  }
+ },
+ "install_manifest_sha256": "60798b5d622ba7f5c4e6e2587bd459e301e63a2ee43a241b0526df8d954e09a3",
+ "tokenizer_sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+ "jobs": [
+  [
+   1,
+   "D09"
+  ],
+  [
+   1,
+   "D01"
+  ],
+  [
+   1,
+   "D07"
+  ],
+  [
+   1,
+   "D03"
+  ],
+  [
+   1,
+   "D05"
+  ],
+  [
+   1,
+   "D04"
+  ],
+  [
+   1,
+   "D08"
+  ],
+  [
+   1,
+   "D02"
+  ],
+  [
+   1,
+   "D06"
+  ],
+  [
+   1,
+   "D10"
+  ]
+ ],
+ "lanes": "C:\\tm-lanes\\dnr",
+ "graphify": "graphify 0.9.91",
+ "budget_credits": 430.0,
+ "lean_excluded_tools": {
+  "D09": [],
+  "D01": [],
+  "D07": [],
+  "D03": [],
+  "D05": [],
+  "D04": [],
+  "D08": [],
+  "D02": [],
+  "D06": [],
+  "D10": []
+ },
+ "lane_sources": {
+  "stock": {
+   "skills": [
+    "Builtin skills:",
+    "  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.",
+    "  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment."
+   ],
+   "instructions": [
+    "No instruction sources found."
+   ]
+  },
+  "tm": {
+   "skills": [
+    "Personal skills:",
+    "  tokenomics - TokenMaster tokenomics dashboard. Shows Copilot CLI token usage, GitHub's charges and the estimated TokenMaster savings by day, week, month or session, like ccusage. Use only when the user runs /tokenomics.",
+    "",
+    "Builtin skills:",
+    "  customize-cloud-agent - Skill for customizing the Copilot cloud agent (formerly known as Copilot coding agent) environment, including copilot-setup-steps.yml configuration, preinstalling tools and dependencies, runners, and settings. Use when the user mentions copilot-setup-steps, copilot setup steps, or wants to configure the cloud agent environment.",
+    "  github-pr-media - Upload an image or video to GitHub's user attachments API and embed it in a pull request description or comment. Use when asked to add screenshots, diagrams, recordings, or other media to a PR or GitHub comment."
+   ],
+   "instructions": [
+    "No instruction sources found."
+   ]
+  }
+ },
+ "harness_sha256": "2f5e13c78a260386f3eb3ba06fbd5bfa836b71e2acff94e98a4e5b8e957f60d4",
+ "tasks_file": "C:\\tm-work\\tm-default-nolean\\evidence\\django-scale-20261022\\tasks.json",
+ "django_head": "9e7cc2b628fe8fd3895986af9b7fc9525034c1b0"
+}

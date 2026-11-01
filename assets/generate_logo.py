@@ -135,7 +135,9 @@ def logo_svg():
             + f'<g {move}><g filter="url(#glow)" opacity=".5">{"".join(glow)}</g>{"".join(body)}</g></svg>')
 
 
-STATS = [("UP TO", "58%", "fewer tokens"), ("UP TO", "54%", "lower cold-start cost"), ("WITH", "0", "drop in pass rate")]
+# Measured November 1, 2026: evidence/lean-20261101 and evidence/default-nolean-20261101 (README caption).
+STATS = [("WITH --lean", "53%", "fewer tokens"), ("WITH --lean", "54%", "lower cold-start cost"),
+         ("NO FLAGS", "19%", "fewer tokens")]
 
 
 def hero_svg():
@@ -154,8 +156,8 @@ def hero_svg():
             f'letter-spacing="-1.5" fill="url(#lime)">{number}</text>'
             f'<text x="{cx:g}" y="484" text-anchor="middle" font-family="{SANS}" font-size="17" font-weight="500" '
             f'fill="{INK}">{label}</text>')
-    label = ("TokenMasterX. Half the tokens, same answers, for GitHub Copilot. Up to 58% fewer tokens and "
-             "up to 54% lower cold-start cost, with no drop in pass rate.")
+    label = ("TokenMasterX for GitHub Copilot. About half the tokens with --lean: 53% fewer tokens and 54% lower "
+             "cold-start cost. 19% fewer tokens with no flags.")
     return (svg_open(width, height, label)
             + '<defs><pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">'
             f'<rect x="9" y="9" width="4" height="4" rx="1" fill="{INK}" opacity=".05"/></pattern>'
@@ -169,7 +171,7 @@ def hero_svg():
               f'font-weight="600" letter-spacing="3" fill="{MUTED}">FOR GITHUB COPILOT</text>'
             + f'<g {move}><g filter="url(#glow)" opacity=".6">{"".join(glow)}</g>{"".join(body)}</g>'
             + f'<text x="{width / 2:g}" y="282" text-anchor="middle" font-family="{SANS}" font-size="44" '
-              f'font-weight="750" letter-spacing="-1" fill="{INK}">Half the tokens. Same answers.</text>'
+              f'font-weight="750" letter-spacing="-1" fill="{INK}">About half the tokens with --lean.</text>'
             + f'<text x="{width / 2:g}" y="320" text-anchor="middle" font-family="{SANS}" font-size="18" '
               f'fill="{MUTED}">Tool pruning · graph code navigation · cache-safe output · /tokenomics</text>'
             + f'<line x1="{left:g}" y1="356" x2="{width - left:g}" y2="356" stroke="{EDGE}"/>'
