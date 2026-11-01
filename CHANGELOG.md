@@ -88,6 +88,13 @@ and the project aims to follow semantic versioning.
 
 ### Changed
 
+- The README hero reads "up to" on its first two figures and gives the no-flags figure as a range. "Up to 53% fewer
+  tokens" and "up to 54% lower cold-start cost" are the best pooled results of any run under GitHub's default routing
+  (raw tokens 47.4% on October 27 and 52.6% on November 1; cold-start cost 45.4% and 54.4%). 54% is also the best
+  cold-start cost of any run; PRS-6's relay run on an older build reached 58.5% fewer tokens, which the caption
+  names. The no-flags range, 9% to 29%, is the 95% CI of the November 1 default-setup run (point estimate 19.1%).
+  The hero image URL carries `?v=2` so GitHub's five-minute image cache cannot keep showing the previous hero after
+  a merge.
 - The README hero and tagline quote two runs on Copilot CLI 1.0.105 under GitHub's default routing (November 1,
   2026), each against its own stock arm on the same day: with `--lean`, 52.6% fewer raw tokens (95% CI 48.5% to
   56.5%) and 54.4% lower cold-start cost (52.6% to 56.0%); with no flags, 19.1% fewer raw tokens (8.5% to 28.7%). They

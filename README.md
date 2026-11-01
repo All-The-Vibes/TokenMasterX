@@ -1,7 +1,7 @@
-![TokenMasterX for GitHub Copilot. About half the tokens with --lean: 53% fewer tokens and 54% lower cold-start cost. 19% fewer tokens with no flags.](assets/tokenmasterx-hero.svg)
+![TokenMasterX for GitHub Copilot. About half the tokens with --lean: up to 53% fewer tokens and up to 54% lower cold-start cost. 9 to 29% fewer tokens with no flags.](assets/tokenmasterx-hero.svg?v=2)
 
 <p align="center">
-  <b>GitHub Copilot on about half the tokens with <code>--lean</code>, and 19% fewer with no flags.</b><br>
+  <b>GitHub Copilot on about half the tokens with <code>--lean</code>, and 9 to 29% fewer with no flags.</b><br>
   With <code>--lean</code> it drops 13 built-in tool definitions unless the prompt asks for their family; it finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.
 </p>
 
@@ -9,7 +9,7 @@
   <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a>
 </p>
 
-<p align="center"><sub>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on short Django caller lookups. 95% CIs: 48 to 57%, 53 to 56% and 9 to 29%. Each saving is against its own stock run on the same day. The cost figure prices each session's first call as a cache miss; the bill itself fell 47% with <code>--lean</code>. Token counts and charges come from GitHub's own per-call records.</sub></p>
+<p align="center"><sub>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on short Django caller lookups. Each saving is against its own stock run on the same day. "Up to" is the best pooled result of any run under default routing: 53% fewer tokens and 54% lower cold-start cost, with 95% CIs of 48 to 57% and 53 to 56%. Runs through an evaluation relay on an older build went as high as 58.5% fewer tokens (table below). The no-flags range is the 95% CI of its run; the point estimate is 19%. The cost figure prices each session's first call as a cache miss; the bill itself fell 47% with <code>--lean</code>. Token counts and charges come from GitHub's own per-call records.</sub></p>
 
 ---
 
