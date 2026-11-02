@@ -2,8 +2,11 @@
 
 Covers keyboard and hash navigation, the cover links, the proofs, checks, prompt, estimate,
 cache and results interactions, overflow at seven viewport sizes, reduced motion, the no-JS
-page, and that the page requests nothing outside its own origin and links out only to the
-repo and elan.
+page, that the page requests nothing outside its own origin and links out only to the repo
+and elan, and the link preview: an og:image that is a 1200 by 630 PNG (site/og.png when the
+script serves site/, the og:image URL itself when you pass a URL), twitter:card set to
+summary_large_image with the same image, and a title and descriptions that avoid --lean and
+Lean 4.
 
 Run from the repo root:
     python site/src/checks/deck_test.py        # serves site/ on a free local port
@@ -18,6 +21,7 @@ import contextlib
 import functools
 import http.server
 import pathlib
+import struct
 import sys
 import threading
 from urllib.parse import urlsplit
@@ -69,6 +73,13 @@ def check(name, cond, detail=''):
 def link_ok(href):
     u = urlsplit(href)
     return u.scheme == 'https' and u.netloc == 'github.com' and any(u.path == r or u.path.startswith(r + '/') for r in LINK_REPOS)
+
+
+def png_size(data):
+    """(width, height) from the IHDR chunk, or None if data does not start with the PNG signature and IHDR."""
+    if data[:8] != b'\x89PNG\r\n\x1a\n' or data[12:16] != b'IHDR':
+        return None
+    return struct.unpack('>II', data[16:24])
 
 
 CUR = "[...document.querySelectorAll('.slide')].findIndex(s => s.dataset.state === 'current')"
@@ -277,6 +288,29 @@ with serve(URL) as BASE, sync_playwright() as pw:
     links = sorted({a for a in page.evaluate("[...document.querySelectorAll('a[href]')].map(a => a.getAttribute('href'))") if not a.startswith('#')})
     print('outbound links:\n  ' + '\n  '.join(links))
     check('outbound links point only to the repo and elan', all(map(link_ok, links)), [a for a in links if not link_ok(a)])
+    ctx.close()
+
+    # ---------- link preview: thumbnail, title and descriptions ----------
+    ctx, page, _ = open_deck(browser)
+    meta = lambda sel: page.evaluate("(sel) => document.querySelector(sel)?.content ?? ''", sel)
+    og, tw = meta('meta[property="og:image"]'), meta('meta[name="twitter:image"]')
+    u = urlsplit(og)
+    check('og:image is an absolute https URL ending in /og.png', u.scheme == 'https' and u.netloc and u.path.endswith('/og.png'), og)
+    check('twitter:image is the og:image URL', og and tw == og, tw)
+    check('twitter:card is summary_large_image', meta('meta[name="twitter:card"]') == 'summary_large_image', meta('meta[name="twitter:card"]'))
+    words = {'title': page.title(), 'description': meta('meta[name="description"]'), 'og:title': meta('meta[property="og:title"]'), 'og:description': meta('meta[property="og:description"]')}
+    bad = [k for k, v in words.items() if not v or '--lean' in v.lower() or 'lean 4' in v.lower()]
+    check('title and descriptions are set and avoid --lean and Lean 4', not bad, bad)
+    if not URL:  # the script serves site/ itself, so og.png is a file here
+        png = ROOT / 'site' / 'og.png'
+        data = png.read_bytes() if png.is_file() else b''
+        check('site/og.png exists', png.is_file(), png)
+        check('site/og.png is a PNG, 1200 by 630', png_size(data) == (1200, 630), png_size(data))
+    elif og:  # a live URL: fetch the image the way a link preview crawler does
+        res = page.request.get(og)
+        check('the og:image URL answers 200', res.status == 200, res.status)
+        check('the og:image URL is served as image/png', res.headers.get('content-type', '').startswith('image/png'), res.headers.get('content-type'))
+        check('the og:image URL is a PNG, 1200 by 630', png_size(res.body()) == (1200, 630), png_size(res.body()))
     ctx.close()
 
     browser.close()

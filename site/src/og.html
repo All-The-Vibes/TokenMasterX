@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>TokenMasterX link preview card</title>
+<style>
+:root {
+  --bg: #07080a; --lime: #c6f432; --lime-deep: #7ccf1d; --ink: #f2f5ee; --ink-2: #c9d0c3; --muted: #8d968a;
+  --sans: 'Segoe UI Variable Text', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { width: 1200px; height: 630px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+.card {
+  position: relative; width: 1200px; height: 630px; padding: 60px 72px 56px; display: flex; flex-direction: column; justify-content: space-between;
+  background:
+    radial-gradient(62% 56% at 24% -4%, rgba(198, 244, 50, .17), transparent 72%),
+    radial-gradient(rgba(242, 245, 238, .06) 1.6px, transparent 2.1px) 0 0 / 22px 22px,
+    var(--bg);
+}
+.wordmark { width: 540px; height: auto; overflow: visible; display: block; }
+.prune { opacity: var(--o); }
+.p1 { --o: .9; } .p2 { --o: .6; } .p3 { --o: .35; }
+h1 { font-size: 80px; line-height: 1.02; letter-spacing: -.042em; font-weight: 800; }
+h1 span { background: linear-gradient(135deg, var(--lime), var(--lime-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { margin-top: 22px; max-width: 930px; font-size: 29px; line-height: 1.36; color: var(--ink-2); }
+.foot { display: flex; justify-content: space-between; align-items: center; }
+.chips { display: flex; gap: 12px; }
+.chip { padding: 10px 20px; border-radius: 999px; font: 600 21px/1 var(--sans); color: var(--ink-2); background: rgba(198, 244, 50, .07); box-shadow: inset 0 0 0 1.5px rgba(198, 244, 50, .45); }
+.url { font: 600 22px/1 var(--mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="card">
+  <div>{{WORDMARK}}</div>
+  <div>
+    <h1><span>Up to half</span> the tokens<br>in GitHub Copilot CLI</h1>
+    <p class="sub">Dynamic tool routing, graph navigation and cache optimization. Measured against stock, with the rules behind it proved by a computer.</p>
+  </div>
+  <div class="foot">
+    <div class="chips"><span class="chip">Proof-driven development</span><span class="chip">Measured with intervals</span></div>
+    <span class="url">all-the-vibes.github.io/TokenMasterX</span>
+  </div>
+</div>
+</body>
+</html>
