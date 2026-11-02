@@ -21,10 +21,14 @@
 # Lean 4 proofs of the core claims; lake's build output stays ignored.
 !/proofs/
 /proofs/.lake/
-# The interactive deck (published to GitHub Pages from the gh-pages branch).
+# The interactive deck (published to GitHub Pages from the gh-pages branch) and the parts it is built from.
 !/site/
 /site/*
 !/site/index.html
+!/site/src/
+/site/src/checks/out/
+/site/src/checks/node_modules/
+/site/src/checks/package*.json
 
 # 2a. Re-include the README hero art + its generator. The rest of assets/
 #     (crops, previews, scratch renders) stays ignored: re-include the dir,

@@ -7,6 +7,20 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+### Added
+
+- `site/src/`: the sources and build script of the interactive deck. `python site/src/build.py` assembles
+  `site/index.html` from `body.html`, `style.css` and `app.js`, and makes the wordmark and the results data from
+  `assets/generate_logo.py` and `evidence/*/analysis.json`. It checks the proof slides against `proofs/`: it stops if a
+  theorem or test name on a slide no longer exists, or if the write-up's claims or findings no longer match the slides.
+  `--check` fails when `site/index.html` is stale. `site/src/checks/` holds the Playwright, touch and axe-core checks
+  that run against the page, and `site/src/README.md` has the republish steps.
+
+### Changed
+
+- The deck and the README describe the proofs by what they establish and how they are checked, not by how many theorems,
+  tests or findings there are. The cover's proof strip no longer carries counts.
+
 ## [0.3.0] - 2026-11-01
 
 ### Fixed

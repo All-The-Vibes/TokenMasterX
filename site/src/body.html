@@ -1,0 +1,297 @@
+<a class="skip" href="#deck">Skip to the slides</a>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="#overview" aria-label="TokenMasterX, back to the start">{{MARK}}<span>TokenMasterX</span></a>
+  <a class="pill-link" href="https://github.com/All-The-Vibes/TokenMasterX" target="_blank" rel="noopener">GitHub
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></a>
+</header>
+
+<main id="deck" class="deck" tabindex="-1" aria-label="TokenMasterX deck">
+
+  <section class="slide" id="overview" data-title="Overview">
+    <div class="inner center">
+      <div data-reveal>{{WORDMARK}}</div>
+      <p class="eyebrow" data-reveal>For GitHub Copilot CLI</p>
+      <h1 data-reveal>About half the tokens with <code>--lean</code>.</h1>
+      <p class="lead" data-reveal><code>--lean</code> is a launcher flag. It drops the tool definitions your prompt does not need.</p>
+      <ul class="tiles" data-reveal>
+        <li class="tile"><span class="eyebrow">Up to · with --lean</span><span class="stat num">53%</span><span class="label">fewer tokens</span></li>
+        <li class="tile"><span class="eyebrow">Up to · with --lean</span><span class="stat num">54%</span><span class="label">lower cold-start cost</span></li>
+        <li class="tile"><span class="eyebrow">No flags</span><span class="stat num">9–29%</span><span class="label">fewer tokens</span></li>
+      </ul>
+      <p class="caption" data-reveal>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on 15 short Django caller lookups. Each saving is against its own stock run on the same day. "Up to" is the best pooled result of any run under default routing. The no-flags range is the 95% confidence interval of its run; the point estimate is 19%.</p>
+      {{PROOF_BAR}}
+      <div class="actions" data-reveal>
+        <a class="btn primary" href="#prompt" data-next>Start <kbd aria-hidden="true">→</kbd></a>
+        <a class="btn" href="#results" data-go="results">Results</a>
+        <a class="btn" href="#proofs" data-go="proofs">Proofs</a>
+        <a class="btn" href="#install" data-go="install">Install</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="prompt" data-title="The fixed prompt">
+    <div class="inner split">
+      <div class="stack">
+        <p class="eyebrow" data-reveal><b>01</b>What every call carries</p>
+        <h2 data-reveal>Every call pays for the same prompt again.</h2>
+        <p class="lead" data-reveal>Copilot CLI sends its system prompt and every tool definition with each request, and each request is billed for them. TokenMasterX removes tools only when you start the launcher with <code>--lean</code>, and it keeps a family when the launch prompt or flags ask for it.</p>
+        <div data-reveal>
+          <div class="seg" id="seg-setup" role="radiogroup" aria-label="Setup">
+            <div class="seg-base">
+              <button type="button" role="radio" aria-checked="true" data-value="stock">Stock</button>
+              <button type="button" role="radio" aria-checked="false" data-value="nolean">No flags</button>
+              <button type="button" role="radio" aria-checked="false" data-value="lean">--lean</button>
+            </div>
+            <div class="seg-on" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel" data-reveal>
+          <div class="metric">
+            <p class="eyebrow">First-call input tokens</p>
+            <p class="big num" id="first-val">13,589</p>
+            <p class="sub">Median of 15 lookups, as billed by GitHub. One chip is about 125 tokens.</p>
+          </div>
+          <div class="bar" id="bar" role="img" aria-label="Chips showing the first-call input tokens"></div>
+          <p class="delta num" id="delta">Same as stock.</p>
+        </div>
+        <div class="panel" data-reveal>
+          <div class="metric">
+            <p class="eyebrow">Tool definitions in the request</p>
+            <p class="big num" id="tools-val">7,819</p>
+            <p class="sub" id="tools-sub">Copilot CLI's own estimate. Every built-in tool is sent.</p>
+          </div>
+          <div class="tools" id="tools"></div>
+          <p class="info" id="info" aria-live="polite">Hover or tap a tool to see what keeps it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="estimate" data-title="Per day">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>02</b>What that adds up to</p>
+      <h2 data-reveal>A smaller prompt adds up with every call.</h2>
+      <p class="lead" data-reveal>With <code>--lean</code>, each call carries 7,555 fewer input tokens: the drop in median first-call input, from 13,589 to 6,034. Set the slider to your own volume.</p>
+      <div class="panel est2" data-reveal>
+        <div class="est-label"><label for="calls">Model calls per day</label><span class="num" id="calls-val">100</span></div>
+        <input class="range" id="calls" type="range" min="10" max="1000" step="10" value="100">
+        <div class="est-out2">
+          <p><span class="giant num" id="est-tok">755,500</span><span class="small">input tokens a day not sent</span></p>
+          <p><span class="giant num" id="est-usd">$0.76</span><span class="small">a day at the cache-read price</span></p>
+        </div>
+      </div>
+      <p class="small" data-reveal>GPT-6 Astra reads a cached token at $1 per million and writes one at $12.50. A call that misses the cache costs more, so the dollar figure is a floor. The estimate counts input tokens only and assumes the number of calls does not change. For your own bill, type <code>/tokenomics</code> in Copilot CLI.</p>
+    </div>
+  </section>
+
+  <section class="slide" id="navigation" data-title="Graph navigation">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>03</b>Find code without reading it</p>
+      <h2 data-reveal>Ask who calls a function. Get one answer.</h2>
+      <p class="lead" data-reveal>tokenmaster-nav gives Copilot CLI three tools, backed by Graphify's call graph and a local symbol index. Every result is capped at 2,400 tokens.</p>
+      <div class="cards3" data-reveal>
+        <div class="card"><code>locate</code><p>Where is this symbol defined?</p></div>
+        <div class="card"><code>read_symbol</code><p>Read one symbol, not the whole file.</p></div>
+        <div class="card"><code>impact</code><p>Which functions call this one?</p></div>
+      </div>
+      <div class="grid2" data-reveal>
+        <div class="panel">
+          <h3>Who uses this symbol? 40 Django symbols, no model involved</h3>
+          <div class="hbars">
+            <p class="tlabel">Median lookup</p>
+            <div class="hrow"><span class="k">rg across the repo</span><div class="htrack"><i style="--v:1;--i:0"></i></div><span class="num">130 tokens</span></div>
+            <div class="hrow"><span class="k">impact</span><div class="htrack"><i class="lime" style="--v:.5115;--i:1"></i></div><span class="num">66.5 tokens</span></div>
+            <p class="tlabel">Largest result from each tool</p>
+            <div class="hrow"><span class="k">rg across the repo</span><div class="htrack"><i style="--v:1;--i:2"></i></div><span class="num">115,555 tokens</span></div>
+            <div class="hrow"><span class="k">impact</span><div class="htrack"><i class="lime" style="--v:.0201;--i:3"></i></div><span class="num">2,325 tokens</span></div>
+          </div>
+          <p class="small" style="margin-top:12px">Impact returned fewer tokens than rg for 21 of the 40 symbols. One symbol, <code>engine</code>, is 90% of rg's 128,279-token total, and impact never passed its 2,400-token cap. These are lookup outputs. In a session, Copilot CLI shortens long search results, and models search with narrower patterns.</p>
+        </div>
+        <div class="panel facts">
+          <div class="fact">
+            <span class="eyebrow">Model calls on the November 1 lookups</span>
+            <div class="pair"><span class="big num">51 → 43</span><span>no flags, against its own stock run (Wilcoxon p = 0.035)</span></div>
+            <div class="pair"><span class="big num soft">47 → 50</span><span><code>--lean</code>, against its own stock run (p = 0.375, no real change)</span></div>
+          </div>
+          <div class="fact"><span class="big num">15 of 15</span><span>TokenMasterX sessions used navigation, in each run</span></div>
+          <p class="small">Covers Python and Rust today. The measured runs used graphify 0.9.91. Graphify 0.9.17 finds 51 of the 56 true callers on these tasks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="cache" data-title="Cache-safe output">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>04</b>Trim without breaking the cache</p>
+      <h2 data-reveal>Shape each tool result once, as it arrives.</h2>
+      <p class="lead" data-reveal>A provider's prompt cache matches from the first byte. Reading a cached token costs 0.05 to 0.1 times the input price, and writing one costs 1.25 times. Change an earlier byte and everything after it is written again.</p>
+      <div data-reveal>
+        <div class="seg" id="seg-cache" role="radiogroup" aria-label="How tool output is trimmed">
+          <div class="seg-base">
+            <button type="button" role="radio" aria-checked="false" data-value="rewrite">Rewrite old results</button>
+            <button type="button" role="radio" aria-checked="true" data-value="once">Shape once</button>
+          </div>
+          <div class="seg-on" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="panel" data-reveal>
+        <div class="stream" id="stream" role="img" aria-label="Request split into the turns that are read from the cache and the turns that are written"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i style="background:var(--lime)"></i>read from cache</span>
+          <span><i style="background:var(--miss)"></i>written again</span>
+          <span><i style="background:var(--ink)"></i>new this call</span>
+          <span><i style="box-shadow:inset 0 0 0 1.5px var(--muted)"></i>trimmed away</span>
+        </div>
+        <p class="info" id="cache-info" aria-live="polite"></p>
+        <div class="tally">
+          <div><span class="v num" id="t-sent">16k</span><span class="k">tokens sent</span></div>
+          <div><span class="v num" id="t-read">15k</span><span class="k">read at 0.1×</span></div>
+          <div><span class="v num" id="t-write">1k</span><span class="k">written at 1.25×</span></div>
+          <div><span class="v num" id="t-cost">2.75k</span><span class="k">cost, in input-token units</span></div>
+        </div>
+      </div>
+      <p class="small" data-reveal>An illustration with round numbers: one chip is 1,000 tokens, with GPT-6 Astra's price ratios. The measured case is PRS-1, where rewriting old tool output (v5) raised cache-weighted cost by 61.6% (95% CI +19.6% to +111%). <a href="#proofs" data-go="proofs">A computer-checked proof</a> shows that shaping each result once leaves earlier messages unchanged. Under default routing only the view hook shapes output. In bring-your-own-model mode a local bridge shapes grep, glob and whole-file view results and keeps the session folder out of the system prompt, so sessions in one folder share a cached prompt.</p>
+    </div>
+  </section>
+
+  <section class="slide" id="results" data-title="Results">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>05</b>What we measured</p>
+      <h2 data-reveal>Savings against stock Copilot CLI, run by run.</h2>
+      <div class="seg-scroll" data-reveal>
+        <div class="seg" id="seg-run" role="radiogroup" aria-label="Run">
+          <div class="seg-base"></div>
+          <div class="seg-on" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="panel chart" data-reveal>
+        <div>
+          <h3 class="run-title" id="run-title"></h3>
+          <p class="small" id="run-sub"></p>
+        </div>
+        <div id="arms"><noscript><p class="small">The charts need JavaScript. The same figures are in the README table and in the results doc.</p></noscript></div>
+        <div class="axis" aria-hidden="true"><span></span><div id="axis"></div><span></span></div>
+        <p class="small run-note" id="run-note" aria-live="polite"></p>
+      </div>
+      <p class="small" data-reveal>Each bar is the reduction against the same run's stock arm, and the white line is its 95% interval from a paired bootstrap over tasks. Cold-start cost prices each first call as a cache miss; as billed is what GitHub charged. <a href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/COPILOT_CLI_RESULTS.md" target="_blank" rel="noopener">Tables, protocols and limits</a>.</p>
+    </div>
+  </section>
+
+{{PROOF_SLIDES}}
+  <section class="slide" id="limits" data-title="Limits">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>08</b>What these numbers do not say</p>
+      <h2 data-reveal>Read them with their limits.</h2>
+      <div class="cols2" data-reveal>
+        <div class="panel">
+          <h3>Scope</h3>
+          <ul class="list">
+            <li>Fifteen short lookups. Each November 1 session made two to four model calls. Long coding sessions were not measured.</li>
+            <li>One model on one build: GPT-6 Astra on Copilot CLI 1.0.105. PRS-6 added Claude Opus 5.5 on 1.0.98, through an evaluation relay.</li>
+            <li><code>--lean</code> removes the same fixed prompt from every request, so it should save a smaller share of a long session. How much smaller is unmeasured.</li>
+            <li>With no flags, the saving comes from fewer model calls. These tasks ask the question navigation answers.</li>
+            <li>Two identical stock runs on the same day differed by 8.6% in raw tokens. The intervals do not include that noise.</li>
+            <li>Every session passed its grader in both November 1 runs, and both arms of PRS-6 passed all 88. The graders check lookups and a few edits.</li>
+            <li>Cold-start cost prices each first call as a cache miss. The bill itself fell 47% with <code>--lean</code>.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Retired or retracted</h3>
+          <ul class="list old">
+            <li>"Up to 58% fewer tokens." That was the best cell of PRS-6's relay run. It did not reproduce under default routing on October 27, when the lean tool set saved 47%.</li>
+            <li>The October 17 figures, which the repository retracted.</li>
+            <li>The early 72% Django pilot, which was never replicated.</li>
+            <li>History rewriting (v5), which raised cache-weighted cost by 61.6% in PRS-1.</li>
+            <li>Before the lean tool set, TokenMasterX saved cost on Copilot CLI but not reliably raw tokens.</li>
+          </ul>
+          <p class="small" style="margin-top:12px">Negative results stay published. They are in <a href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/COPILOT_CLI_RESULTS.md" target="_blank" rel="noopener">the results doc</a> and its linked protocols.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="install" data-title="Install">
+    <div class="inner split wide">
+      <div class="stack">
+        <p class="eyebrow" data-reveal><b>09</b>Try it</p>
+        <h2 data-reveal>Install it, then run Copilot through it.</h2>
+        <p class="small" data-reveal>Windows PowerShell commands. The measured runs used graphify 0.9.91.</p>
+        <p class="small" data-reveal>Leave out <code>--lean</code> and Copilot CLI keeps every built-in tool. Navigation and the view hook still work.</p>
+        <p class="small" data-reveal><code>--lean</code> reads the launch prompt (<code>-p</code> or <code>-i</code>), your flags and the skills and agents you have installed. An interactive session that starts without a prompt, and without a flag such as <code>--agent</code>, <code>--fleet</code> or <code>--resume</code>, keeps all 13 tools out, so set <code>TOKENMASTER_KEEP_TOOLS</code> if you need subagents or background shells mid-session.</p>
+        <p class="small" data-reveal>Type <code>/tokenomics</code> in a session, or run <code>tokenomics.py</code> in a terminal for 0 model tokens, to see your measured tokens, GitHub's charges and the estimated savings.</p>
+      </div>
+      <div class="steps" data-reveal>
+        <div class="step"><span class="n">1</span><div>
+          <div class="head"><h3>Add the plugin</h3><button class="copy" type="button" data-copy="c1" aria-label="Copy the plugin commands"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <pre class="code" id="c1">copilot plugin marketplace add All-The-Vibes/TokenMasterX
+copilot plugin install token-master@token-master</pre>
+        </div></div>
+        <div class="step"><span class="n">2</span><div>
+          <div class="head"><h3>Prepare the runtime, once</h3><button class="copy" type="button" data-copy="c2" aria-label="Copy the runtime commands"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <pre class="code" id="c2">$plugin = "$HOME\.copilot\installed-plugins\token-master\token-master"
+$runtime = "$HOME\.copilot\token-master-runtime"
+uv venv --python 3.12 $runtime
+&amp; "$runtime\Scripts\python.exe" -m ensurepip
+&amp; "$runtime\Scripts\python.exe" -m pip install -r "$plugin\requirements-runtime.txt"
+&amp; "$runtime\Scripts\python.exe" -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
+uv tool install graphifyy</pre>
+        </div></div>
+        <div class="step"><span class="n">3</span><div>
+          <h3>Set up your repository</h3>
+          <p class="note">Start <code>copilot</code> in the repository and type <code>/token-master</code>. It indexes the repository with Graphify, then installs navigation, the view hook and <code>/tokenomics</code>. Approve the commands when Copilot asks.</p>
+        </div></div>
+        <div class="step"><span class="n">4</span><div>
+          <div class="head"><h3>Start Copilot through the launcher</h3><button class="copy" type="button" data-copy="c4" aria-label="Copy the launcher command"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <pre class="code" id="c4">&amp; "$HOME\.copilot\token-master-runtime\Scripts\python.exe" "$HOME\.copilot\token-master\brainspace_copilot_bridge.py" --lean -- copilot</pre>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="evidence" data-title="Evidence">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>10</b>Check our work</p>
+      <h2 data-reveal>Every number links to its protocol and its per-call records.</h2>
+      <div class="cards4" data-reveal>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/COPILOT_CLI_RESULTS.md" target="_blank" rel="noopener">
+          <h3>Results and limits <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>Every run, interval and caveat, with how each figure was counted.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/proofs/README.md" target="_blank" rel="noopener">
+          <h3>Proofs, checked by Lean 4 <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>The proofs, the assumptions they make about the code, and the gaps found while writing them.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/evidence/lean-20261101/PROTOCOL.md" target="_blank" rel="noopener">
+          <h3>November 1: --lean <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>The protocol, written and hashed before the first session, with the analysis and per-call records.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/evidence/default-nolean-20261101/PROTOCOL.md" target="_blank" rel="noopener">
+          <h3>November 1: no flags <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>The default setup, measured the same day on the same build against its own stock run.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/PRS6_PROTOCOL.md" target="_blank" rel="noopener">
+          <h3>PRS-6 protocol <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>Pre-registered before any study call, with the decision rules fixed in advance.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/MISSION.md" target="_blank" rel="noopener">
+          <h3>Mission and method <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>Why the harness is the unit of intervention, and the rules for measuring it.</p>
+        </a>
+      </div>
+      <p class="small" data-reveal>MIT license. An experimental research toolkit, not an official GitHub product. <a href="https://github.com/All-The-Vibes/TokenMasterX" target="_blank" rel="noopener">github.com/All-The-Vibes/TokenMasterX</a></p>
+    </div>
+  </section>
+</main>
+
+<nav class="rail" aria-label="Slides">
+  <button class="rail-btn" type="button" id="prev" aria-label="Previous slide"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button>
+  <div class="rail-chips" id="chips"></div>
+  <button class="rail-btn" type="button" id="next" aria-label="Next slide"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+  <span class="rail-count num" id="count" aria-hidden="true">1 / {{N_SLIDES}}</span>
+</nav>
+<div class="tip" id="tip" role="presentation"></div>
+<div class="sr" id="live" aria-live="polite" aria-atomic="true"></div>
