@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TokenMasterX: about half the tokens with --lean</title>
+<meta name="description" content="Interactive deck for TokenMasterX: how it trims GitHub Copilot CLI's tokens, results with confidence intervals, the Lean 4 proofs behind the mechanisms, limits and install.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07080a">
+<link rel="canonical" href="https://all-the-vibes.github.io/TokenMasterX/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TokenMasterX: about half the tokens with --lean">
+<meta property="og:description" content="Up to 53% fewer tokens with --lean and 9 to 29% fewer with no flags on GitHub Copilot CLI, measured on 15 short Django lookups with GPT-6 Astra. The mechanisms are proved in Lean 4.">
+<meta property="og:url" content="https://all-the-vibes.github.io/TokenMasterX/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22 width=%22128%22 height=%22128%22 role=%22img%22 aria-label=%22TokenMasterX%22%3E%3Cdefs%3E%3ClinearGradient id=%22lime%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%23c6f432%22/%3E%3Cstop offset=%221%22 stop-color=%22%237ccf1d%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22ink%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%23f2f5ee%22/%3E%3Cstop offset=%221%22 stop-color=%22%23c9d0c3%22/%3E%3C/linearGradient%3E%3Cfilter id=%22glow%22 x=%22-50%25%22 y=%22-50%25%22 width=%22200%25%22 height=%22200%25%22%3E%3CfeGaussianBlur stdDeviation=%229%22/%3E%3C/filter%3E%3C/defs%3E%3Cstyle%3E.prune%7Banimation:prune 6s ease-in-out infinite%7D.p2%7Banimation-delay:.35s%7D.p3%7Banimation-delay:.7s%7D%40keyframes prune%7B0%25,55%25,100%25%7Bopacity:var(--o)%7D70%25,85%25%7Bopacity:.05%7D%7D.p1%7B--o:0.9%7D.p2%7B--o:0.6%7D.p3%7B--o:0.35%7D%40media (prefers-reduced-motion:reduce)%7B.prune%7Banimation:none%7D%7D%3C/style%3E%3Crect width=%22128%22 height=%22128%22 rx=%2228%22 fill=%22%230c0f0b%22/%3E%3Crect x=%22.5%22 y=%22.5%22 width=%22127%22 height=%22127%22 rx=%2227.5%22 fill=%22none%22 stroke=%22%231b2117%22/%3E%3Cg filter=%22url(%23glow)%22 opacity=%22.55%22%3E%3Crect x=%2212.55%22 y=%2212.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2227.55%22 y=%2227.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2242.55%22 y=%2242.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2257.55%22 y=%2257.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2272.55%22 y=%2272.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2287.55%22 y=%2287.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%22102.55%22 y=%22102.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%22102.55%22 y=%2212.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2287.55%22 y=%2227.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2272.55%22 y=%2242.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2243.582%22 y=%2273.582%22 width=%2210.836%22 height=%2210.836%22 rx=%222.322%22 fill=%22none%22 stroke=%22%23c6f432%22 stroke-width=%222.064%22 opacity=%220.9%22/%3E%3Crect x=%2228.582%22 y=%2288.582%22 width=%2210.836%22 height=%2210.836%22 rx=%222.322%22 fill=%22none%22 stroke=%22%23c6f432%22 stroke-width=%222.064%22 opacity=%220.6%22/%3E%3Crect x=%2213.582%22 y=%22103.582%22 width=%2210.836%22 height=%2210.836%22 rx=%222.322%22 fill=%22none%22 stroke=%22%23c6f432%22 stroke-width=%222.064%22 opacity=%220.35%22/%3E%3C/g%3E%3Crect x=%2212.55%22 y=%2212.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2227.55%22 y=%2227.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2242.55%22 y=%2242.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2257.55%22 y=%2257.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2272.55%22 y=%2272.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2287.55%22 y=%2287.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%22102.55%22 y=%22102.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%22102.55%22 y=%2212.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2287.55%22 y=%2227.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2272.55%22 y=%2242.55%22 width=%2212.9%22 height=%2212.9%22 rx=%222.58%22 fill=%22url(%23lime)%22/%3E%3Crect x=%2243.582%22 y=%2273.582%22 width=%2210.836%22 height=%2210.836%22 rx=%222.322%22 fill=%22none%22 stroke=%22%23c6f432%22 stroke-width=%222.064%22 opacity=%220.9%22 class=%22prune p1%22/%3E%3Crect x=%2228.582%22 y=%2288.582%22 width=%2210.836%22 height=%2210.836%22 rx=%222.322%22 fill=%22none%22 stroke=%22%23c6f432%22 stroke-width=%222.064%22 opacity=%220.6%22 class=%22prune p2%22/%3E%3Crect x=%2213.582%22 y=%22103.582%22 width=%2210.836%22 height=%2210.836%22 rx=%222.322%22 fill=%22none%22 stroke=%22%23c6f432%22 stroke-width=%222.064%22 opacity=%220.35%22 class=%22prune p3%22/%3E%3C/svg%3E">
+<script>document.documentElement.classList.remove('no-js')</script>
+<style>
+/* TokenMasterX deck. Same palette and chip motif as the README hero (assets/generate_logo.py). */
+:root {
+  color-scheme: dark;
+  --bg: #07080a;
+  --plate: #0c0f0b;
+  --edge: #1b2117;
+  --lime: #c6f432;
+  --lime-deep: #7ccf1d;
+  --ink: #f2f5ee;
+  --ink-2: #c9d0c3;
+  --muted: #8d968a;
+  --miss: #ff7a59;
+  --surface: rgba(242, 245, 238, .035);
+  --surface-2: rgba(242, 245, 238, .065);
+  --line: rgba(242, 245, 238, .08);
+  --line-strong: rgba(242, 245, 238, .16);
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', Inter, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, 'Cascadia Code', Menlo, Consolas, monospace;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --shift: 28px;
+  --blur: 3px;
+}
+@media (prefers-reduced-motion: reduce) { :root { --shift: 0px; --blur: 0px; } }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: var(--bg); color: var(--ink);
+  font: 400 clamp(15px, .35vw + 14px, 17px)/1.55 var(--sans);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-synthesis: none;
+}
+h1, h2, h3, h4, p, ul, ol, figure, dl, dd { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+a { color: inherit; text-decoration: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+code, kbd, pre { font-family: var(--mono); }
+::selection { background: rgba(198, 244, 50, .28); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; border-radius: 8px; }
+[hidden] { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.swap { transition: opacity 120ms ease, filter 120ms ease; }
+.swap[data-swap] { opacity: 0; filter: blur(2px); }
+
+.skip { position: fixed; left: 12px; top: -48px; z-index: 60; padding: 8px 12px; border-radius: 8px; background: var(--lime); color: #07080a; font-weight: 600; transition: transform 160ms var(--ease-out); }
+.skip:focus-visible { transform: translateY(60px); }
+
+.bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background:
+    radial-gradient(62% 46% at 50% 12%, rgba(198, 244, 50, .11), transparent 72%),
+    radial-gradient(rgba(242, 245, 238, .055) 1.6px, transparent 2.1px) 0 0 / 22px 22px;
+}
+
+/* chrome */
+.top { position: fixed; inset: 0 0 auto 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 16px clamp(14px, 3vw, 30px); pointer-events: none; }
+.top > * { pointer-events: auto; }
+.brand { display: inline-flex; align-items: center; gap: 10px; padding: 6px 10px 6px 6px; border-radius: 12px; font: 600 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); transition: transform 160ms var(--ease-out), background-color 160ms ease; }
+.brand .mark { width: 22px; height: 22px; }
+.pill-link { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--ink-2); box-shadow: 0 0 0 1px var(--line-strong) inset; background: rgba(12, 15, 11, .6); backdrop-filter: blur(10px); transition: transform 160ms var(--ease-out), background-color 160ms ease, color 160ms ease; }
+.pill-link svg { width: 12px; height: 12px; }
+.brand:active, .pill-link:active { transform: scale(.97); }
+@media (hover: hover) and (pointer: fine) {
+  .brand:hover { background: var(--surface-2); }
+  .pill-link:hover { background: var(--surface-2); color: var(--ink); }
+}
+
+.rail { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 20; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: 999px; background: rgba(12, 15, 11, .74); backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 0 0 1px var(--line-strong), 0 12px 32px rgba(0, 0, 0, .5); }
+.rail-btn { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 50%; color: var(--ink-2); transition: transform 160ms var(--ease-out), background-color 160ms ease, opacity 160ms ease; }
+.rail-btn svg { width: 16px; height: 16px; }
+.rail-btn:active { transform: scale(.96); }
+.rail-btn[aria-disabled="true"] { opacity: .28; pointer-events: none; }
+.rail-chip:active i { transform: scale(1.1); }
+.rail-chips { display: flex; padding: 0 4px; }
+.rail-chip { width: 22px; height: 36px; display: grid; place-items: center; }
+.rail-chip i { width: 8px; height: 8px; border-radius: 2px; background: rgba(242, 245, 238, .26); transition: transform 200ms var(--ease-out), background-color 200ms ease; }
+.rail-chip[aria-current="true"] i { background: var(--lime); transform: scale(1.4); }
+.rail-count { min-width: 58px; padding: 0 12px 0 6px; text-align: center; font: 600 12px/1 var(--mono); color: var(--muted); }
+@media (hover: hover) and (pointer: fine) {
+  .rail-btn:hover { background: var(--surface-2); }
+  .rail-chip:hover i { background: var(--ink); transform: scale(1.3); }
+  .rail-chip[aria-current="true"]:hover i { background: var(--lime); }
+}
+.tip { position: fixed; z-index: 30; padding: 7px 10px; border-radius: 9px; font: 600 12px/1 var(--sans); white-space: nowrap; background: #11160f; color: var(--ink); box-shadow: 0 0 0 1px var(--line-strong), 0 8px 22px rgba(0, 0, 0, .5); opacity: 0; transform: translate3d(-50%, 4px, 0) scale(.97); transform-origin: 50% 100%; transition: opacity 125ms var(--ease-out), transform 125ms var(--ease-out); pointer-events: none; }
+.tip[data-open] { opacity: 1; transform: translate3d(-50%, 0, 0); }
+.tip[data-instant] { transition-duration: 0ms; }
+
+/* deck and slides */
+.deck { position: fixed; inset: 0; z-index: 1; outline: none; }
+.slide {
+  position: absolute; inset: 0; display: flex; overflow: hidden auto; overscroll-behavior: contain; touch-action: pan-y;
+  padding: clamp(60px, 9vh, 104px) clamp(16px, 5vw, 72px) clamp(84px, 12vh, 108px);
+  opacity: 0; visibility: hidden; transform: translate3d(var(--dx, var(--shift)), 0, 0); filter: blur(var(--blur));
+  transition: opacity 140ms ease-out, transform 140ms ease-out, filter 140ms ease-out, visibility 0s linear 140ms;
+  scrollbar-width: thin; scrollbar-color: rgba(242, 245, 238, .18) transparent;
+}
+.slide[data-state="prev"] { --dx: calc(var(--shift) * -1); }
+.slide[data-state="next"] { --dx: var(--shift); }
+.slide[data-state="current"] { opacity: 1; visibility: visible; transform: none; filter: none; transition: opacity 300ms var(--ease-out) 40ms, transform 300ms var(--ease-out) 40ms, filter 300ms var(--ease-out) 40ms, visibility 0s; }
+.slide[data-dragging] { transition: none; }
+.inner { margin: auto; width: min(1120px, 100%); display: grid; gap: clamp(16px, 2.4vh, 26px); align-content: start; }
+.inner.center { justify-items: center; text-align: center; }
+
+[data-reveal] { opacity: 0; transform: translate3d(0, 12px, 0); transition: opacity 0s linear 180ms, transform 0s linear 180ms; }
+.slide[data-state="current"] [data-reveal] { opacity: 1; transform: none; transition: opacity 340ms var(--ease-out) calc(var(--i, 0) * 55ms + 90ms), transform 340ms var(--ease-out) calc(var(--i, 0) * 55ms + 90ms); }
+@media (prefers-reduced-motion: reduce) { [data-reveal] { transform: none; } }
+.deck[data-fast] .slide, .deck[data-fast] .slide * { transition-duration: 0s !important; transition-delay: 0s !important; }
+
+/* type */
+.eyebrow { font: 600 12px/1.2 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.eyebrow b { color: var(--lime); font-weight: 600; margin-right: .6em; }
+h1 { font-size: clamp(2.3rem, 5.8vw, 4.3rem); line-height: 1.03; letter-spacing: -.038em; font-weight: 780; text-wrap: balance; }
+h2 { font-size: clamp(1.75rem, 3.7vw, 2.95rem); line-height: 1.07; letter-spacing: -.032em; font-weight: 760; text-wrap: balance; }
+h3 { font-size: 1.02rem; line-height: 1.3; font-weight: 650; letter-spacing: -.01em; }
+.lead { max-width: 64ch; font-size: clamp(1rem, .5vw + .9rem, 1.2rem); color: var(--ink-2); text-wrap: pretty; }
+.small { font-size: .86rem; color: var(--muted); text-wrap: pretty; }
+.small a, .lead a, .link { color: var(--ink-2); text-decoration: underline; text-decoration-color: rgba(242, 245, 238, .3); text-underline-offset: 3px; transition: color 160ms ease, text-decoration-color 160ms ease; }
+@media (hover: hover) and (pointer: fine) { .small a:hover, .lead a:hover, .link:hover { color: var(--lime); text-decoration-color: var(--lime); } }
+h1 code, .lead code, .small code, li code, p code { font-size: .88em; color: var(--lime); }
+h1 code { font-size: .86em; font-weight: 700; letter-spacing: -.02em; }
+kbd { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 6px; font-size: 11px; color: var(--ink-2); background: var(--surface-2); box-shadow: 0 0 0 1px var(--line-strong); }
+
+.btn { display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 640; background: var(--surface-2); box-shadow: 0 0 0 1px var(--line-strong) inset; transition: transform 160ms var(--ease-out), background-color 160ms ease; }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--lime); color: #07080a; box-shadow: none; }
+.btn.primary kbd { background: rgba(7, 8, 10, .12); color: #07080a; box-shadow: none; }
+@media (hover: hover) and (pointer: fine) { .btn:hover { background: rgba(242, 245, 238, .11); } .btn.primary:hover { background: #d5fa5b; } }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+
+/* cover */
+.wordmark { width: min(720px, 86vw); height: auto; overflow: visible; }
+.prune { animation: prune 6s ease-in-out infinite; }
+.p2 { animation-delay: .35s; } .p3 { animation-delay: .7s; }
+.p1 { --o: .9; } .p2 { --o: .6; } .p3 { --o: .35; }
+@keyframes prune { 0%, 55%, 100% { opacity: var(--o); } 70%, 85% { opacity: .05; } }
+@media (prefers-reduced-motion: reduce) { .prune { animation: none; } }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(920px, 100%); border-top: 1px solid var(--edge); }
+.tile { display: grid; justify-items: center; gap: 4px; padding: 22px 8px 4px; }
+.tile .stat { font: 800 clamp(2.9rem, 7.4vw, 5rem)/1 var(--sans); letter-spacing: -.045em; background: linear-gradient(135deg, var(--lime), var(--lime-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tile .label { font-weight: 560; }
+.caption { max-width: 74ch; font-size: .82rem; color: var(--muted); text-wrap: pretty; }
+
+/* panels and segmented control */
+.panel { border-radius: 18px; padding: 18px; background: linear-gradient(180deg, rgba(242, 245, 238, .05), rgba(242, 245, 238, .02)); box-shadow: 0 0 0 1px var(--line), inset 0 1px 0 rgba(255, 255, 255, .04); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.seg { position: relative; display: inline-flex; padding: 4px; border-radius: 13px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); max-width: 100%; }
+.seg-base, .seg-on { display: flex; }
+.seg-base button, .seg-on span { padding: 9px 15px; border-radius: 9px; font-size: 14px; font-weight: 620; white-space: nowrap; }
+.seg-base button { color: var(--muted); transition: color 160ms ease, transform 160ms var(--ease-out); }
+.seg-base button:active { transform: scale(.97); }
+.seg-on { position: absolute; inset: 4px; pointer-events: none; background: var(--lime); color: #07080a; border-radius: 9px; clip-path: inset(0 var(--r, 0) 0 var(--l, 0) round 9px); transition: clip-path 230ms var(--ease-in-out); }
+@media (hover: hover) and (pointer: fine) { .seg-base button:hover { color: var(--ink); } }
+.seg-scroll { overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+.seg-scroll .seg { max-width: none; }
+.seg-scroll::-webkit-scrollbar { display: none; }
+
+/* slide: the fixed prompt */
+.metric { display: grid; gap: 2px; }
+.metric .big { font: 780 clamp(2.2rem, 4vw, 3rem)/1 var(--sans); letter-spacing: -.04em; }
+.metric .sub { color: var(--muted); font-size: .84rem; }
+.split { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 3.4vw, 52px); align-items: center; }
+.stack { display: grid; gap: clamp(12px, 2vh, 18px); align-content: start; }
+.split .stack:last-child { gap: 14px; }
+.bar { display: grid; grid-template-columns: repeat(var(--cols, 28), minmax(0, 1fr)); gap: 4px; margin: 14px 0 10px; }
+.delta { font-size: .9rem; font-weight: 620; color: var(--ink-2); }
+.chip { position: relative; aspect-ratio: 1; border-radius: 22%; }
+.chip::before, .chip::after { content: ""; position: absolute; inset: 0; border-radius: inherit; transition: opacity 220ms var(--ease-out) calc(var(--k, 0) * 1ms); }
+.chip::before { background: linear-gradient(180deg, var(--ink), var(--ink-2)); }
+.chip::after { box-shadow: inset 0 0 0 1.5px var(--lime); opacity: 0; }
+.chip.off::before { opacity: 0; }
+.chip.off::after { opacity: .42; }
+.tools { display: grid; gap: 8px; margin-top: 14px; }
+.tlabel { font: 600 10.5px/1.2 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.tgroup { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.cluster { display: flex; flex-wrap: wrap; gap: 5px; }
+.tool { position: relative; padding: 7px 9px; border-radius: 8px; font: 500 12px/1 var(--mono); color: var(--ink); background: var(--surface-2); box-shadow: 0 0 0 1px var(--line); transition: opacity 200ms var(--ease-out), transform 160ms var(--ease-out), box-shadow 160ms ease; }
+.tool::after { content: ""; position: absolute; left: 7px; right: 7px; top: 50%; height: 1.5px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform 200ms var(--ease-out); }
+.tool[data-sent="false"] { opacity: .62; }
+.tool[data-sent="false"]::after { transform: scaleX(1); }
+.tool.nav { color: var(--lime); background: rgba(198, 244, 50, .09); box-shadow: 0 0 0 1px rgba(198, 244, 50, .38); }
+.tool.nav[data-sent="false"]::after { background: var(--lime); }
+.tool:active { transform: scale(.97); }
+.tool[aria-pressed="true"] { box-shadow: 0 0 0 1.5px var(--ink); }
+.info { min-height: 2.9em; margin-top: 10px; font-size: .86rem; color: var(--ink-2); }
+@media (hover: hover) and (pointer: fine) { .tool:hover { box-shadow: 0 0 0 1px var(--line-strong); } }
+.est-label { display: flex; justify-content: space-between; gap: 12px; font-size: .95rem; font-weight: 600; }
+.est2 { display: grid; gap: 16px; padding: clamp(18px, 3vw, 28px); }
+.est-out2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.est-out2 p { display: grid; gap: 6px; }
+.giant { font: 800 clamp(2.6rem, 6.4vw, 4.9rem)/1 var(--sans); letter-spacing: -.045em; background: linear-gradient(135deg, var(--lime), var(--lime-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.range { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; background: transparent; --p: 20%; cursor: pointer; }
+.range::-webkit-slider-runnable-track { height: 6px; border-radius: 99px; background: linear-gradient(90deg, var(--lime) var(--p), rgba(242, 245, 238, .13) var(--p)); }
+.range::-moz-range-track { height: 6px; border-radius: 99px; background: rgba(242, 245, 238, .13); }
+.range::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--lime); }
+.range::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; border: 0; background: var(--ink); box-shadow: 0 0 0 4px rgba(198, 244, 50, .32), 0 2px 8px rgba(0, 0, 0, .55); transition: transform 160ms var(--ease-out); }
+.range::-moz-range-thumb { width: 22px; height: 22px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(198, 244, 50, .32), 0 2px 8px rgba(0, 0, 0, .55); }
+.range:active::-webkit-slider-thumb { transform: scale(.92); }
+
+/* slide: navigation */
+.cards3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.card { border-radius: 18px; padding: 18px; background: linear-gradient(180deg, rgba(242, 245, 238, .05), rgba(242, 245, 238, .02)); box-shadow: 0 0 0 1px var(--line), inset 0 1px 0 rgba(255, 255, 255, .04); display: grid; gap: 6px; align-content: start; }
+.card code { color: var(--lime); font-size: 1rem; font-weight: 600; }
+.card p { color: var(--ink-2); font-size: .92rem; }
+.hbars { display: grid; gap: 12px; margin-top: 12px; }
+.hrow { display: grid; grid-template-columns: 132px minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: .9rem; }
+.hrow .k { color: var(--ink-2); }
+.htrack { height: 22px; border-radius: 7px; background: rgba(242, 245, 238, .06); overflow: hidden; }
+.htrack i { display: block; height: 100%; border-radius: 7px; background: linear-gradient(90deg, var(--ink-2), var(--ink)); transform: scaleX(0); transform-origin: left; transition: transform 450ms var(--ease-out) calc(var(--i, 0) * 60ms + 260ms); }
+.htrack i.lime { background: linear-gradient(90deg, var(--lime-deep), var(--lime)); }
+.slide[data-state="current"] .htrack i { transform: scaleX(var(--v)); }
+.facts { display: grid; gap: 12px; align-content: start; }
+.fact { display: grid; gap: 2px; }
+.fact .big { font: 780 clamp(1.9rem, 3.6vw, 2.7rem)/1 var(--sans); letter-spacing: -.04em; background: linear-gradient(135deg, var(--lime), var(--lime-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* slide: cache */
+.stream { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 16px 0 6px; }
+.grp { display: grid; gap: 7px; }
+.grp .chips { display: flex; gap: 4px; }
+.grp .chip { width: clamp(18px, 2.3vw, 30px); aspect-ratio: 1; }
+.grp .cap { font: 600 10.5px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stream .chip::before, .stream .chip::after { transition: opacity 220ms var(--ease-out), background-color 220ms ease; }
+.chip[data-st="read"]::before { background: linear-gradient(180deg, var(--lime), var(--lime-deep)); }
+.chip[data-st="write"]::before { background: linear-gradient(180deg, #ff9071, var(--miss)); }
+.chip[data-st="new"]::before { background: linear-gradient(180deg, var(--ink), var(--ink-2)); }
+.chip[data-st="gone"]::before { opacity: 0; }
+.chip[data-st="gone"]::after { box-shadow: inset 0 0 0 1.5px var(--muted); opacity: .45; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem; color: var(--muted); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 7px; vertical-align: -1px; }
+.tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.tally div { display: grid; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); }
+.tally .v { font: 760 1.5rem/1.1 var(--sans); letter-spacing: -.03em; }
+.tally .k { font-size: .78rem; color: var(--muted); }
+
+/* slide: results */
+.chart { display: grid; gap: 16px; }
+.run-title { font-size: 1.08rem; }
+.arm { display: grid; gap: 8px; }
+.arm + .arm { margin-top: 12px; }
+.arm h4 { font: 600 11.5px/1.2 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--lime); }
+.mrow { display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 14px; align-items: center; font-size: .9rem; }
+.mrow .k { color: var(--ink-2); }
+.mrow .v { text-align: right; }
+.mrow .v b { font-weight: 700; }
+.mrow .v span { color: var(--muted); font-size: .82rem; margin-left: 8px; }
+.track { position: relative; height: 22px; border-radius: 7px; background: rgba(242, 245, 238, .06); }
+.track::before { content: ""; position: absolute; inset: 0; border-radius: 7px; background: repeating-linear-gradient(90deg, transparent 0 calc(12.5% - 1px), rgba(242, 245, 238, .07) calc(12.5% - 1px) 12.5%); }
+.fill { position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: 7px; background: linear-gradient(90deg, var(--lime-deep), var(--lime)); transform: scaleX(var(--v, 0)); transform-origin: left; transition: transform 420ms var(--ease-out); }
+/* The interval: a line from lo to hi, and a tick at each end. Each is a full-width box moved with transform. */
+.wl, .wt { position: absolute; left: 0; width: 100%; pointer-events: none; transition: transform 420ms var(--ease-out); }
+.wl { top: 50%; height: 2px; margin-top: -1px; background: var(--ink); transform-origin: left; transform: translateX(calc(var(--lo, 0) * 100%)) scaleX(calc(var(--hi, 0) - var(--lo, 0))); }
+.wt { top: 0; bottom: 0; transform: translateX(calc(var(--at, 0) * 100%)); }
+.wt::before { content: ""; position: absolute; left: -1px; top: 50%; width: 2px; height: 12px; margin-top: -6px; background: var(--ink); }
+.wt.lo { --at: var(--lo, 0); }
+.wt.hi { --at: var(--hi, 0); }
+.axis { display: grid; grid-template-columns: 118px minmax(0, 1fr) 150px; gap: 14px; font: 500 11px/1 var(--mono); color: var(--muted); }
+.axis div { display: flex; justify-content: space-between; }
+.run-note { max-width: 78ch; }
+.arm[data-absent] { display: none; }
+
+/* slide: limits and evidence */
+.cols2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.list { display: grid; gap: 10px; margin-top: 10px; }
+.list li { position: relative; padding-left: 20px; color: var(--ink-2); font-size: .94rem; text-wrap: pretty; }
+.list li::before { content: ""; position: absolute; left: 1px; top: .5em; width: 8px; height: 8px; border-radius: 2px; background: var(--lime); }
+.list.old li::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.cards4 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+a.card { transition: transform 160ms var(--ease-out), box-shadow 160ms ease; }
+a.card:active { transform: scale(.985); }
+a.card h3 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: transform 200ms var(--ease-out), color 160ms ease; flex: none; }
+@media (hover: hover) and (pointer: fine) { a.card:hover { box-shadow: 0 0 0 1px var(--line-strong), inset 0 1px 0 rgba(255, 255, 255, .05); } a.card:hover h3 svg { transform: translate3d(2px, -2px, 0); color: var(--lime); } }
+.sublinks { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+
+/* slide: install */
+.steps { display: grid; gap: 12px; }
+.step { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; align-items: start; }
+.step .n, .pipe .n { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 9px; font: 700 13px/1 var(--mono); color: #07080a; background: linear-gradient(135deg, var(--lime), var(--lime-deep)); }
+.step h3 { margin: 0; }
+.step .head { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; margin-bottom: 8px; }
+.step .note { font-size: .92rem; color: var(--ink-2); text-wrap: pretty; }
+.split.wide { grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); }
+.code { margin: 0; border-radius: 13px; padding: 12px 14px; background: #090c08; box-shadow: 0 0 0 1px var(--line); font: 500 12px/1.65 var(--mono); color: var(--ink-2); white-space: pre-wrap; overflow-wrap: break-word; }
+.copy { flex: none; height: 30px; min-width: 62px; padding: 0 10px; border-radius: 8px; display: grid; place-items: center; font: 600 12px/1 var(--sans); color: var(--ink-2); background: var(--surface-2); box-shadow: 0 0 0 1px var(--line-strong) inset; transition: transform 160ms var(--ease-out), background-color 160ms ease; }
+.copy:active { transform: scale(.97); }
+.copy span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 6px; transition: opacity 180ms ease, filter 180ms ease, transform 180ms var(--ease-out); }
+.copy .done { opacity: 0; filter: blur(2px); transform: scale(.9); color: var(--lime); }
+.copy[data-copied] .idle { opacity: 0; filter: blur(2px); transform: scale(.9); }
+.copy[data-copied] .done { opacity: 1; filter: none; transform: none; }
+.copy svg { width: 13px; height: 13px; }
+@media (hover: hover) and (pointer: fine) { .copy:hover { background: rgba(242, 245, 238, .12); } }
+
+/* small screens */
+@media (max-width: 860px) {
+  .grid2, .cols2, .split, .est-out2 { grid-template-columns: minmax(0, 1fr); }
+  .cards3, .cards4 { grid-template-columns: minmax(0, 1fr); }
+  .tally { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bar { --cols: 16; }
+}
+@media (max-width: 720px) {
+  .rail-chips { display: none; }
+  .tiles { grid-template-columns: minmax(0, 1fr); }
+  .tile { padding: 14px 0; border-bottom: 1px solid var(--edge); }
+  .mrow, .axis { grid-template-columns: 74px minmax(0, 1fr) 96px; gap: 10px; font-size: .84rem; }
+  .axis { font-size: 10px; }
+  .mrow .v span { display: block; margin: 0; }
+  .hrow { grid-template-columns: 1fr; gap: 6px; }
+  .brand span { display: none; }
+}
+@media (max-width: 460px) { .tally { grid-template-columns: minmax(0, 1fr); } }
+
+/* no JavaScript: show the slides as a page */
+.no-js body { overflow: auto; height: auto; }
+.no-js .deck, .no-js .slide { position: static; }
+.no-js .slide { opacity: 1; visibility: visible; transform: none; filter: none; min-height: 100vh; }
+.no-js [data-reveal] { opacity: 1; transform: none; }
+.no-js .htrack i { transform: scaleX(var(--v)); }
+.no-js .rail, .no-js .tip { display: none; }
+
+/* navigation: calls in both runs */
+.hbars .tlabel:not(:first-child) { margin-top: 6px; }
+.pair { display: grid; grid-template-columns: minmax(124px, auto) minmax(0, 1fr); align-items: center; gap: 14px; margin-top: 8px; }
+.pair .big { font: 780 clamp(1.7rem, 3vw, 2.3rem)/1 var(--sans); }
+.pair .big.soft { background: none; -webkit-background-clip: initial; background-clip: initial; color: var(--ink); }
+.pair > span:last-child { font-size: .9rem; color: var(--ink-2); text-wrap: pretty; }
+.fact .eyebrow { font-size: 11px; }
+
+/* slide: proofs */
+.proofs { grid-template-columns: minmax(0, 4.6fr) minmax(0, 7.4fr); }
+.kpis { display: grid; gap: 12px; }
+.kpis li { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 14px; }
+.kv { font: 800 clamp(2.2rem, 4vw, 3rem)/1 var(--sans); letter-spacing: -.045em; background: linear-gradient(135deg, var(--lime), var(--lime-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.kl { color: var(--ink-2); font-size: .92rem; text-wrap: pretty; }
+.claimbox { display: grid; gap: 10px; }
+.claims { display: grid; gap: 2px; }
+.claim { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; padding: 7px 9px; border-radius: 10px; text-align: left; font-size: .92rem; line-height: 1.3; transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out); }
+.claim:active { transform: scale(.985); }
+.claim[aria-pressed="true"] { background: var(--surface-2); box-shadow: 0 0 0 1px var(--line-strong); }
+@media (hover: hover) and (pointer: fine) { .claim:hover { background: var(--surface); } .claim[aria-pressed="true"]:hover { background: var(--surface-2); } }
+.ck { position: relative; display: block; flex: none; width: 20px; height: 20px; border-radius: 6px; box-shadow: inset 0 0 0 1.5px rgba(198, 244, 50, .4); }
+.ck::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, var(--lime), var(--lime-deep)); opacity: 0; transition: opacity 240ms var(--ease-out) calc(var(--i, 0) * 70ms + 380ms); }
+.ck svg { position: absolute; inset: 3px; width: 14px; height: 14px; stroke: #07080a; opacity: 0; transform: scale(.6); transition: opacity 200ms var(--ease-out) calc(var(--i, 0) * 70ms + 440ms), transform 240ms var(--ease-out) calc(var(--i, 0) * 70ms + 440ms); }
+.slide[data-state="current"] .ck::before { opacity: 1; }
+.slide[data-state="current"] .ck svg { opacity: 1; transform: none; }
+.ck.on::before { opacity: 1; transition: none; }
+.ck.on svg { opacity: 1; transform: none; transition: none; }
+.cv { padding: 4px 6px; border-radius: 6px; font: 600 10px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--miss); box-shadow: inset 0 0 0 1px rgba(255, 122, 89, .4); white-space: nowrap; }
+.cd { display: none; }
+.inspect { min-height: 8.6em; padding-top: 10px; border-top: 1px solid var(--line); font-size: .84rem; line-height: 1.45; color: var(--ink-2); }
+.inspect .rest { color: var(--muted); }
+.inspect .cd { display: grid; gap: 7px; }
+.inspect .cd > div { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; }
+.inspect dt { font: 600 10px/1.9 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.inspect dd { margin: 0; text-wrap: pretty; }
+.inspect code { font-size: .86em; color: var(--lime); overflow-wrap: anywhere; }
+.inspect .more { color: var(--muted); }
+
+/* slide: how it is checked */
+.pipe { display: grid; }
+.pipe li { position: relative; display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 14px; padding-bottom: 14px; }
+.pipe li:last-child { padding-bottom: 0; }
+.pipe li::before { content: ""; position: absolute; left: 16px; top: 38px; bottom: 4px; width: 2px; border-radius: 2px; background: linear-gradient(180deg, rgba(198, 244, 50, .5), rgba(198, 244, 50, .1)); transform: scaleY(0); transform-origin: top; transition: transform 380ms var(--ease-out) 480ms; }
+.pipe li:nth-child(2)::before { transition-delay: 570ms; }
+.pipe li:nth-child(3)::before { transition-delay: 660ms; }
+.pipe li:last-child::before { display: none; }
+.slide[data-state="current"] .pipe li::before { transform: scaleY(1); }
+.pipe h3 { font-size: 1rem; }
+.pipe p { margin-top: 2px; font-size: .9rem; color: var(--ink-2); text-wrap: pretty; }
+.phead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.finds { display: grid; }
+.finds > ul { grid-area: 1 / 1; align-self: start; margin-top: 0; transition: opacity 140ms ease, filter 140ms ease; }
+.finds > ul[data-off] { opacity: 0; filter: blur(2px); visibility: hidden; transition: opacity 140ms ease, filter 140ms ease, visibility 0s linear 140ms; }
+.finds-note { margin-top: 12px; }
+.cmd { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; margin-top: 8px; }
+.cmd .code { padding: 9px 12px; font-size: 11.5px; line-height: 1.55; }
+
+/* cover: the proof bar */
+.proofbar { display: inline-grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; max-width: min(780px, 100%); padding: 9px 14px 9px 10px; border-radius: 14px; text-align: left; font-size: .9rem; line-height: 1.4; color: var(--ink-2); background: rgba(198, 244, 50, .06); box-shadow: 0 0 0 1px rgba(198, 244, 50, .28); transition: transform 160ms var(--ease-out), background-color 160ms ease, box-shadow 160ms ease; }
+.proofbar b { color: var(--ink); font-weight: 650; }
+.proofbar code { color: var(--lime); font-size: .88em; }
+.proofbar .pa { width: 14px; height: 14px; color: var(--muted); transition: transform 200ms var(--ease-out), color 160ms ease; }
+.proofbar .pa svg { display: block; width: 100%; height: 100%; }
+.proofbar:active { transform: scale(.985); }
+@media (hover: hover) and (pointer: fine) {
+  .proofbar:hover { background: rgba(198, 244, 50, .1); box-shadow: 0 0 0 1px rgba(198, 244, 50, .5); }
+  .proofbar:hover .pa { transform: translate3d(2px, -2px, 0); color: var(--lime); }
+}
+
+/* no JavaScript */
+.no-js .seg-on { display: none; }
+.no-js .cd { display: grid; gap: 4px; margin: 2px 0 12px 32px; font-size: .84rem; color: var(--ink-2); }
+.no-js .cd dt { font: 600 10px/1.6 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.no-js .cd dd { margin: 0 0 4px; }
+.no-js .finds > ul { grid-area: auto; }
+.no-js .inspect { display: none; }
+
+/* short screens: tighten the vertical rhythm before anything has to scroll */
+@media (max-height: 780px) {
+  .slide { padding-top: clamp(54px, 8vh, 64px); padding-bottom: 76px; }
+  .inner { gap: 12px; }
+  .stack { gap: 10px; }
+  h2 { font-size: clamp(1.55rem, 3.2vw, 2.45rem); }
+  .lead { font-size: 1rem; }
+  .panel { padding: 14px; }
+  .est2 { padding: 18px; }
+  .track, .htrack { height: 18px; }
+  .tile { padding-top: 14px; }
+  .claim { padding: 5px 9px; }
+  .pipe li { padding-bottom: 10px; }
+  .chart { gap: 12px; }
+  .arm + .arm { margin-top: 8px; }
+}
+@media (max-height: 680px) {
+  .slide { padding-top: 52px; padding-bottom: 70px; }
+  .inner { gap: 9px; }
+  h2 { font-size: clamp(1.4rem, 2.9vw, 2.05rem); }
+  .lead { font-size: .94rem; line-height: 1.45; }
+  .panel { padding: 11px 13px; }
+  .claim { padding: 3px 9px; font-size: .88rem; }
+  .inspect { min-height: 8em; }
+  .wordmark { width: min(520px, 70vw); }
+  .tile .stat { font-size: clamp(2.3rem, 5.4vw, 3.6rem); }
+  .chart { gap: 8px; }
+  .arm { gap: 4px; }
+  .arm + .arm { margin-top: 4px; }
+  .track, .htrack { height: 16px; }
+  .metric .big { font-size: 2.1rem; }
+  .bar { margin: 8px 0 6px; gap: 3px; }
+  .tools { margin-top: 8px; gap: 6px; }
+  .tool { padding: 5px 8px; }
+  .info { min-height: 2.5em; margin-top: 6px; }
+}
+
+/* reduced motion: decorative transitions stop, the state still changes */
+@media (prefers-reduced-motion: reduce) {
+  .htrack i, .fill, .wl, .wt, .seg-on, .chip::before, .chip::after, .ck::before, .ck svg, .pipe li::before { transition: none !important; }
+}
+
+/* a utility, so it has to beat the font shorthands above */
+.num { font-variant-numeric: tabular-nums !important; font-feature-settings: 'tnum' !important; }
+.list li.note { padding-left: 0; font-size: .84rem; color: var(--muted); }
+.list li.note::before { display: none; }
+@media (max-height: 780px) {
+  .card { padding: 13px 15px; gap: 4px; }
+  .hbars { gap: 8px; margin-top: 8px; }
+  .facts { gap: 9px; }
+  .list { gap: 8px; }
+  .list li { font-size: .9rem; }
+}
+.inspect dd.names { display: flex; flex-wrap: wrap; gap: 2px 14px; }
+@media (max-width: 860px) {
+  .proofs { grid-template-columns: minmax(0, 1fr); }
+  .claim { grid-template-columns: 22px minmax(0, 1fr); }
+  .claim .cv { grid-column: 2; justify-self: start; }
+  .kpis li { grid-template-columns: 64px minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  /* results: the bar gets the full width, the figure sits beside its label */
+  .mrow { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; }
+  .mrow .k { grid-column: 1; grid-row: 1; }
+  .mrow .v { grid-column: 2; grid-row: 1; }
+  .mrow .v span { display: inline; margin-left: 8px; }
+  .mrow .track { grid-column: 1 / -1; grid-row: 2; }
+  .axis { grid-template-columns: minmax(0, 1fr); }
+  .axis > span { display: none; }
+  .axis div span:not(:nth-child(1)):not(:nth-child(5)):not(:nth-child(9)) { visibility: hidden; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#deck">Skip to the slides</a>
+<div class="bg" aria-hidden="true"></div>
+
+<header class="top">
+  <a class="brand" href="#overview" aria-label="TokenMasterX, back to the start"><svg class="mark" viewBox="0 0 22 22" aria-hidden="true"><rect x="0" y="0" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="3.2" y="3.2" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="6.4" y="6.4" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="9.6" y="9.6" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="12.8" y="12.8" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="16" y="16" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="19.2" y="19.2" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="19.2" y="0" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="16" y="3.2" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="12.8" y="6.4" width="2.752" height="2.752" rx="0.5504" fill="url(#lime)"/><rect x="7.15" y="13.55" width="1.252" height="1.252" rx="0.49536" fill="none" stroke="#c6f432" stroke-width="1.5" opacity="0.9" class="prune p1"/><rect x="3.95" y="16.75" width="1.252" height="1.252" rx="0.49536" fill="none" stroke="#c6f432" stroke-width="1.5" opacity="0.6" class="prune p2"/><rect x="0.75" y="19.95" width="1.252" height="1.252" rx="0.49536" fill="none" stroke="#c6f432" stroke-width="1.5" opacity="0.35" class="prune p3"/></svg><span>TokenMasterX</span></a>
+  <a class="pill-link" href="https://github.com/All-The-Vibes/TokenMasterX" target="_blank" rel="noopener">GitHub
+    <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></a>
+</header>
+
+<main id="deck" class="deck" tabindex="-1" aria-label="TokenMasterX deck">
+
+  <section class="slide" id="overview" data-title="Overview">
+    <div class="inner center">
+      <div data-reveal><svg class="wordmark" viewBox="0 -12.6 870.216 107.016" role="img" aria-label="TokenMasterX"><defs><linearGradient id="lime" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c6f432"/><stop offset="1" stop-color="#7ccf1d"/></linearGradient><linearGradient id="ink" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f5ee"/><stop offset="1" stop-color="#c9d0c3"/></linearGradient><filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="9"/></filter></defs><g filter="url(#glow)" opacity=".6"><rect x="763.2" y="-12.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="778.8" y="3" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="794.4" y="18.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="810" y="34.2" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="825.6" y="49.8" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="841.2" y="65.4" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="856.8" y="81" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="856.8" y="-12.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="841.2" y="3" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="825.6" y="18.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="795.473" y="50.8733" width="11.2694" height="11.2694" rx="2.41488" fill="none" stroke="#c6f432" stroke-width="2.14656" opacity="0.9"/><rect x="779.873" y="66.4733" width="11.2694" height="11.2694" rx="2.41488" fill="none" stroke="#c6f432" stroke-width="2.14656" opacity="0.6"/><rect x="764.273" y="82.0733" width="11.2694" height="11.2694" rx="2.41488" fill="none" stroke="#c6f432" stroke-width="2.14656" opacity="0.35"/></g><rect x="0" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="12" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="36" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="48" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="24" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="84" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="96" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="108" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="72" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="120" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="72" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="120" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="72" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="120" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="84" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="96" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="108" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="180" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="168" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="156" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="168" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="144" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="180" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="216" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="228" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="240" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="204" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="252" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="204" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="216" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="228" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="240" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="252" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="204" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="216" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="228" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="240" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="276" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="288" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="300" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="312" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="276" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="324" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="276" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="324" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="276" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="324" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="276" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="324" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="360" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="384" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="372" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="372" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="348" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="396" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="432" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="444" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="456" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="468" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="432" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="444" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="456" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="468" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="420" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="468" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="432" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="444" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="456" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="468" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="504" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="516" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="528" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="540" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="492" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="504" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="516" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="528" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="540" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="492" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="504" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="516" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="528" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="576" y="0" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="576" y="12" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="564" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="576" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="588" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="600" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="576" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="576" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="576" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="588" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="600" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="636" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="648" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="660" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="624" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="672" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="624" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="636" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="648" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="660" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="672" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="624" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="636" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="648" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="660" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="696" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="720" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="732" y="24" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="696" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="708" y="36" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="696" y="48" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="696" y="60" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="696" y="72" width="10.32" height="10.32" rx="2.064" fill="url(#ink)"/><rect x="763.2" y="-12.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="778.8" y="3" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="794.4" y="18.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="810" y="34.2" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="825.6" y="49.8" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="841.2" y="65.4" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="856.8" y="81" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="856.8" y="-12.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="841.2" y="3" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="825.6" y="18.6" width="13.416" height="13.416" rx="2.6832" fill="url(#lime)"/><rect x="795.473" y="50.8733" width="11.2694" height="11.2694" rx="2.41488" fill="none" stroke="#c6f432" stroke-width="2.14656" opacity="0.9" class="prune p1"/><rect x="779.873" y="66.4733" width="11.2694" height="11.2694" rx="2.41488" fill="none" stroke="#c6f432" stroke-width="2.14656" opacity="0.6" class="prune p2"/><rect x="764.273" y="82.0733" width="11.2694" height="11.2694" rx="2.41488" fill="none" stroke="#c6f432" stroke-width="2.14656" opacity="0.35" class="prune p3"/></svg></div>
+      <p class="eyebrow" data-reveal>For GitHub Copilot CLI</p>
+      <h1 data-reveal>About half the tokens with <code>--lean</code>.</h1>
+      <ul class="tiles" data-reveal>
+        <li class="tile"><span class="eyebrow">Up to · with --lean</span><span class="stat num">53%</span><span class="label">fewer tokens</span></li>
+        <li class="tile"><span class="eyebrow">Up to · with --lean</span><span class="stat num">54%</span><span class="label">lower cold-start cost</span></li>
+        <li class="tile"><span class="eyebrow">No flags</span><span class="stat num">9–29%</span><span class="label">fewer tokens</span></li>
+      </ul>
+      <p class="caption" data-reveal>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on 15 short Django caller lookups. Each saving is against its own stock run on the same day. "Up to" is the best pooled result of any run under default routing. The no-flags range is the 95% confidence interval of its run; the point estimate is 19%.</p>
+      <a class="proofbar" href="#proofs" data-go="proofs" data-reveal>
+        <span class="ck on" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span>
+        <span class="pt"><b>Proved in Lean 4.</b> 46 theorems, no <code>sorry</code>, 29 conformance tests. 8 gaps found, 5 fixed.</span>
+        <span class="pa" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></span>
+      </a>
+      <div class="actions" data-reveal>
+        <a class="btn primary" href="#prompt" data-next>Start <kbd aria-hidden="true">→</kbd></a>
+        <a class="btn" href="#results" data-go="results">Results</a>
+        <a class="btn" href="#proofs" data-go="proofs">Proofs</a>
+        <a class="btn" href="#install" data-go="install">Install</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="prompt" data-title="The fixed prompt">
+    <div class="inner split">
+      <div class="stack">
+        <p class="eyebrow" data-reveal><b>01</b>What every call carries</p>
+        <h2 data-reveal>Every call pays for the same prompt again.</h2>
+        <p class="lead" data-reveal>Copilot CLI sends its system prompt and every tool definition with each request, and each request is billed for them. TokenMasterX removes tools only when you start the launcher with <code>--lean</code>, and it keeps a family when the launch prompt or flags ask for it.</p>
+        <div data-reveal>
+          <div class="seg" id="seg-setup" role="radiogroup" aria-label="Setup">
+            <div class="seg-base">
+              <button type="button" role="radio" aria-checked="true" data-value="stock">Stock</button>
+              <button type="button" role="radio" aria-checked="false" data-value="nolean">No flags</button>
+              <button type="button" role="radio" aria-checked="false" data-value="lean">--lean</button>
+            </div>
+            <div class="seg-on" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="panel" data-reveal>
+          <div class="metric">
+            <p class="eyebrow">First-call input tokens</p>
+            <p class="big num" id="first-val">13,589</p>
+            <p class="sub">Median of 15 lookups, as billed by GitHub. One chip is about 125 tokens.</p>
+          </div>
+          <div class="bar" id="bar" role="img" aria-label="Chips showing the first-call input tokens"></div>
+          <p class="delta num" id="delta">Same as stock.</p>
+        </div>
+        <div class="panel" data-reveal>
+          <div class="metric">
+            <p class="eyebrow">Tool definitions in the request</p>
+            <p class="big num" id="tools-val">7,819</p>
+            <p class="sub" id="tools-sub">Copilot CLI's own estimate. Every built-in tool is sent.</p>
+          </div>
+          <div class="tools" id="tools"></div>
+          <p class="info" id="info" aria-live="polite">Hover or tap a tool to see what keeps it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="estimate" data-title="Per day">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>02</b>What that adds up to</p>
+      <h2 data-reveal>A smaller prompt adds up with every call.</h2>
+      <p class="lead" data-reveal>With <code>--lean</code>, each call carries 7,555 fewer input tokens: the drop in median first-call input, from 13,589 to 6,034. Set the slider to your own volume.</p>
+      <div class="panel est2" data-reveal>
+        <div class="est-label"><label for="calls">Model calls per day</label><span class="num" id="calls-val">100</span></div>
+        <input class="range" id="calls" type="range" min="10" max="1000" step="10" value="100">
+        <div class="est-out2">
+          <p><span class="giant num" id="est-tok">755,500</span><span class="small">input tokens a day not sent</span></p>
+          <p><span class="giant num" id="est-usd">$0.76</span><span class="small">a day at the cache-read price</span></p>
+        </div>
+      </div>
+      <p class="small" data-reveal>GPT-6 Astra reads a cached token at $1 per million and writes one at $12.50. A call that misses the cache costs more, so the dollar figure is a floor. The estimate counts input tokens only and assumes the number of calls does not change. For your own bill, type <code>/tokenomics</code> in Copilot CLI.</p>
+    </div>
+  </section>
+
+  <section class="slide" id="navigation" data-title="Graph navigation">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>03</b>Find code without reading it</p>
+      <h2 data-reveal>Ask who calls a function. Get one answer.</h2>
+      <p class="lead" data-reveal>tokenmaster-nav gives Copilot CLI three tools, backed by Graphify's call graph and a local symbol index. Every result is capped under 2,400 tokens.</p>
+      <div class="cards3" data-reveal>
+        <div class="card"><code>locate</code><p>Where is this symbol defined?</p></div>
+        <div class="card"><code>read_symbol</code><p>Read one symbol, not the whole file.</p></div>
+        <div class="card"><code>impact</code><p>Which functions call this one?</p></div>
+      </div>
+      <div class="grid2" data-reveal>
+        <div class="panel">
+          <h3>Who uses this symbol? 40 Django symbols, no model involved</h3>
+          <div class="hbars">
+            <p class="tlabel">Median lookup</p>
+            <div class="hrow"><span class="k">rg across the repo</span><div class="htrack"><i style="--v:1;--i:0"></i></div><span class="num">130 tokens</span></div>
+            <div class="hrow"><span class="k">impact</span><div class="htrack"><i class="lime" style="--v:.5115;--i:1"></i></div><span class="num">66.5 tokens</span></div>
+            <p class="tlabel">Largest lookup</p>
+            <div class="hrow"><span class="k">rg across the repo</span><div class="htrack"><i style="--v:1;--i:2"></i></div><span class="num">115,555 tokens</span></div>
+            <div class="hrow"><span class="k">impact</span><div class="htrack"><i class="lime" style="--v:.0201;--i:3"></i></div><span class="num">2,325 tokens</span></div>
+          </div>
+          <p class="small" style="margin-top:12px">Impact returned fewer tokens than rg for 21 of the 40 symbols. One symbol, <code>engine</code>, is 90% of rg's 128,279-token total, and impact never passed its 2,400-token cap. This is lookup output, not a session cost: Copilot CLI shortens long search results, and models search with narrower patterns.</p>
+        </div>
+        <div class="panel facts">
+          <div class="fact">
+            <span class="eyebrow">Model calls on the November 1 lookups</span>
+            <div class="pair"><span class="big num">51 → 43</span><span>no flags, against its own stock run (Wilcoxon p = 0.035)</span></div>
+            <div class="pair"><span class="big num soft">47 → 50</span><span><code>--lean</code>, against its own stock run (p = 0.375, no real change)</span></div>
+          </div>
+          <div class="fact"><span class="big num">15 of 15</span><span>TokenMasterX sessions used navigation, in each run</span></div>
+          <p class="small">Covers Python and Rust today. The measured runs used graphify 0.9.91. Graphify 0.9.17 finds 51 of the 56 true callers on these tasks.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="cache" data-title="Cache-safe output">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>04</b>Trim without breaking the cache</p>
+      <h2 data-reveal>Shape each tool result once, as it arrives.</h2>
+      <p class="lead" data-reveal>A provider's prompt cache matches from the first byte. Reading a cached token costs 0.05 to 0.1 times the input price, and writing one costs 1.25 times. Change an earlier byte and everything after it is written again.</p>
+      <div data-reveal>
+        <div class="seg" id="seg-cache" role="radiogroup" aria-label="How tool output is trimmed">
+          <div class="seg-base">
+            <button type="button" role="radio" aria-checked="false" data-value="rewrite">Rewrite old results</button>
+            <button type="button" role="radio" aria-checked="true" data-value="once">Shape once</button>
+          </div>
+          <div class="seg-on" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="panel" data-reveal>
+        <div class="stream" id="stream" role="img" aria-label="Request split into the turns that are read from the cache and the turns that are written"></div>
+        <div class="legend" aria-hidden="true">
+          <span><i style="background:var(--lime)"></i>read from cache</span>
+          <span><i style="background:var(--miss)"></i>written again</span>
+          <span><i style="background:var(--ink)"></i>new this call</span>
+          <span><i style="box-shadow:inset 0 0 0 1.5px var(--muted)"></i>trimmed away</span>
+        </div>
+        <p class="info" id="cache-info" aria-live="polite"></p>
+        <div class="tally">
+          <div><span class="v num" id="t-sent">16k</span><span class="k">tokens sent</span></div>
+          <div><span class="v num" id="t-read">15k</span><span class="k">read at 0.1×</span></div>
+          <div><span class="v num" id="t-write">1k</span><span class="k">written at 1.25×</span></div>
+          <div><span class="v num" id="t-cost">2.75k</span><span class="k">cost, in input-token units</span></div>
+        </div>
+      </div>
+      <p class="small" data-reveal>An illustration with round numbers: one chip is 1,000 tokens, with GPT-6 Astra's price ratios. The measured case is PRS-1, where rewriting old tool output (v5) raised cache-weighted cost by 61.6% (95% CI +19.6% to +111%). <a href="#proofs" data-go="proofs">A Lean 4 proof</a> checks that shaping each result once leaves earlier messages unchanged. Under default routing only the view hook shapes output. In bring-your-own-model mode a local bridge shapes every tool result and also keeps the session folder out of the system prompt, so sessions in one folder can share a cached prompt.</p>
+    </div>
+  </section>
+
+  <section class="slide" id="results" data-title="Results">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>05</b>What we measured</p>
+      <h2 data-reveal>Savings against stock Copilot CLI, run by run.</h2>
+      <div class="seg-scroll" data-reveal>
+        <div class="seg" id="seg-run" role="radiogroup" aria-label="Run">
+          <div class="seg-base"></div>
+          <div class="seg-on" aria-hidden="true"></div>
+        </div>
+      </div>
+      <div class="panel chart" data-reveal>
+        <div>
+          <h3 class="run-title" id="run-title"></h3>
+          <p class="small" id="run-sub"></p>
+        </div>
+        <div id="arms"><noscript><p class="small">The charts need JavaScript. The same figures are in the README table and in the results doc.</p></noscript></div>
+        <div class="axis" aria-hidden="true"><span></span><div id="axis"></div><span></span></div>
+        <p class="small run-note" id="run-note" aria-live="polite"></p>
+      </div>
+      <p class="small" data-reveal>Each bar is the reduction against the same run's stock arm, and the white line is its 95% interval from a paired bootstrap over tasks. Cold-start cost prices each first call as a cache miss; as billed is what GitHub charged. <a href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/COPILOT_CLI_RESULTS.md" target="_blank" rel="noopener">Tables, protocols and limits</a>.</p>
+    </div>
+  </section>
+
+
+  <!-- Proof figures below were counted from proofs/ and test_proof_conformance.py at master 7c95643 on 2026-11-01: 46 public theorems and 27 private lemmas (73 declarations) in 8 files, 29 conformance tests, 15 hypotheses, 8 findings (5 fixed, 3 open). To recount the declarations, run from the repository root: grep -rhE '^[[:space:]]*(@\[[^]]*\][[:space:]]*)?((private|protected|nonrec)[[:space:]]+)*(theorem|lemma)[[:space:]]' proofs/TokenMasterProofs | wc -l. For the tests, run python -m pytest --collect-only -q tests/test_proof_conformance.py in token-master-plugin/skills/token-master. -->
+  <section class="slide" id="proofs" data-title="Proofs">
+    <div class="inner split proofs">
+      <div class="stack">
+        <p class="eyebrow" data-reveal><b>06</b>Proof-driven development</p>
+        <h2 data-reveal>The savings are measured. The invariants are proved.</h2>
+        <p class="lead" data-reveal>The invariants behind each mechanism are stated as theorems in Lean 4, and Lean's kernel checks the proofs. They cover cache safety, tool routing, the lossless folds, the navigation cap and the measurement method.</p>
+        <ul class="kpis" data-reveal>
+          <li><span class="kv num" data-count="46">46</span><span class="kl">theorems in 8 Lean files, with 27 private helper lemmas</span></li>
+          <li><span class="kv num">0</span><span class="kl">uses of <code>sorry</code>, and no axiom beyond Lean's three standard ones</span></li>
+          <li><span class="kv num" data-count="29">29</span><span class="kl">conformance tests that run the real Python against the models</span></li>
+        </ul>
+      </div>
+      <div class="stack">
+        <div class="panel claimbox" data-reveal>
+          <p class="eyebrow">10 claims, each a theorem</p>
+          <ul class="claims" id="claims">
+            <li style="--i:0"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">The bridge never changes bytes the provider already cached</span><span class="cv">open finding</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Cache.bridge_prefix_stable</code> <code>Cache.cache_prefix_kept</code></dd></div><div><dt>Holds when</dt><dd>Assumes call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items. A lone surrogate in a tool output breaks the token counter.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_bridge_rewrite_keeps_history_prefix</code></dd></div></dl></li><li style="--i:1"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Policy v6 never changes an earlier message</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Cache.shaping_prefix_stable</code></dd></div><div><dt>Holds when</dt><dd>Proved for the shaping map. The runtime keeps it unless shaping would pass a <code>max_input_tokens</code> cap. Assumes call ids are never reused.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_v6_plans_keep_earlier_messages</code> <code>test_runtime_keeps_v6_shaping</code></dd></div></dl></li><li style="--i:2"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Shaping never makes a tool result bigger</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Shaping.guard_never_expands</code> <code>Shaping.request_bytes_never_grow</code></dd></div><div><dt>Holds when</dt><dd>True in counted tokens and in bytes. That GitHub's billed count falls when the cl100k count falls is an assumption.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_shaped_results_never_expand</code></dd></div></dl></li><li style="--i:3"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Policies v1 to v4 never grow a request</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Policy.greedy_never_expands</code> <code>Policy.protected_unchanged</code></dd></div><div><dt>Holds when</dt><dd>They also never edit a protected message. A test checks this for policy v1.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_plan_request_never_expands_and_keeps_protected_messages</code></dd></div></dl></li><li style="--i:4"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">The rg and glob folds are lossless</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Folds.unfoldPaths_foldPaths</code> <code>Folds.unfold_foldSearchChecked</code> <code>Folds.foldSearch_not_injective</code></dd></div><div><dt>Holds when</dt><dd><code>fold_paths</code> gives back its exact input. <code>fold_search</code> refuses any input it could not give back, and a proof shows the refusal is needed: without it, two different inputs fold to the same text.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_fold_paths_round_trip</code> <code>test_fold_search_round_trip</code> <span class="more">and 1 more</span></dd></div></dl></li><li style="--i:5"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Routing keeps every family whose trigger fires</span><span class="cv">open finding</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Routing.fired_family_kept</code> <code>Routing.excluded_subset_lean</code> <code>Routing.default_excludes_nothing</code></dd></div><div><dt>Holds when</dt><dd>Routing drops only the 13 auxiliary tools, and only with <code>--lean</code>. The triggers are keyword rules and miss some phrasings: "have an agent review this diff" drops <code>task</code>.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_routing_lists_match_the_lean_model</code> <code>test_routing_fired_families_are_kept</code> <span class="more">and 1 more</span></dd></div></dl></li><li style="--i:6"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">A resume keeps its session&#x27;s tool list</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Routing.resume_same_list</code> <code>Routing.resume_chain_keeps_first_list</code></dd></div><div><dt>Holds when</dt><dd>Proved for the model. Which session record applies is the launcher's lookup, which the conformance tests check.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_routing_resume_keeps_the_first_list</code></dd></div></dl></li><li style="--i:7"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Sessions in one folder share a system prompt</span><span class="cv">open finding</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>SessionPrefix.system_same_across_sessions</code> <code>SessionPrefix.folder_recoverable</code></dd></div><div><dt>Holds when</dt><dd>Assumes the folder path has no newline. Whitespace around the path is not recovered after the move.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_session_prefix_same_system_and_recoverable_folder</code></dd></div></dl></li><li style="--i:8"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Navigation results stay under 2,400 tokens</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>NavCap.assemble_le</code> <code>NavCap.fit_prefix</code> <code>NavCap.uncut_overflow_attained</code></dd></div><div><dt>Holds when</dt><dd>Counted in the navigation server's own counter, with every result measured whole. The proofs found a case that reached 2,401 tokens, and it is fixed.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_navigation_results_within_budget</code> <code>test_uncut_read_within_budget</code> <span class="more">and 2 more</span></dd></div></dl></li><li style="--i:9"><button type="button" class="claim" aria-pressed="false"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">The measurement method has the properties it relies on</span></button><dl class="cd"><div><dt>Lean</dt><dd class="names"><code>Measurement.cold_term_is_coldened_charge</code> <code>Measurement.ratio_of_sums_ge</code> <code>Measurement.resample_within_task_range</code> <code>Measurement.hero_monotone</code></dd></div><div><dt>Holds when</dt><dd>Cold repricing is exactly the extra charge of a cold cache, and the bootstrap interval stays within the per-task range. The recorded data match. Not proved: that the interval has 95% coverage.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_cold_repricing_matches_the_definition</code> <code>test_bootstrap_interval_within_task_range</code> <span class="more">and 2 more</span></dd></div></dl></li>
+          </ul>
+          <div class="inspect" id="claim-info" aria-live="polite"><p class="rest">Hover or tap a claim to see its theorems, what it assumes and the tests that check it.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="checks" data-title="Validation">
+    <div class="inner split">
+      <div class="stack">
+        <p class="eyebrow" data-reveal><b>07</b>How it is checked</p>
+        <h2 data-reveal>A proof covers a model. Four checks tie it to the code.</h2>
+        <ol class="pipe" data-reveal>
+          <li><span class="n">1</span><div><h3>Lean's kernel checks every proof.</h3><p>A clean <code>lake build</code> passes on Lean 4.35.0, with no <code>sorry</code> and only Lean's three standard axioms.</p></div></li>
+          <li><span class="n">2</span><div><h3>Tests run the real code against the models.</h3><p>29 conformance tests run the Python on generated inputs and on the recorded study data. Each names the theorem it supports.</p></div></li>
+          <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists the 15 hypotheses the models take from the code, each marked as tested, read from the code, or assumed.</p></div></li>
+          <li><span class="n">4</span><div><h3>Gaps become findings.</h3><p>Where a model and the code disagree, the gap is recorded. The proofs found 8: 5 fixed, 3 open.</p></div></li>
+        </ol>
+        <p class="small" data-reveal>Code and proofs change together: <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/18" target="_blank" rel="noopener">#18</a>, <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/19" target="_blank" rel="noopener">#19</a> and <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/20" target="_blank" rel="noopener">#20</a>, the last three routing pull requests, each updated the proofs write-up and the conformance tests.</p>
+      </div>
+      <div class="stack">
+        <div class="panel" data-reveal>
+          <div class="phead">
+            <h3>What writing the proofs found</h3>
+            <div class="seg-scroll">
+              <div class="seg" id="seg-finds" role="radiogroup" aria-label="Findings">
+                <div class="seg-base">
+                  <button type="button" role="radio" aria-checked="true" data-value="fixed">Fixed 5</button>
+                  <button type="button" role="radio" aria-checked="false" data-value="open">Open 3</button>
+                </div>
+                <div class="seg-on" aria-hidden="true"></div>
+              </div>
+            </div>
+          </div>
+          <div class="finds" id="finds">
+            <ul class="list" data-set="fixed"><li>Navigation results could pass the 2,400-token cap: footers sat outside the budget, and one branch skipped a newline (2,401 tokens observed). Every result is now measured whole.</li><li><code>fold_search</code> was not lossless when a copied line looked like a folded entry. It now refuses to fold that input.</li><li><code>fold_paths</code> dropped trailing newlines. It keeps them now.</li><li>v6 shaping reverted a whole request when it measured no smaller on the JSON wire, which is not what a provider bills, so that call missed the cache. It no longer does.</li><li>A resumed session ran the routing again, so its tool list could change. A resume tied to the session's record now sends the recorded list.</li></ul>
+            <ul class="list old" data-set="open"><li>A lone surrogate in a tool output makes the token counter raise, which fails that bridge call and every later call that resends the output.</li><li>The routing triggers miss some phrasings: "have an agent review this diff" drops <code>task</code>.</li><li>Whitespace around the session folder path is not recovered after the move.</li><li class="note">Open findings stay published. Two of the three have a <code>test_finding_*</code> test that reproduces them.</li></ul>
+          </div>
+        </div>
+        <div class="panel" data-reveal>
+          <p class="eyebrow">Check it yourself</p>
+          <div class="cmd"><pre class="code" id="c5">cd proofs &amp;&amp; lake build</pre><button class="copy" type="button" data-copy="c5" aria-label="Copy the build command"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <div class="cmd"><pre class="code" id="c6">cd token-master-plugin/skills/token-master &amp;&amp; python -m pytest tests/test_proof_conformance.py</pre><button class="copy" type="button" data-copy="c6" aria-label="Copy the test command"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <p class="small">Install Lean 4 with <a href="https://github.com/leanprover/elan" target="_blank" rel="noopener">elan</a> first. <code>lake</code> reads the pinned version from <code>proofs/lean-toolchain</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="limits" data-title="Limits">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>08</b>What these numbers do not say</p>
+      <h2 data-reveal>Read them with their limits.</h2>
+      <div class="cols2" data-reveal>
+        <div class="panel">
+          <h3>Scope</h3>
+          <ul class="list">
+            <li>Fifteen short lookups. Each November 1 session made two to four model calls. Long coding sessions were not measured.</li>
+            <li>One model on one build: GPT-6 Astra on Copilot CLI 1.0.105. PRS-6 added Claude Opus 5.5 on 1.0.98, through an evaluation relay.</li>
+            <li><code>--lean</code> removes the same fixed prompt from every request, so it should save a smaller share of a long session. How much smaller is unmeasured.</li>
+            <li>With no flags, the saving comes from fewer model calls. These tasks ask the question navigation answers.</li>
+            <li>Two identical stock runs on the same day differed by 8.6% in raw tokens. The intervals do not include that noise.</li>
+            <li>Every session passed its grader in both November 1 runs, and both arms of PRS-6 passed all 88. The graders check lookups and a few edits.</li>
+            <li>Cold-start cost prices each first call as a cache miss. The bill itself fell 47% with <code>--lean</code>.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Retired or retracted</h3>
+          <ul class="list old">
+            <li>"Up to 58% fewer tokens." That was the best cell of PRS-6's relay run. It did not reproduce under default routing on October 27, when the lean tool set saved 47%.</li>
+            <li>The October 17 figures, which the repository retracted.</li>
+            <li>The early 72% Django pilot, which was never replicated.</li>
+            <li>History rewriting (v5), which raised cache-weighted cost by 61.6% in PRS-1.</li>
+            <li>Before the lean tool set, TokenMasterX saved cost on Copilot CLI but not reliably raw tokens.</li>
+          </ul>
+          <p class="small" style="margin-top:12px">Negative results stay published. They are in <a href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/COPILOT_CLI_RESULTS.md" target="_blank" rel="noopener">the results doc</a> and its linked protocols.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="install" data-title="Install">
+    <div class="inner split wide">
+      <div class="stack">
+        <p class="eyebrow" data-reveal><b>09</b>Try it</p>
+        <h2 data-reveal>Install it, then run Copilot through it.</h2>
+        <p class="small" data-reveal>Windows PowerShell commands. The measured runs used graphify 0.9.91.</p>
+        <p class="small" data-reveal>Leave out <code>--lean</code> and Copilot CLI keeps every built-in tool. Navigation and the view hook still work.</p>
+        <p class="small" data-reveal><code>--lean</code> reads the launch prompt (<code>-p</code> or <code>-i</code>), your flags and the skills and agents you have installed. An interactive session that starts without a prompt keeps all 13 tools out, so set <code>TOKENMASTER_KEEP_TOOLS</code> if you need subagents or background shells mid-session.</p>
+        <p class="small" data-reveal>Type <code>/tokenomics</code> in a session, or run <code>tokenomics.py</code> in a terminal for 0 model tokens, to see your measured tokens, GitHub's charges and the estimated savings.</p>
+      </div>
+      <div class="steps" data-reveal>
+        <div class="step"><span class="n">1</span><div>
+          <div class="head"><h3>Add the plugin</h3><button class="copy" type="button" data-copy="c1" aria-label="Copy the plugin commands"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <pre class="code" id="c1">copilot plugin marketplace add All-The-Vibes/TokenMasterX
+copilot plugin install token-master@token-master</pre>
+        </div></div>
+        <div class="step"><span class="n">2</span><div>
+          <div class="head"><h3>Prepare the runtime, once</h3><button class="copy" type="button" data-copy="c2" aria-label="Copy the runtime commands"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <pre class="code" id="c2">$plugin = "$HOME\.copilot\installed-plugins\token-master\token-master"
+$runtime = "$HOME\.copilot\token-master-runtime"
+uv venv --python 3.12 $runtime
+&amp; "$runtime\Scripts\python.exe" -m ensurepip
+&amp; "$runtime\Scripts\python.exe" -m pip install -r "$plugin\requirements-runtime.txt"
+&amp; "$runtime\Scripts\python.exe" -c "import tiktoken; tiktoken.get_encoding('cl100k_base')"
+uv tool install graphifyy</pre>
+        </div></div>
+        <div class="step"><span class="n">3</span><div>
+          <h3>Set up your repository</h3>
+          <p class="note">Start <code>copilot</code> in the repository and type <code>/token-master</code>. It indexes the repository with Graphify, then installs navigation, the view hook and <code>/tokenomics</code>. Approve the commands when Copilot asks.</p>
+        </div></div>
+        <div class="step"><span class="n">4</span><div>
+          <div class="head"><h3>Start Copilot through the launcher</h3><button class="copy" type="button" data-copy="c4" aria-label="Copy the launcher command"><span class="idle">Copy</span><span class="done" aria-hidden="true">Copied</span></button></div>
+          <pre class="code" id="c4">&amp; "$HOME\.copilot\token-master-runtime\Scripts\python.exe" "$HOME\.copilot\token-master\brainspace_copilot_bridge.py" --lean -- copilot</pre>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide" id="evidence" data-title="Evidence">
+    <div class="inner">
+      <p class="eyebrow" data-reveal><b>10</b>Check our work</p>
+      <h2 data-reveal>Every number links to its protocol and its per-call records.</h2>
+      <div class="cards4" data-reveal>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/COPILOT_CLI_RESULTS.md" target="_blank" rel="noopener">
+          <h3>Results and limits <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>Every run, interval and caveat, with how each figure was counted.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/proofs/README.md" target="_blank" rel="noopener">
+          <h3>Lean 4 proofs <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>46 theorems and 27 lemmas checked by Lean's kernel, the hypotheses they take from the code, and the 8 gaps they found.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/evidence/lean-20261101/PROTOCOL.md" target="_blank" rel="noopener">
+          <h3>November 1: --lean <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>The protocol, written and hashed before the first session, with the analysis and per-call records.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/evidence/default-nolean-20261101/PROTOCOL.md" target="_blank" rel="noopener">
+          <h3>November 1: no flags <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>The default setup, measured the same day on the same build against its own stock run.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/token-master-plugin/docs/PRS6_PROTOCOL.md" target="_blank" rel="noopener">
+          <h3>PRS-6 protocol <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>Pre-registered before any study call, with the decision rules fixed in advance.</p>
+        </a>
+        <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/MISSION.md" target="_blank" rel="noopener">
+          <h3>Mission and method <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
+          <p>Why the harness is the unit of intervention, and the rules for measuring it.</p>
+        </a>
+      </div>
+      <p class="small" data-reveal>MIT license. An experimental research toolkit, not an official GitHub product. <a href="https://github.com/All-The-Vibes/TokenMasterX" target="_blank" rel="noopener">github.com/All-The-Vibes/TokenMasterX</a></p>
+    </div>
+  </section>
+</main>
+
+<nav class="rail" aria-label="Slides">
+  <button class="rail-btn" type="button" id="prev" aria-label="Previous slide"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button>
+  <div class="rail-chips" id="chips"></div>
+  <button class="rail-btn" type="button" id="next" aria-label="Next slide"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+  <span class="rail-count num" id="count" aria-hidden="true">1 / 11</span>
+</nav>
+<div class="tip" id="tip" role="presentation"></div>
+<div class="sr" id="live" aria-live="polite" aria-atomic="true"></div>
+
+<script type="application/json" id="data">{"runs":[{"id":"nov1","label":"Nov 1","title":"Default routing, Copilot CLI 1.0.105","sub":"GPT-6 Astra, 15 Django caller lookups. Each arm against its own stock run.","arms":[{"name":"--lean","raw":{"v":52.61,"lo":48.45,"hi":56.52},"cold":{"v":54.39,"lo":52.57,"hi":56.02},"billed":{"v":47.3,"lo":44.92,"hi":49.42},"note":""},{"name":"No flags","raw":{"v":19.11,"lo":8.54,"hi":28.71},"cold":{"v":13.91,"lo":10.6,"hi":17.07},"billed":{"v":24.42,"lo":8.47,"hi":35.52},"note":""}]},{"id":"oct27","label":"Oct 27","title":"Default routing, Copilot CLI 1.0.104","sub":"GPT-6 Astra, 15 Django caller lookups. The lean tool set was the launcher default then.","arms":[{"name":"Lean tool set","raw":{"v":47.44,"lo":41.74,"hi":52.84},"cold":{"v":45.38,"lo":42.66,"hi":48.2},"billed":{"v":44.96,"lo":40.52,"hi":49.38},"note":""}]},{"id":"prs6repo","label":"PRS-6 repo","title":"Pre-registered, relay mode, Copilot CLI 1.0.98","sub":"This repository, 29 tasks per model. Lean tool set, graph navigation and the request bridge.","arms":[{"name":"GPT-6 Astra","raw":{"v":49.47,"lo":42.28,"hi":55.91},"cold":{"v":41.48,"lo":35.49,"hi":47.66},"billed":{"v":50.19,"lo":42.03,"hi":59.55},"note":""},{"name":"Claude Opus 5.5","raw":{"v":38.04,"lo":31.28,"hi":44.73},"cold":{"v":34.04,"lo":29.27,"hi":38.65},"billed":{"v":40.06,"lo":32.27,"hi":48.21},"note":""}]},{"id":"prs6dj","label":"PRS-6 Django","title":"Pre-registered, relay mode, Copilot CLI 1.0.98","sub":"Django 5.2, 15 caller lookups per model. Lean tool set, graph navigation and the request bridge.","arms":[{"name":"GPT-6 Astra","raw":{"v":58.49,"lo":52.33,"hi":64.36},"cold":{"v":53.52,"lo":49.83,"hi":57.04},"billed":{"v":70.7,"lo":63.4,"hi":76.6},"note":""},{"name":"Claude Opus 5.5","raw":{"v":53.75,"lo":48.88,"hi":57.81},"cold":{"v":46.02,"lo":43.18,"hi":48.75},"billed":{"v":61.18,"lo":53.83,"hi":68.18},"note":""}]}],"firstCallInput":{"stock":13589,"nolean":13899,"lean":6034}}</script>
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const nf = new Intl.NumberFormat('en-US');
+  const fmt = (n) => nf.format(Math.round(n));
+  const DATA = JSON.parse($('#data').textContent);
+
+  /* ---------- helpers ---------- */
+  // Build elements without parsing HTML strings.
+  const el = (tag, props = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(props)) {
+      if (k === 'class') n.className = v;
+      else if (k === 'text') n.textContent = v;
+      else if (v === true) n.setAttribute(k, '');
+      else if (v !== false && v != null) n.setAttribute(k, v);
+    }
+    n.append(...kids);
+    return n;
+  };
+  // Count a number up or down. Decorative, so it is skipped under reduced motion.
+  function tween(el, to, format = fmt, dur = 380) {
+    cancelAnimationFrame(el._raf);
+    const from = el.dataset.v === undefined ? to : Number(el.dataset.v);
+    el.dataset.v = to;
+    if (reduce.matches || from === to) { el.textContent = format(to); return; }
+    const t0 = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - t0) / dur);
+      el.textContent = format(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) el._raf = requestAnimationFrame(step);
+    };
+    el._raf = requestAnimationFrame(step);
+  }
+  // Swap content with a short blur crossfade, so two versions never sit on top of each other.
+  // The key names what should be showing: asking again for what is already there cancels a pending change.
+  function swap(el, key, apply) {
+    clearTimeout(el._t);
+    if (el._shown === key) { delete el.dataset.swap; return; }
+    el.classList.add('swap');
+    const commit = () => { apply(); el._shown = key; delete el.dataset.swap; };
+    if (reduce.matches) { commit(); return; }
+    el.dataset.swap = '';
+    el._t = setTimeout(commit, 110);
+  }
+  function swapText(el, text) {
+    if (el._shown === undefined) el._shown = el.textContent;
+    swap(el, text, () => { el.textContent = text; });
+  }
+  // Hover or focus previews an item, a click pins it, and leaving puts back the pinned item or the default.
+  function inspector(root, itemSel, show, rest) {
+    let pinned = null;
+    const settle = () => (pinned ? show(pinned) : rest());
+    root.addEventListener('pointerover', (e) => { const p = e.target.closest(itemSel); if (p && e.pointerType === 'mouse') show(p); });
+    root.addEventListener('pointerout', (e) => { const p = e.target.closest(itemSel); if (p && e.pointerType === 'mouse' && !p.contains(e.relatedTarget)) settle(); });
+    root.addEventListener('focusin', (e) => { const p = e.target.closest(itemSel); if (p) show(p); });
+    root.addEventListener('focusout', (e) => { if (!root.contains(e.relatedTarget)) settle(); });
+    root.addEventListener('click', (e) => {
+      const p = e.target.closest(itemSel);
+      if (!p) return;
+      if (pinned) pinned.setAttribute('aria-pressed', 'false');
+      pinned = pinned === p ? null : p;
+      if (pinned) pinned.setAttribute('aria-pressed', 'true');
+      settle();
+    });
+  }
+  // A radio group drawn twice: the base row, and a lime copy clipped to the active segment.
+  function segmented(root, onChange) {
+    const base = $('.seg-base', root), on = $('.seg-on', root);
+    const btns = () => $$('button', base);
+    on.replaceChildren(...btns().map((b) => el('span', { text: b.textContent })));
+    let current = btns().find((b) => b.getAttribute('aria-checked') === 'true') || btns()[0];
+    const place = () => {
+      const b = current.getBoundingClientRect(), c = base.getBoundingClientRect();
+      on.style.setProperty('--l', (b.left - c.left) + 'px');
+      on.style.setProperty('--r', (c.right - b.right) + 'px');
+    };
+    function set(value, silent) {
+      const next = btns().find((b) => b.dataset.value === value);
+      if (!next) return;
+      current = next;
+      btns().forEach((b) => { b.setAttribute('aria-checked', String(b === next)); b.tabIndex = b === next ? 0 : -1; });
+      place();
+      if (!silent) onChange(value);
+    }
+    root.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && base.contains(b)) set(b.dataset.value); });
+    root.addEventListener('keydown', (e) => {
+      const list = btns(), i = list.indexOf(current);
+      let n = i;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % list.length;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') n = (i - 1 + list.length) % list.length;
+      else if (e.key === 'Home') n = 0;
+      else if (e.key === 'End') n = list.length - 1;
+      else return;
+      e.preventDefault();
+      list[n].focus();
+      set(list[n].dataset.value);
+    });
+    new ResizeObserver(place).observe(base);
+    set(current.dataset.value, true);
+    return { set };
+  }
+
+  /* ---------- deck ---------- */
+  const deck = $('#deck');
+  const slides = $$('.slide', deck);
+  const ids = slides.map((s) => s.id);
+  const live = $('#live');
+  let index = -1, lastNav = 0, fastTimer = 0;
+
+  slides.forEach((s, k) => {
+    s.setAttribute('role', 'group');
+    s.setAttribute('aria-roledescription', 'slide');
+    s.setAttribute('aria-label', `${k + 1} of ${slides.length}: ${s.dataset.title}`);
+    $$('[data-reveal]', s).forEach((el, i) => el.style.setProperty('--i', i));
+  });
+
+  // Numbers that count up the first time their slide is shown. Skipped for rapid keys and reduced motion.
+  const seen = new Set();
+  function enter(slide) {
+    if (seen.has(slide)) return;
+    seen.add(slide);
+    if (reduce.matches || deck.hasAttribute('data-fast')) return;
+    $$('[data-count]', slide).forEach((n) => {
+      const to = Number(n.dataset.count);
+      n.textContent = '0'; n.dataset.v = '0';
+      setTimeout(() => tween(n, to, fmt, 700), 260);
+    });
+  }
+
+  function go(i, source) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    if (i === index) return;
+    const now = performance.now();
+    // Holding or tapping an arrow key is repeated work: skip the motion, as a command palette would.
+    if (source === 'key' && now - lastNav < 320) {
+      deck.dataset.fast = '';
+      clearTimeout(fastTimer);
+      fastTimer = setTimeout(() => delete deck.dataset.fast, 450);
+    }
+    lastNav = now;
+    const first = index === -1;
+    index = i;
+    slides.forEach((s, k) => {
+      s.dataset.state = k === i ? 'current' : k < i ? 'prev' : 'next';
+      s.inert = k !== i;
+    });
+    slides[i].scrollTop = 0;
+    enter(slides[i]);
+    updateRail();
+    history.replaceState(null, '', '#' + ids[i]);
+    if (!first) live.textContent = `Slide ${i + 1} of ${slides.length}: ${slides[i].dataset.title}`;
+  }
+  const fromHash = () => Math.max(0, ids.indexOf(location.hash.slice(1)));
+  addEventListener('hashchange', () => { const k = ids.indexOf(location.hash.slice(1)); if (k >= 0) go(k, 'hash'); });
+  $('.skip').addEventListener('click', (e) => { e.preventDefault(); deck.focus(); });
+
+  document.addEventListener('click', (e) => {
+    const n = e.target.closest('[data-next]');
+    if (n) { e.preventDefault(); go(index + 1, 'ui'); return; }
+    const g = e.target.closest('[data-go]');
+    if (g) { e.preventDefault(); go(ids.indexOf(g.dataset.go), 'ui'); }
+  });
+  $('#prev').addEventListener('click', () => go(index - 1, 'ui'));
+  $('#next').addEventListener('click', () => go(index + 1, 'ui'));
+  $('.brand').addEventListener('click', (e) => { e.preventDefault(); go(0, 'ui'); });
+
+  addEventListener('keydown', (e) => {
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
+    const target = e.target instanceof Element ? e.target : document.body;
+    if (target.closest('input, textarea, select, [role="radiogroup"], [contenteditable]')) return;
+    const interactive = target.closest('a, button');
+    let to = null;
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': to = index + 1; break;
+      case 'ArrowLeft': case 'PageUp': to = index - 1; break;
+      case ' ': if (!interactive) to = index + (e.shiftKey ? -1 : 1); break;
+      case 'Home': to = 0; break;
+      case 'End': to = slides.length - 1; break;
+      // The digit is the number in the slide's eyebrow, and 0 is the cover.
+      default: if (/^[0-9]$/.test(e.key) && Number(e.key) < slides.length) to = Number(e.key);
+    }
+    if (to === null) return;
+    e.preventDefault();
+    go(to, 'key');
+  });
+
+  // Swipe on touch: the slide follows the finger, damped at either end, and a quick flick is enough.
+  let drag = null;
+  const current = () => slides[index];
+  deck.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' || drag) return; // one finger at a time
+    if (e.target.closest('input, button, a, pre, .seg, [data-no-swipe]')) return;
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), dx: 0, on: false };
+  });
+  deck.addEventListener('pointermove', (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.on) {
+      if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+      if (Math.abs(dx) < 10 || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+      drag.on = true;
+      deck.setPointerCapture(e.pointerId);
+      current().dataset.dragging = '';
+    }
+    drag.dx = dx;
+    const edge = (dx > 0 && index === 0) || (dx < 0 && index === slides.length - 1);
+    current().style.transform = `translate3d(${dx * (edge ? .22 : .55)}px,0,0)`;
+    current().style.opacity = String(1 - Math.min(Math.abs(dx) / 520, .5));
+  });
+  const endDrag = (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    if (!d.on) return;
+    const el = current();
+    const edge = (d.dx > 0 && index === 0) || (d.dx < 0 && index === slides.length - 1);
+    delete el.dataset.dragging;
+    el.style.transform = ''; el.style.opacity = '';
+    const velocity = Math.abs(d.dx) / Math.max(1, performance.now() - d.t);
+    if (Math.abs(d.dx) > 70 || velocity > .4) {
+      // Leave from the release point, so the slide fades out where it is instead of sliding back first.
+      el.style.setProperty('--dx', `${d.dx * (edge ? .22 : .55)}px`);
+      setTimeout(() => el.style.removeProperty('--dx'), 400);
+      go(index + (d.dx < 0 ? 1 : -1), 'swipe');
+    }
+  };
+  deck.addEventListener('pointerup', endDrag);
+  deck.addEventListener('pointercancel', endDrag);
+
+  /* ---------- rail and its tooltip ---------- */
+  const chips = $('#chips'), tip = $('#tip');
+  let tipOpen = false, tipTimer = 0, tipHide = 0;
+  function showTip(el, text) {
+    clearTimeout(tipHide);
+    const r = el.getBoundingClientRect();
+    tip.textContent = text;
+    tip.style.left = (r.left + r.width / 2) + 'px';
+    tip.style.top = (r.top - 40) + 'px';
+    // Once one tooltip is open, the next ones skip the delay and the motion.
+    if (tipOpen) tip.dataset.instant = ''; else delete tip.dataset.instant;
+    tip.dataset.open = '';
+    tipOpen = true;
+  }
+  function hideTip() {
+    clearTimeout(tipTimer);
+    tipHide = setTimeout(() => { delete tip.dataset.open; tipOpen = false; }, 120);
+  }
+  slides.forEach((s, k) => {
+    const b = el('button', { class: 'rail-chip', type: 'button', 'aria-label': `Slide ${k + 1}: ${s.dataset.title}` }, el('i'));
+    b.addEventListener('click', () => go(k, 'ui'));
+    b.addEventListener('pointerenter', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      clearTimeout(tipHide); clearTimeout(tipTimer);
+      if (tipOpen) showTip(b, s.dataset.title); else tipTimer = setTimeout(() => showTip(b, s.dataset.title), 260);
+    });
+    b.addEventListener('pointerleave', hideTip);
+    b.addEventListener('focus', () => { if (b.matches(':focus-visible')) showTip(b, s.dataset.title); });
+    b.addEventListener('blur', hideTip);
+    chips.append(b);
+  });
+  function updateRail() {
+    $$('.rail-chip').forEach((c, k) => c.setAttribute('aria-current', String(k === index)));
+    $('#prev').setAttribute('aria-disabled', String(index === 0));
+    $('#next').setAttribute('aria-disabled', String(index === slides.length - 1));
+    $('#count').textContent = `${index + 1} / ${slides.length}`;
+  }
+
+  /* ---------- slide: the fixed prompt ---------- */
+  const FIRST = DATA.firstCallInput, CHIP = 125, NCHIPS = 112;
+  const SETUPS = {
+    stock: { first: FIRST.stock, tools: 7819, removed: false, nav: false, sub: "Copilot CLI's own estimate. Every built-in tool is sent." },
+    nolean: { first: FIRST.nolean, tools: 8200, removed: false, nav: true, sub: "Copilot CLI's own estimate. Every built-in tool stays, and three navigation tools are added." },
+    lean: { first: FIRST.lean, tools: 1945, removed: true, nav: true, sub: "Copilot CLI's own estimate. 13 built-in tools are removed and three navigation tools are added." },
+  };
+  const FAMS = [
+    { label: 'Session history', tools: ['session_store_sql'], when: 'the launch prompt mentions session history or earlier sessions, or you resume a session' },
+    { label: 'Agents', tools: ['task', 'read_agent', 'write_agent', 'list_agents'], when: 'the launch prompt asks for subagents or starts a skill, or you pass --agent' },
+    { label: 'Skills', tools: ['skill'], when: 'the launch prompt starts a slash command or names an installed skill' },
+    { label: 'SQL', tools: ['sql'], when: 'the launch prompt asks for the SQL scratchpad' },
+    { label: 'Background shell', tools: ['read_powershell', 'stop_powershell', 'list_powershell'], when: 'the launch prompt mentions a background process, job or server' },
+    { label: 'Copilot docs', tools: ['fetch_copilot_cli_documentation'], when: 'the launch prompt asks about Copilot CLI flags, settings or docs' },
+    { label: 'Workflows', tools: ['run_dynamic_workflow', 'dynamic_workflows_manage'], when: 'the launch prompt mentions a workflow, or starts a skill' },
+  ];
+  // What Copilot CLI 1.0.105 still sent to GPT-6 Astra with the 13 removed (evidence/session-tools-20261030/resume_probe.json).
+  const STAY = 'apply_patch, glob, powershell, rg, semantic_code_search, view, web_fetch and web_search';
+  const NAV = 'locate, read_symbol and impact';
+  const DEFAULT_INFO = 'Hover or tap a tool to see what keeps it.';
+
+  const bar = $('#bar'), toolsEl = $('#tools'), info = $('#info');
+  const chipEls = Array.from({ length: NCHIPS }, () => { const i = document.createElement('i'); i.className = 'chip'; bar.append(i); return i; });
+  let shownChips = NCHIPS;
+
+  function pill(name, kind, text) {
+    return el('button', { type: 'button', class: 'tool' + (kind === 'nav' ? ' nav' : ''), 'data-kind': kind, 'data-info': text, 'data-sent': 'true', 'aria-pressed': 'false', text: name }, el('span', { class: 'sr' }));
+  }
+  toolsEl.append(el('p', { class: 'tlabel', text: 'Removed with --lean' }));
+  toolsEl.append(el('div', { class: 'tgroup' }, ...FAMS.map((f) =>
+    el('div', { class: 'cluster' }, ...f.tools.map((t) => pill(t, 'fam', `${t}: ${f.label.toLowerCase()}. With --lean it is removed unless ${f.when}. TOKENMASTER_KEEP_TOOLS keeps it too.`))))));
+  toolsEl.append(el('div', { class: 'tgroup' }, el('div', { class: 'cluster' },
+    pill('8 built-in tools stay', 'core', `${STAY}: the built-in tools Copilot CLI 1.0.105 still sent to GPT-6 Astra in a probe with the 13 removed. --lean removes nothing outside the 13.`),
+    pill('3 navigation tools added', 'nav', `${NAV}: added by TokenMasterX, with or without --lean.`))));
+
+  function setInfo(text) { swapText(info, text); }
+  inspector(toolsEl, '.tool', (p) => setInfo(p.dataset.info), () => setInfo(DEFAULT_INFO));
+
+  function applySetup(key, initial) {
+    const s = SETUPS[key];
+    const on = Math.round(s.first / CHIP);
+    // Removed chips go from the far end inward; chips coming back fill in from where they begin.
+    chipEls.forEach((c, i) => {
+      const delay = initial ? 0 : on < shownChips ? Math.max(0, shownChips - 1 - i) * 5 : Math.max(0, i - shownChips) * 5;
+      c.style.setProperty('--k', delay);
+      c.classList.toggle('off', i >= on);
+    });
+    shownChips = on;
+    bar.setAttribute('aria-label', `${fmt(s.first)} first-call input tokens`);
+    const diff = s.first - FIRST.stock;
+    swapText($('#delta'), diff === 0 ? 'Same as stock.' : diff > 0 ? `${fmt(diff)} more tokens per call: the navigation tools are added.` : `${fmt(-diff)} fewer tokens per call.`);
+    tween($('#first-val'), s.first);
+    tween($('#tools-val'), s.tools);
+    swapText($('#tools-sub'), s.sub);
+    $$('.tool', toolsEl).forEach((p) => {
+      const k = p.dataset.kind;
+      const sent = k === 'core' ? true : k === 'nav' ? s.nav : !s.removed;
+      p.dataset.sent = String(sent);
+      $('.sr', p).textContent = sent ? '' : k === 'nav' ? ' (not added)' : ' (removed)';
+    });
+  }
+  segmented($('#seg-setup'), (v) => applySetup(v));
+  applySetup('stock', true);
+
+  const calls = $('#calls');
+  const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  function estimate() {
+    const n = Number(calls.value), tokens = n * (FIRST.stock - FIRST.lean);
+    calls.style.setProperty('--p', ((n - 10) / 990 * 100) + '%');
+    $('#calls-val').textContent = fmt(n);
+    tween($('#est-tok'), tokens, fmt, 220);
+    tween($('#est-usd'), tokens / 1e6, (v) => usd.format(v), 220);
+  }
+  calls.addEventListener('input', estimate);
+  estimate();
+
+  /* ---------- slide: the cache ---------- */
+  const GROUPS = [['System + tools', 6], ['Turn 1', 2], ['Turn 2', 3], ['Turn 3', 2], ['Turn 4', 2], ['Turn 5', 1]];
+  const R = 'read', W = 'write', G = 'gone', N = 'new';
+  const CACHE = {
+    once: [[R, R, R, R, R, R], [R, R], [R, R, R], [R, R], [R, R], [N]],
+    rewrite: [[R, R, R, R, R, R], [R, R], [W, G, G], [W, W], [W, W], [N]],
+  };
+  const CACHE_NOTE = {
+    once: 'TokenMasterX shapes each tool result when it arrives and never edits an earlier message. Only the new turn is written.',
+    rewrite: "At turn 5 the harness compacts turn 2's tool output. The prompt gets shorter, but turn 2 and everything after it miss the cache and are written again.",
+  };
+  const stream = $('#stream');
+  const cacheChips = GROUPS.map(([cap, n]) => {
+    const g = document.createElement('div');
+    g.className = 'grp';
+    const c = document.createElement('div');
+    c.className = 'chips';
+    const els = Array.from({ length: n }, () => { const i = document.createElement('i'); i.className = 'chip'; c.append(i); return i; });
+    const l = document.createElement('span');
+    l.className = 'cap'; l.textContent = cap;
+    g.append(c, l); stream.append(g);
+    return els;
+  });
+  const kfmt = (v) => (Math.round(v * 100) / 100) + 'k';
+  function applyCache(key) {
+    const states = CACHE[key];
+    let sent = 0, read = 0, write = 0;
+    cacheChips.forEach((els, g) => els.forEach((el, i) => {
+      const st = states[g][i];
+      el.dataset.st = st;
+      if (st !== G) sent++;
+      if (st === R) read++;
+      if (st === W || st === N) write++;
+    }));
+    tween($('#t-sent'), sent, kfmt, 260);
+    tween($('#t-read'), read, kfmt, 260);
+    tween($('#t-write'), write, kfmt, 260);
+    tween($('#t-cost'), read * .1 + write * 1.25, kfmt, 260);
+    swapText($('#cache-info'), CACHE_NOTE[key]);
+  }
+  segmented($('#seg-cache'), applyCache);
+  applyCache('once');
+
+  /* ---------- slide: results ---------- */
+  const AXIS = 80;
+  const METRICS = [['raw', 'Raw tokens'], ['cold', 'Cold-start cost'], ['billed', 'As billed']];
+  const NOTES = {
+    nov1: 'Both arms ran the same day, each against its own stock run. Two identical stock runs that day differed by 8.6% in raw tokens, so read the intervals as narrower than the real run-to-run noise.',
+    oct27: 'The lean tool set was the launcher default on this build. A relay control the same day, on the same build, gave 48.6% fewer tokens. By the rule fixed before the sessions, routing explained none of the 11.1-point gap to PRS-6, and its interval allows up to 4.9 of those points.',
+    prs6repo: 'Pre-registered before any study call, through an evaluation relay with the request bridge on. The bridge needs bring-your-own-model mode.',
+    prs6dj: 'The same relay setup on the Django lookups that graph navigation answers directly. The 58.5% is the best cell we have measured. It did not hold under default routing.',
+  };
+  $('#axis').replaceChildren(...Array.from({ length: 9 }, (_, i) => el('span', { text: `${i * 10}%` })));
+  const armsEl = $('#arms');
+  for (let a = 0; a < 2; a++) {
+    armsEl.append(el('section', { class: 'arm' }, el('h4'), ...METRICS.map(([k, label]) =>
+      el('div', { class: 'mrow', 'data-m': k },
+        el('span', { class: 'k', text: label }),
+        el('div', { class: 'track', 'aria-hidden': 'true' }, el('i', { class: 'fill' }), el('i', { class: 'wl' }), el('i', { class: 'wt lo' }), el('i', { class: 'wt hi' })),
+        el('span', { class: 'v' }, el('b', { class: 'num', 'aria-hidden': 'true' }), el('span', { class: 'num', 'aria-hidden': 'true' }), el('span', { class: 'sr' }))))));
+  }
+  $('#seg-run .seg-base').replaceChildren(...DATA.runs.map((r, k) =>
+    el('button', { type: 'button', role: 'radio', 'aria-checked': String(k === 0), 'data-value': r.id, text: r.label })));
+  const pct = (v) => v.toFixed(1) + '%';
+  function showRun(id) {
+    const r = DATA.runs.find((x) => x.id === id);
+    swapText($('#run-title'), r.title);
+    swapText($('#run-sub'), r.sub);
+    swapText($('#run-note'), NOTES[id]);
+    $$('.arm', armsEl).forEach((el, a) => {
+      const arm = r.arms[a];
+      el.toggleAttribute('data-absent', !arm);
+      if (!arm) return;
+      $('h4', el).textContent = arm.name;
+      METRICS.forEach(([k, label]) => {
+        const m = arm[k], rowEl = $(`[data-m="${k}"]`, el), t = $('.track', rowEl);
+        t.style.setProperty('--v', m.v / AXIS);
+        t.style.setProperty('--lo', m.lo / AXIS);
+        t.style.setProperty('--hi', m.hi / AXIS);
+        tween($('b', rowEl), m.v, pct, 420);
+        $('.v span', rowEl).textContent = `${m.lo.toFixed(1)} to ${m.hi.toFixed(1)}`;
+        $('.v .sr', rowEl).textContent = `${arm.name}, ${label}: ${pct(m.v)} lower, 95% interval ${m.lo.toFixed(1)} to ${m.hi.toFixed(1)}`;
+      });
+    });
+  }
+  segmented($('#seg-run'), showRun);
+  showRun(DATA.runs[0].id);
+
+  /* ---------- slide: the proofs ---------- */
+  const claimInfo = $('#claim-info');
+  const claimRest = claimInfo.firstElementChild.cloneNode(true);
+  claimInfo._shown = 'rest';
+  const showClaim = (btn) => swap(claimInfo, btn, () => claimInfo.replaceChildren($('.cd', btn.parentElement).cloneNode(true)));
+  inspector($('#claims'), '.claim', showClaim, () => swap(claimInfo, 'rest', () => claimInfo.replaceChildren(claimRest.cloneNode(true))));
+
+  const findLists = $$('#finds > ul');
+  const showFinds = (v) => findLists.forEach((u) => u.toggleAttribute('data-off', u.dataset.set !== v));
+  segmented($('#seg-finds'), showFinds);
+  showFinds('fixed');
+
+  /* ---------- copy buttons ---------- */
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; } catch { /* fall back to a selection */ }
+    const t = document.createElement('textarea');
+    t.value = text; t.style.cssText = 'position:fixed;opacity:0'; document.body.append(t); t.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch { /* ok stays false */ }
+    t.remove();
+    return ok;
+  }
+  $$('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+    if (!(await copyText($('#' + b.dataset.copy).textContent))) { live.textContent = 'Copy failed. Select the text and copy it.'; return; }
+    b.dataset.copied = '';
+    live.textContent = 'Copied to the clipboard';
+    clearTimeout(b._t);
+    b._t = setTimeout(() => delete b.dataset.copied, 1800);
+  }));
+
+  /* ---------- start ---------- */
+  requestAnimationFrame(() => requestAnimationFrame(() => go(fromHash(), 'init')));
+})();
+</script>
+</body>
+</html>
