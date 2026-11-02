@@ -110,7 +110,7 @@ def test_routing_nothing_fires_excludes_all(no_installed_assets):
 
 
 def test_finding_routing_patterns_miss_some_phrasings(no_installed_assets):
-    """Findings: the theorems keep a family whose trigger fires; this request for an agent fires none."""
+    """Finding 2: Routing.fired_family_kept keeps a family whose trigger fires; this request for an agent fires none."""
     assert "task" in bridge.select_excluded_tools(["copilot", "-p", "have an agent review this diff"])
 
 
@@ -355,8 +355,9 @@ def _chat_request(items: list[tuple[str, dict, str]], model: str = "fixture") ->
 
 
 def test_v6_keeps_a_fold_that_saves_raw_tokens():
-    """The glob output the old whole-request check reverted: it saves tokens on the decoded text, the text a provider
-    bills, but none on the escaped JSON wire, and plan_request with v6 now keeps it."""
+    """Shaping.billed_tokens_shrink_if_additive: the glob output the old whole-request check reverted saves tokens on
+    the decoded text, the text a provider bills, but none on the escaped JSON wire, and plan_request with v6 now
+    keeps it."""
     count = exact_counter()
     output = f"C:{BS}work{BS}repo{BS}lib.rs\nC:{BS}work{BS}repo{BS}util.py\ntests/data.json"
     shaped = v6_shaping.shape_tool_result("glob", {}, output, count)
