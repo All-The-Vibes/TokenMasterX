@@ -512,6 +512,10 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
   #checks .small { font-size: .76rem; }
 }
 .slide:focus-visible { outline-offset: -4px; border-radius: 0; }
+@media (max-height: 680px) {
+  #limits .list { gap: 6px; }
+  #limits .list li { font-size: .84rem; line-height: 1.4; }
+}
 </style>
 </head>
 <body>
@@ -780,6 +784,7 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
           <ul role="list" class="list">
             <li>Fifteen short lookups. Each November 1 session made two to four model calls. Long coding sessions were not measured.</li>
             <li>One model on one build: GPT-6 Astra on Copilot CLI 1.0.105. PRS-6 added Claude Opus 5.5 on 1.0.98, through an evaluation relay.</li>
+            <li>Copilot CLI's built-in GitHub tools were off in both arms of every run. With them on, GitHub billed about 1.1k to 1.8k more input tokens on a first call, so the savings are probably a few points smaller. That is unmeasured.</li>
             <li><code>--lean</code> removes the same fixed prompt from every request, so it should save a smaller share of a long session. How much smaller is unmeasured.</li>
             <li>With no flags, the saving comes from fewer model calls. These tasks ask the question navigation answers.</li>
             <li>Two identical stock runs on the same day differed by 8.6% in raw tokens. The intervals do not include that noise.</li>

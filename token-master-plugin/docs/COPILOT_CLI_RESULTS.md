@@ -775,6 +775,12 @@ tokens. Their costs are as run, with sessions back to back.
   recorded their lanes under `%TEMP%`. PRS-6's stock first calls (October 26) are within 2.5% of a
   clean request's size, so its sessions did not load them; the October 19–22 runs were not checked
   ([Setup findings](#setup-findings)).
+- **Built-in GitHub tools were off.** Every run launched Copilot CLI with `--disable-builtin-mcps` in both arms. A
+  separate check on `1.0.105` ([evidence](../../evidence/github-mcp-cost-20261030/README.md)) found that the built-in
+  GitHub MCP server adds about 7,000 tokens of tool definitions to each request, about 6,070 of them deferred, and
+  that GitHub billed +1,119 (`gpt-6-astra`) and +1,829 (`claude-opus-5.5`) input tokens on a first call with it on,
+  about 8% (one call per arm). With it on, both arms carry the extra, so the percentage savings are probably a few
+  points lower; that was not measured. The launcher does not add the flag, because it also removes `web_search`.
 - **No test runs.** No Python was on the agents' PATH, so no task asked an agent to run tests.
 - **Edit grading.** The edit grader fails any content change outside the allowed paths. In the
   October 19 `1.0.78-3` run, a line-ending-only rewrite outside the allowed paths also failed

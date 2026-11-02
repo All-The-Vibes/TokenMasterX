@@ -148,6 +148,8 @@ Or type `/tokenomics` inside an interactive Copilot CLI session.
 
 All runs used the `copilot.exe` binary against GitHub's Copilot API. The November 1 rows ran under Copilot CLI's default GitHub routing and read each call's tokens and charge from Copilot CLI's own per-call records; the older rows went through an evaluation relay and were checked against GitHub's per-call `copilot_usage` bills. Every TokenMaster run had the lean tool set on except the **no flags** row, which measures the launcher's default since it made `--lean` opt-in. **Cold Cost** prices every session's first call as a cache miss; **Back-to-Back Cost** runs sessions consecutively in one folder.
 
+Every run behind these tables launched Copilot CLI with `--disable-builtin-mcps` in both arms, so the built-in GitHub tools were off. A separate check on `1.0.105` found they add about 7,000 tokens of tool definitions to each request, most of them deferred, and that GitHub billed about 1.1k (`gpt-6-astra`) to 1.8k (`claude-opus-5.5`) more input tokens on a first call with them on, about 8% of a minimal request ([evidence](evidence/github-mcp-cost-20261030/README.md)). With them on, both arms carry that extra, so the percentage savings are probably a few points lower. That is unmeasured. The launcher does not add the flag, because it also removes `web_search`.
+
 | Benchmark | CLI Version | Model | Raw Tokens (`Stock → TM`) | Cold Cost | Back-to-Back Cost | Passed (`Stock vs TM`) |
 | :--- | :--- | :--- | ---: | ---: | ---: | ---: |
 | **Django 5.2 (15 tasks), default routing, `--lean`, Nov 1** | `1.0.105` | `gpt-6-astra` | **−52.6%** (`703k → 333k`) | **−54.4%** (`$3.74 → $1.71`) | **−47.3%** (`$2.29 → $1.21`) | **15/15 vs 15/15** |

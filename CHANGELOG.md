@@ -15,11 +15,17 @@ and the project aims to follow semantic versioning.
   theorem or test name on a slide no longer exists, or if the write-up's claims or findings no longer match the slides.
   `--check` fails when `site/index.html` is stale. `site/src/checks/` holds the Playwright, touch and axe-core checks
   that run against the page, and `site/src/README.md` has the republish steps.
+- `evidence/github-mcp-cost-20261030/`: what the built-in GitHub MCP server adds to a Copilot CLI request on 1.0.105
+  (about 7,000 tokens of tool definitions, about 6,070 of them deferred) and what GitHub bills for it (+1,119 and
+  +1,829 input tokens on a first call, about 8%, one call per arm), with the probe and billing scripts.
 
 ### Changed
 
 - The deck and the README describe the proofs by what they establish and how they are checked, not by how many theorems,
   tests or findings there are. The cover's proof strip no longer carries counts.
+- The README, the results doc and the deck say that every published run launched Copilot CLI with
+  `--disable-builtin-mcps` in both arms, and that the savings are probably a few points smaller with the built-in GitHub
+  tools on. That was not measured.
 
 ### Fixed
 
