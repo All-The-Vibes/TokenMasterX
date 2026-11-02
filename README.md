@@ -85,7 +85,7 @@ The rules behind these four are proved in Lean 4. See [Proof-driven development]
 
 ## Proof-driven development
 
-The savings in this README are measurements. The rules behind them are proved. A rule such as "never change text the provider has already cached" is stated as a theorem in [Lean 4](https://lean-lang.org), a proof checker that accepts a proof only if every step is valid ([`proofs/`](proofs/README.md)). Conformance tests check each proof's assumptions against the real Python where a test can; `proofs/README.md` lists the rest as assumptions. Code and proofs change in the same pull request: [#18](https://github.com/All-The-Vibes/TokenMasterX/pull/18), [#19](https://github.com/All-The-Vibes/TokenMasterX/pull/19) and [#20](https://github.com/All-The-Vibes/TokenMasterX/pull/20), the last three to change routing, each updated the proofs write-up and the conformance tests; #18 and #20 also changed `Routing.lean`.
+Proof-driven development means three steps: state a rule the code must keep, prove it with a proof that a computer checks, and hold the code to the proof. The savings in this README are measurements. The rules behind them are proved. A rule such as "never change text the provider has already cached" is stated as a theorem in [Lean 4](https://lean-lang.org), a proof checker that accepts a proof only if every step is valid ([`proofs/`](proofs/README.md)). Conformance tests check each proof's assumptions against the real Python where a test can; `proofs/README.md` lists the rest as assumptions. Code and proofs change in the same pull request: [#18](https://github.com/All-The-Vibes/TokenMasterX/pull/18), [#19](https://github.com/All-The-Vibes/TokenMasterX/pull/19) and [#20](https://github.com/All-The-Vibes/TokenMasterX/pull/20), the last three to change routing, each updated the proofs write-up and the conformance tests; #18 and #20 also changed `Routing.lean`.
 
 | Claim | Main Lean theorems | Holds when |
 | :--- | :--- | :--- |
@@ -102,10 +102,10 @@ The savings in this README are measurements. The rules behind them are proved. A
 
 ### How it is validated
 
-- **Lean checks every proof.** A clean `lake build` passes on Lean 4.35.0 with the core library only. No theorem depends on `sorry` (Lean's marker for a missing proof step), and the only axioms in use are `propext`, `Classical.choice` and `Quot.sound`, Lean's three standard ones. The write-up's 24 numbered theorems are stated as 46 public Lean theorems, proved with 27 private helper lemmas, in 8 files.
-- **29 conformance tests run the real Python.** [`test_proof_conformance.py`](token-master-plugin/skills/token-master/tests/test_proof_conformance.py) calls the code on generated inputs and on the recorded study data. Each test names the Lean theorem or definition it checks.
-- **Every assumption is written down.** The write-up lists the 15 hypotheses the models take from the code, and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).
-- **Gaps are recorded as findings.** Writing and reviewing the proofs found 8 gaps between a claim and the code. 5 are fixed, including navigation results that reached 2,401 tokens against a 2,400-token cap. 3 are open and published, and two of them have a test that reproduces them.
+- **Lean checks every proof.** A clean `lake build` passes on Lean 4.35.0 with the core library only, so no step was skipped. No theorem depends on `sorry` (Lean's marker for a missing proof step), and the only axioms in use are `propext`, `Classical.choice` and `Quot.sound`, Lean's standard ones.
+- **Conformance tests run the real Python.** [`test_proof_conformance.py`](token-master-plugin/skills/token-master/tests/test_proof_conformance.py) calls the code on generated inputs and on the recorded study data. Each test names the Lean theorem or definition it checks.
+- **Every assumption is written down.** The write-up lists the hypotheses the models take from the code, and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).
+- **Gaps are recorded as findings.** Writing and reviewing the proofs found gaps between a claim and the code. Most are fixed, including navigation results that ran one token past their cap. The rest are published, and some have a test that reproduces them.
 
 A proof covers a model of the code, not the Python itself, which is why the conformance tests and the assumptions table exist. The [benchmarks](#benchmark-summary-github-copilot-cli) below are the measured savings. The [interactive deck](https://all-the-vibes.github.io/TokenMasterX/#proofs) walks through the proofs claim by claim.
 
