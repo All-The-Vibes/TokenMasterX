@@ -335,16 +335,22 @@ def build():
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TokenMasterX: about half the tokens with --lean</title>
-<meta name="description" content="Interactive deck for TokenMasterX: how it trims GitHub Copilot CLI's tokens, results with confidence intervals, the Lean 4 proofs behind the mechanisms, limits and install.">
+<title>TokenMasterX: up to half the tokens in GitHub Copilot CLI</title>
+<meta name="description" content="Interactive walkthrough of TokenMasterX: how it trims GitHub Copilot CLI's tokens, the results with confidence intervals, the proofs behind the mechanisms, the limits and the install steps.">
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#07080a">
 <link rel="canonical" href="https://all-the-vibes.github.io/TokenMasterX/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="TokenMasterX: about half the tokens with --lean">
-<meta property="og:description" content="Up to 53% fewer tokens with --lean and 9 to 29% fewer with no flags on GitHub Copilot CLI, measured on 15 short Django lookups with GPT-6 Astra. Lean 4 proofs cover the rules the mechanisms must keep.">
+<meta property="og:title" content="TokenMasterX: up to half the tokens in GitHub Copilot CLI">
+<meta property="og:description" content="Up to 53% fewer tokens with opt-in tool routing and 9 to 29% fewer by default, measured on 15 short Django lookups with GPT-6 Astra. The rules behind it are proved by a computer.">
 <meta property="og:url" content="https://all-the-vibes.github.io/TokenMasterX/">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://all-the-vibes.github.io/TokenMasterX/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="TokenMasterX: up to half the tokens in GitHub Copilot CLI">
+<meta property="og:site_name" content="TokenMasterX">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://all-the-vibes.github.io/TokenMasterX/og.png">
 <link rel="icon" type="image/svg+xml" href="{favicon.strip()}">
 <script>document.documentElement.classList.remove('no-js')</script>
 <style>

@@ -6,8 +6,9 @@
 | :--- | :--- |
 | `body.html` | The slides' markup, with placeholders the build fills in |
 | `style.css` | All the styles |
-| `app.js` | The deck's behavior: navigation, the inspectors, the segmented controls, the count-ups |
+| `app.js` | The deck's behavior: navigation, the inspectors, the segmented controls |
 | `build.py` | Assembles `index.html`. Standard library only |
+| `og.html`, `make_og.py` | The link-preview card, and the script that renders it to `site/og.png` |
 | `checks/` | Optional end-to-end checks that run against the page |
 
 ## Build
@@ -46,15 +47,19 @@ python site/src/checks/deck_test.py https://all-the-vibes.github.io/TokenMasterX
 
 Screenshots go to `site/src/checks/out/`, which git ignores.
 
+## Link preview
+
+`site/og.png` is the 1200 by 630 card that link previews show. Its source is `og.html` in this folder. To regenerate it, run `python site/src/make_og.py` from the repository root. That needs Playwright and Chromium, the same as the checks. Commit the PNG, because Pages serves it as is.
+
 ## Publish
 
-Only `index.html` is published. The organization disables GitHub Actions for this repository, so nothing deploys it. Copy the file onto the `gh-pages` branch, which holds `index.html` and an empty `.nojekyll`:
+The page needs two files on `gh-pages`: `index.html` and `og.png`. The organization disables GitHub Actions for this repository, so nothing deploys them. Copy both onto the `gh-pages` branch, which holds them and an empty `.nojekyll`:
 
 ```bash
 git fetch origin gh-pages
 git worktree add ../tm-pages gh-pages
-cp site/index.html ../tm-pages/index.html
-git -C ../tm-pages add index.html
+cp site/index.html site/og.png ../tm-pages/
+git -C ../tm-pages add index.html og.png
 git -C ../tm-pages commit -m "Update the deck"
 git -C ../tm-pages push
 ```

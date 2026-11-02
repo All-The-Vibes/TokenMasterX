@@ -21,6 +21,12 @@ and the project aims to follow semantic versioning.
 - The deck and the README describe the proofs by what they establish and how they are checked, not by how many theorems,
   tests or findings there are. The cover's proof strip no longer carries counts.
 
+### Fixed
+
+- The deck's link previews had no thumbnail: the page set no `og:image`, and its title and description used `--lean` and
+  Lean 4. It now points at `site/og.png`, a 1200 by 630 card made by `site/src/make_og.py`, and the title and
+  description are plain.
+
 ## [0.3.0] - 2026-11-01
 
 ### Fixed
