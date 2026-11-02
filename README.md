@@ -2,11 +2,12 @@
 
 <p align="center">
   <b>GitHub Copilot on about half the tokens with <code>--lean</code>, and 9 to 29% fewer with no flags.</b><br>
-  With <code>--lean</code> it drops 13 built-in tool definitions unless the prompt asks for their family; it finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.
+  With <code>--lean</code> it drops 13 built-in tool definitions unless the prompt asks for their family; it finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.<br>
+  Its core rules are <a href="#proof-driven-development">proved in Lean 4</a>, a proof checker, and tests check the proofs' assumptions against the code.
 </p>
 
 <p align="center">
-  <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a>
+  <a href="#quickstart">Quickstart</a> · <a href="#how-it-works">How it works</a> · <a href="#proof-driven-development">Proofs</a> · <a href="#benchmark-summary-github-copilot-cli">Benchmarks</a> · <a href="https://all-the-vibes.github.io/TokenMasterX/">Interactive deck</a>
 </p>
 
 <p align="center"><sub>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on short Django caller lookups. Each saving is against its own stock run on the same day. "Up to" is the best pooled result of any run under default routing: 53% fewer tokens and 54% lower cold-start cost, with 95% CIs of 48 to 57% and 53 to 56%. Runs through an evaluation relay on an older build went as high as 58.5% fewer tokens (table below). The no-flags range is the 95% CI of its run; the point estimate is 19%. The cost figure prices each session's first call as a cache miss; the bill itself fell 47% with <code>--lean</code>. Token counts and charges come from GitHub's own per-call records.</sub></p>
@@ -78,7 +79,42 @@ If you already uninstalled the plugin, install it again, run step 1, then uninst
 3. **Cache-Safe Output Shaping (`request_policy.py`)** — Folds `rg`/`glob` output losslessly and compacts oversized `view` reads **once** when appended. Never rewrites earlier messages, so the provider's prompt cache stays valid.
 4. **Cache-Stable BYOK Bridge (`stable_session_prefix`)** — Moves the per-session `Session folder:` UUID out of the system prompt in BYOK mode so sessions in the same folder share the cached prompt on call 1.
 
-The invariants behind these four are stated as theorems and checked by Lean 4 in [proofs/](proofs/README.md), along with the gaps the proofs found.
+The rules behind these four are proved in Lean 4. See [Proof-driven development](#proof-driven-development).
+
+---
+
+## Proof-driven development
+
+The savings in this README are measurements. The rules behind them are proved. A rule such as "never change text the provider has already cached" is stated as a theorem in [Lean 4](https://lean-lang.org), a proof checker that accepts a proof only if every step is valid ([`proofs/`](proofs/README.md)). Conformance tests check each proof's assumptions against the real Python where a test can; `proofs/README.md` lists the rest as assumptions. Code and proofs change in the same pull request: [#18](https://github.com/All-The-Vibes/TokenMasterX/pull/18), [#19](https://github.com/All-The-Vibes/TokenMasterX/pull/19) and [#20](https://github.com/All-The-Vibes/TokenMasterX/pull/20), the last three to change routing, each updated the proofs write-up and the conformance tests; #18 and #20 also changed `Routing.lean`.
+
+| Claim | Main Lean theorems | Holds when |
+| :--- | :--- | :--- |
+| The BYOK bridge never changes bytes the provider already cached | `Cache.bridge_prefix_stable`, `Cache.cache_prefix_kept` | Call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items. A lone surrogate in a tool output still breaks the token counter (open finding 1). |
+| With policy v6 and no guidance, the runtime never changes an earlier message | `Cache.shaping_prefix_stable` | Proved for the shaping map. The runtime keeps it unless shaping would pass a `max_input_tokens` cap. |
+| Shaping never makes a tool result bigger, in tokens or in bytes | `Shaping.guard_never_expands`, `Shaping.request_bytes_never_grow` | That GitHub's billed count falls when the cl100k count falls is an assumption. |
+| Policies v1 to v4 never grow a request or touch a protected message | `Policy.greedy_never_expands`, `Policy.protected_unchanged` | A test checks the protected-message part for policy v1. |
+| The `rg` and glob folds are lossless | `Folds.unfoldPaths_foldPaths`, `Folds.unfold_foldSearchChecked` | `fold_search` refuses any input it could not give back. |
+| Routing drops only auxiliary tools and keeps every family whose trigger fires | `Routing.excluded_subset_lean`, `Routing.fired_family_kept`, `Routing.default_excludes_nothing` | Proved for the model. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by `test_routing_default_sends_every_tool`. The triggers are keyword rules and miss some phrasings (open finding 2). |
+| A `--lean` resume that the launcher ties to the session's record sends the tool list the session started with | `Routing.resume_same_list`, `Routing.resume_chain_keeps_first_list` | The resume's `TOKENMASTER_KEEP_TOOLS` adds no tool. Which record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, and a resume without `--lean` sends every tool. |
+| In BYOK mode, sessions whose system prompts differ only in the folder path get the same system prompt | `SessionPrefix.system_same_across_sessions` | There is exactly one folder line, and only the BYOK bridge does the rewrite. |
+| Navigation results stay within 2,400 tokens, as the navigation server counts them | `NavCap.assemble_le` | Every result is measured whole. The fallback estimate can undercount non-ASCII text. |
+| The measurement definitions have the properties the protocol relies on | `Measurement.cold_term_is_coldened_charge`, `Measurement.resample_within_task_range`, `Measurement.hero_monotone` | Not proved: the interval's 95% coverage, and the Wilcoxon and Holm-Bonferroni steps. |
+
+### How it is validated
+
+- **Lean checks every proof.** A clean `lake build` passes on Lean 4.35.0 with the core library only. No theorem depends on `sorry` (Lean's marker for a missing proof step), and the only axioms in use are `propext`, `Classical.choice` and `Quot.sound`, Lean's three standard ones. The write-up's 24 numbered theorems are stated as 46 public Lean theorems, proved with 27 private helper lemmas, in 8 files.
+- **29 conformance tests run the real Python.** [`test_proof_conformance.py`](token-master-plugin/skills/token-master/tests/test_proof_conformance.py) calls the code on generated inputs and on the recorded study data. Each test names the Lean theorem or definition it checks.
+- **Every assumption is written down.** The write-up lists the 15 hypotheses the models take from the code, and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).
+- **Gaps are recorded as findings.** Writing and reviewing the proofs found 8 gaps between a claim and the code. 5 are fixed, including navigation results that reached 2,401 tokens against a 2,400-token cap. 3 are open and published, and two of them have a test that reproduces them.
+
+A proof covers a model of the code, not the Python itself, which is why the conformance tests and the assumptions table exist. The [benchmarks](#benchmark-summary-github-copilot-cli) below are the measured savings. The [interactive deck](https://all-the-vibes.github.io/TokenMasterX/#proofs) walks through the proofs claim by claim.
+
+To check it yourself, install Lean 4 with [elan](https://github.com/leanprover/elan), then run these from the repository root:
+
+```bash
+lake -d proofs build
+python -m pytest token-master-plugin/skills/token-master/tests/test_proof_conformance.py
+```
 
 ---
 
@@ -132,6 +168,7 @@ All runs used the `copilot.exe` binary against GitHub's Copilot API. The Novembe
 All full experimental reports, pre-registered protocols, negative results (`v1`–`v5`), and raw evidence live under `token-master-plugin/docs/` and `evidence/`:
 
 - **[Copilot CLI Results (`1.0.105`, `1.0.98` & `1.0.78-3`)](token-master-plugin/docs/COPILOT_CLI_RESULTS.md)** · **[Pre-Registered `1.0.98` Protocol (PRS-6)](token-master-plugin/docs/PRS6_PROTOCOL.md)**
+- **[Interactive deck](https://all-the-vibes.github.io/TokenMasterX/)** (results, proofs, install) · **[Lean 4 proofs](proofs/README.md)**
 - **[Launcher & BYOK Bridge Guide](token-master-plugin/docs/COPILOT_BRIDGE.md)** · **[`/tokenomics` Dashboard & Estimator Validation](token-master-plugin/docs/TOKENOMICS.md)**
 - **[Replica Studies & Negative Results](token-master-plugin/docs/README.md):** [PRS-4](token-master-plugin/docs/PRS4_RESULTS.md) · [PRS-3](token-master-plugin/docs/PRS3_RESULTS.md) · [PRS-2](token-master-plugin/docs/PRS2_RESULTS.md) · [PRS-1 (why history rewriting fails)](token-master-plugin/docs/PRS1_RESULTS.md)
-- **[15-Minute Demo Script](docs/DEMO_SCRIPT.md)** · **[Interactive HTML Demo Deck](docs/tokenomics-demo-slide.html)**
+- **[15-Minute Demo Script](docs/DEMO_SCRIPT.md)**

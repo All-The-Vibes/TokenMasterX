@@ -7,6 +7,8 @@ and the project aims to follow semantic versioning.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-01
+
 ### Fixed
 
 - A Copilot CLI session resumed through the launcher with `--lean` gets the `--excluded-tools` it started with
@@ -85,6 +87,13 @@ and the project aims to follow semantic versioning.
   than failing the call.
 - A search result that ended in a newline no longer digests to an extra, empty file (`7 more files: ..., (0)`):
   `_digest_lines` ignores trailing empty lines.
+- `proofs/README.md` renders its math on GitHub. GitHub's renderer rejects `\operatorname` and `\textbackslash`, which
+  left four formulas as error boxes, and it applies Markdown's backslash escapes inside inline `$...$` math, so `\!`
+  and `\,` never reached MathJax. The formulas use `\mathrm{map}` and `\backslash`, and the 11 inline formulas that
+  need `\!` or `\,` are written as ``$`...`$``.
+- `assets/generate_logo.py` writes the three brand SVGs as UTF-8 bytes, so they keep LF line endings. Text mode wrote
+  CRLF on Windows, and each rerun showed the files as modified; a rerun now reproduces the committed files byte for
+  byte.
 
 ### Changed
 
@@ -185,6 +194,15 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- `site/index.html`: an interactive deck of the results, the proofs and the install steps, published at
+  https://all-the-vibes.github.io/TokenMasterX/ from the `gh-pages` branch. It is one file with inline CSS and
+  JavaScript, system fonts and no external requests. Its figures come from `evidence/*/analysis.json`, and its proof
+  figures are counted from `proofs/` and `test_proof_conformance.py`. Two slides cover the proofs: the ten claims with
+  their Lean theorems, and how each is checked. The organization disables GitHub Actions for this repository, so there
+  is no deploy workflow: a change to `site/index.html` reaches the site when `gh-pages` is updated by hand.
+- README: a "Proof-driven development" section lists the ten proved claims with their Lean theorems, how the proofs are
+  validated (Lean's kernel, the conformance tests, the written assumptions, the findings) and the two commands that
+  check them, and the nav row links the deck.
 - Uninstall: `/token-master uninstall` runs both installers with `--uninstall`, and the README documents the full
   removal order, including the backup copies that uninstall keeps.
 - `setup.py` warns when the repository has Rust files but the `--python` runtime cannot import `tree-sitter-rust`:
@@ -194,6 +212,14 @@ and the project aims to follow semantic versioning.
   the navigation budget and the measurement method. Lean's kernel checks all 46 theorems, with no `sorry` and no
   added axiom. `test_proof_conformance.py` checks the proofs' hypotheses against the Python. Writing the proofs
   found eight gaps; five are fixed above, and `proofs/README.md` lists the three that remain.
+- `evals/default_routing_ab.py` and `evidence/default-routing-20261027/`: an A/B run of stock Copilot CLI against
+  TokenMaster under GitHub's default routing, with the protocol committed before the 30 sessions. On Django 5.2 D01 to
+  D15 with `gpt-6-astra` and Copilot CLI 1.0.104, TokenMaster used 47.4% fewer raw tokens (95% CI 41.7% to 52.8%) and
+  cost 45.4% less with every first call cold; both arms passed 15 of 15. `COPILOT_CLI_RESULTS.md` has the results.
+- `evals/relay_control_ab.py` and `evidence/relay-control-20261027/`: an exploratory control that repeats PRS-6's relay
+  on Copilot CLI 1.0.104 with the default-routing run's account, lanes and tasks, and a protocol committed before the 30
+  sessions. TokenMaster used 48.6% fewer raw tokens (95% CI 41.9% to 54.1%), against 47.4% under default routing.
+  `COPILOT_CLI_RESULTS.md` compares both runs with PRS-6's 58.5%.
 - `evidence/default-nolean-20261101/` and `evidence/lean-20261101/`: the protocols (hashed before the sessions),
   wrappers around `evals/default_routing_ab.py`, analyses and per-call records of the two November 1 runs.
 
