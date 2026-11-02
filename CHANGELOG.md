@@ -185,6 +185,15 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- `site/index.html`: an interactive deck of the results, the proofs and the install steps, published at
+  https://all-the-vibes.github.io/TokenMasterX/ from the `gh-pages` branch. It is one file with inline CSS and
+  JavaScript, system fonts and no external requests. Its figures come from `evidence/*/analysis.json`, and its proof
+  figures are counted from `proofs/` and `test_proof_conformance.py`. Two slides cover the proofs: the ten claims with
+  their Lean theorems, and how each is checked. The organization disables GitHub Actions for this repository, so there
+  is no deploy workflow: a change to `site/index.html` reaches the site when `gh-pages` is updated by hand.
+- README: a "Proof-driven development" section lists the ten proved claims with their Lean theorems, how the proofs are
+  validated (Lean's kernel, the conformance tests, the written assumptions, the findings) and the two commands that
+  check them, and the nav row links the deck.
 - Uninstall: `/token-master uninstall` runs both installers with `--uninstall`, and the README documents the full
   removal order, including the backup copies that uninstall keeps.
 - `setup.py` warns when the repository has Rust files but the `--python` runtime cannot import `tree-sitter-rust`:
