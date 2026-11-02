@@ -345,10 +345,6 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
 
 /* slide: proofs */
 .proofs { grid-template-columns: minmax(0, 4.6fr) minmax(0, 7.4fr); }
-.kpis { display: grid; gap: 12px; }
-.kpis li { display: grid; grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 14px; }
-.kv { font: 800 clamp(2.2rem, 4vw, 3rem)/1 var(--sans); letter-spacing: -.045em; background: linear-gradient(135deg, var(--lime), var(--lime-deep)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.kl { color: var(--ink-2); font-size: .92rem; text-wrap: pretty; }
 .claimbox { display: grid; gap: 10px; }
 .claims { display: grid; gap: 2px; }
 .claim { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; padding: 7px 9px; border-radius: 10px; text-align: left; font-size: .92rem; line-height: 1.3; transition: background-color 160ms ease, box-shadow 160ms ease, transform 160ms var(--ease-out); }
@@ -470,7 +466,6 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
   .proofs { grid-template-columns: minmax(0, 1fr); }
   .claim { grid-template-columns: 22px minmax(0, 1fr); }
   .claim .cv { grid-column: 2; justify-self: start; }
-  .kpis li { grid-template-columns: 64px minmax(0, 1fr); }
 }
 @media (max-width: 720px) {
   /* results: the bar gets the full width, the figure sits beside its label */
@@ -539,7 +534,7 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
       <p class="caption" data-reveal>Measured November 1, 2026 under GitHub's default routing, on Copilot CLI 1.0.105 with GPT-6 Astra, on 15 short Django caller lookups. Each saving is against its own stock run on the same day. "Up to" is the best pooled result of any run under default routing. The no-flags range is the 95% confidence interval of its run; the point estimate is 19%.</p>
       <a class="proofbar" href="#proofs" data-go="proofs" data-reveal>
         <span class="ck on" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span>
-        <span class="pt"><b>The rules behind these savings are proved and computer-checked.</b> Writing the proofs found 8 gaps in our own claims; 5 are fixed.</span>
+        <span class="pt"><b>Proof-driven.</b> The rules behind these savings are proved by a computer, and the code is held to those proofs.</span>
         <span class="pa" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></span>
       </a>
       <div class="actions" data-reveal>
@@ -702,22 +697,22 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
   </section>
 
 
-  <!-- Proof figures below were counted from proofs/ and test_proof_conformance.py at master 7c95643 on 2026-11-01: 46 public theorems and 27 private lemmas (73 declarations) in 8 files, 29 conformance tests, 15 hypotheses, 8 findings (5 fixed, 3 open). To recount the declarations, run from the repository root: grep -rhE '^[[:space:]]*(@\[[^]]*\][[:space:]]*)?((private|protected|nonrec)[[:space:]]+)*(theorem|lemma)[[:space:]]' proofs/TokenMasterProofs | wc -l. For the tests, run python -m pytest --collect-only -q tests/test_proof_conformance.py in token-master-plugin/skills/token-master. -->
+  <!-- The claims, findings and names on the next two slides are checked by site/src/build.py against proofs/ and test_proof_conformance.py. Rebuild with: python site/src/build.py -->
   <section class="slide" id="proofs" data-title="Proofs">
     <div class="inner split proofs">
       <div class="stack">
         <p class="eyebrow" data-reveal><b>06</b>Proof-driven development</p>
         <h2 data-reveal>The savings are measured. The rules behind them are proved.</h2>
         <p class="lead" data-reveal>Each mechanism has rules the code must always keep, such as never changing text the provider has already cached. We state them as theorems about a model of the code and check the proofs with Lean 4, which accepts a proof only if every step is valid.</p>
-        <ul role="list" class="kpis" data-reveal>
-          <li><span class="kv num" data-count="46">46</span><span class="kl">theorems in 8 Lean files, plus 27 helper lemmas</span></li>
-          <li><span class="kv num">0</span><span class="kl">unfinished proofs. Lean marks a missing step with <code>sorry</code>, and it appears nowhere</span></li>
-          <li><span class="kv num" data-count="29">29</span><span class="kl">tests that run the real Python to confirm it behaves as the proofs assume</span></li>
-        </ul>
+        <ol role="list" class="pipe" data-reveal>
+          <li><span class="n">1</span><div><h3>State a rule the code must keep.</h3></div></li>
+          <li><span class="n">2</span><div><h3>Prove it, and let a computer check the proof.</h3></div></li>
+          <li><span class="n">3</span><div><h3>Hold the code to the proof, and change them together.</h3></div></li>
+        </ol>
       </div>
       <div class="stack">
         <div class="panel claimbox" data-reveal>
-          <p class="eyebrow">10 claims and their theorems</p>
+          <p class="eyebrow">What is proved</p>
           <ul role="list" class="claims" id="claims">
             <li style="--i:0"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-0"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">The bridge never changes bytes the provider already cached</span><span class="cv">open finding</span></button><dl class="cd" id="cd-0"><div><dt>Lean</dt><dd class="names"><code>Cache.bridge_prefix_stable</code> <code>Cache.cache_prefix_kept</code></dd></div><div><dt>Holds when</dt><dd>Assumes call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items. A lone surrogate in a tool output breaks the token counter.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_bridge_rewrite_keeps_history_prefix</code></dd></div></dl></li><li style="--i:1"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-1"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Policy v6 without guidance never changes an earlier message</span></button><dl class="cd" id="cd-1"><div><dt>Lean</dt><dd class="names"><code>Cache.shaping_prefix_stable</code></dd></div><div><dt>Holds when</dt><dd>Proved for the shaping map. The runtime keeps it unless shaping would pass a <code>max_input_tokens</code> cap. Assumes call ids are never reused.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_v6_plans_keep_earlier_messages</code> <code>test_runtime_keeps_v6_shaping</code></dd></div></dl></li><li style="--i:2"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-2"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Shaping never makes a tool result bigger</span></button><dl class="cd" id="cd-2"><div><dt>Lean</dt><dd class="names"><code>Shaping.guard_never_expands</code> <code>Shaping.request_bytes_never_grow</code></dd></div><div><dt>Holds when</dt><dd>True in counted tokens and in bytes. That GitHub's billed count falls when the cl100k count falls is an assumption.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_shaped_results_never_expand</code></dd></div></dl></li><li style="--i:3"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-3"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Policies v1 to v4 never grow a request</span></button><dl class="cd" id="cd-3"><div><dt>Lean</dt><dd class="names"><code>Policy.greedy_never_expands</code> <code>Policy.protected_unchanged</code></dd></div><div><dt>Holds when</dt><dd>They also never edit a protected message. A test checks this for policy v1.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_plan_request_never_expands_and_keeps_protected_messages</code></dd></div></dl></li><li style="--i:4"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-4"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">The rg and glob folds are lossless</span></button><dl class="cd" id="cd-4"><div><dt>Lean</dt><dd class="names"><code>Folds.unfoldPaths_foldPaths</code> <code>Folds.unfold_foldSearchChecked</code> <code>Folds.foldSearch_not_injective</code></dd></div><div><dt>Holds when</dt><dd><code>fold_paths</code> gives back its exact input. <code>fold_search</code> refuses any input it could not give back, and a proof shows the refusal is needed: without it, two different inputs fold to the same text.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_fold_paths_round_trip</code> <code>test_fold_search_round_trip</code> <span class="more">and 1 more</span></dd></div></dl></li><li style="--i:5"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-5"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Routing keeps every family whose trigger fires</span><span class="cv">open finding</span></button><dl class="cd" id="cd-5"><div><dt>Lean</dt><dd class="names"><code>Routing.fired_family_kept</code> <code>Routing.excluded_subset_lean</code> <code>Routing.default_excludes_nothing</code></dd></div><div><dt>Holds when</dt><dd>Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with <code>--lean</code> is a definition in the model, checked on <code>main</code> by a test. The triggers are keyword rules and miss some phrasings: "have an agent review this diff" drops <code>task</code>.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_routing_default_sends_every_tool</code> <code>test_routing_lists_match_the_lean_model</code> <span class="more">and 1 more</span></dd></div></dl></li><li style="--i:6"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-6"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">A recorded --lean resume keeps its session&#x27;s tool list</span></button><dl class="cd" id="cd-6"><div><dt>Lean</dt><dd class="names"><code>Routing.resume_same_list</code> <code>Routing.resume_chain_keeps_first_list</code></dd></div><div><dt>Holds when</dt><dd>Proved for the model, when the resume's <code>TOKENMASTER_KEEP_TOOLS</code> adds no tool. Which session record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, and a resume without <code>--lean</code> sends every tool.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_routing_resume_keeps_the_first_list</code></dd></div></dl></li><li style="--i:7"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-7"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">In BYOK mode, sessions that differ only in folder share a system prompt</span><span class="cv">open finding</span></button><dl class="cd" id="cd-7"><div><dt>Lean</dt><dd class="names"><code>SessionPrefix.system_same_across_sessions</code> <code>SessionPrefix.folder_recoverable</code></dd></div><div><dt>Holds when</dt><dd>There is exactly one folder line, and only the BYOK bridge does the rewrite. The folder path is assumed to have no newline, and whitespace around it is not recovered after the move.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_session_prefix_same_system_and_recoverable_folder</code></dd></div></dl></li><li style="--i:8"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-8"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">Navigation results stay within 2,400 tokens, by the server&#x27;s count</span></button><dl class="cd" id="cd-8"><div><dt>Lean</dt><dd class="names"><code>NavCap.assemble_le</code> <code>NavCap.fit_prefix</code> <code>NavCap.uncut_overflow_attained</code></dd></div><div><dt>Holds when</dt><dd>Counted in the navigation server's own counter, with every result measured whole. Its fallback estimate can undercount non-ASCII text. The proofs found a case that reached 2,401 tokens, and it is fixed.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_navigation_results_within_budget</code> <code>test_uncut_read_within_budget</code> <span class="more">and 2 more</span></dd></div></dl></li><li style="--i:9"><button type="button" class="claim" aria-pressed="false" aria-describedby="cd-9"><span class="ck" aria-hidden="true"><svg viewBox="0 0 14 14" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 7.4 2.7 2.7L11 4.4"/></svg></span><span class="ct">The measurement definitions have the properties the protocol needs</span></button><dl class="cd" id="cd-9"><div><dt>Lean</dt><dd class="names"><code>Measurement.cold_term_is_coldened_charge</code> <code>Measurement.ratio_of_sums_ge</code> <code>Measurement.resample_within_task_range</code> <code>Measurement.hero_monotone</code></dd></div><div><dt>Holds when</dt><dd>Cold repricing is exactly the extra charge of a cold cache, and the bootstrap interval stays within the per-task range. The recorded data match. Not proved: the interval's 95% coverage, and the Wilcoxon and Holm-Bonferroni steps.</dd></div><div><dt>Checked by</dt><dd class="names"><code>test_cold_repricing_matches_the_definition</code> <code>test_bootstrap_interval_within_task_range</code> <span class="more">and 2 more</span></dd></div></dl></li>
           </ul>
@@ -733,10 +728,10 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
         <p class="eyebrow" data-reveal><b>07</b>How it is checked</p>
         <h2 data-reveal>A proof covers a model. Four checks tie it to the real code.</h2>
         <ol role="list" class="pipe" data-reveal>
-          <li><span class="n">1</span><div><h3>Lean checks every proof.</h3><p>Lean 4 accepts a proof only if each step is valid. A clean build has no <code>sorry</code> and uses only Lean's three standard axioms.</p></div></li>
-          <li><span class="n">2</span><div><h3>Tests run the real code.</h3><p>29 conformance tests run the Python on generated inputs and on the recorded study data. Each names the Lean theorem or definition it checks.</p></div></li>
-          <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists 15 hypotheses the models take from the code and marks each as tested, read from the code, or assumed. One is false: the token counter raises on a lone surrogate (open finding 1).</p></div></li>
-          <li><span class="n">4</span><div><h3>Gaps become findings.</h3><p>Where a claim and the code disagree, the gap is recorded. Writing and reviewing the proofs found 8: 5 fixed, 3 open.</p></div></li>
+          <li><span class="n">1</span><div><h3>Lean checks every proof.</h3><p>Lean 4 accepts a proof only if every step is valid, and a clean build means no step was skipped.</p></div></li>
+          <li><span class="n">2</span><div><h3>Tests run the real code.</h3><p>Conformance tests run the Python on generated inputs and on the recorded study data. Each names the Lean theorem or definition it checks.</p></div></li>
+          <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists what the models assume about the code and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).</p></div></li>
+          <li><span class="n">4</span><div><h3>Gaps become findings.</h3><p>Where a claim and the code disagree, the gap is recorded. Writing and reviewing the proofs found mistakes in our own claims. Most are fixed, and the rest are published.</p></div></li>
         </ol>
         <p class="small" data-reveal>Code and proofs change together: <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/18" target="_blank" rel="noopener">#18</a>, <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/19" target="_blank" rel="noopener">#19</a> and <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/20" target="_blank" rel="noopener">#20</a>, the last three routing pull requests, each updated the proofs write-up and the conformance tests; <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/18" target="_blank" rel="noopener">#18</a> and <a href="https://github.com/All-The-Vibes/TokenMasterX/pull/20" target="_blank" rel="noopener">#20</a> also changed <code>Routing.lean</code>.</p>
       </div>
@@ -747,8 +742,8 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
             <div class="seg-scroll">
               <div class="seg" id="seg-finds" role="radiogroup" aria-label="Findings">
                 <div class="seg-base">
-                  <button type="button" role="radio" aria-checked="true" data-value="fixed">Fixed 5</button>
-                  <button type="button" role="radio" aria-checked="false" data-value="open">Open 3</button>
+                  <button type="button" role="radio" aria-checked="true" data-value="fixed">Fixed</button>
+                  <button type="button" role="radio" aria-checked="false" data-value="open">Still open</button>
                 </div>
                 <div class="seg-on" aria-hidden="true"></div>
               </div>
@@ -756,7 +751,7 @@ a.card h3 svg { width: 14px; height: 14px; color: var(--muted); transition: tran
           </div>
           <div class="finds" id="finds">
             <ul role="list" class="list" data-set="fixed"><li>Navigation results could pass the 2,400-token cap: footers sat outside the budget, and one branch skipped a newline (2,401 tokens observed). Every result is now measured whole.</li><li><code>fold_search</code> was not lossless when a copied line looked like a folded entry. It now refuses to fold that input.</li><li><code>fold_paths</code> dropped trailing newlines. It keeps them now.</li><li>v6 shaping reverted a whole request when it measured no smaller on the JSON wire, which is not what a provider bills, so that call missed the cache. It no longer does.</li><li>A resumed session ran the routing again, so its tool list could change. A resume tied to the session's record now sends the recorded list.</li></ul>
-            <ul role="list" class="list old" data-set="open"><li>A lone surrogate in a tool output makes the token counter raise, which fails that bridge call and every later call that resends the output.</li><li>The routing triggers miss some phrasings: "have an agent review this diff" drops <code>task</code>.</li><li>Whitespace around the session folder path is not recovered after the move.</li><li class="note">Open findings stay published. Two of the three have a <code>test_finding_*</code> test that reproduces them.</li></ul>
+            <ul role="list" class="list old" data-set="open"><li>A lone surrogate in a tool output makes the token counter raise, which fails that bridge call and every later call that resends the output.</li><li>The routing triggers miss some phrasings: "have an agent review this diff" drops <code>task</code>.</li><li>Whitespace around the session folder path is not recovered after the move.</li><li class="note">Open findings stay published. Where a test can reproduce one, it does.</li></ul>
           </div>
         </div>
         <div class="panel" data-reveal>
@@ -850,7 +845,7 @@ uv tool install graphifyy</pre>
         </a>
         <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/proofs/README.md" target="_blank" rel="noopener">
           <h3>Proofs, checked by Lean 4 <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
-          <p>The write-up's 24 numbered theorems, stated as 46 Lean theorems with 27 private helper lemmas, the assumptions they make about the code, and the 8 gaps found while writing them.</p>
+          <p>The proofs, the assumptions they make about the code, and the gaps found while writing them.</p>
         </a>
         <a class="card" href="https://github.com/All-The-Vibes/TokenMasterX/blob/master/evidence/lean-20261101/PROTOCOL.md" target="_blank" rel="noopener">
           <h3>November 1: --lean <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5 8.5 3.5M4.5 3.5h4v4"/></svg></h3>
@@ -1004,19 +999,6 @@ uv tool install graphifyy</pre>
     $$('[data-reveal]', s).forEach((el, i) => el.style.setProperty('--i', i));
   });
 
-  // Numbers that count up the first time their slide is shown. Skipped for rapid keys and reduced motion.
-  const seen = new Set();
-  function enter(slide) {
-    if (seen.has(slide)) return;
-    seen.add(slide);
-    if (reduce.matches || deck.hasAttribute('data-fast')) return;
-    $$('[data-count]', slide).forEach((n) => {
-      const to = Number(n.dataset.count);
-      n.textContent = '0'; n.dataset.v = '0';
-      setTimeout(() => tween(n, to, fmt, 700), 260);
-    });
-  }
-
   // A slide that scrolls and has nothing focusable inside has to take focus itself, so a keyboard can scroll it.
   function syncScroll(s) {
     const scrolls = s.scrollHeight > s.clientHeight + 1;
@@ -1043,7 +1025,6 @@ uv tool install graphifyy</pre>
     });
     slides[i].scrollTop = 0;
     syncScroll(slides[i]);
-    enter(slides[i]);
     updateRail();
     history.replaceState(null, '', '#' + ids[i]);
     if (!first) live.textContent = `Slide ${i + 1} of ${slides.length}: ${slides[i].dataset.title}`;
