@@ -25,7 +25,8 @@ definitions have. Section 7 covers the method.
 | Shaping never makes a tool result bigger, in tokens or in bytes | Proven | `Shaping.guard_never_expands` |
 | `plan_request` with policies v1 to v4 never grows a request or touches a protected message | Proven | `Policy.greedy_never_expands`, `Policy.protected_unchanged` |
 | The `rg` and glob folds are lossless | Proven: `fold_paths` gives back its exact input, and `fold_search` refuses any input it could not give back (section 3) | `Folds.unfoldPaths_foldPaths`, `Folds.unfold_foldSearchChecked` |
-| Routing runs only with `--lean`, drops only auxiliary tools, and keeps every family whose trigger fires | Proven for the model; `default_excludes_nothing` holds by its definition, so that `main` routes only with `--lean` rests on the conformance tests. The triggers miss some phrasings (finding 2) | `Routing.default_excludes_nothing`, `Routing.excluded_subset_lean`, `Routing.fired_family_kept` |
+| Routing runs only with `--lean`, drops only auxiliary tools, and keeps every family whose trigger fires | Proven for the model; `default_excludes_nothing` holds by its definition, so that `main` routes only with `--lean` rests on the conformance tests. The keyword triggers miss some phrasings (finding 2); the opt-in MD-1 router only adds triggers, so the theorems still hold with it | `Routing.default_excludes_nothing`, `Routing.excluded_subset_lean`, `Routing.fired_family_kept` |
+| A keyword pattern that covers `n` independent phrasings of a family, and fires on no prompt that does not need it, has at least `n` branches | Proven for any branch matcher; independence is a hypothesis about the phrasings. MD-1's recall is measured, not proven (section 4) | `Tuning.branches_ge_phrasings`, `Tuning.new_phrasing_needs_a_branch` |
 | A resume that the launcher ties to the session's record gets the `--excluded-tools` the session started with | Proven for the model; which record applies is the launcher's lookup, which the conformance tests check (section 4) | `Routing.resume_same_list`, `Routing.resume_chain_keeps_first_list` |
 | Sessions whose system prompts differ only in the folder path get the same system prompt | Proven | `SessionPrefix.system_same_across_sessions` |
 | Navigation results stay under 2,400 tokens | Proven, in the navigation server's counter: every result is measured whole and cut to fit (section 6) | `NavCap.assemble_le` |
@@ -372,6 +373,37 @@ families are exactly the model's, tool by tool, and three more tests check each 
 `--fleet`, `--resume`, `-r`, `TOKENMASTER_KEEP_TOOLS`, the skill rule and the no-signal case on the real
 function.
 
+With `TOKENMASTER_MD1_ENDPOINT` set, `md1_families` asks Microsoft-Decision-1 (MD-1) one fixed question
+per family, and a family it picks fires as if its pattern had matched. MD-1 only adds families to
+`keep`, so in the model a family fires when its pattern or MD-1 fires, and every theorem above holds
+unchanged. `test_routing_md1_picks_fire_their_families` checks on the real function that, for random
+picks, the excluded list with MD-1 is a subset of the list without it, which is a subset of
+`LEAN_EXCLUDED_TOOLS`, and that every picked family is kept. On any error MD-1 picks nothing.
+
+**Tuning cost.** Source: the regular expressions of `CAPABILITY_GROUPS` and `MD1_QUESTIONS`. Lean:
+`TokenMasterProofs/Tuning.lean`. A family's pattern is an alternation of branches; `occurs b p`, a
+parameter, says branch `b` matches prompt `p`. A pattern covers the phrasings `pos` when it fires on
+each, and is clean on `neg` when it fires on none of them. The phrasings are independent when any
+branch that matches two of them also matches a prompt in `neg`.
+
+- `Tuning.branch_matches_one`: in a clean pattern, no branch matches two different independent
+  phrasings.
+- `Tuning.branches_ge_phrasings`: a clean pattern that covers `n` different independent phrasings has
+  at least `n` branches.
+- `Tuning.new_phrasing_needs_a_branch`: so each new independent phrasing adds a branch.
+
+*Proof.* The first by contradiction with `clean`. The second by induction on the branches: the first
+branch matches at most one phrasing, and the rest cover the others. ∎
+
+The strength of the bound is in the independence hypothesis, which the theorem does not check.
+"have an agent review this diff" and "farm out the lint fixes to a couple of agents" share "agent",
+but so does "rename the AgentConfig class", which does not need the subagent tools, so "agent" is
+not a clean branch. MD-1's configuration stays at 7 questions whatever the phrasings; its recall is
+measured by `evals/md1_routing_eval.py`, not proven. On the eval's 22 held-out prompts, written before
+the questions were tuned, the patterns kept 3 of the 13 families the prompts needed, and the patterns
+with MD-1 kept all 13, at the cost of 4 families kept that no prompt needed against 2
+(`evidence/md1-routing-20261108`).
+
 Nor does it cover which record applies; the model takes the record as given. `test_routing_default_sends_every_tool`
 checks on `main` that, without `--lean`, every trigger's prompt, `--resume`, `--continue` and
 `TOKENMASTER_KEEP_TOOLS` leave the command unchanged, and that with `--lean` it gets the routed list;
@@ -542,7 +574,7 @@ they are not fixed. Findings 1 and 2 have a `test_finding_*` test that reproduce
 1. A lone surrogate in a tool output makes the pinned counter raise inside `rewrite_request`, so the
    bridge fails that call and every later call that resends the output.
 2. The routing triggers miss some phrasings: "have an agent review this diff" excludes `task`
-   (section 4).
+   (section 4). The opt-in MD-1 router keeps `task` for it, but is off by default.
 3. Whitespace around the session folder path is not recovered after the move (section 5).
 
 ## Fixed
@@ -570,7 +602,7 @@ These gaps were found the same way and are fixed; the sections above describe th
 | `TokenMasterProofs/Cache.lean` | sections 1 and 2 |
 | `TokenMasterProofs/Shaping.lean`, `TokenMasterProofs/Policy.lean` | section 2 |
 | `TokenMasterProofs/Folds.lean` | section 3 |
-| `TokenMasterProofs/Routing.lean` | section 4 |
+| `TokenMasterProofs/Routing.lean`, `TokenMasterProofs/Tuning.lean` | section 4 |
 | `TokenMasterProofs/SessionPrefix.lean` | section 5 |
 | `TokenMasterProofs/NavCap.lean` | section 6 |
 | `TokenMasterProofs/Measurement.lean` | section 7 |

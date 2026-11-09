@@ -1,0 +1,658 @@
+{
+  "summary": {
+    "tuning": {
+      "regex": {
+        "recall": 0.379,
+        "needed": 29,
+        "kept": 11,
+        "false_keeps": 1,
+        "no_need_prompts_kept_nothing": "15/16"
+      },
+      "md1": {
+        "recall": 1.0,
+        "needed": 29,
+        "kept": 29,
+        "false_keeps": 3,
+        "no_need_prompts_kept_nothing": "14/16"
+      },
+      "union": {
+        "recall": 1.0,
+        "needed": 29,
+        "kept": 29,
+        "false_keeps": 4,
+        "no_need_prompts_kept_nothing": "13/16"
+      }
+    },
+    "held_out": {
+      "regex": {
+        "recall": 0.231,
+        "needed": 13,
+        "kept": 3,
+        "false_keeps": 2,
+        "no_need_prompts_kept_nothing": "7/9"
+      },
+      "md1": {
+        "recall": 1.0,
+        "needed": 13,
+        "kept": 13,
+        "false_keeps": 2,
+        "no_need_prompts_kept_nothing": "8/9"
+      },
+      "union": {
+        "recall": 1.0,
+        "needed": 13,
+        "kept": 13,
+        "false_keeps": 4,
+        "no_need_prompts_kept_nothing": "6/9"
+      }
+    },
+    "md1_latency_ms": {
+      "calls": 65,
+      "median": 403,
+      "p90": 504,
+      "max": 670
+    }
+  },
+  "cases": {
+    "tuning": [
+      {
+        "prompt": "have an agent review this diff",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "get a second agent to double-check my migration",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "hand the test writing off to a helper agent while you fix the bug",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents",
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "split this refactor across a few workers running at the same time",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "spawn a subagent to audit auth",
+        "labels": [
+          "agents"
+        ],
+        "regex": [
+          "agents"
+        ],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "delegate to an agent the docs update",
+        "labels": [
+          "agents"
+        ],
+        "regex": [
+          "agents"
+        ],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "ask a code-review agent to look over the PR before I merge",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "what did we decide about the cache in my last session?",
+        "labels": [
+          "session_history"
+        ],
+        "regex": [],
+        "md1": [
+          "session_history"
+        ]
+      },
+      {
+        "prompt": "find the conversation from yesterday where we fixed the login bug",
+        "labels": [
+          "session_history"
+        ],
+        "regex": [],
+        "md1": [
+          "session_history"
+        ]
+      },
+      {
+        "prompt": "look through my previous sessions for the deploy command",
+        "labels": [
+          "session_history"
+        ],
+        "regex": [
+          "session_history"
+        ],
+        "md1": [
+          "session_history"
+        ]
+      },
+      {
+        "prompt": "which files did I change in copilot last week?",
+        "labels": [
+          "session_history"
+        ],
+        "regex": [],
+        "md1": [
+          "session_history"
+        ]
+      },
+      {
+        "prompt": "track these tasks as todos in a sql table",
+        "labels": [
+          "sql"
+        ],
+        "regex": [],
+        "md1": [
+          "sql"
+        ]
+      },
+      {
+        "prompt": "run a sql query to count the rows we loaded",
+        "labels": [
+          "sql"
+        ],
+        "regex": [
+          "sql"
+        ],
+        "md1": [
+          "sql"
+        ]
+      },
+      {
+        "prompt": "load the csv into a scratch database table and group by region",
+        "labels": [
+          "sql"
+        ],
+        "regex": [],
+        "md1": [
+          "sql"
+        ]
+      },
+      {
+        "prompt": "start the dev server in the background and check the logs",
+        "labels": [
+          "background_shell"
+        ],
+        "regex": [
+          "background_shell"
+        ],
+        "md1": [
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "run npm run dev and keep it going while you test the page",
+        "labels": [
+          "background_shell"
+        ],
+        "regex": [],
+        "md1": [
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "kick off the watcher, then stop it when the build passes",
+        "labels": [
+          "background_shell"
+        ],
+        "regex": [],
+        "md1": [
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "launch the api server and hit /health once it's up",
+        "labels": [
+          "background_shell"
+        ],
+        "regex": [],
+        "md1": [
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "what copilot cli flags let me pick a model?",
+        "labels": [
+          "copilot_docs"
+        ],
+        "regex": [
+          "copilot_docs"
+        ],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "how do I change the keybindings in copilot?",
+        "labels": [
+          "copilot_docs"
+        ],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "check copilot cli documentation for the --resume flag",
+        "labels": [
+          "copilot_docs"
+        ],
+        "regex": [
+          "copilot_docs"
+        ],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "is there a slash command in this cli to clear the context?",
+        "labels": [
+          "copilot_docs"
+        ],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "run the nightly-audit workflow on this repo",
+        "labels": [
+          "workflows"
+        ],
+        "regex": [
+          "workflows"
+        ],
+        "md1": [
+          "workflows"
+        ]
+      },
+      {
+        "prompt": "write an orchestration that fans the review out to several agents",
+        "labels": [
+          "agents",
+          "workflows"
+        ],
+        "regex": [],
+        "md1": [
+          "agents",
+          "workflows"
+        ]
+      },
+      {
+        "prompt": "use the tokenomics skill",
+        "labels": [
+          "skills"
+        ],
+        "regex": [
+          "skills"
+        ],
+        "md1": [
+          "skills"
+        ]
+      },
+      {
+        "prompt": "apply my changelog-generator skill to the last 20 commits",
+        "labels": [
+          "skills"
+        ],
+        "regex": [
+          "skills"
+        ],
+        "md1": [
+          "skills"
+        ]
+      },
+      {
+        "prompt": "start the server in the background and have an agent write e2e tests against it",
+        "labels": [
+          "agents",
+          "background_shell"
+        ],
+        "regex": [
+          "background_shell"
+        ],
+        "md1": [
+          "agents",
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "fix the failing test in parser.py",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "who calls validate_password? answer with json.",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "rename user_id to account_id across the repo",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "add a retry with exponential backoff to fetch_orders",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "explain what this regex does",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "why is the docker build slow?",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "write unit tests for the date parser",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "update the readme with the new install steps",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "the sql injection in login.php, fix it",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "review this function for off-by-one errors",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "convert this class component to a react hook",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "bump lodash to the latest version and run the tests",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "make the session timeout configurable",
+        "labels": [],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "add a background color to the header",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "what does the agent field in config.yaml control?",
+        "labels": [],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "document the workflow in CONTRIBUTING.md",
+        "labels": [],
+        "regex": [
+          "workflows"
+        ],
+        "md1": []
+      }
+    ],
+    "held_out": [
+      {
+        "prompt": "can another agent sanity-check this sql migration while you keep going?",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents",
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "farm out the lint fixes to a couple of agents",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "let a reviewer agent take a pass over src/auth",
+        "labels": [
+          "agents"
+        ],
+        "regex": [],
+        "md1": [
+          "agents"
+        ]
+      },
+      {
+        "prompt": "pull up what I asked you on monday about the rate limiter",
+        "labels": [
+          "session_history"
+        ],
+        "regex": [],
+        "md1": [
+          "session_history"
+        ]
+      },
+      {
+        "prompt": "did we already try upgrading webpack in an older chat?",
+        "labels": [
+          "session_history"
+        ],
+        "regex": [],
+        "md1": [
+          "session_history"
+        ]
+      },
+      {
+        "prompt": "keep a todo table in sql as you go through the checklist",
+        "labels": [
+          "sql"
+        ],
+        "regex": [],
+        "md1": [
+          "sql"
+        ]
+      },
+      {
+        "prompt": "query the scratch db for rows where status is failed",
+        "labels": [
+          "sql"
+        ],
+        "regex": [],
+        "md1": [
+          "sql"
+        ]
+      },
+      {
+        "prompt": "boot the storybook server, leave it running and screenshot the button",
+        "labels": [
+          "background_shell"
+        ],
+        "regex": [],
+        "md1": [
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "tail the worker logs in the background while I reproduce the bug",
+        "labels": [
+          "background_shell"
+        ],
+        "regex": [
+          "background_shell"
+        ],
+        "md1": [
+          "background_shell"
+        ]
+      },
+      {
+        "prompt": "what's the setting that turns off the banner in copilot cli?",
+        "labels": [
+          "copilot_docs"
+        ],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "which copilot cli command shows token usage?",
+        "labels": [
+          "copilot_docs"
+        ],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "kick off my release-check workflow",
+        "labels": [
+          "workflows"
+        ],
+        "regex": [
+          "workflows"
+        ],
+        "md1": [
+          "workflows"
+        ]
+      },
+      {
+        "prompt": "invoke the humanizer skill on the release notes",
+        "labels": [
+          "skills"
+        ],
+        "regex": [
+          "skills"
+        ],
+        "md1": [
+          "skills"
+        ]
+      },
+      {
+        "prompt": "fix the null check in OrderService.cs",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "add pagination to the /users endpoint",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "why does this sql query return duplicates?",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "refactor the background job scheduler to use a queue",
+        "labels": [],
+        "regex": [
+          "background_shell"
+        ],
+        "md1": []
+      },
+      {
+        "prompt": "rename the AgentConfig class to RunnerConfig",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "write a github actions workflow that runs pytest",
+        "labels": [],
+        "regex": [
+          "workflows"
+        ],
+        "md1": []
+      },
+      {
+        "prompt": "speed up the session cache lookups",
+        "labels": [],
+        "regex": [],
+        "md1": [
+          "copilot_docs"
+        ]
+      },
+      {
+        "prompt": "add type hints to utils.py",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      },
+      {
+        "prompt": "find where the docs site builds its sidebar",
+        "labels": [],
+        "regex": [],
+        "md1": []
+      }
+    ]
+  }
+}
