@@ -57,7 +57,7 @@ To list the axioms a theorem depends on, run `lake env lean` on a file that impo
 | A new item never reuses a call id the earlier history mentions | sections 1, 2 | Assumed: Copilot CLI gives every call a new id |
 | The client sends the same instructions and tool list on every call of a session | section 1 | Assumed. The test fixture builds them equal, so it cannot check the client. A resume that the launcher ties to the session's record passes the recorded `--excluded-tools` again (section 4), and given the same list, Copilot CLI 1.0.105 sent the same tools and the earlier input on a resume in one probe (`evidence/session-tools-20261030`). Other resumes, a resume without `--lean`, or `TOKENMASTER_KEEP_TOOLS` on a resume may change the list |
 | The provider's cached prefix puts the instructions and the tool list before the items | section 1 | Assumed. Anthropic documents the order tools, system, messages; Theorem 3 needs only both before the items |
-| The token counter never raises | section 1 | False for a lone surrogate (finding 1) |
+| `shape` is total: it returns for every tool output | section 1 | Checked: `test_bridge_passes_a_lone_surrogate_through`. The pinned counter refuses a lone surrogate, so shaping leaves that output as it came, and the bridge sends it as a JSON `\uXXXX` escape |
 | A request's bytes are a fixed part plus each content's escaped size | section 2 | Follows from how `json.dumps` writes a string; not tested |
 | A prompt's billed tokens are a fixed part plus a count of each message's decoded text, and that count falls whenever the message's cl100k count falls | section 2 | Assumed: providers bill the decoded text with their own tokenizers, and how they join messages is not published. `test_v6_plans_keep_earlier_messages` checks the cl100k side: the tool messages' text never grows, and shrinks whenever a plan changes something |
 | `plan_request` with v1 to v4 never edits a protected position | section 2 | Checked for v1 by `test_plan_request_never_expands_and_keeps_protected_messages`. v6 shapes every tool result, which Theorem 1 shows keeps the cache |
@@ -367,7 +367,7 @@ follows by induction on the resumes. ∎
 
 What this does not cover is whether a prompt's need fires a trigger: that is the regular
 expressions' job, and they miss some phrasings. "have an agent review this diff" fires no family,
-so `task` is excluded (finding 2). `test_routing_lists_match_the_lean_model` checks that the code's
+so `task` is excluded (finding 1). `test_routing_lists_match_the_lean_model` checks that the code's
 families are exactly the model's, tool by tool, and three more tests check each trigger, `--agent`,
 `--fleet`, `--resume`, `-r`, `TOKENMASTER_KEEP_TOOLS`, the skill rule and the no-signal case on the real
 function.
@@ -419,7 +419,7 @@ newline of each side comes right after the path. Two lists that agree up to thei
 neither of which has a newline before it, agree on what comes before it and on the rest. ∎
 
 Python strips whitespace around the path before moving it, so that whitespace is not recovered
-(finding 3). `test_session_prefix_same_system_and_recoverable_folder` checks both theorems on the
+(finding 2). `test_session_prefix_same_system_and_recoverable_folder` checks both theorems on the
 real function.
 
 ## 6. Navigation results stay within 2,400 tokens
@@ -537,13 +537,11 @@ resampling scheme and an assumption of the protocol, and the Wilcoxon and Holm-B
 ## Findings
 
 Writing and reviewing the proofs found these gaps between the code's claims and its behavior, and
-they are not fixed. Findings 1 and 2 have a `test_finding_*` test that reproduces them.
+they are not fixed. Finding 1 has a `test_finding_*` test that reproduces it.
 
-1. A lone surrogate in a tool output makes the pinned counter raise inside `rewrite_request`, so the
-   bridge fails that call and every later call that resends the output.
-2. The routing triggers miss some phrasings: "have an agent review this diff" excludes `task`
+1. The routing triggers miss some phrasings: "have an agent review this diff" excludes `task`
    (section 4).
-3. Whitespace around the session folder path is not recovered after the move (section 5).
+2. Whitespace around the session folder path is not recovered after the move (section 5).
 
 ## Fixed
 
@@ -562,6 +560,9 @@ These gaps were found the same way and are fixed; the sections above describe th
   measured no smaller on the JSON wire, which is not what a provider bills, so that call missed the
   cached prefix. v6 shaping without guidance is no longer reverted on the whole request's token count,
   except where shaping would pass a `max_input_tokens` cap (section 2).
+- A lone surrogate in a tool output made the pinned counter raise inside `rewrite_request`, so the
+  bridge failed that call and every later call that resent the output. Shaping now leaves such an
+  output as it came, and the bridge writes the surrogate as a JSON escape (section 1).
 
 ## Files
 

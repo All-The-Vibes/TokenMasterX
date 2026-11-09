@@ -15,7 +15,7 @@ tool list is fixed at launch, by `--excluded-tools` with `--lean`; a `--lean` re
 launcher ties to the session's record passes the recorded list again, `Routing.resume_same_list`;
 other resumes, a resume without `--lean`, or `TOKENMASTER_KEEP_TOOLS` on a resume may change it), a
 new item never reuses an id the earlier history mentions, and `shape` is a total function: the
-code's token counter raises on a lone surrogate, and then the bridge fails the call.
+code's token counter refuses a lone surrogate, so shaping leaves such an output as it came.
 proofs/README.md says which of these the conformance tests check.
 -/
 namespace TokenMasterProofs.Cache

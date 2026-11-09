@@ -137,8 +137,8 @@ def written_up():
 CLAIMS = [
     dict(text="The bridge never changes bytes the provider already cached",
          lean=['Cache.bridge_prefix_stable', 'Cache.cache_prefix_kept'],
-         holds="Assumes call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items. A lone surrogate in a tool output breaks the token counter.",
-         tests=['test_bridge_rewrite_keeps_history_prefix'], flag='open finding'),
+         holds="Assumes call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items.",
+         tests=['test_bridge_rewrite_keeps_history_prefix', 'test_bridge_passes_a_lone_surrogate_through']),
     dict(text="Policy v6 without guidance never changes an earlier message",
          lean=['Cache.shaping_prefix_stable'],
          holds="Proved for the shaping map. The runtime keeps it unless shaping would pass a `max_input_tokens` cap. Assumes call ids are never reused.",
@@ -182,9 +182,9 @@ FIXED = [
     "`fold_paths` dropped trailing newlines. It keeps them now.",
     "v6 shaping reverted a whole request when it measured no smaller on the JSON wire, which is not what a provider bills, so that call missed the cache. It no longer does.",
     "A resumed session ran the routing again, so its tool list could change. A resume tied to the session's record now sends the recorded list.",
+    "A lone surrogate in a tool output made the token counter raise, which failed that bridge call and every later call that resent the output. Shaping now leaves that output as it came.",
 ]
 OPEN = [
-    "A lone surrogate in a tool output makes the token counter raise, which fails that bridge call and every later call that resends the output.",
     "The routing triggers miss some phrasings: \"have an agent review this diff\" drops `task`.",
     "Whitespace around the session folder path is not recovered after the move.",
 ]
@@ -266,7 +266,7 @@ def proof_slides():
         <ol class="pipe" data-reveal>
           <li><span class="n">1</span><div><h3>Lean checks every proof.</h3><p>Lean 4 accepts a proof only if every step is valid, and a clean build means no step was skipped.</p></div></li>
           <li><span class="n">2</span><div><h3>Tests run the real code.</h3><p>Conformance tests run the Python on generated inputs and on the recorded study data. Each names the Lean theorem or definition it checks.</p></div></li>
-          <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists what the models assume about the code and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).</p></div></li>
+          <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists what the models assume about the code and marks each as tested, read from the code, or assumed.</p></div></li>
           <li><span class="n">4</span><div><h3>Gaps become findings.</h3><p>Where a claim and the code disagree, the gap is recorded. Writing and reviewing the proofs found mistakes in our own claims. Most are fixed, and the rest are published.</p></div></li>
         </ol>
         <p class="small" data-reveal>Code and proofs change together: {pull_link(18)}, {pull_link(19)} and {pull_link(20)}, the last three routing pull requests, each updated the proofs write-up and the conformance tests; {pull_link(18)} and {pull_link(20)} also changed <code>Routing.lean</code>.</p>
