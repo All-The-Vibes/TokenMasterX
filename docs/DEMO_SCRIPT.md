@@ -26,7 +26,7 @@
 
    (`tmc` and `tokenomics` are also installed in `C:\Users\shyamsridhar\.local\bin\`, which is on your `PATH`, so they work even if you skip `. $PROFILE`. Using `copilot.exe` for the stock commands bypasses any shell wrapper.)
 
-   `tmc` has to start the launcher with `--lean` before `--`. Since October 30 the launcher sends every built-in tool without it, and the numbers in this script come from runs with the lean tool set on.
+   `tmc` has to start the launcher with `--lean` before `--`. Since October 31 the launcher sends every built-in tool without it, and every number in this script except the no-flags rows comes from runs with the lean tool set on.
 
 3. In window B, check the setup:
 
@@ -38,7 +38,7 @@
    - `tokenomics` is listed under "Personal skills".
    - The table shows the rehearsal sessions from this morning (`lean` for the 1-word prompt, `lean+nav` for the Django Graphify lookup). Tell the audience that they are rehearsal runs.
 4. Optional: run Step 4 once, so that the folder and permission questions do not surprise you live.
-5. Open `docs/tokenomics-demo-slide.html` in a browser (4 tabs: Math, Architecture, Live Runbook with Copy buttons, and Dashboard Output & Q&A). `docs/tokenmaster-v5-slide.html` has the single-slide A/B summary.
+5. Open `docs/tokenomics-demo-slide.html` in a browser. It is one scrolling page: a title, then six sections in its menu (the call math, two real calls, the cache architecture, the architecture and live runbook, the measured proof table with the `/tokenomics` dashboard, and questions). Keys 1 to 7 jump to the title and then to each section in order. The runbook has a four-tab command deck with Copy buttons. `docs/tokenmaster-v5-slide.html` has the single-slide A/B summary. The interactive deck at https://all-the-vibes.github.io/TokenMasterX/ (`site/index.html`) has the current results and the proofs.
 
 ## Part 1: The math (3 minutes)
 
@@ -101,12 +101,25 @@ Worked example: the one-word TokenMaster session above.
 - **Estimated saving: $0.0139.** Measured difference: $0.0380 − $0.0226 = $0.0154. The estimate is 90% of the
   measured difference.
 
-Say: "The estimate counts only the fixed part. It does not count calls that the graph tools save. On 6
-measured A/B comparisons, it gave 72% to 125% of the measured token saving."
+Say: "The estimate counts only the fixed part. It does not count calls that the graph tools save. On 10
+measured A/B runs, it gave 59% to 125% of the measured token saving. On the four PRS-6 runs on Copilot CLI
+1.0.98, whose values were set before PRS-6 ran, it gave 59% to 124%."
 
 ### The measured A/B results
 
-**1. Pre-registered PRS-6 study on Copilot CLI `1.0.98` (176 sessions, `88/88` pass rate in both `stock` and `tm` arms, October 26, 2026, commit `19443fc`, `evidence/prs6-copilot-1.0.98-20261026/analysis.json`):**
+**1. Two exploratory runs under default GitHub routing on Copilot CLI `1.0.105` (November 1, 2026, `gpt-6-astra`, Django `D01`–`D15`, 30 sessions each, protocol frozen and hashed before the sessions, `evidence/lean-20261101/` and `evidence/default-nolean-20261101/`). The README hero quotes these runs.**
+
+| `1.0.105`, default routing | Stock | TokenMaster | Change |
+| --- | ---: | ---: | ---: |
+| `--lean`: raw tokens | 702,831 | 333,094 | **−52.6%** (95% CI −56.5% to −48.5%) |
+| `--lean`: cost, every first call cold | $3.74 | $1.71 | **−54.4%** |
+| No flags: raw tokens | 768,899 | 621,988 | **−19.1%** (95% CI −28.7% to −8.5%) |
+| No flags: cost, every first call cold | $3.85 | $3.32 | **−13.9%** |
+| Correct answers | 15/15 | 15/15 | in both runs |
+
+Each run has its own stock arm. The two stock arms differed by 8.6% in raw tokens, so do not compare the `--lean` rows with the no-flags rows. PRS-6 and the 45-task run below sent Copilot CLI's requests through an evaluation relay in bring-your-own-model mode, with the bridge on in the TokenMaster arms. The default setup does not use the bridge.
+
+**2. Pre-registered PRS-6 study on Copilot CLI `1.0.98` (176 sessions, `88/88` pass rate in both `stock` and `tm` arms, October 26, 2026, commit `19443fc`, `evidence/prs6-copilot-1.0.98-20261026/analysis.json`):**
 
 | PRS-6 (`1.0.98`, pre-registered) | Stock | Full TokenMaster (`tm`) | Change |
 | --- | ---: | ---: | ---: |
@@ -121,7 +134,7 @@ measured A/B comparisons, it gave 72% to 125% of the measured token saving."
 | `claude-opus-5.5` raw tokens (`15/15` passes both arms) | 989,925 | 457,875 | **−53.7%** (15/15 lower) |
 | `claude-opus-5.5` cold cost / as-run cost | $1.81 / $1.11 | $0.98 / $0.43 | **−46.0%** cold / **−61.2%** as-run |
 
-**2. Exploratory 45-task Django 5.2 scale run on Copilot CLI `1.0.78-3` (270 sessions, October 22, 2026):**
+**3. Exploratory 45-task Django 5.2 scale run on Copilot CLI `1.0.78-3` (270 sessions, October 22, 2026):**
 
 | | Stock | Full TokenMaster |
 | --- | ---: | ---: |
@@ -131,7 +144,7 @@ measured A/B comparisons, it gave 72% to 125% of the measured token saving."
 | `claude-opus-5.5` cost, every first call cold | $6.14 | $3.31 (−46.0%) |
 | Correct answers, both models | 90 of 90 | 88 of 90 (2 model errors) |
 
-Say: "We have both the 45-task Django scale study on 1.0.78-3 and the pre-registered PRS-6 study on 1.0.98 across 176 sessions. In PRS-6, TokenMaster passed all 88 tasks per arm and cut raw tokens by 49.5% and 38.0% on our 29-task repository benchmark, and by 58.5% and 53.7% on the 15-task Django replication."
+Say: "Under GitHub's default routing on Copilot CLI 1.0.105, TokenMaster with `--lean` used 52.6% fewer raw tokens than stock on 15 Django lookups, and 19.1% fewer with no flags. Through an evaluation relay, the pre-registered PRS-6 study on 1.0.98 passed all 88 tasks per arm and cut raw tokens by 38.0% to 58.5%."
 
 ## Part 2: Architecture (3 minutes)
 
@@ -263,8 +276,8 @@ In Copilot, type:
 
 Say:
 
-1. "Across the pre-registered PRS-6 study on Copilot CLI 1.0.98 (176 sessions, `88/88` passes in both arms) and the 45-task Django scale run on 1.0.78-3, TokenMaster cut raw tokens by 38% to 58.5% and cold-repriced cost by 34% to 53.5%."
-2. "Today's runs are single examples. The pre-registered PRS-6 study and the 45-task Django A/B are the evidence."
+1. "Under GitHub's default routing on Copilot CLI 1.0.105, TokenMaster with `--lean` used 52.6% fewer raw tokens and cost 54.4% less with every first call cold. With no flags it used 19.1% fewer tokens. Through an evaluation relay on older builds, in PRS-6 and the 45-task Django run, it cut raw tokens by 38% to 58.5%."
+2. "Today's runs are single examples. The November 1 runs, the pre-registered PRS-6 study and the 45-task Django A/B are the evidence."
 3. "Limits: 1 run per task per model in PRS-6, dynamic dispatch / `getattr` is not statically indexed by `impact`, and the dashboard's `/tokenomics` estimate covers only the fixed prompt part."
 
 ## If something goes wrong
@@ -275,7 +288,7 @@ Say:
 | Copilot asks you to sign in | Type `/login`. Or skip to the rehearsal rows: `tokenomics session --since 20261023`. |
 | `/tokenomics` is not in the command list | Run `copilot skill list`, then restart Copilot. Or use the `!` form. |
 | Step 3 does not call `impact` | Check the file: `Test-Path $nav.TrimStart('@')`. Show the rehearsal numbers instead. |
-| The numbers differ from the rehearsal | This is normal: the model makes different calls on each run. Point to the A/B for statistics. |
+| The numbers differ from the rehearsal | Expected. The rehearsal ran Copilot CLI 1.0.98 on October 23, when `tmc` removed 11 tools. Under default routing Copilot CLI updates itself, so a live run uses a newer build. `tmc` now also removes the two workflow tools that Copilot CLI sends under default routing, about 1,840 tokens a call, so expect a larger stock-to-`tmc` gap than in the rehearsal. The ≈ columns still use the 1.0.98 value for the 11 tools (5,558) and do not count the workflow tools. The model also makes different calls on each run. Point to the A/B for statistics. |
 | No network | Run `tokenomics session --since 20261023` on the rehearsal data, and show the slide. |
 
 ## Questions you may get
@@ -290,24 +303,28 @@ Say:
   - No session used the first 11 in our October 18 runs; one later stock session used `task`. None of the 60
     sessions of October 27 used the workflow tools.
   - In the pre-registered PRS-6 study on `1.0.98`, both `stock` and `tm` scored `88/88` (`29/29` on repository tasks and `15/15` on Django `D01`–`D15` for each model).
-  - For work that needs the removed tools, run plain `copilot`, or the launcher without `--lean`, which since October 30 sends every built-in tool.
-- **"What about Copilot CLI 1.0.98 vs 1.0.78-3? / Which Copilot CLI version did you test?"**
+  - For work that needs the removed tools, run plain `copilot`, or the launcher without `--lean`, which since October 31 sends every built-in tool.
+- **"What about Copilot CLI 1.0.98 vs 1.0.78-3? / Which Copilot CLI versions did you test?"**
   - The October 18–22 exploratory runs used Copilot CLI `1.0.78-3` because `--no-auto-update` selected the WinGet launcher's bundled build. We caught that in the session captures, corrected the documents, and pinned the version gate.
   - We then ran the pre-registered **PRS-6 study on Copilot CLI `1.0.98`** (`token-master-plugin/docs/PRS6_PROTOCOL.md`, commit `19443fc`, `evidence/prs6-copilot-1.0.98-20261026/analysis.json`, 176 sessions, `88/88` pass rate in both arms):
     - **29-task repository benchmark (`1.0.98`, >2.4M stock tokens/model):** `gpt-6-astra` raw tokens **−49.5%** (`2,449,067` → `1,237,510`), cold cost **−41.5%** (`$8.91` → `$5.21`), as-run cost **−50.2%** (`$6.83` → `$3.40`), `29/29` passes; `claude-opus-5.5` raw tokens **−38.0%** (`2,672,316` → `1,655,797`), cold cost **−34.0%** (`$4.23` → `$2.79`), as-run cost **−40.1%** (`$2.72` → `$1.63`), `29/29` passes.
     - **15-task Django 5.2 replication (`D01`–`D15` on `1.0.98` with `SCHEMA_VERSION = 4` import-alias resolution):** `gpt-6-astra` raw tokens **−58.5%** (`707,799` → `293,779`), cold cost **−53.5%** (`$3.40` → `$1.58`), as-run cost **−70.7%** (`$2.36` → `$0.69`), `15/15` passes; `claude-opus-5.5` raw tokens **−53.7%** (`989,925` → `457,875`), cold cost **−46.0%** (`$1.81` → `$0.98`), as-run cost **−61.2%** (`$1.11` → `$0.43`), `15/15` passes (lower on all 15 tasks for both models, including `D13` where `login` is imported as `auth_login`).
+  - On October 27 and November 1 we ran the 15 Django tasks with `gpt-6-astra` only, under GitHub's default routing with no relay, on `1.0.104` and `1.0.105` (`token-master-plugin/docs/COPILOT_CLI_RESULTS.md`). On `1.0.105`, `--lean` cut raw tokens by 52.6% and cold cost by 54.4%, and the launcher's default, with no flags, cut raw tokens by 19.1%. The README hero quotes these `1.0.105` runs. Both arms passed 15/15 in every run, including a relay control on `1.0.104` on October 27.
 - **"When does `impact` miss a caller?"**
-  - `SCHEMA_VERSION = 4` in `brainspace/symbol_index.py` (commit `19443fc`) now resolves `import ... as ...` and `from ... import ... as ...` aliases in scope (`56/56` answer-key callers on `D01`–`D15`, including `from django.contrib.auth import login as auth_login` in `D13`).
-  - Only dynamic dispatch, `getattr`, and string-based lookup remain unindexed by static AST analysis.
-- **"Does my prompt text go anywhere new?"** No. The dashboard reads local files and opens Copilot's
-  database read-only. The launch records hold no prompt text.
+  - Since commit `19443fc`, `brainspace/symbol_index.py` resolves `import ... as ...` and `from ... import ... as ...` aliases in scope. In PRS-6 (Graphify 0.9.91, `SCHEMA_VERSION = 4`), `impact` matched `56/56` answer-key callers on `D01`–`D15`, including `from django.contrib.auth import login as auth_login` in `D13`. Since PR #14 the index is `SCHEMA_VERSION = 5` and also reads Rust files through the pinned `tree-sitter-rust`, with callers through `use ... as` aliases.
+  - In Python, only dynamic dispatch, `getattr`, and string-based lookup remain unindexed by static AST analysis.
+- **"Does my prompt text go anywhere new?"** Not by default. The dashboard reads local files and opens Copilot's
+  database read-only, and the launch records hold no prompt text. If you opt in to MD-1 routing by setting
+  `TOKENMASTER_MD1_ENDPOINT`, the launcher, started with `--lean` as `tmc` does here, sends the `-p` or `-i` prompt
+  to that endpoint, your own Microsoft Foundry resource, to ask which tool families it needs.
 - **"What does the bridge do?"** It works only in bring-your-own-model mode. It makes the system prompt the
   same for sessions in one folder, so GitHub's cache can reuse it. Your default setup does not use it.
 
 ## Sources
 
 - Pre-registered PRS-6 protocol and results (`1.0.98`, 176 sessions): `token-master-plugin/docs/PRS6_PROTOCOL.md` (commit `19443fc`) and `evidence/prs6-copilot-1.0.98-20261026/analysis.json`.
-- Exploratory A/B results and test parameters (`1.0.78-3`): `token-master-plugin/docs/COPILOT_CLI_RESULTS.md`.
+- A/B results and test parameters (`1.0.105`, `1.0.104`, `1.0.98` and `1.0.78-3`): `token-master-plugin/docs/COPILOT_CLI_RESULTS.md`.
+- Default-routing runs: `evidence/default-routing-20261027/` (`1.0.104`), `evidence/lean-20261101/` and `evidence/default-nolean-20261101/` (`1.0.105`). Relay control: `evidence/relay-control-20261027/` (`1.0.104`).
 - Dashboard method and its check against the A/B: `token-master-plugin/docs/TOKENOMICS.md`.
 - Version probe (1.0.78-3 against 1.0.98): `evidence/copilot-version-probe-20261023/`.
 - Rehearsal numbers: `tokenomics session --since 20261023 --json` on this machine.

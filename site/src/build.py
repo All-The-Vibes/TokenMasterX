@@ -11,7 +11,7 @@ Hand-written parts: body.html, style.css, app.js. Everything else is made at bui
 
 The build stops if a theorem or test name that a proof slide prints no longer exists, or if proofs/README.md lists
 a different number of claims or findings than the slides, so the page cannot drift from the proofs.
-Only index.html is published; see site/src/README.md. Standard library only.
+index.html and og.png are published; see site/src/README.md. Standard library only.
 """
 import argparse
 import ast
@@ -157,8 +157,12 @@ CLAIMS = [
          tests=['test_fold_paths_round_trip', 'test_fold_search_round_trip', 'test_fold_search_refuses_entry_like_copied_lines']),
     dict(text="Routing keeps every family whose trigger fires",
          lean=['Routing.fired_family_kept', 'Routing.excluded_subset_lean', 'Routing.default_excludes_nothing'],
-         holds="Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by a test. The triggers are keyword rules and miss some phrasings: \"have an agent review this diff\" drops `task`.",
-         tests=['test_routing_default_sends_every_tool', 'test_routing_lists_match_the_lean_model', 'test_routing_fired_families_are_kept'], flag='open finding'),
+         holds="Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by a test. The triggers are keyword rules and miss some phrasings: \"have an agent review this diff\" drops `task`. The opt-in MD-1 router only adds triggers, so the proofs hold with it.",
+         tests=['test_routing_default_sends_every_tool', 'test_routing_lists_match_the_lean_model', 'test_routing_fired_families_are_kept', 'test_routing_md1_picks_fire_their_families'], flag='open finding'),
+    dict(text="A clean keyword pattern needs a branch for every independent phrasing",
+         lean=['Tuning.branches_ge_phrasings', 'Tuning.new_phrasing_needs_a_branch'],
+         holds="For any branch matcher, a pattern that fires on no prompt outside its family. The phrasings are independent when any branch that matches two of them also matches such a prompt; a test checks this for word branches on eight subagent phrasings. MD-1 asks one question per family; its recall is measured, not proved.",
+         tests=['test_tuning_agent_phrasings_are_independent']),
     dict(text="A recorded --lean resume keeps its session's tool list",
          lean=['Routing.resume_same_list', 'Routing.resume_chain_keeps_first_list'],
          holds="Proved for the model, when the resume's `TOKENMASTER_KEEP_TOOLS` adds no tool. Which session record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, and a resume without `--lean` sends every tool.",
@@ -185,7 +189,7 @@ FIXED = [
     "A lone surrogate in a tool output made the token counter raise, which failed that bridge call and every later call that resent the output. Shaping now leaves that output as it came.",
 ]
 OPEN = [
-    "The routing triggers miss some phrasings: \"have an agent review this diff\" drops `task`.",
+    "The routing triggers miss some phrasings: \"have an agent review this diff\" drops `task`, unless the opt-in MD-1 router is on.",
     "Whitespace around the session folder path is not recovered after the move.",
 ]
 
@@ -269,7 +273,7 @@ def proof_slides():
           <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists what the models assume about the code and marks each as tested, read from the code, or assumed.</p></div></li>
           <li><span class="n">4</span><div><h3>Gaps become findings.</h3><p>Where a claim and the code disagree, the gap is recorded. Writing and reviewing the proofs found mistakes in our own claims. Most are fixed, and the rest are published.</p></div></li>
         </ol>
-        <p class="small" data-reveal>Code and proofs change together: {pull_link(18)}, {pull_link(19)} and {pull_link(20)}, the last three routing pull requests, each updated the proofs write-up and the conformance tests; {pull_link(18)} and {pull_link(20)} also changed <code>Routing.lean</code>.</p>
+        <p class="small" data-reveal>Code and proofs change together: {pull_link(18)}, {pull_link(19)}, {pull_link(20)} and {pull_link(28)}, every routing pull request since the proofs landed, each updated the proofs write-up and the conformance tests; {pull_link(18)} and {pull_link(20)} also changed <code>Routing.lean</code>, and {pull_link(28)} added <code>Tuning.lean</code>.</p>
       </div>
       <div class="stack">
         <div class="panel" data-reveal>

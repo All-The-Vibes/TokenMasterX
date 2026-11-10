@@ -9,15 +9,18 @@ things:
    the 60 sessions of October 27 called. A prompt that asks for one of these tool families (a
    subagent, a workflow, a skill, ...) keeps it. Their definitions and the system-prompt text about
    them then leave every model call. This works with Copilot CLI's normal GitHub routing and with
-   bring-your-own-model mode. It is off by default since October 30: without `--lean`, the launcher
-   sends every built-in tool.
+   bring-your-own-model mode. It has been off by default since October 31, 2026 (PR #20): without
+   `--lean`, the launcher sends every built-in tool.
 2. **Bridge.** In bring-your-own-model (BYOK) mode only, the launcher also starts a local bridge.
    The bridge applies two deterministic rewrites to every model request: the cache-stable system
    prompt and v6 shaping.
 
-Copilot CLI runs measured the launcher, with the lean tool set on, and the bridge in BYOK mode, with
-graph navigation installed. Against stock Copilot CLI, they used about half the raw tokens
-([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)). Those savings therefore apply with `--lean`.
+Copilot CLI runs measured the launcher with the lean tool set on and graph navigation installed:
+under Copilot CLI's normal GitHub routing, where the bridge does not run, on October 27 and
+November 1, 2026, and in BYOK mode with the bridge from October 18 to 27. Against stock Copilot CLI,
+they used about half the raw tokens ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)). Those
+savings therefore apply with `--lean`. Without `--lean`, with graph navigation installed, a
+November 1 run under normal GitHub routing used 19.1% fewer raw tokens (95% CI 8.5% to 28.7%).
 
 ## Install and run
 
@@ -28,9 +31,10 @@ graph navigation installed. Against stock Copilot CLI, they used about half the 
    - It does not install the `brainspace` MCP server for Copilot. `--brainspace-mcp` adds it.
 2. Optional: install graph navigation for a repository with
    `python setup.py <repo> --host copilot --python <runtime>`. This step needs graphify.
-3. Start Copilot CLI through the launcher:
-   `python <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot [args...]`, and add
-   `--lean` before `--` for the lean tool set. Plain `copilot` stays unchanged.
+3. Start Copilot CLI through the launcher with the runtime's Python:
+   `<runtime> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot [args...]`, and add
+   `--lean` before `--` for the lean tool set. In BYOK mode, v6 shaping needs that Python's
+   `tiktoken`. Plain `copilot` stays unchanged.
 4. Optional: type `/tokenomics` in an interactive session for the usage and savings dashboard
    ([TOKENOMICS.md](TOKENOMICS.md)).
 
@@ -56,6 +60,14 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
   A prompt that starts a skill keeps `skill`, and keeping `skills` (or `skill`) also keeps the workflow
   and subagent tools. Copilot CLI 1.0.95-3 to 1.0.104 accept all 13 names, including builds that do not
   send the workflow tools.
+- `TOKENMASTER_KEEP_TOOLS` is a comma-separated list, for example `TOKENMASTER_KEEP_TOOLS=agents,sql`.
+  A family's name keeps all its tools: `session_history` (`session_store_sql`), `agents` (`task`,
+  `read_agent`, `write_agent`, `list_agents`), `skills` (`skill`), `sql`, `background_shell`
+  (`read_powershell`, `stop_powershell`, `list_powershell`), `copilot_docs`
+  (`fetch_copilot_cli_documentation`) and `workflows` (`run_dynamic_workflow`,
+  `dynamic_workflows_manage`). Any other entry is read as a tool name and keeps that tool. Names are
+  case-sensitive, and a name that matches no family and none of the 13 tools keeps nothing, with no
+  warning.
 - A prompt starts a skill when it holds one of these:
   - a slash command that names an installed skill, in any case, at the start of the prompt or after a
     space, quote, backtick or bracket: `/review-pr 123`, ``run `/review-pr` on 123``, `/plugin:skill`;
@@ -138,6 +150,40 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
   for them, for example in an interactive session started without `-p`. Leave out `--lean` for it. No
   run measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
   `task`; with the lean tool set, the same task passed without it.
+
+### MD-1 routing
+
+The prompt patterns are keyword rules, and they miss phrasings such as "have an agent review this
+diff". With `--lean` and `TOKENMASTER_MD1_ENDPOINT` set to a Microsoft Foundry resource that serves
+Microsoft-Decision-1 (MD-1), the launcher also sends the prompt to MD-1 with one yes/no question per
+tool family (`MD1_QUESTIONS`), in one call, and keeps each family whose probability reaches the
+threshold. MD-1 only adds families to what the patterns keep; it never drops one.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `TOKENMASTER_MD1_ENDPOINT` | unset (off) | `https://<resource>.services.ai.azure.com`, with or without `/providers/microsoft/v1/systemone`. Only `https` is used. |
+| `TOKENMASTER_MD1_DEPLOYMENT` | `Decision-1` | The deployment name. |
+| `TOKENMASTER_MD1_API_KEY` | unset | Sent as `api-key`. Without it, the launcher gets an Entra token with `az account get-access-token` and caches it in `<COPILOT_HOME>/token-master/md1-token.json` until 5 minutes before it expires. |
+| `TOKENMASTER_MD1_TENANT` | unset | The resource's tenant, when it is not `az`'s default. |
+| `TOKENMASTER_MD1_THRESHOLD` | `0.5` | The probability at which a family is kept. |
+| `TOKENMASTER_MD1_TIMEOUT` | `3` | Seconds to wait for MD-1. |
+
+- The prompt leaves the machine, to your own resource. MD-1 is off unless you set the endpoint.
+- On any error, a timeout or an answer it cannot read, MD-1 keeps nothing and the patterns alone
+  decide, as without it.
+- In 65 calls, MD-1 answered in 403 ms at the median, 504 ms at the 90th percentile and 670 ms at
+  most. The first launch without a cached token also waits for `az` (about 1.8 s here).
+- On 22 held-out prompts, which were not used to choose the questions or the threshold, the patterns
+  kept 3 of the 13 families the prompts needed; the patterns with MD-1 kept all 13, and kept 4
+  families no prompt needed against the patterns' 2
+  ([evidence/md1-routing-20261108](../../evidence/md1-routing-20261108/md1_routing_eval.json),
+  [evals/md1_routing_eval.py](../evals/md1_routing_eval.py)).
+- With Copilot CLI 1.0.108 and `--lean`, `have an agent review a.py and report any bug in one
+  sentence` got no `task` tool from the patterns, and the model ran `copilot --help` and a nested
+  `copilot -p` to stand in for a subagent; with MD-1 it kept `task` and used the code-review agent.
+- Why not add patterns instead: `proofs/README.md` section 4 proves that a pattern that fires on no
+  prompt outside its family needs a branch for every independent phrasing it covers, while MD-1 keeps
+  one question per family.
 
 ## Resumed sessions
 
@@ -228,7 +274,9 @@ plain launch went from 13 excluded tools to 12 on a resume, and one started with
   Copilot CLI keeps its normal GitHub routing, which has no setting for its API URL. The
   cache-stable system prompt and the bridge's v6 shaping need BYOK mode. Graph navigation and the
   v6 `view` hook still work.
-  No run measured this configuration.
+  Three runs measured this configuration, each against its own stock arm: one on Copilot CLI 1.0.104
+  on October 27, 2026, with the lean tool set then on by default, and two on 1.0.105 on November 1,
+  with and without `--lean` ([Evidence](#evidence)).
 - v6 shaping needs the verified cl100k tokenizer. Without it, the bridge still applies the
   cache-stable system prompt, and it prints a warning.
 - The cache saving needs another session with the same system prompt within the provider's cache
@@ -242,12 +290,30 @@ plain launch went from 13 excluded tools to 12 on a resume, and one started with
   No run isolated the bridge's own effect with `claude-opus-5.5`.
 - Copilot CLI keeps the unshaped results in its own history. The bridge changes only what the
   provider receives.
-- The bridge does not supply credentials for any provider. The measured runs used the GitHub
-  Copilot API through an evaluation relay that added the credential. TokenMaster does not ship
-  that relay.
+- The bridge does not supply credentials for any provider. The measured runs in BYOK mode used the
+  GitHub Copilot API through an evaluation relay that added the credential. That relay is evaluation
+  code (`evals/run_prs5_study.py`), and no installer sets it up. The runs under default routing used
+  Copilot CLI's own GitHub sign-in, with no relay and no bridge.
 
 ## Evidence
 
+- **Default GitHub routing, November 1, 2026**
+  ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md#default-setup-and---lean-on-copilot-cli-10105-november-1-2026)).
+  Copilot CLI 1.0.105, `gpt-6-astra`, Django tasks D01-D15, no relay and no bridge. Each run had its
+  own stock arm, and both arms passed 15/15 in both runs.
+  - With `--lean`: −52.6% raw tokens (95% CI −56.5% to −48.5%), and −54.4% cost re-priced as if every
+    first call missed the cache (95% CI −56.0% to −52.6%).
+  - Without `--lean`, with graph navigation installed: −19.1% raw tokens (95% CI −28.7% to −8.5%), and
+    −13.9% cost re-priced the same way.
+- **Default GitHub routing, October 27, 2026**
+  ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md#default-github-routing-on-copilot-cli-10104-october-27-2026)).
+  Copilot CLI 1.0.104, with the lean tool set then on by default, on the same tasks and model, with no
+  relay and no bridge: −47.4% raw tokens (95% CI −52.8% to −41.7%). Both arms passed 15/15.
+- **PRS-6, a pre-registered study, October 26, 2026**
+  ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md#pre-registered-study-prs-6-on-copilot-cli-1098-october-26-2026)).
+  Copilot CLI 1.0.98 in BYOK mode, through the evaluation relay and the bridge.
+  - This repository, 29 tasks: −49.5% raw tokens with `gpt-6-astra` and −38.0% with `claude-opus-5.5`.
+  - Django tasks D01-D15: −58.5% and −53.7%.
 - **Copilot CLI runs, October 18–22, 2026** ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)).
   These runs are exploratory.
   - Django, 45 "who calls X?" tasks: −53.4% raw tokens with `gpt-6-astra` and −51.6% with

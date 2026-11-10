@@ -9,6 +9,13 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- Opt-in Microsoft-Decision-1 (MD-1) routing for `--lean`: with `TOKENMASTER_MD1_ENDPOINT` set, the launcher asks the
+  user's own MD-1 deployment one yes/no question per tool family and keeps each family it picks, on top of the prompt
+  patterns. It only adds families, so the routing theorems hold unchanged, and on any error the patterns alone decide.
+  On 22 held-out prompts the patterns kept 3 of 13 needed families and the patterns with MD-1 kept 13
+  (`evals/md1_routing_eval.py`, `evidence/md1-routing-20261108`). Off by default; the routing finding stays open.
+- `proofs/TokenMasterProofs/Tuning.lean`: a keyword pattern that fires on no prompt outside its family needs a branch for
+  every independent phrasing it covers (`Tuning.branches_ge_phrasings`).
 - `site/src/`: the sources and build script of the interactive deck. `python site/src/build.py` assembles
   `site/index.html` from `body.html`, `style.css` and `app.js`, and makes the wordmark and the results data from
   `assets/generate_logo.py` and `evidence/*/analysis.json`. It checks the proof slides against `proofs/`: it stops if a
@@ -20,6 +27,17 @@ and the project aims to follow semantic versioning.
 
 - The deck and the README describe the proofs by what they establish and how they are checked, not by how many theorems,
   tests or findings there are. The cover's proof strip no longer carries counts.
+- The docs catch up with `--lean` becoming opt-in, the November 1 runs and MD-1 routing. The README, `SKILL.md`,
+  `MISSION.md`, `COPILOT_BRIDGE.md`, `TOKENOMICS.md`, `COPILOT_CLI_RESULTS.md`, the docs index and the demo script
+  and slide no longer say that every published saving was measured with the lean tool set, or that no run measured
+  the launcher under GitHub's default routing. They give the November 1 runs on Copilot CLI 1.0.105: 52.6% fewer raw
+  tokens with `--lean` and 19.1% without it. `COPILOT_BRIDGE.md` lists the `TOKENMASTER_KEEP_TOOLS` family names,
+  `TOKENOMICS.md` says what the estimate gives for a launch without `--lean`, and the README and the deck name #28 among
+  the pull requests that changed routing and the proofs together. The lean tool set became opt-in on October 31, 2026,
+  not October 30. The MD-1 docs no longer say the 22 held-out prompts were written before the questions were tuned,
+  which `evals/md1_routing_eval.py` contradicts; they say the prompts were not used to choose the questions or the
+  threshold. `proofs/README.md` names the test that checks the tuning bound's independence hypothesis and updates the
+  recorded-session counts to 581 sessions, 96 of which list both cache prices.
 
 ### Fixed
 

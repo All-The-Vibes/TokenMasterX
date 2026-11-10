@@ -74,6 +74,7 @@ def no_installed_assets(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     (tmp_path / ".git").mkdir()  # a repository root: Copilot CLI's skill folders above it are not read
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
+    monkeypatch.delenv("TOKENMASTER_MD1_ENDPOINT", raising=False)  # MD-1 routing is opt-in
 
 
 def test_routing_lists_match_the_lean_model():
@@ -110,8 +111,45 @@ def test_routing_nothing_fires_excludes_all(no_installed_assets):
 
 
 def test_finding_routing_patterns_miss_some_phrasings(no_installed_assets):
-    """Finding 2: Routing.fired_family_kept keeps a family whose trigger fires; this request for an agent fires none."""
+    """Finding 1: Routing.fired_family_kept keeps a family whose trigger fires; this request for an agent fires none."""
     assert "task" in bridge.select_excluded_tools(["copilot", "-p", "have an agent review this diff"])
+
+
+def test_routing_md1_picks_fire_their_families(no_installed_assets, monkeypatch):
+    """Routing.fired_family_kept and Routing.excluded_subset_lean with MD-1 on: `fires` is a pattern or an MD-1 pick, so
+    a picked family is kept, and MD-1 only removes tools from the excluded list, whatever it answers."""
+    rng = random.Random(13)
+    prompts = [*TRIGGERS.values(), "have an agent review this diff", "fix the failing test in parser.py"]
+    for _ in range(200):
+        prompt = rng.choice(prompts)
+        picks = set(rng.sample(sorted(FAMILIES), rng.randint(0, 3)))
+        monkeypatch.setattr(bridge, "md1_families", lambda text: set())
+        without = set(bridge.select_excluded_tools(["copilot", "-p", prompt]))
+        monkeypatch.setattr(bridge, "md1_families", lambda text: picks)
+        excluded = set(bridge.select_excluded_tools(["copilot", "-p", prompt]))
+        assert excluded <= without <= set(LEAN_MODEL)
+        assert not {tool for family in picks for tool in FAMILIES[family]} & excluded, (prompt, picks)
+
+
+def test_tuning_agent_phrasings_are_independent(no_installed_assets):
+    """Tuning.branches_ge_phrasings, its hypothesis on real prompts: in evals/md1_routing_eval.py, these subagent
+    phrasings share no word that a prompt without a need for the subagent tools lacks, so a clean pattern of word
+    branches that covers them has a branch for each. The pattern, which fires on no such prompt, covers few of them."""
+    sys.path.insert(0, str(SKILL.parents[1] / "evals"))
+    import md1_routing_eval as md1_eval
+
+    cases = md1_eval.CASES + md1_eval.HELD_OUT
+    pos = [p for p, need in cases if need == {"agents"}
+           and p not in ("let a reviewer agent take a pass over src/auth", "get a second agent to double-check my migration")]
+    neg = [p.lower() for p, need in cases if "agents" not in need]
+    words = [set(re.findall(r"[a-z0-9-]+", p.lower())) for p in pos]
+    assert len(pos) >= 8
+    for i, j in ((i, j) for i in range(len(pos)) for j in range(i + 1, len(pos))):
+        for word in words[i] & words[j]:
+            assert any(word in n for n in neg), (word, pos[i], pos[j])
+    pattern = bridge.CAPABILITY_GROUPS["agents"][1]
+    assert not any(pattern.search(n) for n in neg)
+    assert sum(bool(pattern.search(p)) for p in pos) < len(pos)
 
 
 def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monkeypatch):

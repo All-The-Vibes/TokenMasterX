@@ -41,7 +41,7 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   call fell from 13,589 to 6,034 input tokens, and Copilot CLI counted 1,945 tokens of tool definitions against
   stock's 7,819. Without `--lean` the request is slightly larger (8,200 tokens of tool definitions) and the saving
   comes from fewer calls (51 → 43) through `tokenmaster-nav`, which all 15 sessions used.
-- Limits: 15 short "who calls X?" lookups of 3 to 4 calls each, one model, one build. The two stock arms, configured
+- Limits: 15 short "who calls X?" lookups of 2 to 4 calls each, one model, one build. The two stock arms, configured
   the same, differed by 8.6% in raw tokens, so the task bootstrap understates session-to-session noise; against the
   other run's stock arm, `--lean` saves 56.7% and the default setup 11.5%.
 
@@ -52,8 +52,9 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   −42.7%)**. As-run cost `$2.30` → **`$1.26` (−45.0%)**. Passed **15/15 stock, 15/15 TokenMaster**.
 - The README's earlier headline figures, up to 58% fewer tokens and up to 54% lower cold-start cost (the top of its 38%
   to 58% and 34% to 54% ranges) with no drop in pass rate, came from PRS-6's relay run on these tasks. Under default
-  routing, 58% and 54% did not hold: the 95% CIs end at 52.8% and 48.2%. The pass-rate claim held, and both results
-  fall inside those ranges. Since November 1 the README quotes the `1.0.105` runs above instead.
+  routing on `1.0.104`, 58% and 54% did not hold: the 95% CIs end at 52.8% and 48.2%. The pass-rate claim held, and
+  both results fall inside those ranges. Since November 1 the README quotes the `1.0.105` runs above instead; with
+  `--lean`, raw tokens fell 52.6% and cold-start cost 54.4%.
 - Compared with PRS-6's relay run on the same tasks and model, stock used the same raw tokens (`708,928` vs
   `707,799`) and TokenMaster used 27% more (`372,621` vs `293,779`). In this run each call carried a larger fixed
   prompt than in PRS-6, in both versions. Stock made fewer calls than in PRS-6 (47 vs 55); TokenMaster made about as
@@ -80,7 +81,7 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
     tasks)**. As-run cost (back to back) `$2.72` → **`$1.63` (−40.1%; 95% CI −48.2% to −32.3%)**.
     Passed **29/29 stock, 29/29 TokenMaster**.
 - **Django 5.2 caller replication (`D01`–`D15`, 15 tasks per model, 60 sessions, `SCHEMA_VERSION = 4` import-alias resolution):**
-  - `brainspace/symbol_index.py` (`SCHEMA_VERSION = 4`) resolves `import a as b` and
+  - `brainspace/symbol_index.py` (`SCHEMA_VERSION = 4` in this run, 5 since PR #14) resolves `import a as b` and
     `from a import b as c` (minus shadowed function parameters), bringing `D01`–`D15` caller recall
     from `54/56` to `56/56` (including `D13`, where `login` is imported as `auth_login`).
   - **`gpt-6-astra` (`D01`–`D15`):** raw tokens `707,799` → **`293,779` (−58.5%; 95% CI −64.4% to
@@ -230,7 +231,7 @@ Details by model:
 
 - **Session start times:** October 26, 2026, 17:34–17:56 UTC (15 tasks per model, 60 sessions).
 - **Import-alias resolution (`SCHEMA_VERSION = 4`):** `brainspace/symbol_index.py`
-  (`SCHEMA_VERSION = 4`) now resolves `import a as b` and `from a import b as c` (minus shadowed
+  (`SCHEMA_VERSION = 4` in this run, 5 since PR #14) now resolves `import a as b` and `from a import b as c` (minus shadowed
   function parameters), so `impact("django/contrib/auth/__init__.py::login")` finds
   `auth_login(...)` callers in `django/contrib/auth/views.py` (`D13`), bringing `D01`–`D15` caller
   recall from `54/56` to `56/56`.
@@ -255,9 +256,10 @@ Details by model:
 
 ## Default GitHub routing on Copilot CLI `1.0.104` (October 27, 2026)
 
-Every other run on this page sent Copilot CLI's requests through the evaluation relay in bring-your-own-model mode.
-This run did not. Copilot CLI signed in with its own stored login and sent every request to GitHub's Copilot API
-itself. Without a provider URL, the TokenMaster launcher added the lean tool set (since October 30 it does so only
+The runs of October 18 to 26 and the relay control below sent Copilot CLI's requests through the evaluation relay in
+bring-your-own-model mode. This run did not, and neither did the two November 1 runs above. Copilot CLI signed in with
+its own stored login and sent every request to GitHub's Copilot API itself. Without a provider URL, the TokenMaster
+launcher added the lean tool set (since October 31 it does so only
 with `--lean`), and `tokenmaster-nav` and the v6 `view` hook loaded. The bridge does not run, so there is no
 cache-stable system prompt and no request shaping.
 
@@ -294,7 +296,7 @@ protocol was written after a probe and a pilot, which the analysis excludes.
 for every prompt. With graphify `0.9.91`, `impact` finds all 56 answer-key callers of D01–D15
 (`impact_recall-0.9.91.json`).
 
-### The README hero numbers under default routing
+### The README hero numbers of October 27 under default routing
 
 `PROTOCOL.md` fixed the rule before the sessions: a hero number holds if the 95% CI of the reduction reaches it.
 
@@ -305,7 +307,9 @@ for every prompt. With graphify `0.9.91`, `impact` finds all 56 answer-key calle
 | No drop in pass rate | 15/15 stock, 15/15 TokenMaster | Yes |
 
 TokenMaster used 52.6% of stock's raw tokens and 54.6% of its cold-repriced cost, close to half of each. The 58% and
-54% figures are relay-mode results.
+54% figures of that README were relay-mode results. This check tested them on `1.0.104`; since November 1 the README
+quotes the `1.0.105` runs, where `--lean` cut raw tokens by 52.6% and cold-repriced cost by 54.4% under default
+routing ([Default setup and `--lean`](#default-setup-and---lean-on-copilot-cli-10105-november-1-2026)).
 
 ### Compared with the relay run (PRS-6, same tasks and model)
 
@@ -384,8 +388,9 @@ Between runs, resampling the 15 tasks 10,000 times:
   sends two tool definitions that `1.0.98-2` does not, `run_dynamic_workflow` and `dynamic_workflows_manage`: 2,041
   cl100k tokens on every call as Copilot CLI sends them (about 1,840 GitHub tokens; an earlier count of 2,210 used
   JSON re-serialized with spaces), about a quarter of TokenMaster's first call and a seventh of
-  stock's. TokenMaster's lean tool set removed neither in these runs (it removes both since this run, not yet
-  measured live). PRS-6's requests carried 16 tools in stock and 8 in
+  stock's. TokenMaster's lean tool set removed neither in these runs (it removes both since this run, and only with
+  `--lean` since October 31; the November 1 `--lean` run measured that set under default routing on `1.0.105`, but no
+  relay run has measured it). PRS-6's requests carried 16 tools in stock and 8 in
   TokenMaster, the control's 18 and 10. Under default routing, though, `1.0.98-2` already listed both tools (this
   run's pilot, in Copilot CLI's event log; the tool lists are in the control's `SETUP_OBSERVATIONS.md`, section 3), and
   D01's first stock call differed by 65 tokens between the two builds (13,519 vs 13,584). In relay mode, Copilot CLI
@@ -558,6 +563,10 @@ A probe on October 23 sent one short prompt per model, version and tool set
 
 | Cost, full TokenMaster vs stock (95% CI) | `gpt-6-astra` | `claude-opus-5.5` |
 | --- | ---: | ---: |
+| Default routing (`1.0.105`), `--lean`, Django 15 tasks (`D01`–`D15`), as run | −47.3% (−49.4%, −44.9%) | not run |
+| Default routing (`1.0.105`), `--lean`, Django 15 tasks (`D01`–`D15`), every first call cold | −54.4% (−56.0%, −52.6%) | not run |
+| Default routing (`1.0.105`), no flags, Django 15 tasks (`D01`–`D15`), as run | −24.4% (−35.5%, −8.5%) | not run |
+| Default routing (`1.0.105`), no flags, Django 15 tasks (`D01`–`D15`), every first call cold | −13.9% (−17.1%, −10.6%) | not run |
 | Default routing (`1.0.104`), Django 15 tasks (`D01`–`D15`), as run | −45.0% (−49.4%, −40.5%) | not run |
 | Default routing (`1.0.104`), Django 15 tasks (`D01`–`D15`), every first call cold | −45.4% (−48.2%, −42.7%) | not run |
 | PRS-6 (`1.0.98`), repository 29 tasks, as run | −50.2% (−59.6%, −42.0%) | −40.1% (−48.2%, −32.3%) |
@@ -667,14 +676,15 @@ Evidence: `evidence/copilot-lean-{astra,opus}-{a,b}-20261019/`. Commit `c5681a7`
 - **Fixed overhead dominates.** Copilot CLI re-sends its system prompt and tool definitions on
   every model call. In the Django run, a stock first call sent 13,605 (`gpt-6-astra`) and
   20,871 (`claude-opus-5.5`) input tokens (medians).
-- **The lean tool set removes 11 built-in tools.** No session called them in the October 18 runs,
+- **The lean tool set removes auxiliary built-in tools.** No session called them in the October 18 runs,
   from which the list was chosen. Their definitions and the system-prompt text about them leave
   every call. One later stock session called `task` (P13, above). The 11 tools are
   `session_store_sql`, `task`, `read_agent`, `write_agent`, `list_agents`, `skill`, `sql`,
   `read_powershell`, `stop_powershell`, `list_powershell` and `fetch_copilot_cli_documentation`.
-  Every run on this page used these 11. After the relay control, the launcher also removes the
-  two workflow tools (`run_dynamic_workflow`, `dynamic_workflows_manage`); no live run has
-  measured that yet.
+  Every TokenMaster arm from October 19 to October 27 removed these 11. After the relay control, the launcher also
+  removes the two workflow tools (`run_dynamic_workflow`, `dynamic_workflows_manage`), 13 tools in all, and since
+  October 31 only with `--lean`. The November 1 `--lean` run removed all 13; the November 1 default-setup run removed
+  none.
   - A probe ran one lookup task per model on October 19. The tools sent fell from 16 to 5
     (`gpt-6-astra`) and from 17 to 6 (`claude-opus-5.5`).
   - The system prompt fell from 7,216 to 5,117 cl100k tokens (`gpt-6-astra`) and from 5,931 to
@@ -753,23 +763,31 @@ tokens. Their costs are as run, with sessions back to back.
   before any study call ([PRS6_PROTOCOL.md](PRS6_PROTOCOL.md), commit `19443fc`). The October 18–22
   runs on `1.0.78-3` were exploratory: no protocol was pre-registered, though the tasks were
   committed before each run except the first 10-task Django run (D01–D10, superseded; `dd1f38a`).
+  The October 27 and November 1 runs were exploratory too: each committed or hashed its protocol and
+  decision rule before its sessions.
   The task types and the excluded tools were chosen by the team that builds TokenMaster.
 - **Scope.** 1 run per task, 2 repositories and 2 models. The Django runs have one task type,
   "who calls X?". The runs on this repository have 27 (`1.0.78-3`) or 29 (`1.0.98`) tasks.
 - **Copilot CLI version.** The October 18–22 runs used `1.0.78-3`; PRS-6 on October 26 used
-  `1.0.98`. Copilot CLI `1.0.98` sends a smaller fixed prompt, and its stock first call can read
+  `1.0.98`; the two October 27 runs used `1.0.104`; the two November 1 runs, which the README hero
+  quotes, used `1.0.105`. Copilot CLI `1.0.98` sends a smaller fixed prompt, and its stock first call can read
   part of the prompt from the cache when another session ran shortly before
   ([Copilot CLI version](#copilot-cli-version)).
 - **Cost depends on timing.** The as-run costs come from back-to-back sessions. See
   [How to read the cost numbers](#how-to-read-the-cost-numbers).
-- **Excluded tools.** The 11 tools were chosen because no session called them in the October 18
-  runs. On October 19, one stock session (P13) called `task`. Workloads that need subagents
-  (`task`), skills, session-store search, SQL or background PowerShell lose these tools.
-  Since October 30 the launcher removes them only with `--lean`. Such workloads were not measured.
-- **Routing.** All runs except the October 27 default-routing run used bring-your-own-model mode
-  through a relay, including the October 27 relay control. The default-routing run used Copilot
-  CLI's default GitHub routing on Django D01–D15 with `gpt-6-astra` only. The repository tasks and
-  `claude-opus-5.5` were not measured with default routing.
+- **Excluded tools.** With `--lean` the launcher removes 13 tools: the 11 that no session called in
+  the October 18 runs, and the two workflow tools, which none of the 60 sessions of October 27
+  called. On October 19, one stock session (P13) called `task`. The launcher keeps a family when the
+  prompt given with `-p` or `-i`, a flag such as `--agent` or `--resume`, an installed skill or agent
+  that the prompt names, `TOKENMASTER_KEEP_TOOLS` or the opt-in MD-1 router asks for it. Its keyword
+  rules miss some phrasings, and an interactive session started without a prompt keeps only what its
+  flags and `TOKENMASTER_KEEP_TOOLS` keep, so workloads that need subagents (`task`), agent
+  workflows, skills, session-store search, SQL or background PowerShell can lose these tools.
+  Since October 31 the launcher removes them only with `--lean`. Such workloads were not measured.
+- **Routing.** All runs except the October 27 default-routing run and the two November 1 runs used
+  bring-your-own-model mode through a relay, including the October 27 relay control. Those three
+  runs used Copilot CLI's default GitHub routing on Django D01–D15 with `gpt-6-astra` only. The
+  repository tasks and `claude-opus-5.5` were not measured with default routing.
 - **Sandbox location.** Copilot CLI loaded `CLAUDE.md` and skills from the operator's profile
   folder when a lane's path was written in its 8.3 form, which is how the October 19–26 runs
   recorded their lanes under `%TEMP%`. PRS-6's stock first calls (October 26) are within 2.5% of a
@@ -785,7 +803,9 @@ tokens. Their costs are as run, with sessions back to back.
 ## Reproduce
 
 ```powershell
-$env:BRAINSPACE_TOKENIZER_FILE = "evidence/controlled-scorecard-20261008/batch-001/cl100k_base.tiktoken"
+# Live runs only: a verified cl100k_base.tiktoken (README, Quickstart step 2). The harnesses' default path under
+# evidence/controlled-scorecard-20261008/ is not in the repository; the audit and analysis scripts do not read the file.
+$env:BRAINSPACE_TOKENIZER_FILE = "<path to cl100k_base.tiktoken>"
 $py = ".\.token-master-dev\Scripts\python.exe"
 
 # PRS-6 (Copilot CLI 1.0.98, October 26): recount captures, verify 1.0.98 version and nano_aiu, and compute CIs / Wilcoxon / Holm p.
