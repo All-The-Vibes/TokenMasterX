@@ -139,6 +139,40 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
   run measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
   `task`; with the lean tool set, the same task passed without it.
 
+### MD-1 routing
+
+The prompt patterns are keyword rules, and they miss phrasings such as "have an agent review this
+diff". With `--lean` and `TOKENMASTER_MD1_ENDPOINT` set to a Microsoft Foundry resource that serves
+Microsoft-Decision-1 (MD-1), the launcher also sends the prompt to MD-1 with one yes/no question per
+tool family (`MD1_QUESTIONS`), in one call, and keeps each family whose probability reaches the
+threshold. MD-1 only adds families to what the patterns keep; it never drops one.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `TOKENMASTER_MD1_ENDPOINT` | unset (off) | `https://<resource>.services.ai.azure.com`, with or without `/providers/microsoft/v1/systemone`. Only `https` is used. |
+| `TOKENMASTER_MD1_DEPLOYMENT` | `Decision-1` | The deployment name. |
+| `TOKENMASTER_MD1_API_KEY` | unset | Sent as `api-key`. Without it, the launcher gets an Entra token with `az account get-access-token` and caches it in `<COPILOT_HOME>/token-master/md1-token.json` until 5 minutes before it expires. |
+| `TOKENMASTER_MD1_TENANT` | unset | The resource's tenant, when it is not `az`'s default. |
+| `TOKENMASTER_MD1_THRESHOLD` | `0.5` | The probability at which a family is kept. |
+| `TOKENMASTER_MD1_TIMEOUT` | `3` | Seconds to wait for MD-1. |
+
+- The prompt leaves the machine, to your own resource. MD-1 is off unless you set the endpoint.
+- On any error, a timeout or an answer it cannot read, MD-1 keeps nothing and the patterns alone
+  decide, as without it.
+- In 65 calls, MD-1 answered in 403 ms at the median, 504 ms at the 90th percentile and 670 ms at
+  most. The first launch without a cached token also waits for `az` (about 1.8 s here).
+- On 22 held-out prompts written before the questions were tuned, the patterns kept 3 of the 13
+  families the prompts needed; the patterns with MD-1 kept all 13, and kept 4 families no prompt
+  needed against the patterns' 2
+  ([evidence/md1-routing-20261108](../../evidence/md1-routing-20261108/md1_routing_eval.json),
+  [evals/md1_routing_eval.py](../evals/md1_routing_eval.py)).
+- With Copilot CLI 1.0.108 and `--lean`, `have an agent review a.py and report any bug in one
+  sentence` got no `task` tool from the patterns, and the model ran `copilot --help` and a nested
+  `copilot -p` to stand in for a subagent; with MD-1 it kept `task` and used the code-review agent.
+- Why not add patterns instead: `proofs/README.md` section 4 proves that a pattern that fires on no
+  prompt outside its family needs a branch for every independent phrasing it covers, while MD-1 keeps
+  one question per family.
+
 ## Resumed sessions
 
 A resumed session sends its whole history again, with the tool list of the new launch. In probes

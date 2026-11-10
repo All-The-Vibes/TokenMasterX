@@ -9,6 +9,14 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- Opt-in Microsoft-Decision-1 (MD-1) routing for `--lean`: with `TOKENMASTER_MD1_ENDPOINT` set, the launcher asks the
+  user's own MD-1 deployment one yes/no question per tool family and keeps each family it picks, on top of the prompt
+  patterns. It only adds families, so the routing theorems hold unchanged, and on any error the patterns alone decide.
+  On 22 held-out prompts the patterns kept 3 of 13 needed families and the patterns with MD-1 kept 13
+  (`evals/md1_routing_eval.py`, `evidence/md1-routing-20261108`). Off by default; finding 2 stays open.
+- `proofs/TokenMasterProofs/Tuning.lean`: a keyword pattern that fires on no prompt outside its family needs a branch for
+  every independent phrasing it covers (`Tuning.branches_ge_phrasings`).
+
 - `site/src/`: the sources and build script of the interactive deck. `python site/src/build.py` assembles
   `site/index.html` from `body.html`, `style.css` and `app.js`, and makes the wordmark and the results data from
   `assets/generate_logo.py` and `evidence/*/analysis.json`. It checks the proof slides against `proofs/`: it stops if a

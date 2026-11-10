@@ -120,6 +120,114 @@ _AGENT_COMMANDS = ("fleet", "review", "security-review", "research")
 # In the probes, Copilot CLI 1.0.105 started each launch's session within 9 s of it, and its session store keeps that
 # start time even when the session's first message comes minutes later.
 STARTUP = timedelta(minutes=2)
+# Microsoft-Decision-1 (MD-1), opt-in with TOKENMASTER_MD1_ENDPOINT: one yes/no ("noul") question a family, asked of the
+# prompt in a single call. A family whose probability reaches TOKENMASTER_MD1_THRESHOLD fires as its pattern would, so
+# MD-1 only adds to `keep`; any error, timeout or unreadable answer adds nothing and the regex routing stands alone.
+MD1_QUESTIONS = {
+    "session_history": {
+        "instructions": "Does the user want to look up, search or reuse earlier Copilot CLI sessions or past "
+                        "conversations with the assistant?",
+        "criteria": {"true": "refers to an earlier session, conversation or chat with the assistant, or to what the "
+                             "user did in Copilot before",
+                     "false": "about code, files, git history or the app's own sessions"}},
+    "agents": {
+        "instructions": "Does the user want some of the work handed to another AI agent: a subagent, a reviewer or "
+                        "helper agent, or several agents working in parallel?",
+        "criteria": {"true": "asks for another agent or parallel workers to do part of the task",
+                     "false": "asks the assistant itself to do the work, or only mentions the word agent in code"}},
+    "skills": {
+        "instructions": "Does the user ask to use a skill: a named, installed skill or plugin skill?",
+        "criteria": {"true": "names a skill to use", "false": "no skill is named"}},
+    "sql": {
+        "instructions": "Does the user want to run SQL queries, or keep a todo list or scratch table in a SQL "
+                        "database?",
+        "criteria": {"true": "asks to query or store data in a SQL database or table",
+                     "false": "code search, code edits or questions about the code, even ones about SQL"}},
+    "background_shell": {
+        "instructions": "Does the user want a long-running process such as a server, watcher or job started in the "
+                        "background, then checked on or stopped later?",
+        "criteria": {"true": "a process must keep running while other work happens",
+                     "false": "commands that finish on their own, such as tests or builds"}},
+    "copilot_docs": {
+        "instructions": "Does the user ask about GitHub Copilot CLI itself: its commands, flags, settings, "
+                        "keybindings or documentation?",
+        "criteria": {"true": "asks how Copilot CLI, the assistant's own command-line tool, works or is configured",
+                     "false": "about the user's own code, config files, settings or application"}},
+    "workflows": {
+        "instructions": "Does the user ask to run, create or edit an agent workflow: a named, reusable multi-agent "
+                        "orchestration?",
+        "criteria": {"true": "names a workflow or asks to write an orchestration",
+                     "false": "asks for an agent or subagent, or for parallel work, without a workflow"}},
+}
+_MD1_PATH = "/providers/microsoft/v1/systemone"
+_MD1_SCOPE = "https://cognitiveservices.azure.com"
+MD1_THRESHOLD = 0.5
+
+
+def _md1_token(budget: float) -> str | None:
+    """An Entra access token for MD-1: from <COPILOT_HOME>/token-master/md1-token.json while it has 5 minutes left,
+    else from `az account get-access-token` (about 1.8 s), which is then cached there. None without one."""
+    cache = launch_registry().parent / "md1-token.json"
+    tenant = os.environ.get("TOKENMASTER_MD1_TENANT", "").strip()
+    try:
+        saved = json.loads(cache.read_text(encoding="utf-8"))
+        if saved.get("tenant") == tenant and saved.get("expires_on", 0) - time.time() > 300:
+            return saved["token"]
+    except (OSError, ValueError, KeyError, AttributeError, TypeError):
+        pass
+    az = shutil.which("az")
+    if not az:
+        return None
+    args = [az, "account", "get-access-token", "--resource", _MD1_SCOPE, "--query", "[accessToken, expires_on]",
+            "-o", "json", *(["--tenant", tenant] if tenant else [])]
+    try:
+        token, expires = json.loads(subprocess.run(args, capture_output=True, text=True, timeout=budget,
+                                                   check=True).stdout)
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps({"tenant": tenant, "token": token, "expires_on": int(expires)}), encoding="utf-8")
+        return token
+    except (OSError, ValueError, TypeError, subprocess.SubprocessError):
+        return None
+
+
+def md1_scores(prompt: str) -> dict[str, float]:
+    """MD-1's probability that the prompt needs each family, or {}: unset, a non-https endpoint, no credential, an
+    error, a timeout (TOKENMASTER_MD1_TIMEOUT, 3 s) or an answer it cannot read."""
+    endpoint = os.environ.get("TOKENMASTER_MD1_ENDPOINT", "").strip().rstrip("/")
+    if not endpoint or not prompt.strip() or urlsplit(endpoint).scheme != "https":
+        return {}
+    try:
+        timeout = float(os.environ.get("TOKENMASTER_MD1_TIMEOUT") or 3)
+    except ValueError:
+        return {}
+    key = os.environ.get("TOKENMASTER_MD1_API_KEY", "").strip()
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["api-key"] = key
+    elif token := _md1_token(max(timeout, 10)):  # once an hour: the cached token covers the launches between
+        headers["Authorization"] = f"Bearer {token}"
+    else:
+        return {}
+    body = {"model": os.environ.get("TOKENMASTER_MD1_DEPLOYMENT", "").strip() or "Decision-1", "state": prompt,
+            "questions": {family: {"type": "noul", **question} for family, question in MD1_QUESTIONS.items()}}
+    url = endpoint if endpoint.endswith(_MD1_PATH) else endpoint + _MD1_PATH
+    request = urllib.request.Request(url, data=json.dumps(body).encode(), headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            answers = json.loads(response.read()).get("answers", {})
+        return {family: float(answers[family]["noul"]) for family in MD1_QUESTIONS
+                if isinstance(answers.get(family), dict) and "noul" in answers[family]}
+    except Exception:  # noqa: BLE001 - MD-1 only adds tools; never stop or fail a launch over it
+        return {}
+
+
+def md1_families(prompt: str) -> set[str]:
+    """The families whose MD-1 probability reaches TOKENMASTER_MD1_THRESHOLD; none when MD-1 is off or fails."""
+    try:
+        threshold = float(os.environ.get("TOKENMASTER_MD1_THRESHOLD") or MD1_THRESHOLD)
+    except ValueError:
+        threshold = MD1_THRESHOLD
+    return {family for family, chance in md1_scores(prompt).items() if chance >= threshold}
 
 
 def _flag_values(command: list[str], *flags: str) -> list[str]:
@@ -216,6 +324,8 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
         for family, (tools, pattern) in CAPABILITY_GROUPS.items():
             if pattern.search(named_text if family == "skills" else prompt_text):
                 keep.update(tools)
+        for family in md1_families(prompt_text):  # opt-in; only ever adds families
+            keep.update(CAPABILITY_GROUPS[family][0])
         named = _NAMED.findall(named_text)
         wanted = {match.group(1) for match in _SLASH.finditer(named_text)} | {n for verb, n in named if verb != "ask"}
         if wanted:

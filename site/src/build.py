@@ -157,8 +157,12 @@ CLAIMS = [
          tests=['test_fold_paths_round_trip', 'test_fold_search_round_trip', 'test_fold_search_refuses_entry_like_copied_lines']),
     dict(text="Routing keeps every family whose trigger fires",
          lean=['Routing.fired_family_kept', 'Routing.excluded_subset_lean', 'Routing.default_excludes_nothing'],
-         holds="Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by a test. The triggers are keyword rules and miss some phrasings: \"have an agent review this diff\" drops `task`.",
-         tests=['test_routing_default_sends_every_tool', 'test_routing_lists_match_the_lean_model', 'test_routing_fired_families_are_kept'], flag='open finding'),
+         holds="Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by a test. The triggers are keyword rules and miss some phrasings: \"have an agent review this diff\" drops `task`. The opt-in MD-1 router only adds triggers, so the proofs hold with it.",
+         tests=['test_routing_default_sends_every_tool', 'test_routing_lists_match_the_lean_model', 'test_routing_fired_families_are_kept', 'test_routing_md1_picks_fire_their_families'], flag='open finding'),
+    dict(text="A clean keyword pattern needs a branch for every independent phrasing",
+         lean=['Tuning.branches_ge_phrasings', 'Tuning.new_phrasing_needs_a_branch'],
+         holds="For any branch matcher, a pattern that fires on no prompt outside its family. The phrasings are independent when any branch that matches two of them also matches such a prompt; a test checks this for word branches on eight subagent phrasings. MD-1 asks one question per family; its recall is measured, not proved.",
+         tests=['test_tuning_agent_phrasings_are_independent']),
     dict(text="A recorded --lean resume keeps its session's tool list",
          lean=['Routing.resume_same_list', 'Routing.resume_chain_keeps_first_list'],
          holds="Proved for the model, when the resume's `TOKENMASTER_KEEP_TOOLS` adds no tool. Which session record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, and a resume without `--lean` sends every tool.",
@@ -185,7 +189,7 @@ FIXED = [
 ]
 OPEN = [
     "A lone surrogate in a tool output makes the token counter raise, which fails that bridge call and every later call that resends the output.",
-    "The routing triggers miss some phrasings: \"have an agent review this diff\" drops `task`.",
+    "The routing triggers miss some phrasings: \"have an agent review this diff\" drops `task`, unless the opt-in MD-1 router is on.",
     "Whitespace around the session folder path is not recovered after the move.",
 ]
 

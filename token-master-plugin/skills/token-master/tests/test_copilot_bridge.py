@@ -28,6 +28,14 @@ BIG = "\n".join(f"def function_{i}():\n    return {i}" for i in range(3000))  # 
 OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
+@pytest.fixture(autouse=True)
+def no_md1(monkeypatch):
+    """MD-1 routing is opt-in: no test calls out to it unless it sets TOKENMASTER_MD1_ENDPOINT itself."""
+    for name in ("TOKENMASTER_MD1_ENDPOINT", "TOKENMASTER_MD1_API_KEY", "TOKENMASTER_MD1_THRESHOLD",
+                 "TOKENMASTER_MD1_TIMEOUT", "TOKENMASTER_MD1_DEPLOYMENT", "TOKENMASTER_MD1_TENANT"):
+        monkeypatch.delenv(name, raising=False)
+
+
 def count(text):  # deterministic stand-in for the pinned tokenizer
     return len(text) // 4
 
@@ -330,6 +338,103 @@ def test_lean_command_drops_the_workflow_tools_unless_a_workflow_is_asked_for(mo
         assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", prompt])), prompt
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "workflows")
     assert not workflow_tools & set(bridge_module.lean_command(["copilot", "-p", "hi"]))
+
+
+class FakeMD1:
+    """Stands in for urllib.request.urlopen on the MD-1 endpoint: records each request and answers with `scores`."""
+
+    def __init__(self, scores=None, error=None, raw=None):
+        self.scores, self.error, self.raw, self.requests = scores or {}, error, raw, []
+
+    def __call__(self, request, timeout):
+        self.requests.append((request, timeout))
+        if self.error:
+            raise self.error
+        payload = self.raw if self.raw is not None else json.dumps(
+            {"model": "microsoft-decision-1", "answers": {f: {"noul": p, "type": "noul"} for f, p in self.scores.items()}})
+        response = type("Response", (), {"read": lambda _: payload.encode(), "__enter__": lambda s: s,
+                                         "__exit__": lambda *_: False})
+        return response()
+
+
+def md1_on(monkeypatch, tmp_path, fake):
+    monkeypatch.setenv("COPILOT_HOME", str(tmp_path))
+    monkeypatch.setenv("TOKENMASTER_MD1_ENDPOINT", "https://md1.example.services.ai.azure.com")
+    monkeypatch.setenv("TOKENMASTER_MD1_API_KEY", "key")
+    monkeypatch.setattr(bridge_module.urllib.request, "urlopen", fake)
+    return fake
+
+
+def excluded_for(prompt):
+    lean = bridge_module.lean_command(["copilot", "-p", prompt])
+    return set(lean[lean.index("--excluded-tools") + 1:]) if "--excluded-tools" in lean else set()
+
+
+def test_md1_keeps_the_families_it_picks_on_top_of_the_patterns(monkeypatch, tmp_path):
+    agents = {"task", "read_agent", "write_agent", "list_agents"}
+    assert agents <= excluded_for("have an agent review this diff")  # finding 2, regex only
+    fake = md1_on(monkeypatch, tmp_path, FakeMD1({"agents": 0.89, "sql": 0.49, "skills": 0.2}))
+    excluded = excluded_for("have an agent review this diff")
+    assert not agents & excluded and {"sql", "skill"} <= excluded  # below TOKENMASTER_MD1_THRESHOLD (0.5) adds nothing
+    request, timeout = fake.requests[0]
+    body = json.loads(request.data)
+    assert request.full_url == "https://md1.example.services.ai.azure.com/providers/microsoft/v1/systemone"
+    assert request.get_header("Api-key") == "key" and timeout == 3
+    assert body["model"] == "Decision-1" and body["state"] == "have an agent review this diff"
+    assert set(body["questions"]) == set(bridge_module.CAPABILITY_GROUPS)
+    assert all(q["type"] == "noul" and q["instructions"] for q in body["questions"].values())
+    fake.scores = {}  # MD-1 only adds: what a pattern keeps stays kept when MD-1 picks nothing
+    assert not {"read_powershell", "stop_powershell", "list_powershell"} & excluded_for(
+        "start the server in the background")
+    monkeypatch.setenv("TOKENMASTER_MD1_THRESHOLD", "0.4")
+    fake.scores = {"sql": 0.49}
+    assert "sql" not in excluded_for("count the rows")
+    calls = len(fake.requests)
+    assert bridge_module.lean_command(["copilot"])[-13:] == list(bridge_module.LEAN_EXCLUDED_TOOLS)
+    assert len(fake.requests) == calls  # no prompt, no call
+
+
+@pytest.mark.parametrize("fake", [FakeMD1(error=urllib.error.URLError("down")), FakeMD1(error=TimeoutError()),
+                                  FakeMD1(raw="not json"), FakeMD1(raw='{"answers": {"agents": {"noul": "x"}}}'),
+                                  FakeMD1(raw='{"answers": []}')])
+def test_md1_fails_open_to_the_patterns(monkeypatch, tmp_path, fake):
+    md1_on(monkeypatch, tmp_path, fake)
+    assert excluded_for("have an agent review this diff") == set(bridge_module.LEAN_EXCLUDED_TOOLS)
+    assert fake.requests
+
+
+def test_md1_sends_nothing_unless_configured_over_https(monkeypatch, tmp_path):
+    fake = md1_on(monkeypatch, tmp_path, FakeMD1({"agents": 1.0}))
+    monkeypatch.setenv("TOKENMASTER_MD1_ENDPOINT", "http://md1.example.com")
+    assert "task" in excluded_for("have an agent review this diff")
+    monkeypatch.delenv("TOKENMASTER_MD1_ENDPOINT")
+    assert "task" in excluded_for("have an agent review this diff")
+    assert not fake.requests
+
+
+def test_md1_entra_token_is_cached_until_five_minutes_before_it_expires(monkeypatch, tmp_path):
+    fake = md1_on(monkeypatch, tmp_path, FakeMD1({"agents": 1.0}))
+    monkeypatch.delenv("TOKENMASTER_MD1_API_KEY")
+    monkeypatch.setenv("TOKENMASTER_MD1_TENANT", "t1")
+    runs = []
+
+    def az(args, **kwargs):
+        runs.append(args)
+        return subprocess.CompletedProcess(args, 0, json.dumps([f"token{len(runs)}", int(time.time()) + 3600]), "")
+
+    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: "az")
+    monkeypatch.setattr(bridge_module.subprocess, "run", az)
+    for _ in range(2):
+        assert "task" not in excluded_for("have an agent review this diff")
+    assert len(runs) == 1 and runs[0][-2:] == ["--tenant", "t1"]
+    assert [r.get_header("Authorization") for r, _ in fake.requests] == ["Bearer token1"] * 2
+    cache = tmp_path / "token-master" / "md1-token.json"
+    cache.write_text(json.dumps({"tenant": "t1", "token": "old", "expires_on": int(time.time()) + 200}))
+    excluded_for("have an agent review this diff")
+    assert len(runs) == 2 and fake.requests[-1][0].get_header("Authorization") == "Bearer token2"
+    monkeypatch.setattr(bridge_module.shutil, "which", lambda name: None)  # no az, no cached token: no call
+    cache.unlink()
+    assert "task" in excluded_for("have an agent review this diff") and len(fake.requests) == 3
 
 
 def test_a_prompt_that_starts_a_skill_keeps_the_subagent_tools(monkeypatch, tmp_path):
