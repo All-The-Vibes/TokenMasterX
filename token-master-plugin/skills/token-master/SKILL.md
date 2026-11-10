@@ -115,9 +115,15 @@ with `<runtime-python> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py 
 in bring-your-own-model mode its v6 shaping needs the runtime's `tiktoken`.
 By default the launcher sends every built-in tool. With `--lean` before `--`, it excludes 13
 built-in tools: 11 that no session called in the October 18 runs, and two workflow tools that
-none of the October 27 sessions called. A prompt that asks for one of these tool families keeps
-it, and a prompt that starts a skill also keeps the workflow and subagent tools. The published
-savings were measured with `--lean`. In bring-your-own-model mode, the
+none of the October 27 sessions called. A prompt given at launch with `-p` or `-i` that asks for
+one of these tool families keeps it, and a prompt that starts a skill also keeps the workflow and
+subagent tools. Prompts typed later in an interactive session keep nothing: before launching, set
+`TOKENMASTER_KEEP_TOOLS` to the families to keep, for example `agents,sql`, or leave out `--lean`.
+With `TOKENMASTER_MD1_ENDPOINT` set, `--lean` also sends the launch prompt to the user's own
+Microsoft-Decision-1 deployment to ask which families it needs; it only adds families and is off
+by default. The headline saving, about half the tokens, was measured with `--lean`. Without it,
+with navigation and the `view` hook installed, a November 1 run used 19% fewer raw tokens than
+stock Copilot CLI (95% CI 9 to 29%). In bring-your-own-model mode, the
 launcher also runs a local bridge
 that applies the cache-stable system prompt and v6 shaping. See
 `docs/COPILOT_BRIDGE.md` and `docs/COPILOT_CLI_RESULTS.md` for the measured effect

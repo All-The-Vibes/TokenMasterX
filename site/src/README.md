@@ -39,7 +39,7 @@ After you change `proofs/` or `test_proof_conformance.py`, run `python site/src/
 The checks need Playwright and Chromium: `pip install playwright`, then `playwright install chromium`. They serve `site/` on a free local port, or test a URL if you pass one.
 
 ```bash
-python site/src/checks/deck_test.py             # keyboard, hover and pin, controls, copy, layout at seven sizes, reduced motion, no JavaScript, no outside requests
+python site/src/checks/deck_test.py             # keyboard, hover and pin, controls, copy, layout at seven sizes, reduced motion, no JavaScript, no outside requests, the link-preview tags and card
 python site/src/checks/swipe_test.py            # touch swipes
 python site/src/checks/axe_run.py               # axe-core on every slide (first run `npm install axe-core --no-save --no-package-lock` in site/src/checks)
 python site/src/checks/deck_test.py https://all-the-vibes.github.io/TokenMasterX/   # the live page

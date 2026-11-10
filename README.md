@@ -58,7 +58,7 @@ Once `/token-master` has configured your host (or after running `brainspace_setu
 
 - **Normal GitHub sign-in:** **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook** and **`/tokenomics`** work in any Copilot CLI session once installed; the launcher adds **Dynamic Tool Routing** (`--excluded-tools`) with `--lean`.
 - **BYOK mode (`COPILOT_PROVIDER_BASE_URL` set):** Also activates the local **prompt-cache bridge** (`stable_session_prefix` + wire-level `rg`/`glob` shaping).
-- **Lean tool set is opt-in:** By default the launcher sends every built-in Copilot CLI tool. Add `--lean` before `--` to remove 13 auxiliary tool definitions unless the prompt asks for their family. The published savings were measured with the lean tool set on, so they apply with `--lean`. With it, `TOKENMASTER_KEEP_TOOLS=agents,sql` keeps tool families. `--all-tools` is still accepted and changes nothing.
+- **Lean tool set is opt-in:** By default the launcher sends every built-in Copilot CLI tool. Add `--lean` before `--` to remove 13 auxiliary tool definitions unless the prompt asks for their family. The about-half savings were measured with `--lean`; without it, the November 1 run measured 19% fewer tokens (95% CI 9 to 29%). With it, `TOKENMASTER_KEEP_TOOLS=agents,sql` keeps tool families. `--all-tools` is still accepted and changes nothing.
 
 ## Uninstall
 
@@ -66,7 +66,7 @@ Remove TokenMaster's Copilot configuration before you remove the plugin, because
 
 1. In Copilot CLI, type **`/token-master uninstall`**. It runs `setup.py --host copilot --uninstall` and `brainspace_setup.py --host copilot --uninstall`, which remove only what TokenMaster added: `tokenmaster-nav`, its agent, the `view` hook, and `/tokenomics`.
 2. Run `copilot plugin uninstall token-master@token-master`, then `copilot plugin marketplace remove token-master`. If you installed with the older direct command, run `copilot plugin uninstall token-master` instead.
-3. Optional, with Copilot closed: delete `$HOME\.copilot\token-master` (launcher and launch log) and `$HOME\.copilot\token-master-runtime`. Also delete the `*.token-master-backup-*` and `*.token-master-owned.json` files that uninstall leaves next to `mcp-config.json`, `settings.json` and `agents\token-master.agent.md`; the backups are full copies of those files, including other servers' settings. In each indexed repository, delete `.token-master` and its `.gitignore` line, and `graphify-out` with its line unless you use Graphify on its own.
+3. Optional, with Copilot closed: delete `$HOME\.copilot\token-master` (the launcher, its launch log and, if you used MD-1 routing without an API key, `md1-token.json`, a cached Entra access token) and `$HOME\.copilot\token-master-runtime`. Also delete the `*.token-master-backup-*` and `*.token-master-owned.json` files that uninstall leaves next to `mcp-config.json`, `settings.json` and `agents\token-master.agent.md`; the backups are full copies of those files, including other servers' settings. In each indexed repository, delete `.token-master` and its `.gitignore` line, and `graphify-out` with its line unless you use Graphify on its own.
 
 If you already uninstalled the plugin, install it again, run step 1, then uninstall it.
 
@@ -74,8 +74,8 @@ If you already uninstalled the plugin, install it again, run step 1, then uninst
 
 ## How It Works
 
-1. **Dynamic Tool Routing (`brainspace_copilot_bridge.py --lean`)** — Opt-in. Stock Copilot CLI sends JSON schemas for SQL scratchpads, session-store SQL, background job managers, subagents, agent workflows, skills, and CLI docs on every turn (~5,500 to ~11,500 tokens/call). With `--lean`, TokenMaster removes those 13 tools via `--excluded-tools`, and keeps a family when your prompt, flags (`--agent`, `--resume`) or installed skills and agents ask for it. Those are keyword rules, and they miss some phrasings; set `TOKENMASTER_MD1_ENDPOINT` to also ask your own Microsoft-Decision-1 deployment which families a prompt needs ([MD-1 routing](token-master-plugin/docs/COPILOT_BRIDGE.md#md-1-routing)). Without `--lean`, every built-in tool is sent.
-2. **Graph Code Navigation (`tokenmaster-nav`)** — Combines [Graphify](https://github.com/safishamsi/graphify) call edges with a local SQLite AST index into 3 compact tools (`locate`, `read_symbol`, `impact`), capped under 2,400 tokens. Answers "who calls X?" in one turn instead of dumping 100k+ tokens of `rg`. Covers Python and Rust today.
+1. **Dynamic Tool Routing (`brainspace_copilot_bridge.py --lean`)** — Opt-in. Stock Copilot CLI sends JSON schemas for SQL scratchpads, session-store SQL, background job managers, subagents, agent workflows, skills, and CLI docs on every turn (~5,500 to ~11,500 tokens/call). With `--lean`, TokenMaster removes those 13 tools via `--excluded-tools`, and keeps a family when your prompt, a flag such as `--agent` or `--fleet`, or installed skills and agents ask for it. A `--lean` resume that the launcher can tie to the session's launch record gets the tool list the session started with. Those are keyword rules, and they miss some phrasings; set `TOKENMASTER_MD1_ENDPOINT` to also ask your own Microsoft-Decision-1 deployment which families a prompt needs ([MD-1 routing](token-master-plugin/docs/COPILOT_BRIDGE.md#md-1-routing)). Without `--lean`, every built-in tool is sent.
+2. **Graph Code Navigation (`tokenmaster-nav`)** — Combines [Graphify](https://github.com/Graphify-Labs/graphify) call edges with a local SQLite AST index into 3 compact tools (`locate`, `read_symbol`, `impact`), each result capped at 2,400 tokens. Answers "who calls X?" in one turn instead of dumping 100k+ tokens of `rg`. Covers Python and Rust today.
 3. **Cache-Safe Output Shaping (`request_policy.py`)** — Folds `rg`/`glob` output losslessly and compacts oversized `view` reads **once** when appended. Never rewrites earlier messages, so the provider's prompt cache stays valid.
 4. **Cache-Stable BYOK Bridge (`stable_session_prefix`)** — Moves the per-session `Session folder:` UUID out of the system prompt in BYOK mode so sessions in the same folder share the cached prompt on call 1.
 
@@ -85,7 +85,7 @@ The rules behind these four are proved in Lean 4. See [Proof-driven development]
 
 ## Proof-driven development
 
-Proof-driven development means three steps: state a rule the code must keep, prove it with a proof that a computer checks, and hold the code to the proof. The savings in this README are measurements. The rules behind them are proved. A rule such as "never change text the provider has already cached" is stated as a theorem in [Lean 4](https://lean-lang.org), a proof checker that accepts a proof only if every step is valid ([`proofs/`](proofs/README.md)). Conformance tests check each proof's assumptions against the real Python where a test can; `proofs/README.md` lists the rest as assumptions. Code and proofs change in the same pull request: [#18](https://github.com/All-The-Vibes/TokenMasterX/pull/18), [#19](https://github.com/All-The-Vibes/TokenMasterX/pull/19) and [#20](https://github.com/All-The-Vibes/TokenMasterX/pull/20), the last three to change routing, each updated the proofs write-up and the conformance tests; #18 and #20 also changed `Routing.lean`.
+Proof-driven development means three steps: state a rule the code must keep, prove it with a proof that a computer checks, and hold the code to the proof. The savings in this README are measurements. The rules behind them are proved. A rule such as "never change text the provider has already cached" is stated as a theorem in [Lean 4](https://lean-lang.org), a proof checker that accepts a proof only if every step is valid ([`proofs/`](proofs/README.md)). Conformance tests check each proof's assumptions against the real Python where a test can; `proofs/README.md` lists the rest as assumptions. Code and proofs change in the same pull request: [#18](https://github.com/All-The-Vibes/TokenMasterX/pull/18), [#19](https://github.com/All-The-Vibes/TokenMasterX/pull/19), [#20](https://github.com/All-The-Vibes/TokenMasterX/pull/20) and [#28](https://github.com/All-The-Vibes/TokenMasterX/pull/28), every pull request that changed routing since the proofs landed, each updated the proofs write-up and the conformance tests; #18 and #20 also changed `Routing.lean`, and #28 added `Tuning.lean`.
 
 | Claim | Main Lean theorems | Holds when |
 | :--- | :--- | :--- |
@@ -142,6 +142,8 @@ Or type `/tokenomics` inside an interactive Copilot CLI session.
 │ Total    │               │       55,969 │      $0.26 │ 2/3 sessions │         33,348 │         $0.08 │
 └──────────┴───────────────┴──────────────┴────────────┴──────────────┴────────────────┴───────────────┘
 ```
+
+The sample's TokenMaster rows are `--lean` launches in BYOK mode. The estimate credits only the tools `--lean` removed, so a launch without `--lean` gets no lean credit, and with the navigation tools installed its estimate is slightly negative: navigation saves model calls, which the estimate does not count ([details](token-master-plugin/docs/TOKENOMICS.md)).
 
 ---
 

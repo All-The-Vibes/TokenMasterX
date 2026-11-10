@@ -651,7 +651,7 @@
 
     <div class="hero-bottom">
       <p data-rise style="--i:2">
-        GitHub Copilot CLI re-sends its system prompt and sixteen tool definitions on every model call. TokenMaster strips eleven unused tools, routes call-graph questions to Graphify, and audits every cent in <code>/tokenomics</code>.
+        GitHub Copilot CLI re-sends its system prompt and every tool definition on every model call. TokenMaster routes call-graph questions to Graphify and audits every cent in <code>/tokenomics</code>. Started with <code>--lean</code>, it also drops 13 built-in tools unless the prompt or a flag asks for their family.
       </p>
       <div class="hero-meta" data-rise style="--i:3">
         <a class="button ink" href="#architecture">Open Live Demo Runbook</a>
@@ -815,7 +815,7 @@ tmc + Graphify (tokenmaster-nav-impact):
 
           <div class="calc-pills" role="group" aria-label="Cache architecture mode">
             <button type="button" class="calc-pill is-active" onclick="setCacheMode(0, this)">Stock Session 2 (UUID Eviction)</button>
-            <button type="button" class="calc-pill" onclick="setCacheMode(1, this)">tmc Default Routing (Lean Tool Set)</button>
+            <button type="button" class="calc-pill" onclick="setCacheMode(1, this)">tmc Lean Tool Set (Relay Probe)</button>
             <button type="button" class="calc-pill" onclick="setCacheMode(2, this)">tmc + BYOK Bridge (Same Folder)</button>
             <button type="button" class="calc-pill" onclick="setCacheMode(3, this)">Turn 4 History: v5 (Broken) vs. v6 (Stable)</button>
           </div>
@@ -875,7 +875,7 @@ tmc + Graphify (tokenmaster-nav-impact):
           <strong>View hook (`settings.json`):</strong> Runs <code>brainspace_posttooluse.py</code> on whole-file <code>view</code> outputs, turning a 29,836-character file into a 5,175-character digest before it enters the transcript.
         </p>
         <p class="muted">
-          <strong>Graph navigation (`navigation_mcp.py`):</strong> Exposes <code>locate</code>, <code>read_symbol</code>, and <code>impact</code> over Graphify's call graph and a SQLite symbol index (<code>SCHEMA_VERSION = 4</code> with <code>import ... as ...</code> alias resolution), capped at 2,400 tokens per result.
+          <strong>Graph navigation (`navigation_mcp.py`):</strong> Exposes <code>locate</code>, <code>read_symbol</code>, and <code>impact</code> over Graphify's call graph and a SQLite symbol index (<code>SCHEMA_VERSION = 5</code>: Python with <code>import ... as ...</code> alias resolution, and Rust through the pinned tree-sitter-rust with <code>use ... as</code> aliases), capped at 2,400 tokens per result.
         </p>
         <figure class="photo-frame" style="margin-top: 0.5rem;" data-reveal>
           <img src="https://picsum.photos/id/114/1200/750?grayscale" width="1200" height="750" alt="Storm clouds over mountain ridge" />
@@ -1024,7 +1024,7 @@ tmc
       </div>
       <div style="grid-column: 8 / 13;" data-reveal>
         <p>
-          Every A/B number below is recounted from raw per-call API records. In the <code>/tokenomics</code> dashboard beneath it, click any of today's four rehearsal sessions from your machine to inspect how its measured bill and estimated savings were computed.
+          Every A/B number below is recounted from raw per-call API records. The November 1 rows ran under GitHub's default routing, as this demo does. Every older row comes from runs through an evaluation relay in bring-your-own-model mode. In the <code>/tokenomics</code> dashboard beneath it, click any of today's four rehearsal sessions from your machine to inspect how its measured bill and estimated savings were computed.
         </p>
       </div>
     </div>
@@ -1040,6 +1040,20 @@ tmc
         </tr>
       </thead>
       <tbody>
+        <tr>
+          <td class="nums">2026-11-01</td>
+          <td>Django 5.2 &middot; 15 caller tasks D01–D15 &middot; default routing, <code>--lean</code></td>
+          <td><code>gpt-6-astra</code> &middot; 1.0.105</td>
+          <td class="num">702,831 &rarr; 333,094</td>
+          <td class="num">&minus;52.6% tokens &middot; &minus;54.4% cold ($3.74 &rarr; $1.71) &middot; &minus;47.3% as-run ($2.29 &rarr; $1.21) &middot; 15/15 (15/15 lower)</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-11-01</td>
+          <td>Django 5.2 &middot; 15 caller tasks D01–D15 &middot; default routing, no flags</td>
+          <td><code>gpt-6-astra</code> &middot; 1.0.105</td>
+          <td class="num">768,899 &rarr; 621,988</td>
+          <td class="num">&minus;19.1% tokens (95% CI &minus;28.7% to &minus;8.5%) &middot; &minus;13.9% cold ($3.85 &rarr; $3.32) &middot; &minus;24.4% as-run ($2.40 &rarr; $1.81) &middot; 15/15 (13/15 lower)</td>
+        </tr>
         <tr>
           <td class="nums">2026-10-26</td>
           <td>PRS-6 &middot; TokenMaster repo &middot; 29 tasks (pre-registered, commit <code>19443fc</code>)</td>
@@ -1105,10 +1119,17 @@ tmc
         </tr>
         <tr>
           <td class="nums">2026-10-23</td>
-          <td>Estimator check against 6 measured A/B runs</td>
+          <td>Estimator check against 6 measured A/B runs on 1.0.78-3</td>
           <td><code>tokenomics.py</code> validation</td>
           <td class="num">270 Django + 108 repo sessions</td>
           <td class="num">72.1% to 125.4% of measured token saving</td>
+        </tr>
+        <tr>
+          <td class="nums">2026-10-26</td>
+          <td>Estimator out-of-sample check on the 4 PRS-6 runs (1.0.98 values set before PRS-6)</td>
+          <td><code>tokenomics.py</code> validation</td>
+          <td class="num">176 PRS-6 sessions</td>
+          <td class="num">59.0% to 123.9% of measured token saving</td>
         </tr>
       </tbody>
     </table>
@@ -1116,7 +1137,7 @@ tmc
     <!-- Verbatim /tokenomics Dashboard Fragment (data-ui) -->
     <div class="terminal-ui" data-ui data-reveal>
       <div class="terminal-bar">
-        <strong>Actual <code>/tokenomics session --since 20261023</code> on Your Machine</strong>
+        <strong>Rehearsal sessions from <code>tokenomics session --since 20261023 --full</code>, trimmed to seven columns and labeled</strong>
         <span class="small" style="color: #b5b3aa;">Source: <code>C:\Users\shyamsridhar\.copilot\session-store.db</code> &middot; 4 launches recorded</span>
       </div>
       <pre style="white-space: pre; overflow-x: auto; font-size: 0.86rem; line-height: 1.45;">┌────────────────────────────┬───────────────┬──────────────┬────────────┬──────────────┬────────────────┬───────────────┐
@@ -1171,19 +1192,19 @@ tmc
           <strong>Are the numbers in /tokenomics measured or estimated?</strong> Both, and the table keeps them separate. Total Tokens, Input, Output, Cache Write, Cache Read, and Cost (USD) are 100% measured from Copilot CLI's own <code>session-store.db</code>. The two columns marked &approx; estimate what stock Copilot would have spent on the same calls.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>Does removing eleven built-in tools hurt quality?</strong> In our October 18 runs, zero sessions called any of the eleven tools. In the pre-registered PRS-6 study on Copilot CLI <code>1.0.98</code> (176 sessions), both stock and TokenMaster scored <strong>88/88</strong> (<code>29/29</code> on repository tasks and <code>15/15</code> on Django <code>D01</code>–<code>D15</code> for each model). Across the earlier 90-session Django and 54-session repository runs on <code>1.0.78-3</code>, TokenMaster scored 88/90 and 53/54 against stock's 90/90 and 54/54, with every miss traced to a model error.
+          <strong>Does removing 13 built-in tools hurt quality?</strong> In our October 18 runs, no session called any of the original eleven, and none of the 60 sessions of October 27 called the two workflow tools. On Copilot CLI <code>1.0.105</code> with all 13 removed, stock and TokenMaster each passed 15 of 15 Django tasks on November 1. In the pre-registered PRS-6 study on Copilot CLI <code>1.0.98</code> (176 sessions), both stock and TokenMaster scored <strong>88/88</strong> (<code>29/29</code> on repository tasks and <code>15/15</code> on Django <code>D01</code>–<code>D15</code> for each model). Across the earlier 90-session Django and 54-session repository runs on <code>1.0.78-3</code>, TokenMaster scored 88/90 and 53/54 against stock's 90/90 and 54/54, with every miss traced to a model error.
         </p>
         <p class="faq-item" data-reveal>
           <strong>What if a task needs subagents or background PowerShell?</strong> Start the launcher without <code>--lean</code>, or run plain <code>copilot</code>. Since October 30 the launcher leaves every built-in tool in place unless <code>--lean</code> is given.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>What about Copilot CLI 1.0.98 vs 1.0.78-3?</strong> The October 18–22 harnesses passed <code>--no-auto-update</code>, which caused the WinGet launcher to run its bundled <code>1.0.78-3</code> build. After fixing the version gate, we pre-registered and ran <strong>PRS-6 on Copilot CLI <code>1.0.98</code></strong> (commit <code>19443fc</code>, 176 sessions, <code>88/88</code> passes in both arms): on the 29-task repository benchmark, <code>gpt-6-astra</code> cut raw tokens by <strong>&minus;49.5%</strong> (<code>2,449,067 &rarr; 1,237,510</code>, cold cost &minus;41.5%, as-run &minus;50.2%) and <code>claude-opus-5.5</code> by <strong>&minus;38.0%</strong> (<code>2,672,316 &rarr; 1,655,797</code>, cold cost &minus;34.0%, as-run &minus;40.1%); on the 15-task Django 5.2 replication (<code>D01</code>–<code>D15</code>), raw tokens dropped <strong>&minus;58.5%</strong> (<code>707,799 &rarr; 293,779</code>, cold &minus;53.5%, as-run &minus;70.7%) and <strong>&minus;53.7%</strong> (<code>989,925 &rarr; 457,875</code>, cold &minus;46.0%, as-run &minus;61.2%), lower on all 15 tasks for both models.
+          <strong>Which Copilot CLI builds do these numbers come from?</strong> On November 1, under GitHub's default routing on <code>1.0.105</code>, the 15 Django tasks with <code>gpt-6-astra</code> used 52.6% fewer raw tokens with <code>--lean</code> and 19.1% fewer with no flags, 15/15 in every arm. The README quotes these runs. The October 18–22 harnesses passed <code>--no-auto-update</code>, which caused the WinGet launcher to run its bundled <code>1.0.78-3</code> build. After fixing the version gate, we pre-registered and ran <strong>PRS-6 on Copilot CLI <code>1.0.98</code></strong> (commit <code>19443fc</code>, 176 sessions, <code>88/88</code> passes in both arms): on the 29-task repository benchmark, <code>gpt-6-astra</code> cut raw tokens by <strong>&minus;49.5%</strong> (<code>2,449,067 &rarr; 1,237,510</code>, cold cost &minus;41.5%, as-run &minus;50.2%) and <code>claude-opus-5.5</code> by <strong>&minus;38.0%</strong> (<code>2,672,316 &rarr; 1,655,797</code>, cold cost &minus;34.0%, as-run &minus;40.1%); on the 15-task Django 5.2 replication (<code>D01</code>–<code>D15</code>), raw tokens dropped <strong>&minus;58.5%</strong> (<code>707,799 &rarr; 293,779</code>, cold &minus;53.5%, as-run &minus;70.7%) and <strong>&minus;53.7%</strong> (<code>989,925 &rarr; 457,875</code>, cold &minus;46.0%, as-run &minus;61.2%), lower on all 15 tasks for both models.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>When does <code>impact</code> miss a caller?</strong> <code>SCHEMA_VERSION = 4</code> in <code>brainspace/symbol_index.py</code> (commit <code>19443fc</code>) resolves <code>import ... as ...</code> and <code>from ... import ... as ...</code> aliases in scope (matching <code>56/56</code> answer-key callers across <code>D01</code>–<code>D15</code>, including <code>from django.contrib.auth import login as auth_login</code> in <code>D13</code>). Only dynamic dispatch, <code>getattr</code>, and string-based lookup remain unindexed.
+          <strong>When does <code>impact</code> miss a caller?</strong> Since commit <code>19443fc</code>, <code>brainspace/symbol_index.py</code> resolves <code>import ... as ...</code> and <code>from ... import ... as ...</code> aliases in scope. In PRS-6 (Graphify 0.9.91, <code>SCHEMA_VERSION = 4</code>), <code>impact</code> matched <code>56/56</code> answer-key callers across <code>D01</code>–<code>D15</code>, including <code>from django.contrib.auth import login as auth_login</code> in <code>D13</code>. PR #14 added Rust and moved the index to <code>SCHEMA_VERSION = 5</code>. The Python alias code did not change. In Python, only dynamic dispatch, <code>getattr</code>, and string-based lookup remain unindexed.
         </p>
         <p class="faq-item" data-reveal>
-          <strong>Does TokenMaster store or transmit any prompt text?</strong> No. <code>launches.jsonl</code> records only the start/end millisecond timestamps, the working directory path, and three booleans (<code>lean</code>, <code>bridge</code>, <code>nav</code>). <code>tokenomics.py</code> opens <code>session-store.db</code> read-only and makes no network calls.
+          <strong>Does TokenMaster store or transmit any prompt text?</strong> It stores none. Each Copilot CLI launch adds a start record to <code>launches.jsonl</code> with a launch ID, a timestamp to the millisecond, the folder Copilot CLI works in, the <code>lean</code>, <code>bridge</code> and <code>nav</code> switches, the names of the tools the lean tool set excluded, and the ID of the session the launch resumes, if any. An end record follows with the same ID and the end time. <code>tokenomics.py</code> reads <code>session-store.db</code> without changing it and makes no network calls. Copilot CLI still sends your prompts to its model, and in bring-your-own-model mode the local bridge forwards those requests to your provider. TokenMaster sends a prompt anywhere else only if you opt in to MD-1 routing. With <code>--lean</code>, <code>TOKENMASTER_MD1_ENDPOINT</code> set and a key or an Azure CLI sign-in, the launcher sends the <code>-p</code> or <code>-i</code> prompt to that endpoint, which is your own Microsoft Foundry resource.
         </p>
         <p class="faq-item" data-reveal>
           <strong>Why does /tokenomics itself cost tokens when typed as a slash command?</strong> In Copilot CLI, a personal skill injects instructions into the conversation so the model calls PowerShell and echoes the table (~16,445 tokens). Running the <code>!</code> shell command printed at the bottom of the report executes <code>tokenomics.py</code> directly in PowerShell for zero model tokens.
@@ -1211,6 +1232,8 @@ tmc
       </ul>
       <ul class="footer-list small">
         <li><strong>Evidence in Repo</strong></li>
+        <li class="muted-light"><code>evidence/lean-20261101/</code></li>
+        <li class="muted-light"><code>evidence/default-nolean-20261101/</code></li>
         <li class="muted-light"><code>evidence/prs6-copilot-1.0.98-20261026/</code></li>
         <li class="muted-light"><code>token-master-plugin/docs/PRS6_PROTOCOL.md</code></li>
         <li class="muted-light"><code>token-master-plugin/docs/COPILOT_CLI_RESULTS.md</code></li>
@@ -1219,7 +1242,7 @@ tmc
       <ul class="footer-list small">
         <li><strong>Honest Limits</strong></li>
         <li class="muted-light">PRS-6 pre-registered on 1.0.98 (176 sessions, 88/88); Oct 18–22 on 1.0.78-3 exploratory</li>
-        <li class="muted-light"><code>SCHEMA_VERSION = 4</code> resolves import aliases; dynamic <code>getattr</code> / string lookup unindexed</li>
+        <li class="muted-light">The symbol index (<code>SCHEMA_VERSION = 5</code>) resolves import aliases; dynamic <code>getattr</code> / string lookup unindexed</li>
         <li class="muted-light">Bridge requires BYOK mode</li>
         <li class="muted-light"><code>-p "/tokenomics"</code> is not supported by Copilot CLI</li>
       </ul>
@@ -1235,7 +1258,7 @@ tmc
       </div>
       <div class="footer-legal">
         <span>TokenMaster &amp; /tokenomics &middot; GitHub Copilot CLI Token Efficiency</span>
-        <span>Photographs: Lee Scott &amp; Brian Gonzalez (Unsplash, via picsum.photos) &middot; Keys 1–6 jump sections</span>
+        <span>Photographs: Lee Scott &amp; Brian Gonzalez (Unsplash, via picsum.photos) &middot; Keys 1–7 jump sections</span>
       </div>
     </div>
   </footer>
@@ -1347,13 +1370,13 @@ tmc
             diff: 'Byte 0..25,800:  [System instructions before <session_context>]  -> CACHE HIT (on 1.0.98; MISS on 1.0.78-3)\nByte 25,801:     "Session folder: C:\\...\\session-state\\9b2700f4-..."  <- NEW UUID! CACHE MISS STARTS HERE\nByte 25,880..End: [Remaining system prompt + tool definitions + user prompt] -> 4,632 tokens billed at 1.25x Cache Write'
           },
           {
-            title: 'tmc Default GitHub Routing · Lean Tool Set (--excluded-tools)',
+            title: 'tmc Lean Tool Set · Copilot CLI 1.0.98 Probe through the Evaluation Relay',
             badge: 'Removes 5,558 fixed tokens (1.0.98) / 6,760 tokens (1.0.78-3) on every call',
             segments: [
               { label: '11 Unused Tools Removed (5,558 tok · $0)', pct: 50, bg: '#55534b', fg: '#dfdedb' },
               { label: 'Lean Prompt + 5 Core Tools (5,525 tok)', pct: 50, bg: '#2456d6', fg: '#ffffff' }
             ],
-            diff: 'Removed before Byte 0: session_store_sql, task, read_agent, write_agent, list_agents,\n                       skill, sql, read_powershell, stop_powershell, list_powershell, fetch_copilot_cli_documentation\nKept (5 core tools):   powershell, view, apply_patch, rg, glob\nEffect:                Every call in the session is 5,558 tokens smaller (9,016 vs. 15,185 tokens on your machine today).'
+            diff: 'Removed before Byte 0: session_store_sql, task, read_agent, write_agent, list_agents,\n                       skill, sql, read_powershell, stop_powershell, list_powershell, fetch_copilot_cli_documentation\nKept (5 core tools):   powershell, view, apply_patch, rg, glob\nNot in the probe:      run_dynamic_workflow and dynamic_workflows_manage, the other 2 of the 13 tools that --lean removes.\n                       Copilot CLI 1.0.98-2 and 1.0.104 sent them under default routing, and --lean removes them there too.\nEffect:                In the probe, the lean first call sent 5,525 input tokens against 11,083 for stock, 5,558 fewer.\n                       In the October 23 default-routing rehearsal with gpt-6.1-sol, the one-word call fell from 15,185 to 9,016 tokens sent and received.'
           },
           {
             title: 'tmc + BYOK Bridge · Session 2 in Same Working Folder (98% Cache Hit)',
@@ -1395,7 +1418,7 @@ tmc
             diff: 'Anthropic wire order:  {"tools": [...17 tools...], "system": "...Session folder: <uuid>...", "messages": [...]}\nWhy tools hit cache:   `tools` sits before `system`, so back-to-back stock sessions share the 11,226-token tool prefix.\nWhy system misses:     The UUID in `system` invalidates the remaining 6,880 tokens on every new session (billed at 25x cache read!).'
           },
           {
-            title: 'tmc Default GitHub Routing (Anthropic) · Lean Tool Set Removes 9,727 Tokens',
+            title: 'tmc Lean Tool Set (Anthropic) · 1.0.98 Relay Probe Removes 9,727 Tokens',
             badge: '1.0.98 probe: 18,104 -> 8,377 tokens (-53.7%) · 1.0.78-3 A/B: 11,540 tokens removed',
             segments: [
               { label: '11 Unused Tools Removed (9,727 tok · $0)', pct: 54, bg: '#55534b', fg: '#dfdedb' },
