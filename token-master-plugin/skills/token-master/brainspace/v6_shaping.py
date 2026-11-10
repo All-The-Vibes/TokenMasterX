@@ -249,6 +249,10 @@ def shape_tool_result(name: str, arguments: dict[str, Any], content: Any, count:
     """Pure and deterministic: the same input always yields the same output."""
     if type(content) is not str or not content or content.startswith("Error"):
         return content
+    try:
+        content.encode("utf-8")
+    except UnicodeEncodeError:  # a lone surrogate: the pinned counter refuses it, so the output is sent as it came
+        return content
     kind = tool_kind(name)
     path = str(arguments.get("path") or arguments.get("file_path") or "")
     if kind == "read" and (arguments.get("view_range") is not None or arguments.get("forceReadLargeFiles") is True

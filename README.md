@@ -89,12 +89,12 @@ Proof-driven development means three steps: state a rule the code must keep, pro
 
 | Claim | Main Lean theorems | Holds when |
 | :--- | :--- | :--- |
-| The BYOK bridge never changes bytes the provider already cached | `Cache.bridge_prefix_stable`, `Cache.cache_prefix_kept` | Call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items. A lone surrogate in a tool output still breaks the token counter (open finding 1). |
+| The BYOK bridge never changes bytes the provider already cached | `Cache.bridge_prefix_stable`, `Cache.cache_prefix_kept` | Call ids are never reused, the client sends the same instructions and tools on every call, and the provider caches them ahead of the items. |
 | With policy v6 and no guidance, the runtime never changes an earlier message | `Cache.shaping_prefix_stable` | Proved for the shaping map. The runtime keeps it unless shaping would pass a `max_input_tokens` cap. |
 | Shaping never makes a tool result bigger, in tokens or in bytes | `Shaping.guard_never_expands`, `Shaping.request_bytes_never_grow` | That GitHub's billed count falls when the cl100k count falls is an assumption. |
 | Policies v1 to v4 never grow a request or touch a protected message | `Policy.greedy_never_expands`, `Policy.protected_unchanged` | A test checks the protected-message part for policy v1. |
 | The `rg` and glob folds are lossless | `Folds.unfoldPaths_foldPaths`, `Folds.unfold_foldSearchChecked` | `fold_search` refuses any input it could not give back. |
-| Routing drops only auxiliary tools and keeps every family whose trigger fires | `Routing.excluded_subset_lean`, `Routing.fired_family_kept`, `Routing.default_excludes_nothing` | Proved for the model. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by `test_routing_default_sends_every_tool`. The triggers are keyword rules and miss some phrasings (open finding 2); the opt-in MD-1 router only adds triggers, so the theorems hold with it. |
+| Routing drops only auxiliary tools and keeps every family whose trigger fires | `Routing.excluded_subset_lean`, `Routing.fired_family_kept`, `Routing.default_excludes_nothing` | Proved for the model. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by `test_routing_default_sends_every_tool`. The triggers are keyword rules and miss some phrasings (open finding 1); the opt-in MD-1 router only adds triggers, so the theorems hold with it. |
 | A keyword pattern that covers `n` independent phrasings, and fires on no prompt that does not need its family, has at least `n` branches | `Tuning.branches_ge_phrasings` | The phrasings are independent: any branch that matches two of them also matches a prompt that does not need the family. |
 | A `--lean` resume that the launcher ties to the session's record sends the tool list the session started with | `Routing.resume_same_list`, `Routing.resume_chain_keeps_first_list` | The resume's `TOKENMASTER_KEEP_TOOLS` adds no tool. Which record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, and a resume without `--lean` sends every tool. |
 | In BYOK mode, sessions whose system prompts differ only in the folder path get the same system prompt | `SessionPrefix.system_same_across_sessions` | There is exactly one folder line, and only the BYOK bridge does the rewrite. |
@@ -105,7 +105,7 @@ Proof-driven development means three steps: state a rule the code must keep, pro
 
 - **Lean checks every proof.** A clean `lake build` passes on Lean 4.35.0 with the core library only, so no step was skipped. No theorem depends on `sorry` (Lean's marker for a missing proof step), and the only axioms in use are `propext`, `Classical.choice` and `Quot.sound`, Lean's standard ones.
 - **Conformance tests run the real Python.** [`test_proof_conformance.py`](token-master-plugin/skills/token-master/tests/test_proof_conformance.py) calls the code on generated inputs and on the recorded study data. Each test names the Lean theorem or definition it checks.
-- **Every assumption is written down.** The write-up lists the hypotheses the models take from the code, and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).
+- **Every assumption is written down.** The write-up lists the hypotheses the models take from the code, and marks each as tested, read from the code, or assumed.
 - **Gaps are recorded as findings.** Writing and reviewing the proofs found gaps between a claim and the code. Most are fixed, including navigation results that ran one token past their cap. The rest are published, and some have a test that reproduces them.
 
 A proof covers a model of the code, not the Python itself, which is why the conformance tests and the assumptions table exist. The [benchmarks](#benchmark-summary-github-copilot-cli) below are the measured savings. The [interactive deck](https://all-the-vibes.github.io/TokenMasterX/#proofs) walks through the proofs claim by claim.
@@ -116,6 +116,16 @@ To check it yourself, install Lean 4 with [elan](https://github.com/leanprover/e
 lake -d proofs build
 python -m pytest token-master-plugin/skills/token-master/tests/test_proof_conformance.py
 ```
+
+The full suite (`python -m pytest` in `token-master-plugin/skills/token-master`) needs three things the conformance tests do not:
+
+- **A full clone.** Some tests read the git history, so a `git clone --depth 1` fails them.
+- **The cl100k vocabulary.** Set `TOKENMASTER_TEST_TOKENIZER_FILE` to a local copy of `cl100k_base.tiktoken`, or point `TIKTOKEN_CACHE_DIR` at a tiktoken cache that holds it. The file is checked by hash, and without it the tokenizer tests skip or fail.
+- **On Windows, a WSL distro named `Ubuntu` with Python 3.12 at `/usr/bin/python3`.** The code-execution sandbox runs there and loads `/usr/lib/python3.12`. `wsl --install -d Ubuntu` now installs a release with Python 3.14, and about 76 sandbox tests then fail with `trusted Linux supervisor failed`. Install 24.04 under that name instead:
+
+  ```powershell
+  wsl --install -d Ubuntu-24.04 --name Ubuntu
+  ```
 
 ---
 

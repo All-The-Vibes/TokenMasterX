@@ -111,7 +111,7 @@ def test_routing_nothing_fires_excludes_all(no_installed_assets):
 
 
 def test_finding_routing_patterns_miss_some_phrasings(no_installed_assets):
-    """Finding 2: Routing.fired_family_kept keeps a family whose trigger fires; this request for an agent fires none."""
+    """Finding 1: Routing.fired_family_kept keeps a family whose trigger fires; this request for an agent fires none."""
     assert "task" in bridge.select_excluded_tools(["copilot", "-p", "have an agent review this diff"])
 
 
@@ -513,15 +513,24 @@ def test_bridge_rewrite_keeps_history_prefix():
     assert shaped > 0
 
 
-def test_finding_bridge_fails_on_a_lone_surrogate():
-    """Findings: Cache.bridge_prefix_stable takes shape as total; the pinned counter raises on a lone surrogate."""
+def test_bridge_passes_a_lone_surrogate_through():
+    """Cache.bridge_prefix_stable takes shape as total: an output with a lone surrogate, which the pinned counter refuses,
+    is left as it came, other outputs are still shaped, the next call keeps the earlier input, and the wire bytes are
+    UTF-8 that parse back to the same request."""
     count = exact_counter()
-    body = _responses_request([{"role": "user", "content": [{"type": "input_text", "text": "go"}]},
-                               {"type": "function_call", "call_id": "a", "name": "rg", "arguments": "{}"},
-                               {"type": "function_call_output", "call_id": "a", "output": "src/a.py:1:x\n" * 50 + chr(0xD800)}],
-                              "3f2a9c")
-    with pytest.raises(UnicodeEncodeError):
-        bridge.rewrite_request(body, count)
+    big = "src/a.py:1:x\n" * 400
+    items = [{"role": "user", "content": [{"type": "input_text", "text": "go"}]},
+             {"type": "function_call", "call_id": "a", "name": "rg", "arguments": "{}"},
+             {"type": "function_call_output", "call_id": "a", "output": big + chr(0xD800)},
+             {"type": "function_call", "call_id": "b", "name": "rg", "arguments": "{}"},
+             {"type": "function_call_output", "call_id": "b", "output": big}]
+    first, stats = bridge.rewrite_request(_responses_request(items[:3], "3f2a9c"), count)
+    assert first["input"][2]["output"] == big + chr(0xD800) and stats["shaped"] == 0
+    later, stats = bridge.rewrite_request(_responses_request(items, "3f2a9c"), count)
+    assert later["input"][:3] == first["input"] and stats["shaped"] == 1
+    wire = bridge.to_wire(later)
+    assert json.loads(wire.decode("utf-8")) == later and b"\\ud800" in wire
+    assert bridge.to_wire({"input": later["input"]}).startswith(bridge.to_wire({"input": first["input"]})[:-2])
 
 
 def test_session_prefix_same_system_and_recoverable_folder():

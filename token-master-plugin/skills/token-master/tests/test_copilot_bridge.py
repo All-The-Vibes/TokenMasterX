@@ -372,7 +372,7 @@ def excluded_for(prompt):
 
 def test_md1_keeps_the_families_it_picks_on_top_of_the_patterns(monkeypatch, tmp_path):
     agents = {"task", "read_agent", "write_agent", "list_agents"}
-    assert agents <= excluded_for("have an agent review this diff")  # finding 2, regex only
+    assert agents <= excluded_for("have an agent review this diff")  # finding 1, regex only
     fake = md1_on(monkeypatch, tmp_path, FakeMD1({"agents": 0.89, "sql": 0.49, "skills": 0.2}))
     excluded = excluded_for("have an agent review this diff")
     assert not agents & excluded and {"sql", "skill"} <= excluded  # below TOKENMASTER_MD1_THRESHOLD (0.5) adds nothing

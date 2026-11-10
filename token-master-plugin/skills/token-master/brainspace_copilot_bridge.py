@@ -521,7 +521,17 @@ def _prefix_digest(request: dict) -> str:
             break
         head.append(item)
     blob = json.dumps([request.get("instructions"), request.get("tools"), head], sort_keys=True, ensure_ascii=False)
-    return hashlib.sha256(blob.encode("utf-8")).hexdigest()[:16]
+    return hashlib.sha256(blob.encode("utf-8", "surrogatepass")).hexdigest()[:16]
+
+
+_LONE_SURROGATE = re.compile("[\ud800-\udfff]")
+
+
+def to_wire(request: dict) -> bytes:
+    """Compact UTF-8 JSON. A lone surrogate, which UTF-8 cannot hold, is written as its JSON escape, as clients send
+    it; nothing else changes, so the bytes of the rest of the request are the same as without it."""
+    text = json.dumps(request, ensure_ascii=False, separators=(",", ":"))
+    return _LONE_SURROGATE.sub(lambda m: f"\\u{ord(m.group()):04x}", text).encode("utf-8")
 
 
 def rewrite_request(body: dict, count=None) -> tuple[dict, dict]:
@@ -778,7 +788,7 @@ class Bridge:
             return body, {}
         rewrite = rewrite_request if route.endswith("/responses") else rewrite_messages_request
         request, receipt = rewrite(parsed, self.count)
-        return json.dumps(request, ensure_ascii=False, separators=(",", ":")).encode("utf-8"), receipt
+        return to_wire(request), receipt
 
     def upstream_headers(self, headers) -> dict:
         return {key: value for key, value in headers.items() if key.lower() not in _HOP}

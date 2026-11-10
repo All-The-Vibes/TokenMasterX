@@ -13,7 +13,7 @@ and the project aims to follow semantic versioning.
   user's own MD-1 deployment one yes/no question per tool family and keeps each family it picks, on top of the prompt
   patterns. It only adds families, so the routing theorems hold unchanged, and on any error the patterns alone decide.
   On 22 held-out prompts the patterns kept 3 of 13 needed families and the patterns with MD-1 kept 13
-  (`evals/md1_routing_eval.py`, `evidence/md1-routing-20261108`). Off by default; finding 2 stays open.
+  (`evals/md1_routing_eval.py`, `evidence/md1-routing-20261108`). Off by default; the routing finding stays open.
 - `proofs/TokenMasterProofs/Tuning.lean`: a keyword pattern that fires on no prompt outside its family needs a branch for
   every independent phrasing it covers (`Tuning.branches_ge_phrasings`).
 - `site/src/`: the sources and build script of the interactive deck. `python site/src/build.py` assembles
@@ -44,6 +44,14 @@ and the project aims to follow semantic versioning.
 - The deck's link previews had no thumbnail: the page set no `og:image`, and its title and description used `--lean` and
   Lean 4. It now points at `site/og.png`, a 1200 by 630 card made by `site/src/make_og.py`, and the title and
   description are plain.
+- A lone surrogate in a tool output made the pinned counter raise inside `rewrite_request`, so the BYOK bridge failed
+  that call and every later call that resent the output (proofs finding 1). `shape_tool_result` now leaves an output
+  UTF-8 cannot encode as it came, and the bridge writes a lone surrogate as a JSON `\uXXXX` escape, so the bytes it
+  sends are valid UTF-8 and stay the same on every call. `test_bridge_passes_a_lone_surrogate_through` replaces the
+  finding's test, and the remaining findings are renumbered.
+- The README lists what the full test suite needs: a full clone, the cl100k vocabulary through
+  `TOKENMASTER_TEST_TOKENIZER_FILE` or `TIKTOKEN_CACHE_DIR`, and on Windows a WSL `Ubuntu` with Python 3.12, which
+  `wsl --install -d Ubuntu` no longer installs.
 
 ## [0.3.0] - 2026-11-01
 
