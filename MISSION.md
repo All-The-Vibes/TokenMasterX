@@ -39,9 +39,9 @@ This changes what counts as a win:
 ## Where we stand
 
 Current results are in the [README](README.md#benchmark-summary-github-copilot-cli) and in
-[COPILOT_CLI_RESULTS.md](token-master-plugin/docs/COPILOT_CLI_RESULTS.md), with each study's
-pre-registration and results under `token-master-plugin/docs/PRS*_PROTOCOL.md` and
-`PRS*_RESULTS.md`. Two earlier claims are superseded: the October 17 figures are retracted
+[COPILOT_CLI_RESULTS.md](token-master-plugin/docs/COPILOT_CLI_RESULTS.md), with each PRS study's
+pre-registration under `token-master-plugin/docs/PRS*_PROTOCOL.md` and the results of PRS-1 to
+PRS-4 in `PRS*_RESULTS.md`. Two earlier claims are superseded: the October 17 figures are retracted
 ([report](token-master-plugin/docs/V5_ISOLATED_SANDBOX_SAVINGS_REPORT.md)), and the early −72%
 Django pilot was never replicated
 ([research notes](docs/research/token-efficient-harness-research.md) §7.10).
@@ -50,14 +50,20 @@ Django pilot was never replicated
 
 1. **Send less fixed overhead (lean tool set, opt-in).** With `--lean`, the TokenMaster launcher
    removes 13 built-in Copilot CLI tools: 11 that no session called in the October 18 runs, and two
-   workflow tools that none of the October 27 sessions called. Since October 30 it is off by
+   workflow tools that none of the October 27 sessions called. Since October 31 it is off by
    default: without `--lean`, the launcher sends every built-in tool.
    - Unless the prompt, a flag or `TOKENMASTER_KEEP_TOOLS` keeps them, their definitions and the system-prompt text
-     about them leave every call.
+     about them leave every call. The prompt rules are keyword patterns and miss some phrasings.
+     With `TOKENMASTER_MD1_ENDPOINT` set, the launcher also asks the user's own Microsoft-Decision-1
+     (MD-1) deployment which families a `-p` or `-i` prompt needs and keeps those too; MD-1 never
+     drops a family.
    - In a probe on Copilot CLI 1.0.78-3, the `gpt-6-astra` system prompt fell from 7,216 to
      5,117 tokens.
-   - Most of the Copilot CLI saving came with this change. The published results were measured with
-     it on, so they apply with `--lean`.
+   - Most of the Copilot CLI saving came with this change. In the November 1 runs on Copilot CLI
+     1.0.105 (15 Django tasks, `gpt-6-astra`), TokenMaster used 52.6% fewer raw tokens than stock
+     with `--lean` (95% CI 48.5% to 56.5%) and 19.1% fewer without it (8.5% to 28.7%), each against
+     its own stock arm. The README's other results were measured with the lean tool set on, so
+     they apply with `--lean`.
    - One later stock session called `task`, one of the removed tools. Without `--lean`, every tool
      stays for work that needs subagents, skills or background PowerShell.
 2. **One system prompt for every session in a folder (bridge).** Copilot CLI writes each session's
@@ -124,18 +130,28 @@ Django pilot was never replicated
 - [`README.md`](README.md): current evidence, components and how to reproduce.
 - [`COPILOT_CLI_RESULTS.md`](token-master-plugin/docs/COPILOT_CLI_RESULTS.md): the Copilot CLI
   runs, their method and limits.
+- [`proofs/README.md`](proofs/README.md): Lean 4 proofs of the rules behind the bridge, v6
+  shaping, the folds, tool routing, the shared system prompt, the navigation cap and the
+  measurement method, with the assumptions each takes from the code and the findings. A proof
+  covers a model of the code; `test_proof_conformance.py` checks its assumptions against the
+  Python where a test can.
 - `token-master-plugin/docs/PRS*_PROTOCOL.md` and `PRS*_RESULTS.md`: each study's
-  pre-registration and results.
-- `evidence/`: committed summaries and per-session results. The Copilot CLI runs are in
-  `evidence/django-scale-20261022/` and `evidence/copilot-lean-*-20261019/`; the PRS studies are
-  in `evidence/prs*-20261018/`, except PRS-5 (`evidence/prs5-20261019/`) and PRS-6
-  (`evidence/prs6-copilot-1.0.98-20261026/`).
+  pre-registration and results. PRS-6's results are in `COPILOT_CLI_RESULTS.md`, and PRS-5, which
+  stopped after 10 of 32 sessions, has no results file.
+- `evidence/`: committed summaries and per-session results. The November 1 runs that the README
+  hero quotes are in `evidence/lean-20261101/` and `evidence/default-nolean-20261101/`, and the
+  October 27 default-routing run and its relay control are in `evidence/default-routing-20261027/`
+  and `evidence/relay-control-20261027/`; each of these four has its protocol in `PROTOCOL.md`.
+  The earlier exploratory runs are in `evidence/django-scale-20261022/` and
+  `evidence/copilot-lean-*-20261019/`. The PRS studies are in `evidence/prs*-20261018/`, except
+  PRS-5 (`evidence/prs5-20261019/`) and PRS-6 (`evidence/prs6-copilot-1.0.98-20261026/`). The
+  MD-1 routing eval is in `evidence/md1-routing-20261108/`.
 - [`token-efficient-harness-research.md`](docs/research/token-efficient-harness-research.md):
   early pilots, including the §7.9 retraction and the §7.10 Django pilot. The later studies
   supersede them.
 - [`harness-command-design.md`](docs/history/harness-command-design.md): the original design of
   the routing `/command`.
 
-**One line:** TokenMaster makes the cheapest correct path the default. It sends less fixed
-overhead on every call, answers structure from a graph, shapes each tool result once, and
-measures the outcome in raw tokens and billed cost per finished task.
+**One line:** TokenMaster gets the model to the cheapest correct answer. It answers structure from
+a graph and shapes each tool result once, and with `--lean` it also sends less fixed overhead on
+every call. It measures the outcome in raw tokens and billed cost per finished task.

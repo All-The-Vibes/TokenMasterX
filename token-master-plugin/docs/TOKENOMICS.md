@@ -13,8 +13,13 @@ prints daily, weekly, monthly or per-session tables.
 
 1. Install TokenMaster for Copilot (see [COPILOT_BRIDGE.md](COPILOT_BRIDGE.md)). `brainspace_setup.py --host copilot`
    installs `tokenomics.py` and a personal Copilot skill, `<COPILOT_HOME>/skills/tokenomics/SKILL.md`.
-2. Start Copilot CLI through the TokenMaster launcher. The launcher records each launch, so the dashboard can tell
-   TokenMaster sessions from stock sessions.
+2. Start Copilot CLI through the TokenMaster launcher, with `--lean` before `--` for the lean tool set
+   ([COPILOT_BRIDGE.md](COPILOT_BRIDGE.md#install-and-run)):
+   `<runtime> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py --lean -- copilot`. The launcher records each
+   launch, so the dashboard can tell TokenMaster sessions from stock sessions. Since TokenMaster 0.3.0 the lean tool
+   set is opt-in: a launch without `--lean` sends every built-in tool, and the dashboard credits it no `lean` saving.
+   If the navigation tools are installed, which `/token-master` does, the estimate still subtracts their `nav` tokens
+   from every main-agent call, so such a launch shows a negative token saving.
 3. In an interactive Copilot CLI session, type `/tokenomics`. Add a report and options after it, for example
    `/tokenomics session --since 20261020`.
 4. Approve the two questions that Copilot CLI asks:
@@ -95,6 +100,12 @@ have made the same model calls.
      `nav` (when the navigation tools were installed).
    - Cost saved per call = those tokens × the call's own cache-read price. Stock reads its fixed prefix from the cache
      after its first call.
+   - A launch without `--lean`, the launcher's default since 0.3.0, gets no `lean` credit. With the navigation tools
+     installed, each of its main-agent calls counts −`nav`, so its estimated token saving is negative. The one run
+     that measured this setup saved through fewer model calls, which the estimate does not count. On November 1
+     (Copilot CLI 1.0.105, `gpt-6-astra`, `evidence/default-nolean-20261101/`), TokenMaster made 43 calls against
+     stock's 51 and used 19.1% fewer raw tokens, while the estimate for its 43 calls is 43 × −252 = −10,836 tokens
+     (−1.8%). The check against measured results below covers only launches with the lean tool set.
 2. **First call, per session.** The first call of a session writes most of its prompt to GitHub's cache.
    - Stock's first call would send the same prompt plus the fixed tokens. It would read its usual cached prefix
      and write the rest.

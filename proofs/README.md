@@ -29,7 +29,7 @@ definitions have. Section 7 covers the method.
 | A keyword pattern that covers `n` independent phrasings of a family, and fires on no prompt that does not need it, has at least `n` branches | Proven for any branch matcher; independence is a hypothesis about the phrasings. MD-1's recall is measured, not proven (section 4) | `Tuning.branches_ge_phrasings`, `Tuning.new_phrasing_needs_a_branch` |
 | A resume that the launcher ties to the session's record gets the `--excluded-tools` the session started with | Proven for the model; which record applies is the launcher's lookup, which the conformance tests check (section 4) | `Routing.resume_same_list`, `Routing.resume_chain_keeps_first_list` |
 | Sessions whose system prompts differ only in the folder path get the same system prompt | Proven | `SessionPrefix.system_same_across_sessions` |
-| Navigation results stay under 2,400 tokens | Proven, in the navigation server's counter: every result is measured whole and cut to fit (section 6) | `NavCap.assemble_le` |
+| Navigation results stay within 2,400 tokens | Proven, in the navigation server's counter: every result is measured whole and cut to fit (section 6) | `NavCap.assemble_le` |
 | The measurement definitions have the properties the protocol relies on | Proven; `analyze.py`'s outputs match them on the recorded data; the interval's coverage is assumed | `Measurement.resample_within_task_range` |
 
 ## How to check
@@ -65,6 +65,7 @@ To list the axioms a theorem depends on, run `lake env lean` on a file that impo
 | A printed directory head is never indented, never a notice, and never `.` itself | section 3 | Not indented: checked, as `test_fold_paths_round_trip` adds entries that start with spaces, which `_PATH` must make `fold_paths` refuse. Never a notice and never `.`: hold by reading the code, since a printed head ends in a separator or is `.` |
 | An owning path is never itself an entry line, and an owned line has digits and a `:` or `-` | section 3 | Checked: `test_fold_search_round_trip` adds match lines whose path looks like an entry. With `_SUSPECT_PATH`'s whitespace rules removed, the test fails |
 | No copied search line looks like a folded entry | section 3 | Guaranteed by the code: `fold_search` refuses such input (Theorem 11) |
+| Phrasings that need a family are independent: a branch that matches two of them also matches a prompt that does not need the family | section 4 | Checked for word branches on eight subagent phrasings by `test_tuning_agent_phrasings_are_independent`. Other families and other kinds of branch are assumed |
 | The model's tool families are the code's | section 4 | Checked: `test_routing_lists_match_the_lean_model` |
 | The folder path has no newline and no surrounding whitespace | section 5 | No newline by the regular expression; whitespace is stripped (finding 3) |
 | The empty text fits the budget | section 6 | Holds for both the exact count and the fallback estimate, which count it as 0 |
@@ -398,9 +399,13 @@ branch matches at most one phrasing, and the rest cover the others. ∎
 The strength of the bound is in the independence hypothesis, which the theorem does not check.
 "have an agent review this diff" and "farm out the lint fixes to a couple of agents" share "agent",
 but so does "rename the AgentConfig class", which does not need the subagent tools, so "agent" is
-not a clean branch. MD-1's configuration stays at 7 questions whatever the phrasings; its recall is
-measured by `evals/md1_routing_eval.py`, not proven. On the eval's 22 held-out prompts, written before
-the questions were tuned, the patterns kept 3 of the 13 families the prompts needed, and the patterns
+not a clean branch. `test_tuning_agent_phrasings_are_independent` checks the hypothesis for word
+branches on eight subagent phrasings from `evals/md1_routing_eval.py`: any word two of them share
+also occurs in a prompt there that does not need the subagent tools. It also checks that the
+`agents` pattern fires on no such prompt and misses at least one of the eight. MD-1's configuration
+stays at 7 questions whatever the phrasings; its recall is measured by `evals/md1_routing_eval.py`,
+not proven. On the eval's 22 held-out prompts, which were not used to choose the questions or the
+threshold, the patterns kept 3 of the 13 families the prompts needed, and the patterns
 with MD-1 kept all 13, at the cost of 4 families kept that no prompt needed against 2
 (`evidence/md1-routing-20261108`).
 
@@ -553,9 +558,10 @@ smaller $x$. ∎
 
 Checks on the recorded data:
 
-- `test_cache_writes_never_cost_less_than_reads`: of the 521 recorded sessions, 36 list both a
-  cache-read and a cache-write price, all from the default-routing study, and their 109 calls share
-  one pair: 100,000 nano-AIU per cache-read token and 1,250,000 per cache-write token.
+- `test_cache_writes_never_cost_less_than_reads`: of the 581 recorded sessions, 96 list both a
+  cache-read and a cache-write price: 36 in `evidence/default-routing-20261027` and 30 in each of
+  the November 1 runs, `evidence/lean-20261101` and `evidence/default-nolean-20261101`. Their 300
+  calls share one pair: 100,000 nano-AIU per cache-read token and 1,250,000 per cache-write token.
 - `test_cold_repricing_matches_the_definition`: for all 30 sessions of the default-routing study, the
   recorded cold cost is the as-run cost plus the term above, within one nano-AIU.
 - `test_bootstrap_interval_within_task_range`: the raw-token CI, −52.84% to −41.74%, lies within the

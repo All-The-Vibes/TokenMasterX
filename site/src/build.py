@@ -11,7 +11,7 @@ Hand-written parts: body.html, style.css, app.js. Everything else is made at bui
 
 The build stops if a theorem or test name that a proof slide prints no longer exists, or if proofs/README.md lists
 a different number of claims or findings than the slides, so the page cannot drift from the proofs.
-Only index.html is published; see site/src/README.md. Standard library only.
+index.html and og.png are published; see site/src/README.md. Standard library only.
 """
 import argparse
 import ast
@@ -273,7 +273,7 @@ def proof_slides():
           <li><span class="n">3</span><div><h3>Every assumption is written down.</h3><p>The write-up lists what the models assume about the code and marks each as tested, read from the code, or assumed. One is known to be false: the token counter raises on a lone surrogate (open finding 1).</p></div></li>
           <li><span class="n">4</span><div><h3>Gaps become findings.</h3><p>Where a claim and the code disagree, the gap is recorded. Writing and reviewing the proofs found mistakes in our own claims. Most are fixed, and the rest are published.</p></div></li>
         </ol>
-        <p class="small" data-reveal>Code and proofs change together: {pull_link(18)}, {pull_link(19)} and {pull_link(20)}, the last three routing pull requests, each updated the proofs write-up and the conformance tests; {pull_link(18)} and {pull_link(20)} also changed <code>Routing.lean</code>.</p>
+        <p class="small" data-reveal>Code and proofs change together: {pull_link(18)}, {pull_link(19)}, {pull_link(20)} and {pull_link(28)}, every routing pull request since the proofs landed, each updated the proofs write-up and the conformance tests; {pull_link(18)} and {pull_link(20)} also changed <code>Routing.lean</code>, and {pull_link(28)} added <code>Tuning.lean</code>.</p>
       </div>
       <div class="stack">
         <div class="panel" data-reveal>
