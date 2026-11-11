@@ -38,6 +38,10 @@ and the project aims to follow semantic versioning.
   which `evals/md1_routing_eval.py` contradicts; they say the prompts were not used to choose the questions or the
   threshold. `proofs/README.md` names the test that checks the tuning bound's independence hypothesis and updates the
   recorded-session counts to 581 sessions, 96 of which list both cache prices.
+- The README hero has a line on opt-in MD-1 routing: with the user's own Microsoft-Decision-1 deployment, `--lean` asks
+  that model which tools a prompt needs. On the 22 held-out prompts it kept all 13 tool groups they needed, against 3
+  for the keyword rules alone. The line gives no savings figure, because no run measured MD-1's effect on tokens, cost
+  or pass rate, and it says MD-1 was not part of the measured runs.
 
 ### Fixed
 
