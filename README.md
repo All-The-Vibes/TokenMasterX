@@ -3,6 +3,7 @@
 <p align="center">
   <b>GitHub Copilot on about half the tokens with <code>--lean</code>, and 9 to 29% fewer with no flags.</b><br>
   With <code>--lean</code> it drops 13 built-in tool definitions unless the prompt asks for their family; it finds and reads code through a symbol graph instead of grep dumps and whole-file reads, and trims tool output without breaking the provider's prompt cache.<br>
+  Optional: connect <code>--lean</code> to your own <a href="token-master-plugin/docs/COPILOT_BRIDGE.md#md-1-routing">Microsoft-Decision-1</a> deployment and it asks that model which tools a prompt needs. On 22 test prompts it kept all 13 tool groups the prompts needed, where the keyword rules alone kept 3. It is off by default and was not part of the measured runs.<br>
   Its core rules are <a href="#proof-driven-development">proved in Lean 4</a>, a proof checker, and tests check the proofs' assumptions against the code.
 </p>
 
