@@ -2,7 +2,8 @@
 """Compare --lean's regex routing with Microsoft-Decision-1 (MD-1) and their union on labelled prompts.
 
 Each prompt is labelled with the tool families it needs. A family counts as kept when its CAPABILITY_GROUPS pattern
-fires (regex), when MD-1 picks it (md1_families), or either (union, what select_excluded_tools does with MD-1 on).
+fires (regex), when MD-1 picks it (md1, what select_excluded_tools does for each family MD-1 answers on), or either
+(union, what select_excluded_tools did before per-family MD-1 precedence).
 Recall is over the needed families; a false keep is a family kept that the prompt does not need. Installed skill and
 agent names are left out: they are the same with or without MD-1. MD1_QUESTIONS and MD1_THRESHOLD were chosen on CASES;
 HELD_OUT was written afterwards and not used to choose them.

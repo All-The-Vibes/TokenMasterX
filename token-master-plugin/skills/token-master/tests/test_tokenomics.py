@@ -242,8 +242,12 @@ def test_the_lean_credit_covers_only_the_tools_a_launch_removed(tmp_path, monkey
             "cwd": tokenomics.norm("C:/r"), "lean": True, "bridge": False, "nav": False, **launch}])
         return calls[0]["saved_tokens"]
 
-    # The 11 calibrated tools carry the weights; the workflow tools are not in the 1.0.98 calibration.
-    assert set(weights) == set(bridge.LEAN_EXCLUDED_TOOLS) - {"run_dynamic_workflow", "dynamic_workflows_manage"}
+    # All 13 tools in LEAN_EXCLUDED_TOOLS carry measured definition + instruction weights.
+    assert set(weights) == set(bridge.LEAN_EXCLUDED_TOOLS)
     assert saved(excluded=list(bridge.LEAN_EXCLUDED_TOOLS)) == saved() == lean  # all removed, or an older record
     share = 1 - sum(weights[tool] for tool in agents) / sum(weights.values())
     assert saved(excluded=record["excluded"]) == round(lean * share) < lean
+    workflows = set(bridge.CAPABILITY_GROUPS["workflows"][0])
+    wf_excluded = [tool for tool in bridge.LEAN_EXCLUDED_TOOLS if tool not in workflows]
+    wf_share = 1 - sum(weights[tool] for tool in workflows) / sum(weights.values())
+    assert saved(excluded=wf_excluded) == round(lean * wf_share) < lean

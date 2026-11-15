@@ -145,19 +145,24 @@ uses them to give a resumed session its tool list again ([Resumed sessions](#res
 - In a probe with one lookup task per model on Copilot CLI 1.0.78-3, the lean tool set cut the
   system prompt from 7,216 to 5,117 cl100k tokens (`gpt-6-astra`). The session used 27,255 → 13,702 raw tokens
   (`gpt-6-astra`) and 42,544 → 19,434 (`claude-opus-5.5`).
-- **Trade-off:** with `--lean`, a workload that needs subagents (`task`), skills, session-store
-  search, SQL, background PowerShell or agent workflows loses those tools when its prompt does not ask
-  for them, for example in an interactive session started without `-p`. Leave out `--lean` for it. No
-  run measured such a workload. In the October 19 runs, one stock `gpt-6-astra` session (P13) called
-  `task`; with the lean tool set, the same task passed without it.
+- **Trade-off:** with `--lean` and MD-1 off, a workload that needs subagents (`task`), skills, session-store
+  search, SQL, background PowerShell or agent workflows loses those tools when its prompt does not match
+  a keyword rule, or in an interactive session started without `-p`. Leave out `--lean` or enable MD-1
+  routing below for natural `-p` phrasings. In a 45-session 3-arm study on Copilot CLI 1.0.112
+  ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)), regex-only `--lean` missed 5/5 indirect capability
+  phrasings (4/5 passed, 3 shell workarounds), whereas `--lean` with MD-1 recalled 5/5 (5/5 passed).
 
 ### MD-1 routing
 
-The prompt patterns are keyword rules, and they miss phrasings such as "have an agent review this
-diff". With `--lean` and `TOKENMASTER_MD1_ENDPOINT` set to a Microsoft Foundry resource that serves
-Microsoft-Decision-1 (MD-1), the launcher also sends the prompt to MD-1 with one yes/no question per
-tool family (`MD1_QUESTIONS`), in one call, and keeps each family whose probability reaches the
-threshold. MD-1 only adds families to what the patterns keep; it never drops one.
+The prompt patterns are keyword rules: they miss natural phrasings such as "have an agent review this
+diff", and they fire on lookalike coding prompts such as "write a GitHub Actions workflow that runs
+pytest". With `--lean` and `TOKENMASTER_MD1_ENDPOINT` set to a Microsoft Foundry resource that serves
+Microsoft-Decision-1 (MD-1), the launcher sends the prompt to MD-1 with one yes/no question per tool
+family (`MD1_QUESTIONS`), in one call. For each family MD-1 returns a score for, `score >= threshold`
+replaces that family's keyword pattern—keeping needed families while letting MD-1's `"false"` criteria
+suppress lookalike keyword matches. Explicit CLI flags (`--agent`, `--fleet`, `--resume`, `--continue`),
+built-in slash commands, installed skill and agent names, and `TOKENMASTER_KEEP_TOOLS` still keep their
+tools unconditionally.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -169,10 +174,15 @@ threshold. MD-1 only adds families to what the patterns keep; it never drops one
 | `TOKENMASTER_MD1_TIMEOUT` | `3` | Seconds to wait for MD-1. |
 
 - The prompt leaves the machine, to your own resource. MD-1 is off unless you set the endpoint.
-- On any error, a timeout or an answer it cannot read, MD-1 keeps nothing and the patterns alone
-  decide, as without it.
-- In 65 calls, MD-1 answered in 403 ms at the median, 504 ms at the 90th percentile and 670 ms at
-  most. The first launch without a cached token also waits for `az` (about 1.8 s here).
+- On any error, a timeout, or any family omitted from the response, that family falls back to its
+  keyword pattern, as without MD-1.
+- On the 22 held-out prompts of `evals/md1_routing_eval.py` (`evidence/md1-routing-20261108`), MD-1 kept
+  all 13 needed families with 2 false keeps (against 3/13 recalled by regex alone and 4 false keeps under
+  their union). On the 15 tasks of `evidence/md1-live-routing-20261115`, MD-1 classified 15/15 prompts
+  with 0 false keeps on 5 lookalike coding prompts (where regex and the earlier union kept unneeded
+  families on 5/5), answering in 628 ms at the median and 703 ms at the 90th percentile (403 ms median
+  and 504 ms p90 across the 65 prompts of `md1-routing-20261108`). The first launch without a cached
+  token also waits for `az` (about 1.8 s here).
 - On 22 held-out prompts, which were not used to choose the questions or the threshold, the patterns
   kept 3 of the 13 families the prompts needed; the patterns with MD-1 kept all 13, and kept 4
   families no prompt needed against the patterns' 2

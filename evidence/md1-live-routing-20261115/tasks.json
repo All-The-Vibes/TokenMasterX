@@ -1,0 +1,403 @@
+[
+  {
+    "id": "A01",
+    "bucket": "A_pure_coding",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [],
+    "prompt": "Inspect `brainspace/symbol_index.py` and `navigation_mcp.py` under `token-master-plugin/skills/token-master`. Report: (1) `SCHEMA_VERSION`, (2) `BUDGET`, (3) `MAX_LOOSE`, (4) `INDEXED_SUFFIXES` (preserving tuple order), (5) `_RUST_STD` (preserving tuple order), (6) `SERVER_NAME` in `navigation_mcp.py`, and (7) the alphabetically sorted list of `@server.tool` function names defined inside `make_server` in `navigation_mcp.py`. Do not modify any files. Reply with ONLY a JSON object with keys: \"schema_version\" (int), \"budget\" (int), \"max_loose\" (int), \"indexed_suffixes\" (list of strings), \"rust_std\" (list of strings), \"server_name\" (string), \"mcp_tools\" (list of strings, sorted).",
+    "expected": {
+      "schema_version": 5,
+      "budget": 2400,
+      "max_loose": 25,
+      "indexed_suffixes": [
+        ".py",
+        ".pyi",
+        ".rs",
+        ".md",
+        ".markdown",
+        ".json"
+      ],
+      "rust_std": [
+        "std",
+        "core",
+        "alloc"
+      ],
+      "server_name": "tokenmaster-nav",
+      "mcp_tools": [
+        "impact",
+        "locate",
+        "read_symbol"
+      ]
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "A02",
+    "bucket": "A_pure_coding",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [],
+    "prompt": "Trace `brainspace/v6_shaping.py` under `token-master-plugin/skills/token-master`. Report: (1) `SEARCH_BUDGET`, `READ_BUDGET`, and `OTHER_BUDGET`; (2) the minimum number of lines required before `fold_search` can return a non-`None` string; (3) the minimum number of path entries required before `fold_paths` can return a non-`None` string; (4) the four `arguments` keys checked on a `kind == \"read\"` call in `shape_tool_result` that bypass shaping and return `content` unchanged; and (5) what `tool_kind(\"rg\")` and `tool_kind(\"powershell\")` return. Do not modify any files. Reply with ONLY a JSON object with keys: \"search_budget\" (int), \"read_budget\" (int), \"other_budget\" (int), \"min_fold_search_lines\" (int), \"min_fold_paths_entries\" (int), \"read_bypass_keys\" (list of 4 strings; order does not matter), \"rg_kind\" (string), \"powershell_kind\" (string).",
+    "expected": {
+      "search_budget": 1500,
+      "read_budget": 4000,
+      "other_budget": 3000,
+      "min_fold_search_lines": 2,
+      "min_fold_paths_entries": 3,
+      "read_bypass_keys": [
+        "forceReadLargeFiles",
+        "limit",
+        "offset",
+        "view_range"
+      ],
+      "rg_kind": "search",
+      "powershell_kind": "other"
+    },
+    "unordered_keys": [
+      "read_bypass_keys"
+    ]
+  },
+  {
+    "id": "A03",
+    "bucket": "A_pure_coding",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [],
+    "prompt": "Examine `brainspace/exact_reuse.py` and `brainspace/token_ledger.py` under `token-master-plugin/skills/token-master`. Report: (1) `_TOOLS` in `exact_reuse.py` (as a list of strings, preserving tuple order); (2) the exact `ValueError` message string raised by `ExactReuse(2, 2, \"m\", \"a\" * 64)`; (3) `COMPLETE` in `token_ledger.py`; (4) `_ROLES` in `token_ledger.py` (as a list of strings, preserving tuple order); and (5) the default `count_kind` and default `input_kind` on `CallRecord` in `token_ledger.py`. Do not modify any files. Reply with ONLY a JSON object with keys: \"reuse_tools\" (list of strings), \"same_index_error\" (string), \"ledger_complete\" (string), \"ledger_roles\" (list of strings), \"default_count_kind\" (string), \"default_input_kind\" (string).",
+    "expected": {
+      "reuse_tools": [
+        "read_file",
+        "fetch_artifact"
+      ],
+      "same_index_error": "invalid exact reuse",
+      "ledger_complete": "complete_for_declared_boundary",
+      "ledger_roles": [
+        "primary",
+        "auxiliary",
+        "verification",
+        "recovery",
+        "retry"
+      ],
+      "default_count_kind": "reference_exact",
+      "default_input_kind": "materialized"
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "A04",
+    "bucket": "A_pure_coding",
+    "kind": "edit",
+    "needed_groups": [],
+    "trap_groups": [],
+    "prompt": "In `token-master-plugin/skills/token-master/brainspace/exact_reuse.py`, add a public helper `has_exact_reuse_marker(text: object) -> bool` that returns `True` if and only if `type(text) is str`, `text` starts with `_PREFIX` and ends with `_SUFFIX`, and the JSON payload between `_PREFIX` and `_SUFFIX` parses as a `dict` whose keys equal `{\"source_index\", \"target_index\", \"tool_name\", \"source_path\", \"source_call_id\", \"target_call_id\", \"content_sha256\"}`, with `type(source_index) is int`, `type(target_index) is int`, `0 <= source_index < target_index`, `tool_name in _TOOLS`, `source_path`, `source_call_id`, and `target_call_id` all `type(...) is str` and non-empty, `type(content_sha256) is str` matching `[0-9a-f]{64}`, and `text == _marker(data)` (canonical JSON form). Return `False` (never raising) for non-strings, partial or padded strings, malformed JSON, `bool` indices, unsupported tool names, or non-canonical JSON. Add focused unit tests in `token-master-plugin/skills/token-master/tests/test_exact_reuse.py`. Only modify those two files.",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/brainspace/exact_reuse.py",
+      "token-master-plugin/skills/token-master/tests/test_exact_reuse.py"
+    ],
+    "check": [
+      "import json, subprocess, sys",
+      "sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "from brainspace.exact_reuse import _PREFIX, _SUFFIX, _marker, has_exact_reuse_marker",
+      "good = _marker({'source_index': 1, 'target_index': 3, 'tool_name': 'read_file', 'source_path': 'a.py', 'source_call_id': 'c1', 'target_call_id': 'c2', 'content_sha256': 'a' * 64})",
+      "assert has_exact_reuse_marker(good) is True",
+      "assert has_exact_reuse_marker(123) is False and has_exact_reuse_marker(None) is False",
+      "assert has_exact_reuse_marker(' ' + good) is False and has_exact_reuse_marker(good + ' ') is False",
+      "assert has_exact_reuse_marker(_PREFIX + 'not-json' + _SUFFIX) is False",
+      "assert has_exact_reuse_marker(good.replace('\"source_index\":1', '\"source_index\":true')) is False",
+      "assert has_exact_reuse_marker(good.replace('\"source_index\":1', '\"source_index\":3')) is False",
+      "assert has_exact_reuse_marker(good.replace('\"read_file\"', '\"grep\"')) is False",
+      "assert has_exact_reuse_marker(good.replace('\"a.py\"', '\"\"')) is False",
+      "assert has_exact_reuse_marker(good.replace('a' * 64, 'A' * 64)) is False",
+      "noncanon = _PREFIX + json.dumps({'source_index': 1, 'target_index': 3, 'tool_name': 'read_file', 'source_path': 'a.py', 'source_call_id': 'c1', 'target_call_id': 'c2', 'content_sha256': 'a' * 64}) + _SUFFIX",
+      "assert has_exact_reuse_marker(noncanon) is False",
+      "subprocess.run([sys.executable, '-m', 'pytest', '-q', 'token-master-plugin/skills/token-master/tests/test_exact_reuse.py'], check=True)"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py\nindex a4af67a..464ab9a 100644\n--- a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py\n+++ b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py\n@@ -51,6 +51,35 @@ def _marker_looking(text):\n     return \"[[\" in text or \"]]\" in text or \"EXACT_READ_REUSE\" in text\n \n \n+_MARKER_KEYS = frozenset({\n+    \"source_index\", \"target_index\", \"tool_name\", \"source_path\",\n+    \"source_call_id\", \"target_call_id\", \"content_sha256\",\n+})\n+\n+\n+def has_exact_reuse_marker(text: object) -> bool:\n+    if type(text) is not str or not text.startswith(_PREFIX) or not text.endswith(_SUFFIX):\n+        return False\n+    try:\n+        data = json.loads(text[len(_PREFIX):-len(_SUFFIX)])\n+    except (ValueError, TypeError):\n+        return False\n+    if type(data) is not dict or set(data) != _MARKER_KEYS:\n+        return False\n+    source = data[\"source_index\"]\n+    target = data[\"target_index\"]\n+    digest = data[\"content_sha256\"]\n+    if (type(source) is not int or type(target) is not int\n+            or not 0 <= source < target\n+            or data[\"tool_name\"] not in _TOOLS\n+            or any(type(data[k]) is not str or not data[k]\n+                   for k in (\"source_path\", \"source_call_id\", \"target_call_id\"))\n+            or type(digest) is not str\n+            or re.fullmatch(r\"[0-9a-f]{64}\", digest) is None):\n+        return False\n+    return text == _marker(data)\n+\n+\n def _contexts(messages):\n     \"\"\"Index only unambiguous, earlier function calls and unique tool results.\"\"\"\n     if type(messages) is not list or any(type(m) is not dict for m in messages):\ndiff --git a/token-master-plugin/skills/token-master/tests/test_exact_reuse.py b/token-master-plugin/skills/token-master/tests/test_exact_reuse.py\nindex a687ab5..d9bfebc 100644\n--- a/token-master-plugin/skills/token-master/tests/test_exact_reuse.py\n+++ b/token-master-plugin/skills/token-master/tests/test_exact_reuse.py\n@@ -6,7 +6,7 @@ import json\n \n import pytest\n \n-from brainspace.exact_reuse import ExactReuse, find_exact_reuses, restore_exact_reuses\n+from brainspace.exact_reuse import ExactReuse, find_exact_reuses, has_exact_reuse_marker, restore_exact_reuses\n from brainspace.request_policy import SourceReadInfo\n \n \n@@ -260,6 +260,16 @@ def test_corrupt_descriptors_reject(changes):\n         restore_exact_reuses(projected, (bad,))\n \n \n+def test_has_exact_reuse_marker_validates_canonical_markers():\n+    messages, receipts = conversation((TEXT, TEXT))\n+    reuse, = find_exact_reuses(messages, receipts, {5})\n+    assert has_exact_reuse_marker(reuse.marker) is True\n+    assert has_exact_reuse_marker(None) is False\n+    assert has_exact_reuse_marker(\" \" + reuse.marker) is False\n+    assert has_exact_reuse_marker(reuse.marker.replace('\"read_file\"', '\"grep\"')) is False\n+    assert has_exact_reuse_marker(reuse.marker.replace('\"source_index\":3', '\"source_index\":true')) is False\n+\n+\n def test_marker_metadata_changes_even_when_descriptor_matches_target_reject():\n     messages, receipts = conversation((TEXT, TEXT))\n     reuse, = find_exact_reuses(messages, receipts, {5})\n"
+  },
+  {
+    "id": "A05",
+    "bucket": "A_pure_coding",
+    "kind": "edit",
+    "needed_groups": [],
+    "trap_groups": [],
+    "prompt": "In `token-master-plugin/skills/token-master/tokenomics.py`, add an optional `--limit N` CLI flag (`default=None`) that caps `rows` in `build(args)` to the first `N` rows after sorting (`rows = rows[:args.limit]`), while keeping `total` (`totals` in `--json` and the `Total` summary) computed across all filtered calls prior to `--limit` truncation. Validate `--limit` via an `argparse` type parser that accepts integers `>= 1` and raises `argparse.ArgumentTypeError` for non-integers or values `<= 0`. Add focused unit tests in `token-master-plugin/skills/token-master/tests/test_tokenomics.py`. Only modify those two files.",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/tokenomics.py",
+      "token-master-plugin/skills/token-master/tests/test_tokenomics.py"
+    ],
+    "check": [
+      "import importlib.util, io, json, subprocess, sys, tempfile",
+      "from contextlib import redirect_stdout",
+      "from pathlib import Path",
+      "sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "sys.path.insert(0, 'token-master-plugin/skills/token-master/tests')",
+      "import test_tokenomics as tt",
+      "spec = importlib.util.spec_from_file_location('tok_check', 'token-master-plugin/skills/token-master/tokenomics.py')",
+      "tok = importlib.util.module_from_spec(spec); spec.loader.exec_module(tok)",
+      "with tempfile.TemporaryDirectory() as td:",
+      "    home = tt.make_home(Path(td))",
+      "    buf1, buf2 = io.StringIO(), io.StringIO()",
+      "    with redirect_stdout(buf1): assert tok.main(['session', '--json', '--copilot-home', str(home)]) == 0",
+      "    with redirect_stdout(buf2): assert tok.main(['session', '--json', '--order', 'desc', '--limit', '2', '--copilot-home', str(home)]) == 0",
+      "    full, lim = json.loads(buf1.getvalue()), json.loads(buf2.getvalue())",
+      "    assert len(full['rows']) == 4 and len(lim['rows']) == 2",
+      "    assert [r['session'] for r in lim['rows']] == ['V', 'U']",
+      "    assert lim['totals'] == full['totals']",
+      "    for bad in ('0', '-2', 'abc'):",
+      "        try:",
+      "            tok.main(['session', '--limit', bad, '--copilot-home', str(home)])",
+      "            raise AssertionError(f'accepted {bad}')",
+      "        except SystemExit as exc:",
+      "            assert exc.code != 0",
+      "subprocess.run([sys.executable, '-m', 'pytest', '-q', 'token-master-plugin/skills/token-master/tests/test_tokenomics.py'], check=True)"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/tests/test_tokenomics.py b/token-master-plugin/skills/token-master/tests/test_tokenomics.py\nindex 4b3bff8..b68ce35 100644\n--- a/token-master-plugin/skills/token-master/tests/test_tokenomics.py\n+++ b/token-master-plugin/skills/token-master/tests/test_tokenomics.py\n@@ -247,3 +247,14 @@ def test_the_lean_credit_covers_only_the_tools_a_launch_removed(tmp_path, monkey\n     assert saved(excluded=list(bridge.LEAN_EXCLUDED_TOOLS)) == saved() == lean  # all removed, or an older record\n     share = 1 - sum(weights[tool] for tool in agents) / sum(weights.values())\n     assert saved(excluded=record[\"excluded\"]) == round(lean * share) < lean\n+\n+\n+def test_limit_caps_rows_without_changing_totals(tmp_path, capsys):\n+    home = make_home(tmp_path)\n+    assert tokenomics.main([\"session\", \"--json\", \"--limit\", \"2\", \"--copilot-home\", str(home)]) == 0\n+    limited = json.loads(capsys.readouterr().out)\n+    assert tokenomics.main([\"session\", \"--json\", \"--copilot-home\", str(home)]) == 0\n+    full = json.loads(capsys.readouterr().out)\n+    assert len(limited[\"rows\"]) == 2 and len(full[\"rows\"]) == 4\n+    assert [r[\"session\"] for r in limited[\"rows\"]] == [r[\"session\"] for r in full[\"rows\"][:2]]\n+    assert limited[\"totals\"] == full[\"totals\"]\ndiff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py\nindex 6512a82..833e2bc 100644\n--- a/token-master-plugin/skills/token-master/tokenomics.py\n+++ b/token-master-plugin/skills/token-master/tokenomics.py\n@@ -497,6 +497,16 @@ def day_arg(text: str) -> date:\n         raise argparse.ArgumentTypeError(f\"expected YYYYMMDD, got {text!r}\") from error\n \n \n+def positive_int_arg(text: str) -> int:\n+    try:\n+        value = int(text)\n+    except ValueError as error:\n+        raise argparse.ArgumentTypeError(f\"expected positive integer, got {text!r}\") from error\n+    if value <= 0:\n+        raise argparse.ArgumentTypeError(f\"expected integer >= 1, got {text!r}\")\n+    return value\n+\n+\n def build(args) -> dict:\n     home = copilot_home(args.copilot_home)\n     store = home / \"session-store.db\"\n@@ -521,6 +531,8 @@ def build(args) -> dict:\n         rows.sort(key=lambda row: start[row[0]], reverse=args.order == \"desc\")\n     else:\n         rows.sort(key=lambda row: row[0], reverse=args.order == \"desc\")\n+    if getattr(args, \"limit\", None) is not None:\n+        rows = rows[:args.limit]\n     return {\"home\": home, \"store\": store, \"calls\": calls, \"sessions\": sessions, \"launches\": launches,\n             \"rows\": rows, \"total\": total}\n \n@@ -557,6 +569,7 @@ def main(argv=None) -> int:\n     parser.add_argument(\"--only\", choices=(\"tokenmaster\", \"stock\"), help=\"only TokenMaster or only stock calls\")\n     parser.add_argument(\"--breakdown\", action=\"store_true\", help=\"one sub-row per model\")\n     parser.add_argument(\"--order\", choices=(\"asc\", \"desc\"), default=\"asc\")\n+    parser.add_argument(\"--limit\", type=positive_int_arg, default=None, help=\"maximum rows to display\")\n     parser.add_argument(\"--json\", action=\"store_true\", help=\"machine-readable output\")\n     parser.add_argument(\"--compact\", action=\"store_true\", help=\"hide the input, output and cache columns\")\n     parser.add_argument(\"--full\", action=\"store_true\", help=\"never switch to compact mode on a narrow terminal\")\n"
+  },
+  {
+    "id": "B01",
+    "bucket": "B_multi_capability",
+    "kind": "investigate",
+    "needed_groups": [
+      "agents"
+    ],
+    "target_tools": [
+      "task",
+      "read_agent",
+      "list_agents",
+      "write_agent"
+    ],
+    "trap_groups": [],
+    "prompt": "Split this audit across two separate helper workers so each inspects one module independently before you merge their findings: have the first worker read `token-master-plugin/skills/token-master/brainspace/symbol_index.py` and extract `SCHEMA_VERSION`, `BUDGET`, `MAX_HITS`, and `MAX_FILE_BYTES`; have the second worker read `token-master-plugin/skills/token-master/brainspace/v6_shaping.py` and extract `SEARCH_BUDGET`, `READ_BUDGET`, and `OTHER_BUDGET`. Once both workers report back, reply with ONLY a JSON object with keys: \"schema_version\" (int), \"symbol_budget\" (int), \"max_hits\" (int), \"max_file_bytes\" (int), \"search_budget\" (int), \"read_budget\" (int), \"other_budget\" (int). Do not modify any files.",
+    "expected": {
+      "schema_version": 5,
+      "symbol_budget": 2400,
+      "max_hits": 25,
+      "max_file_bytes": 4000000,
+      "search_budget": 1500,
+      "read_budget": 4000,
+      "other_budget": 3000
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "B02",
+    "bucket": "B_multi_capability",
+    "kind": "investigate",
+    "needed_groups": [
+      "session_history"
+    ],
+    "target_tools": [
+      "session_store_sql"
+    ],
+    "trap_groups": [],
+    "fixture": "seeded_session_history",
+    "prompt": "Look back at our Tuesday conversation in Copilot where we finalized the Brainspace cache TTL header contract: what exact HTTP header name, integer max-age value in seconds, and fallback policy string did we settle on? Do not modify any files. Reply with ONLY a JSON object with keys: \"header_name\" (string), \"max_age_seconds\" (int), \"fallback_policy\" (string).",
+    "expected": {
+      "header_name": "X-Brainspace-TTL-Seconds",
+      "max_age_seconds": 1800,
+      "fallback_policy": "bypass-on-stale"
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "B03",
+    "bucket": "B_multi_capability",
+    "kind": "investigate",
+    "needed_groups": [
+      "background_shell"
+    ],
+    "target_tools": [
+      "read_powershell",
+      "stop_powershell"
+    ],
+    "trap_groups": [],
+    "prompt": "Launch a local PowerShell TCP echo service bound to `127.0.0.1` port `0` (ephemeral port) that prints `READY:<port>` and stays alive across turns while you probe it from a separate client command: for each line `<word>` received, have the server reply `ACK:<length>:<UPPERCASE_WORD>`. From a separate client check, send `alpha` on connection 1 and `tokenmaster` on connection 2, record both replies, and terminate the server before finishing so its port is closed. Do not create or modify any files in the workspace. Reply with ONLY a JSON object with keys: \"reply_1\" (string), \"reply_2\" (string), \"server_stopped\" (bool).",
+    "expected": {
+      "reply_1": "ACK:5:ALPHA",
+      "reply_2": "ACK:11:TOKENMASTER",
+      "server_stopped": true
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "B04",
+    "bucket": "B_multi_capability",
+    "kind": "investigate",
+    "needed_groups": [
+      "copilot_docs"
+    ],
+    "target_tools": [
+      "fetch_copilot_cli_documentation"
+    ],
+    "trap_groups": [],
+    "prompt": "Without modifying any files, check how the Copilot command-line client configures environment variables for four settings: (1) the exact environment variable name that overrides `GH_HOST` for Copilot only, (2) the exact environment variable name that blocks startup until the `tgrep` index is ready when `tgrep` starts, (3) the exact three built-in lowercase profile strings accepted by `COPILOT_AUTO_TIER`, and (4) the lowercase profile string that `COPILOT_AUTO_TIER` ignores with a notice because the command-line client cannot run on it. Reply with ONLY a JSON object with keys: \"copilot_only_host_env\" (string), \"tgrep_warm_start_env\" (string), \"auto_tier_profiles\" (list of 3 strings; order does not matter), \"auto_tier_ignored_profile\" (string).",
+    "expected": {
+      "copilot_only_host_env": "COPILOT_GH_HOST",
+      "tgrep_warm_start_env": "USE_TGREP_WARM_START",
+      "auto_tier_profiles": [
+        "balance",
+        "efficiency",
+        "intelligence"
+      ],
+      "auto_tier_ignored_profile": "fast"
+    },
+    "unordered_keys": [
+      "auto_tier_profiles"
+    ]
+  },
+  {
+    "id": "B05",
+    "bucket": "B_multi_capability",
+    "kind": "investigate",
+    "needed_groups": [
+      "sql"
+    ],
+    "target_tools": [
+      "sql"
+    ],
+    "trap_groups": [],
+    "prompt": "Load every test file directly under `token-master-plugin/skills/token-master/tests/` whose filename starts with `test_headroom_` into a table named `headroom_suite(file_name TEXT, def_test_count INTEGER)` in your built-in session database, where `def_test_count` is the count of `def test_...` function or method definitions in that file. Aggregate over `headroom_suite` to report: (1) total number of rows, (2) total sum of `def_test_count`, (3) `file_name` with the highest `def_test_count`, and (4) that highest `def_test_count`. Do not create or modify any files in the workspace. Reply with ONLY a JSON object with keys: \"file_count\" (int), \"total_tests\" (int), \"largest_file\" (string), \"largest_file_tests\" (int).",
+    "expected": {
+      "file_count": 13,
+      "total_tests": 182,
+      "largest_file": "test_headroom_preprotection_worker.py",
+      "largest_file_tests": 36
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "C01",
+    "bucket": "C_adversarial_lookalike",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [
+      "workflows"
+    ],
+    "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py` to check how static tool exclusion handles workflow and agent tool groups in Python source code: (1) what exact tuple of tool names is registered under the `\"workflows\"` key in `CAPABILITY_GROUPS` (preserving tuple order)? (2) when `\"skill\"` is present in `keep` inside `select_excluded_tools`, which two capability-group keys from `CAPABILITY_GROUPS` are added to `keep` (order does not matter)? (3) how many total tool names are in `LEAN_EXCLUDED_TOOLS`? and (4) what float value does `MD1_THRESHOLD` have? Do not modify any files. Reply with ONLY a JSON object with keys: \"workflow_tools\" (list of strings), \"skill_implied_groups\" (list of 2 strings; order does not matter), \"lean_excluded_count\" (int), \"md1_threshold\" (float).",
+    "expected": {
+      "workflow_tools": [
+        "run_dynamic_workflow",
+        "dynamic_workflows_manage"
+      ],
+      "skill_implied_groups": [
+        "agents",
+        "workflows"
+      ],
+      "lean_excluded_count": 13,
+      "md1_threshold": 0.5
+    },
+    "unordered_keys": [
+      "skill_implied_groups"
+    ]
+  },
+  {
+    "id": "C02",
+    "bucket": "C_adversarial_lookalike",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [
+      "session_history"
+    ],
+    "prompt": "Read `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py` and `token-master-plugin/skills/token-master/tokenomics.py` to trace how the Python code links previous sessions in `session-store.db` to launcher records: (1) what is `STARTUP` in seconds in `brainspace_copilot_bridge.py`? (2) what is `LAUNCH_TIMEOUT` in hours in `tokenomics.py`? (3) what is `CLI_VERSION` in `tokenomics.py`? (4) what integer value does `LEAN_WEIGHTS[\"session_store_sql\"]` have in `tokenomics.py`? and (5) what function name in `tokenomics.py` opens `session-store.db` in read-only URI mode before falling back to a temporary copy? Do not modify any files. Reply with ONLY a JSON object with keys: \"startup_seconds\" (int), \"launch_timeout_hours\" (int), \"calibrated_cli_version\" (string), \"session_store_sql_weight\" (int), \"readonly_open_fn\" (string).",
+    "expected": {
+      "startup_seconds": 120,
+      "launch_timeout_hours": 12,
+      "calibrated_cli_version": "1.0.98",
+      "session_store_sql_weight": 1619,
+      "readonly_open_fn": "open_store"
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "C03",
+    "bucket": "C_adversarial_lookalike",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [
+      "background_shell",
+      "sql"
+    ],
+    "prompt": "Check `token-master-plugin/skills/token-master/brainspace/symbol_index.py` and `token-master-plugin/skills/token-master/navigation_mcp.py` to see whether `navigation_mcp.py` refreshes stale files in the background or synchronously when it is about to run a sql query against `symbols.sqlite`: (1) list the three table names created in `_SCHEMA` in `symbol_index.py` (order does not matter); (2) list the four index names created in `_SCHEMA` in `symbol_index.py` (order does not matter); (3) what is `MAX_ECHO` in `symbol_index.py`? and (4) is `SymbolIndex(root)` instantiated lazily on the first tool call inside `make_server`'s `lock` rather than when `make_server(root)` is constructed (`true` or `false`)? Do not modify any files. Reply with ONLY a JSON object with keys: \"schema_tables\" (list of 3 strings; order does not matter), \"schema_indexes\" (list of 4 strings; order does not matter), \"max_echo\" (int), \"lazy_locked_init\" (bool).",
+    "expected": {
+      "schema_tables": [
+        "calls",
+        "files",
+        "symbols"
+      ],
+      "schema_indexes": [
+        "calls_callee",
+        "symbols_name",
+        "symbols_path",
+        "symbols_qualname"
+      ],
+      "max_echo": 100,
+      "lazy_locked_init": true
+    },
+    "unordered_keys": [
+      "schema_tables",
+      "schema_indexes"
+    ]
+  },
+  {
+    "id": "C04",
+    "bucket": "C_adversarial_lookalike",
+    "kind": "investigate",
+    "needed_groups": [],
+    "trap_groups": [
+      "agents",
+      "copilot_docs"
+    ],
+    "prompt": "Read `token-master-plugin/skills/token-master/hosts/config.py` and `token-master-plugin/skills/token-master/brainspace_setup.py` to verify how the Python installer updates copilot cli settings files on disk rather than spawning a subagent: (1) what filename suffix does `config_lock` append to `path.name` for its lock file in `hosts/config.py`? (2) what filename suffix does `transaction` append to `path.name` for its ownership receipt in `hosts/config.py`? (3) what default `timeout` (in seconds) does `config_lock` use? (4) what exact string constant `TOKENOMICS_MARKER` is defined in `brainspace_setup.py`? and (5) when `--brainspace-mcp` is omitted (`None`), is `brainspace_mcp` enabled (`true`) or disabled (`false`) for `--host copilot` in `brainspace_setup.py`? Do not modify any files. Reply with ONLY a JSON object with keys: \"lock_suffix\" (string), \"receipt_suffix\" (string), \"lock_timeout_seconds\" (int), \"tokenomics_marker\" (string), \"brainspace_mcp_default_on_copilot\" (bool).",
+    "expected": {
+      "lock_suffix": ".token-master.lock",
+      "receipt_suffix": ".token-master-owned.json",
+      "lock_timeout_seconds": 10,
+      "tokenomics_marker": "<!-- Installed by TokenMaster (brainspace_setup.py)",
+      "brainspace_mcp_default_on_copilot": false
+    },
+    "unordered_keys": []
+  },
+  {
+    "id": "C05",
+    "bucket": "C_adversarial_lookalike",
+    "kind": "edit",
+    "needed_groups": [],
+    "trap_groups": [
+      "agents",
+      "session_history",
+      "workflows"
+    ],
+    "prompt": "In `token-master-plugin/skills/token-master/tokenomics.py`, operators auditing multi-step workflow runs in `session-store.db` (including runs that spawned subagents) need an optional `--min-calls N` CLI flag (`default=None`) on `main()` / `build(args)`. Validate `--min-calls` via an `argparse` type parser that accepts integers `>= 1` and raises `argparse.ArgumentTypeError` for non-integers or values `<= 0`. When `getattr(args, \"min_calls\", None)` is set, filter `calls` in `build(args)` (after `--since`, `--until`, `--project`, and `--only`, and before `aggregate(...)`) so only sessions with at least `N` remaining calls are kept in `calls`, `rows`, and `total`. Add focused unit tests in `token-master-plugin/skills/token-master/tests/test_tokenomics.py`. Only modify those two files.",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/tokenomics.py",
+      "token-master-plugin/skills/token-master/tests/test_tokenomics.py"
+    ],
+    "check": [
+      "import importlib.util, io, json, subprocess, sys, tempfile",
+      "from contextlib import redirect_stdout",
+      "from pathlib import Path",
+      "sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "sys.path.insert(0, 'token-master-plugin/skills/token-master/tests')",
+      "import test_tokenomics as tt",
+      "spec = importlib.util.spec_from_file_location('tok_check', 'token-master-plugin/skills/token-master/tokenomics.py')",
+      "tok = importlib.util.module_from_spec(spec); spec.loader.exec_module(tok)",
+      "with tempfile.TemporaryDirectory() as td:",
+      "    home = tt.make_home(Path(td))",
+      "    buf1, buf2 = io.StringIO(), io.StringIO()",
+      "    with redirect_stdout(buf1): assert tok.main(['session', '--json', '--min-calls', '2', '--copilot-home', str(home)]) == 0",
+      "    with redirect_stdout(buf2): assert tok.main(['session', '--json', '--only', 'tokenmaster', '--min-calls', '3', '--copilot-home', str(home)]) == 0",
+      "    res2, res3 = json.loads(buf1.getvalue()), json.loads(buf2.getvalue())",
+      "    assert [r['session'] for r in res2['rows']] == ['S', 'T'] and res2['totals']['calls'] == 5",
+      "    assert [r['session'] for r in res3['rows']] == ['T'] and res3['totals']['calls'] == 3",
+      "    for bad in ('0', '-1', 'abc'):",
+      "        try:",
+      "            tok.main(['session', '--min-calls', bad, '--copilot-home', str(home)])",
+      "            raise AssertionError(f'accepted {bad}')",
+      "        except SystemExit as exc:",
+      "            assert exc.code != 0",
+      "subprocess.run([sys.executable, '-m', 'pytest', '-q', 'token-master-plugin/skills/token-master/tests/test_tokenomics.py'], check=True)"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/tests/test_tokenomics.py b/token-master-plugin/skills/token-master/tests/test_tokenomics.py\nindex 4b3bff8..71779d6 100644\n--- a/token-master-plugin/skills/token-master/tests/test_tokenomics.py\n+++ b/token-master-plugin/skills/token-master/tests/test_tokenomics.py\n@@ -247,3 +247,11 @@ def test_the_lean_credit_covers_only_the_tools_a_launch_removed(tmp_path, monkey\n     assert saved(excluded=list(bridge.LEAN_EXCLUDED_TOOLS)) == saved() == lean  # all removed, or an older record\n     share = 1 - sum(weights[tool] for tool in agents) / sum(weights.values())\n     assert saved(excluded=record[\"excluded\"]) == round(lean * share) < lean\n+\n+\n+def test_min_calls_filters_sessions_before_aggregation(tmp_path, capsys):\n+    home = make_home(tmp_path)\n+    assert tokenomics.main([\"session\", \"--json\", \"--min-calls\", \"2\", \"--copilot-home\", str(home)]) == 0\n+    filtered = json.loads(capsys.readouterr().out)\n+    assert [r[\"session\"] for r in filtered[\"rows\"]] == [\"S\", \"T\"]\n+    assert filtered[\"totals\"][\"calls\"] == 5\ndiff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py\nindex 6512a82..4398606 100644\n--- a/token-master-plugin/skills/token-master/tokenomics.py\n+++ b/token-master-plugin/skills/token-master/tokenomics.py\n@@ -497,6 +497,16 @@ def day_arg(text: str) -> date:\n         raise argparse.ArgumentTypeError(f\"expected YYYYMMDD, got {text!r}\") from error\n \n \n+def positive_int_arg(text: str) -> int:\n+    try:\n+        value = int(text)\n+    except ValueError as error:\n+        raise argparse.ArgumentTypeError(f\"expected positive integer, got {text!r}\") from error\n+    if value <= 0:\n+        raise argparse.ArgumentTypeError(f\"expected integer >= 1, got {text!r}\")\n+    return value\n+\n+\n def build(args) -> dict:\n     home = copilot_home(args.copilot_home)\n     store = home / \"session-store.db\"\n@@ -513,6 +523,11 @@ def build(args) -> dict:\n                                + (sessions.get(call[\"session\"]) or {}).get(\"repository\", \"\")).lower()]\n     if args.only:\n         calls = [call for call in calls if bool(call[\"launch\"]) == (args.only == \"tokenmaster\")]\n+    if getattr(args, \"min_calls\", None) is not None:\n+        counts: dict[str, int] = {}\n+        for call in calls:\n+            counts[call[\"session\"]] = counts.get(call[\"session\"], 0) + 1\n+        calls = [call for call in calls if counts[call[\"session\"]] >= args.min_calls]\n     rows, total = aggregate(calls, args.report, args.breakdown)\n     if args.report == \"session\":\n         start = {}\n@@ -555,6 +570,7 @@ def main(argv=None) -> int:\n     parser.add_argument(\"--until\", type=day_arg, help=\"last day to include, YYYYMMDD (local time)\")\n     parser.add_argument(\"--project\", help=\"only sessions whose folder or repository contains this text\")\n     parser.add_argument(\"--only\", choices=(\"tokenmaster\", \"stock\"), help=\"only TokenMaster or only stock calls\")\n+    parser.add_argument(\"--min-calls\", type=positive_int_arg, default=None, help=\"only sessions with at least N calls\")\n     parser.add_argument(\"--breakdown\", action=\"store_true\", help=\"one sub-row per model\")\n     parser.add_argument(\"--order\", choices=(\"asc\", \"desc\"), default=\"asc\")\n     parser.add_argument(\"--json\", action=\"store_true\", help=\"machine-readable output\")\n"
+  }
+]

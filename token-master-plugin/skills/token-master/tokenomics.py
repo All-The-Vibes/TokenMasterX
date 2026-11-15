@@ -42,6 +42,9 @@ import tempfile
 # call ("lean"), the tokens that the navigation tools add back ("nav"), and the tokens that stock Copilot CLI's first
 # call reads from the prompt cache when another session of the same version ran shortly before ("stock_first_cached").
 CALIBRATIONS = {
+    # Probe of November 15, 2026 under default GitHub routing (evidence/md1-live-routing-20261115/probe_1_0_112.py).
+    "1.0.112": {"responses": {"model": "gpt-6-astra", "lean": 7952, "nav": 380, "stock_first_cached": 9733},
+                "messages": {"model": "claude-opus-5.5", "lean": 14318, "nav": 1124, "stock_first_cached": 17579}},
     # Probe of October 23, 2026 (evidence/copilot-version-probe-20261023); "nav" was measured on 1.0.78-3.
     "1.0.98": {"responses": {"model": "gpt-6-astra", "lean": 5558, "nav": 252, "stock_first_cached": 6450},
                "messages": {"model": "claude-opus-5.5", "lean": 9727, "nav": 531, "stock_first_cached": 11226}},
@@ -49,15 +52,15 @@ CALIBRATIONS = {
     "1.0.78-3": {"responses": {"model": "gpt-6-astra", "lean": 6760, "nav": 252, "stock_first_cached": 0},
                  "messages": {"model": "claude-opus-5.5", "lean": 11540, "nav": 531, "stock_first_cached": 13393}},
 }
-CLI_VERSION = "1.0.98"  # the installed build that the launcher runs; other versions send other fixed prompts
+CLI_VERSION = "1.0.112"  # the installed build that the launcher runs; other versions send other fixed prompts
 CALIBRATION = CALIBRATIONS[CLI_VERSION]
-CALIBRATION_SOURCE = "Copilot CLI 1.0.98, probe of October 23, 2026"
-# What each of the 11 tools behind "lean" adds to a call when a launch keeps it, in cl100k tokens: its definition and
+CALIBRATION_SOURCE = "Copilot CLI 1.0.112, probe of November 15, 2026"
+# What each of the 13 tools behind "lean" adds to a call when a launch keeps it, in cl100k tokens: its definition and
 # the system-prompt text Copilot CLI sends with it. Each family's cost, split over its tools by definition size;
 # Copilot CLI 1.0.104, gpt-6-astra, Responses API (evidence/skill-trigger-20261029). Only the shares are used.
 LEAN_WEIGHTS = {"session_store_sql": 1619, "task": 988, "read_agent": 466, "write_agent": 789, "list_agents": 431,
                 "skill": 438, "sql": 674, "read_powershell": 232, "stop_powershell": 106, "list_powershell": 91,
-                "fetch_copilot_cli_documentation": 189}
+                "fetch_copilot_cli_documentation": 189, "run_dynamic_workflow": 1190, "dynamic_workflows_manage": 848}
 BENCHMARK = ("Measured on Copilot CLI 1.0.98 (PRS-6, 29 repo tasks + 15 Django tasks, Oct 26, 2026): full TokenMaster "
              "used 49.5%–58.5% (gpt-6-astra) and 38.0%–53.7% (claude-opus-5.5) fewer raw tokens than stock; on "
              "1.0.78-3 (45 Django tasks, Oct 22, 2026): 53.4% and 51.6% fewer.")

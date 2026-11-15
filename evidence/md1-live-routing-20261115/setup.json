@@ -1,0 +1,46 @@
+{
+  "prepared_at": "2026-11-15T07:23:43.541Z",
+  "repo_commit": "f9750ff92830f6227381f3fbc493fcee771ab45d",
+  "protocol_sha256": "ab44b2a0444127bea9b25d1dd4f739e38392741025b95c9f5468361d3db47d22",
+  "tasks_sha256": "d20c31a6a61e68f39d1f96d13a3173b824d17a84ccc139ed95c6d821b4a37c7f",
+  "copilot_cli_version": "GitHub Copilot CLI 1.0.112.\nRun 'copilot update' to check for updates.",
+  "copilot_exe": "%LOCALAPPDATA%\\Microsoft\\WinGet\\Packages\\GitHub.Copilot_Microsoft.Winget.Source_8wekyb3d8bbwe\\copilot.exe",
+  "python_exe": "C:\\tm-lanes\\tm-runtime\\Scripts\\python.exe",
+  "python_version": "Python 3.12.8",
+  "tiktoken_sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "low",
+  "md1_endpoint": "https://raifoundry.services.ai.azure.com",
+  "md1_threshold": 0.5,
+  "arms": [
+    "stock",
+    "tm_regex",
+    "tm_md1"
+  ],
+  "lane_names": {
+    "stock": "l1",
+    "tm_regex": "l2",
+    "tm_md1": "l3"
+  },
+  "lanes_dir": "C:\\tm-lanes\\md1-live-routing-20261115",
+  "tm_install": {
+    "setup_tail": [
+      "  mcp config: C:\\tm-lanes\\md1-live-routing-20261115\\templates\\tm_base\\home\\copilot\\mcp-config.json",
+      "Restart Copilot (or start it with `copilot --agent token-master`) to activate navigation.",
+      "{\"host\": \"copilot\", \"configuration_clients\": [\"cli\"], \"mcp\": \"model-invoked\", \"hook_configuration_supported\": true, \"hook_launch_form\": \"exec-argv\", \"hook_output_contract\": {\"capability_id\": \"copilot-posttooluse-2026-10-09\", \"host\": \"copilot\", \"event\": \"postToolUse\", \"replacement_field\": \"modifiedResult.textResultForLlm\", \"documented_min_version\": null, \"documented_replacement_cap\": null, \"runtime_verified\": false, \"requires_explicit_opt_in\": true, \"qualified_tool_family\": \"pure successful view text; conservative JSON only\"}, \"transparent_replacement\": false, \"runtime_verified\": false, \"contract_review_date\": \"2026-10-09\", \"note\": \"MCP by default; native view-text hook requires --copilot-output-hook. Registration is not proof of host acceptance or token savings.\"}",
+      "C:\\tm-lanes\\tm-runtime\\Lib\\site-packages\\pydantic_settings\\sources\\utils.py:47: IncompleteFieldDefinitionWarning: Field 'lifespan' has an incomplete definition: its annotation contains an unresolved forward reference, so settings sources may fail to correctly resolve its value. Call `model_rebuild()` on the model where the field is defined, once all the referenced types are defined.",
+      "  warnings.warn("
+    ],
+    "brainspace_setup_tail": [
+      "  \"hook_installed\": true,",
+      "  \"mcp_installed\": false,",
+      "  \"tokenomics_skill\": \"C:\\\\tm-lanes\\\\md1-live-routing-20261115\\\\templates\\\\tm_base\\\\home\\\\copilot\\\\skills\\\\tokenomics\\\\SKILL.md\"",
+      "}",
+      "Runtime acceptance is NOT verified by installation. Uninstall retains package files and data."
+    ],
+    "nav_probe": {
+      "ok": true,
+      "sample": "1 match for \"select_excluded_tools\" (path:lines kind name ~tokens | signature):"
+    }
+  }
+}

@@ -116,19 +116,22 @@ def test_finding_routing_patterns_miss_some_phrasings(no_installed_assets):
 
 
 def test_routing_md1_picks_fire_their_families(no_installed_assets, monkeypatch):
-    """Routing.fired_family_kept and Routing.excluded_subset_lean with MD-1 on: `fires` is a pattern or an MD-1 pick, so
-    a picked family is kept, and MD-1 only removes tools from the excluded list, whatever it answers."""
+    """Routing.fired_family_kept and Routing.excluded_subset_lean with MD-1 on: for every family MD-1 answers on,
+    `fires` is `score >= threshold` (falling back to the pattern when MD-1 is off or omits a family)."""
     rng = random.Random(13)
     prompts = [*TRIGGERS.values(), "have an agent review this diff", "fix the failing test in parser.py"]
     for _ in range(200):
         prompt = rng.choice(prompts)
         picks = set(rng.sample(sorted(FAMILIES), rng.randint(0, 3)))
-        monkeypatch.setattr(bridge, "md1_families", lambda text: set())
+        monkeypatch.setattr(bridge, "md1_scores", lambda text: {})
         without = set(bridge.select_excluded_tools(["copilot", "-p", prompt]))
-        monkeypatch.setattr(bridge, "md1_families", lambda text: picks)
+        scores = {family: (0.9 if family in picks else 0.1) for family in FAMILIES}
+        monkeypatch.setattr(bridge, "md1_scores", lambda text, s=scores: s)
         excluded = set(bridge.select_excluded_tools(["copilot", "-p", prompt]))
-        assert excluded <= without <= set(LEAN_MODEL)
-        assert not {tool for family in picks for tool in FAMILIES[family]} & excluded, (prompt, picks)
+        expected_kept = picks | ({"workflows", "agents"} if "skills" in picks else set())
+        kept_tools = {tool for family in expected_kept for tool in FAMILIES[family]}
+        assert excluded <= set(LEAN_MODEL) and without <= set(LEAN_MODEL)
+        assert excluded == set(LEAN_MODEL) - kept_tools, (prompt, picks)
 
 
 def test_tuning_agent_phrasings_are_independent(no_installed_assets):

@@ -1,0 +1,135 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
+index a4af67a..53018db 100644
+--- a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
++++ b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
+@@ -46,6 +46,33 @@ def _marker(data):
+                                 separators=(",", ":"), allow_nan=False) + _SUFFIX
+ 
+ 
++def has_exact_reuse_marker(text: object) -> bool:
++    """Recognize a complete, canonical marker without verifying its read binding."""
++    if (type(text) is not str or not text.startswith(_PREFIX)
++            or not text.endswith(_SUFFIX)):
++        return False
++    try:
++        data = json.loads(text[len(_PREFIX):-len(_SUFFIX)])
++        if type(data) is not dict or data.keys() != {
++            "source_index", "target_index", "tool_name", "source_path",
++            "source_call_id", "target_call_id", "content_sha256",
++        }:
++            return False
++        return (
++            type(data["source_index"]) is int
++            and type(data["target_index"]) is int
++            and 0 <= data["source_index"] < data["target_index"]
++            and data["tool_name"] in _TOOLS
++            and all(type(data[key]) is str and data[key]
++                    for key in ("source_path", "source_call_id", "target_call_id"))
++            and type(data["content_sha256"]) is str
++            and re.fullmatch(r"[0-9a-f]{64}", data["content_sha256"]) is not None
++            and text == _marker(data)
++        )
++    except (ValueError, RecursionError):
++        return False
++
++
+ def _marker_looking(text):
+     # Conservatively exclude our markers, CCR references, and partial wrappers.
+     return "[[" in text or "]]" in text or "EXACT_READ_REUSE" in text
+diff --git a/token-master-plugin/skills/token-master/tests/test_exact_reuse.py b/token-master-plugin/skills/token-master/tests/test_exact_reuse.py
+index a687ab5..128f719 100644
+--- a/token-master-plugin/skills/token-master/tests/test_exact_reuse.py
++++ b/token-master-plugin/skills/token-master/tests/test_exact_reuse.py
+@@ -6,13 +6,91 @@ import json
+ 
+ import pytest
+ 
+-from brainspace.exact_reuse import ExactReuse, find_exact_reuses, restore_exact_reuses
++from brainspace.exact_reuse import (
++    ExactReuse, _PREFIX, _SUFFIX, _marker, find_exact_reuses,
++    has_exact_reuse_marker, restore_exact_reuses,
++)
+ from brainspace.request_policy import SourceReadInfo
+ 
+ 
+ TEXT = 'def status():\r\n    return "error / denied / Î±"\r\n'
+ 
+ 
++@pytest.fixture
++def marker_data():
++    return dict(source_index=0, target_index=1, tool_name="read_file",
++                source_path='src/"]]\n\u2028.py', source_call_id="first",
++                target_call_id="second", content_sha256="a" * 64)
++
++
++@pytest.mark.parametrize("tool", ["read_file", "fetch_artifact"])
++def test_has_exact_reuse_marker_accepts_canonical_markers(marker_data, tool):
++    marker_data["tool_name"] = tool
++    assert has_exact_reuse_marker(_marker(marker_data)) is True
++    messages, receipts = conversation((TEXT, TEXT), tools=[tool, tool])
++    reuse, = find_exact_reuses(messages, receipts, {5})
++    assert has_exact_reuse_marker(reuse.marker) is True
++
++
++@pytest.mark.parametrize("value", [None, True, 1, b"marker", [], {}, object()])
++def test_has_exact_reuse_marker_rejects_nonstrings(value):
++    assert has_exact_reuse_marker(value) is False
++
++
++def test_has_exact_reuse_marker_rejects_string_subclasses(marker_data):
++    class String(str):
++        pass
++    assert has_exact_reuse_marker(String(_marker(marker_data))) is False
++
++
++@pytest.mark.parametrize("key,value", [
++    ("source_index", True), ("target_index", False),
++    ("source_index", -1), ("source_index", 1), ("source_index", 2),
++    ("source_index", 0.0), ("target_index", 1.0), ("target_index", "1"),
++    ("tool_name", "run_python"), ("tool_name", []), ("tool_name", {}),
++    ("content_sha256", None), ("content_sha256", "A" * 64),
++    ("content_sha256", "g" * 64), ("content_sha256", "a" * 63),
++    ("content_sha256", "a" * 65), ("content_sha256", "a" * 64 + "\n"),
++] + [(key, value) for key in ("source_path", "source_call_id", "target_call_id")
++     for value in ("", None, 1, [], {})])
++def test_has_exact_reuse_marker_rejects_invalid_fields(marker_data, key, value):
++    marker_data[key] = value
++    assert has_exact_reuse_marker(_marker(marker_data)) is False
++
++
++def test_has_exact_reuse_marker_requires_exact_keys(marker_data):
++    for key in marker_data:
++        incomplete = {k: v for k, v in marker_data.items() if k != key}
++        assert has_exact_reuse_marker(_marker(incomplete)) is False
++    assert has_exact_reuse_marker(_marker(dict(marker_data, extra=True))) is False
++
++
++@pytest.mark.parametrize("payload", [
++    "", "{", "null", "[]", "true", '"text"', "1",
++    "[" * 2000 + "]" * 2000,
++])
++def test_has_exact_reuse_marker_rejects_invalid_payloads(payload):
++    assert has_exact_reuse_marker(_PREFIX + payload + _SUFFIX) is False
++
++
++def test_has_exact_reuse_marker_requires_complete_canonical_text(marker_data):
++    marker = _marker(marker_data)
++    payload = marker[len(_PREFIX):-len(_SUFFIX)]
++    for text in (
++        "", marker[:-1], marker[1:], " " + marker, marker + " ", marker + "\n",
++        marker + marker, _PREFIX + payload, payload + _SUFFIX,
++        _PREFIX + " " + payload + _SUFFIX,
++        _PREFIX + json.dumps(marker_data) + _SUFFIX,
++        _PREFIX + json.dumps(marker_data, separators=(",", ":")) + _SUFFIX,
++        _PREFIX + json.dumps(marker_data, sort_keys=True, ensure_ascii=False,
++                             separators=(",", ":")) + _SUFFIX,
++        marker.replace('"source_index":0', '"source_index":0,"source_index":0'),
++        marker.replace('"source_index":0', '"source_index":-0'),
++        marker.replace('"first"', '"\\u0066irst"'),
++    ):
++        assert has_exact_reuse_marker(text) is False
++
++
+ def conversation(texts=(TEXT, TEXT, TEXT), *, tools=None, paths=None, call_ids=None):
+     messages = [
+         {"role": "system", "content": "Keep instructions.", "metadata": {"tags": ["fixed"]}},
