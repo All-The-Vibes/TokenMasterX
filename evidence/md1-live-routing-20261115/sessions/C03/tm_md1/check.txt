@@ -1,0 +1,33 @@
+{
+  "git_clean": true,
+  "parsed": {
+    "schema_tables": [
+      "files",
+      "symbols",
+      "calls"
+    ],
+    "schema_indexes": [
+      "symbols_name",
+      "symbols_qualname",
+      "symbols_path",
+      "calls_callee"
+    ],
+    "max_echo": 100,
+    "lazy_locked_init": true
+  },
+  "expected": {
+    "schema_tables": [
+      "calls",
+      "files",
+      "symbols"
+    ],
+    "schema_indexes": [
+      "calls_callee",
+      "symbols_name",
+      "symbols_path",
+      "symbols_qualname"
+    ],
+    "max_echo": 100,
+    "lazy_locked_init": true
+  }
+}

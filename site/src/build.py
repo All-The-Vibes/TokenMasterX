@@ -157,7 +157,7 @@ CLAIMS = [
          tests=['test_fold_paths_round_trip', 'test_fold_search_round_trip', 'test_fold_search_refuses_entry_like_copied_lines']),
     dict(text="Routing keeps every family whose trigger fires",
          lean=['Routing.fired_family_kept', 'Routing.excluded_subset_lean', 'Routing.default_excludes_nothing'],
-         holds="Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by a test. The triggers are keyword rules and miss some phrasings: \"have an agent review this diff\" drops `task`. The opt-in MD-1 router only adds triggers, so the proofs hold with it.",
+         holds="Proved for the model, which drops only the 13 auxiliary tools. That the launcher routes only with `--lean` is a definition in the model, checked on `main` by a test. The triggers are keyword rules and miss some phrasings: \"have an agent review this diff\" drops `task`. When the opt-in MD-1 router answers for a family, its score replaces that family's keyword rule (falling back to the rule on error), so the proofs hold with it.",
          tests=['test_routing_default_sends_every_tool', 'test_routing_lists_match_the_lean_model', 'test_routing_fired_families_are_kept', 'test_routing_md1_picks_fire_their_families'], flag='open finding'),
     dict(text="A clean keyword pattern needs a branch for every independent phrasing",
          lean=['Tuning.branches_ge_phrasings', 'Tuning.new_phrasing_needs_a_branch'],

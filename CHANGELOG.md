@@ -9,11 +9,20 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- Pre-registered 45-session 3-arm live MD-1 routing study on Copilot CLI `1.0.112` under default GitHub routing
+  (`evidence/md1-live-routing-20261115/`, `gpt-6-astra` across 5 pure-coding, 5 indirect multi-capability and 5
+  lookalike coding tasks): `--lean` + MD-1 cut raw tokens 41.4% and cold-repriced cost 33.6% while passing 15/15 and
+  recalling 5/5 indirect capability phrasings (against 45.2% / 37.2%, 14/15 passed and 0/5 indirect phrasings recalled
+  for regex-only `--lean`).
+- Copilot CLI `1.0.112` fixed-prompt calibrations (`CALIBRATIONS["1.0.112"]`, `CLI_VERSION = "1.0.112"`) and workflow
+  tool weights (`"run_dynamic_workflow": 1190`, `"dynamic_workflows_manage": 848` in `LEAN_WEIGHTS`) in `tokenomics.py`,
+  covering all 13 `LEAN_EXCLUDED_TOOLS` (`evidence/md1-live-routing-20261115/probe_1_0_112.py`).
 - Opt-in Microsoft-Decision-1 (MD-1) routing for `--lean`: with `TOKENMASTER_MD1_ENDPOINT` set, the launcher asks the
-  user's own MD-1 deployment one yes/no question per tool family and keeps each family it picks, on top of the prompt
-  patterns. It only adds families, so the routing theorems hold unchanged, and on any error the patterns alone decide.
-  On 22 held-out prompts the patterns kept 3 of 13 needed families and the patterns with MD-1 kept 13
-  (`evals/md1_routing_eval.py`, `evidence/md1-routing-20261108`). Off by default; the routing finding stays open.
+  user's own MD-1 deployment one yes/no question per tool family. For each family MD-1 answers on, its score replaces
+  that family's keyword pattern (falling back per family to the pattern on error), so the routing theorems in
+  `Routing.lean` hold unchanged. On 22 held-out prompts MD-1 kept 13 of 13 needed families with 2 false keeps, against
+  3 of 13 for the keyword rules alone (`evals/md1_routing_eval.py`, `evidence/md1-routing-20261108`). Off by default;
+  the routing finding stays open.
 - `proofs/TokenMasterProofs/Tuning.lean`: a keyword pattern that fires on no prompt outside its family needs a branch for
   every independent phrasing it covers (`Tuning.branches_ge_phrasings`).
 - `site/src/`: the sources and build script of the interactive deck. `python site/src/build.py` assembles
@@ -23,25 +32,35 @@ and the project aims to follow semantic versioning.
   `--check` fails when `site/index.html` is stale. `site/src/checks/` holds the Playwright, touch and axe-core checks
   that run against the page, and `site/src/README.md` has the republish steps.
 
+### Fixed
+
+- `brainspace_copilot_bridge.select_excluded_tools`: when `TOKENMASTER_MD1_ENDPOINT` returns a score for a tool family,
+  let `score >= threshold` decide that family's prompt trigger instead of taking the union with `CAPABILITY_GROUPS`
+  regexes. Previously, lookalike words in ordinary coding prompts (`workflow`, `sql`, `in the background`, `previous
+  sessions`) overrode MD-1's `"false"` verdicts on 5 of 5 Bucket C tasks (`+2,952` schema+instruction tokens/call on
+  average) and raised held-out false keeps from 2 to 4. Explicit CLI flags, slash commands, installed skill and agent
+  names, and `TOKENMASTER_KEEP_TOOLS` remain unconditional, and omitted families or HTTP errors fall back to regexes.
+
 ### Changed
 
 - The deck and the README describe the proofs by what they establish and how they are checked, not by how many theorems,
   tests or findings there are. The cover's proof strip no longer carries counts.
-- The docs catch up with `--lean` becoming opt-in, the November 1 runs and MD-1 routing. The README, `SKILL.md`,
+- The docs catch up with `--lean` becoming opt-in, the November 1 and November 15 runs, `1.0.112` `tokenomics.py`
+  calibration and MD-1 routing. The README, `SKILL.md`,
   `MISSION.md`, `COPILOT_BRIDGE.md`, `TOKENOMICS.md`, `COPILOT_CLI_RESULTS.md`, the docs index and the demo script
   and slide no longer say that every published saving was measured with the lean tool set, or that no run measured
   the launcher under GitHub's default routing. They give the November 1 runs on Copilot CLI 1.0.105: 52.6% fewer raw
-  tokens with `--lean` and 19.1% without it. `COPILOT_BRIDGE.md` lists the `TOKENMASTER_KEEP_TOOLS` family names,
+  tokens with `--lean` and 19.1% without it, and the November 15 3-arm MD-1 study on Copilot CLI 1.0.112.
+  `COPILOT_BRIDGE.md` lists the `TOKENMASTER_KEEP_TOOLS` family names,
   `TOKENOMICS.md` says what the estimate gives for a launch without `--lean`, and the README and the deck name #28 among
   the pull requests that changed routing and the proofs together. The lean tool set became opt-in on October 31, 2026,
   not October 30. The MD-1 docs no longer say the 22 held-out prompts were written before the questions were tuned,
   which `evals/md1_routing_eval.py` contradicts; they say the prompts were not used to choose the questions or the
   threshold. `proofs/README.md` names the test that checks the tuning bound's independence hypothesis and updates the
   recorded-session counts to 581 sessions, 96 of which list both cache prices.
-- The README hero has a line on opt-in MD-1 routing: with the user's own Microsoft-Decision-1 deployment, `--lean` asks
-  that model which tools a prompt needs. On the 22 held-out prompts it kept all 13 tool groups they needed, against 3
-  for the keyword rules alone. The line gives no savings figure, because no run measured MD-1's effect on tokens, cost
-  or pass rate, and it says MD-1 was not part of the measured runs.
+- The README hero has a line on opt-in MD-1 routing reporting both the 22 held-out prompt evaluation and the 45-session
+  3-arm live study on Copilot CLI 1.0.112, while keeping the headline savings figures from the November 1 runs with
+  MD-1 off.
 
 ### Fixed
 

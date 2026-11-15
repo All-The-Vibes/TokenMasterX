@@ -1,7 +1,12 @@
-# Copilot CLI results (October 18 to November 1, 2026)
+# Copilot CLI results (October 18 to November 15, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
+- **Pre-registered 3-arm MD-1 live routing study on Copilot CLI `1.0.112` (November 15, 2026):** 45 sessions under
+  default GitHub routing on this repository (`gpt-6-astra`, reasoning `low`), comparing stock Copilot CLI, `--lean`
+  with regex rules only (`tm_regex`), and `--lean` with live Microsoft-Decision-1 routing (`tm_md1`) across 15 frozen
+  tasks (5 pure coding, 5 indirect multi-capability phrasings, 5 lookalike coding prompts). The protocol was hashed
+  before any session (`evidence/md1-live-routing-20261115/`).
 - **Default setup and `--lean` on Copilot CLI `1.0.105` (November 1, 2026):** two runs under default GitHub routing on
   the same day, build, tasks and model, each with its own stock arm: TokenMaster as the launcher starts it by default
   (no `--lean`, every built-in tool kept), and with `--lean`. Django D01-D15 with `gpt-6-astra`, 30 sessions each;
@@ -27,6 +32,27 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
+
+### Pre-registered 3-arm MD-1 live routing study (Copilot CLI `1.0.112`, November 15, 2026)
+
+- **15 tasks on this repository (`A01`–`A05` pure coding, `B01`–`B05` indirect multi-capability phrasings, `C01`–`C05`
+  lookalike coding prompts), 45 sessions (`gpt-6-astra`, default GitHub routing, `evidence/md1-live-routing-20261115/`):**
+  - **`--lean` + live MD-1 (`tm_md1`):** raw tokens `980,700` → **`574,278` (−41.4%; 95% CI −52.2% to −28.7%; Wilcoxon
+    $p = 0.0001$, Holm $p = 0.0002$; lower on 15 of 15 tasks)**. Cold-repriced cost `$4.55` → **`$3.02` (−33.6%; 95% CI
+    −41.9% to −24.4%)**. As-run cost `$2.87` → **`$2.51` (−12.6%)**. Passed **15/15** and recalled **15/15** needed
+    capabilities (including **5/5** indirect phrasings on Bucket B with 0 shell workarounds; MD-1 pre-launch latency
+    628 ms median, 703 ms p90).
+  - **`--lean`, regex only (`tm_regex`):** raw tokens `980,700` → **`537,104` (−45.2%; 95% CI −54.8% to −35.8%; lower
+    on 15 of 15 tasks)**. Cold-repriced cost `$4.55` → **`$2.85` (−37.2%; 95% CI −43.3% to −31.4%)**. As-run cost
+    `$2.87` → **`$2.42` (−15.5%)**. Passed **14/15**, recalling **0/5** indirect phrasings on Bucket B (`B02` failed
+    without `session_store_sql`, `B04` thrashed across 8 calls without `fetch_copilot_cli_documentation`, and 3 of 5
+    Bucket B sessions fell back to shell workarounds).
+  - **Bucket breakdown & union finding (commit `f9750ff`):** on pure coding (`Bucket A`), Copilot CLI `1.0.112`'s
+    `promptCacheBreakState` confirmed that removing all 13 auxiliary tools cut `tool_tokens + tool_instructions` from
+    12,156 to 3,649 tokens/call (−70.0%). On lookalike coding prompts (`Bucket C`), standalone MD-1 rejected all 5
+    distractors (`score <= 0.053`), but `f9750ff`'s `select_excluded_tools` took `regex | md1`, keeping unneeded tools
+    on 5/5 prompts (6,601 tokens/call). Letting MD-1's per-family score replace the keyword rule when MD-1 answers
+    drops Bucket C false keeps to 0/5 (`15/15` exact family match across `A01`–`C05`).
 
 ### Default setup and `--lean` (Copilot CLI `1.0.105`, November 1, 2026)
 

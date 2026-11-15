@@ -370,8 +370,10 @@ def excluded_for(prompt):
     return set(lean[lean.index("--excluded-tools") + 1:]) if "--excluded-tools" in lean else set()
 
 
-def test_md1_keeps_the_families_it_picks_on_top_of_the_patterns(monkeypatch, tmp_path):
+def test_md1_decides_answered_families_and_falls_back_per_family_to_patterns(monkeypatch, tmp_path):
     agents = {"task", "read_agent", "write_agent", "list_agents"}
+    workflows = {"run_dynamic_workflow", "dynamic_workflows_manage"}
+    bg_shell = {"read_powershell", "stop_powershell", "list_powershell"}
     assert agents <= excluded_for("have an agent review this diff")  # finding 1, regex only
     fake = md1_on(monkeypatch, tmp_path, FakeMD1({"agents": 0.89, "sql": 0.49, "skills": 0.2}))
     excluded = excluded_for("have an agent review this diff")
@@ -383,9 +385,20 @@ def test_md1_keeps_the_families_it_picks_on_top_of_the_patterns(monkeypatch, tmp
     assert body["model"] == "Decision-1" and body["state"] == "have an agent review this diff"
     assert set(body["questions"]) == set(bridge_module.CAPABILITY_GROUPS)
     assert all(q["type"] == "noul" and q["instructions"] for q in body["questions"].values())
-    fake.scores = {}  # MD-1 only adds: what a pattern keeps stays kept when MD-1 picks nothing
-    assert not {"read_powershell", "stop_powershell", "list_powershell"} & excluded_for(
-        "start the server in the background")
+    # When MD-1 scores a family below threshold, it suppresses lookalike regex matches on ordinary coding prompts.
+    assert not workflows & excluded_for("write a github actions workflow that runs pytest")  # regex false keep
+    fake.scores = {family: 0.01 for family in bridge_module.CAPABILITY_GROUPS}
+    assert workflows <= excluded_for("write a github actions workflow that runs pytest")
+    assert bg_shell <= excluded_for("start the server in the background")
+    # Explicit CLI flags and TOKENMASTER_KEEP_TOOLS still keep their families regardless of MD-1 scores.
+    lean_fleet = bridge_module.lean_command(["copilot", "--fleet", "-p", "write a github actions workflow"])
+    assert not (agents | {"sql"}) & set(lean_fleet[lean_fleet.index("--excluded-tools") + 1:])
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "workflows")
+    assert not workflows & excluded_for("write a github actions workflow that runs pytest")
+    monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
+    # Any family omitted from MD-1's response (including empty scores) falls back to its regex pattern.
+    fake.scores = {}
+    assert not bg_shell & excluded_for("start the server in the background")
     monkeypatch.setenv("TOKENMASTER_MD1_THRESHOLD", "0.4")
     fake.scores = {"sql": 0.49}
     assert "sql" not in excluded_for("count the rows")

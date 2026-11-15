@@ -83,18 +83,16 @@ have made the same model calls.
 
 1. **Lean tool set, per call.** Stock Copilot CLI sends more fixed tokens on every call: the definitions of the 11
    removed tools and the system-prompt text about them. The navigation tools add some back.
-   - The `lean` calibrations were measured with those 11 tools, on builds and routing that did not send the two
-     workflow tools. Where Copilot CLI sends them (default routing, and every mode from 1.0.104), the launcher now
-     also removes them, about 2,000 more tokens per call, which the estimate does not count yet.
-   - A prompt or a flag can keep some of the 11 tools: a prompt that starts a skill keeps `skill`, the workflow tools
+   - A prompt or a flag can keep some of the 13 tools: a prompt that starts a skill keeps `skill`, the workflow tools
      and the four subagent tools. The launch record lists the tools that the launcher excluded (names only), and the
-     estimate credits their share of `lean`. Each of the 11 tools has a weight, `LEAN_WEIGHTS` in `tokenomics.py`:
+     estimate credits their share of `lean`. Each of the 13 tools has a weight, `LEAN_WEIGHTS` in `tokenomics.py`:
      what keeping it adds to a call on Copilot CLI 1.0.104 (`gpt-6-astra`, Responses API, three skills installed),
-     its family's cost split over the family's tools by definition size (`evidence/skill-trigger-20261029/`). A
-     launch that kept the four subagent tools gets 56% of `lean`; one whose prompt started a skill (`skill` and the
-     subagent tools), 48%; one started with `--fleet` (the subagent tools and `sql`), 44%. Launch records written
-     before this change do not list the tools, and get the full `lean`.
-   - The weights come from 1.0.104, `lean` from 1.0.98, and one set of weights serves both APIs. `skill` weighs 438
+     its family's cost split over the family's tools by definition size (`evidence/skill-trigger-20261029/`, total
+     8,061 cl100k tokens including 1,190 and 848 for the two workflow tools). A launch that kept the four subagent
+     tools gets 67% of `lean`; one whose prompt started a skill (`skill`, the workflow tools and the subagent tools),
+     36%; one started with `--fleet` (the subagent tools and `sql`), 58%. Launch records written before launch-list
+     recording do not list the tools, and get the full `lean`.
+   - The weights come from 1.0.104, `lean` from 1.0.112, and one set of weights serves both APIs. `skill` weighs 438
      with three skills installed; with the 128 skills of the test machine, keeping it adds about 3,990 tokens.
    - Fixed tokens saved per main-agent call = `lean` × the excluded tools' share (when the lean tool set was on) −
      `nav` (when the navigation tools were installed).
@@ -104,8 +102,8 @@ have made the same model calls.
      installed, each of its main-agent calls counts −`nav`, so its estimated token saving is negative. The one run
      that measured this setup saved through fewer model calls, which the estimate does not count. On November 1
      (Copilot CLI 1.0.105, `gpt-6-astra`, `evidence/default-nolean-20261101/`), TokenMaster made 43 calls against
-     stock's 51 and used 19.1% fewer raw tokens, while the estimate for its 43 calls is 43 × −252 = −10,836 tokens
-     (−1.8%). The check against measured results below covers only launches with the lean tool set.
+     stock's 51 and used 19.1% fewer raw tokens, while the estimate for its 43 calls was −1.8%. The check against
+     measured results below covers only launches with the lean tool set.
 2. **First call, per session.** The first call of a session writes most of its prompt to GitHub's cache.
    - Stock's first call would send the same prompt plus the fixed tokens. It would read its usual cached prefix
      and write the rest.
@@ -121,20 +119,28 @@ have made the same model calls.
      built-in MCP servers off. With the calibration value, the dashboard showed a small negative cost saving for two
      TokenMaster sessions whose measured cost was 33% and 41% lower than stock's.
 
-The fixed prompt depends on the Copilot CLI version. The dashboard uses the 1.0.98 values: the launcher runs the
-installed Copilot CLI, which was 1.0.98 on October 23, 2026.
+The fixed prompt depends on the Copilot CLI version. The dashboard uses the 1.0.112 values, measured under default
+GitHub routing across all 13 `LEAN_EXCLUDED_TOOLS`.
 
 | Copilot CLI | API | Model | `lean` | `nav` | `stock_first_cached` | Source |
 | --- | --- | --- | ---: | ---: | ---: | --- |
+| 1.0.112 | OpenAI Responses | `gpt-6-astra` | 7,952 | 380 | 9,733 | Probe, November 15 |
+| 1.0.112 | Anthropic Messages | `claude-opus-5.5` | 14,318 | 1,124 | 17,579 | Probe, November 15 |
 | 1.0.98 | OpenAI Responses | `gpt-6-astra` | 5,558 | 252 | 6,450 | Probe, October 23 |
 | 1.0.98 | Anthropic Messages | `claude-opus-5.5` | 9,727 | 531 | 11,226 | Probe, October 23 |
 | 1.0.78-3 | OpenAI Responses | `gpt-6-astra` | 6,760 | 252 | 0 | 45-task Django A/B, October 22 |
 | 1.0.78-3 | Anthropic Messages | `claude-opus-5.5` | 11,540 | 531 | 13,393 | 45-task Django A/B, October 22 |
 
-- **1.0.98:** `evidence/copilot-version-probe-20261023/`. `lean` is the difference between the first calls of a stock
-  session and a lean-tool-set session with the same prompt. `stock_first_cached` is what three back-to-back stock
+- **1.0.112:** `evidence/md1-live-routing-20261115/probe_1_0_112.py` (`calibration_1_0_112.json`). Measured under
+  default GitHub routing across all 13 `LEAN_EXCLUDED_TOOLS`: `lean` is the first-call input difference between stock
+  and `--lean`, `nav` is the difference when `tokenmaster-nav` is added, and `stock_first_cached` is the warm cache
+  read across back-to-back stock sessions in two folders. On the 30 TokenMaster sessions of
+  `evidence/md1-live-routing-20261115/`, the `1.0.112` calibration estimated 40.1% and 34.9% token savings against
+  45.2% (`tm_regex`) and 41.4% (`tm_md1`) measured.
+- **1.0.98:** `evidence/copilot-version-probe-20261023/` (11 tools, before Copilot CLI added the two workflow tools).
+  `lean` is the difference between the first calls of a stock session and a lean-tool-set session with the same
+  prompt; `nav` on 1.0.98 reused the 1.0.78-3 measurement. `stock_first_cached` is what three back-to-back stock
   sessions read from the cache, in two different folders.
-- **`nav`** was measured on 1.0.78-3 only. It is the size of TokenMaster's own navigation-tool definitions.
 - **1.0.78-3:** medians from the Django A/B ([COPILOT_CLI_RESULTS.md](COPILOT_CLI_RESULTS.md)). Stock
   `gpt-6-astra` sessions on 1.0.78-3 read nothing from the cache on their first call.
 - **Not counted:** model calls that graph navigation saved, v6 shaping of tool results, and any other change in what

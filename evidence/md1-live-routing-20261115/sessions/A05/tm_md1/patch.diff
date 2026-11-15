@@ -1,0 +1,115 @@
+diff --git a/token-master-plugin/skills/token-master/tests/test_tokenomics.py b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+index 4b3bff8..809fc7d 100644
+--- a/token-master-plugin/skills/token-master/tests/test_tokenomics.py
++++ b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+@@ -1,4 +1,5 @@
+ """tokenomics.py: a ccusage-style report from Copilot CLI's session store, with estimated TokenMaster savings."""
++import argparse
+ import importlib.util
+ import json
+ import re
+@@ -7,6 +8,8 @@ import sys
+ from datetime import datetime, timedelta, timezone
+ from pathlib import Path
+ 
++import pytest
++
+ SKILL = Path(__file__).resolve().parents[1]
+ sys.path.insert(0, str(SKILL))
+ _spec = importlib.util.spec_from_file_location("tokenomics", SKILL / "tokenomics.py")
+@@ -156,6 +159,48 @@ def test_session_report_filters_and_modes(tmp_path, capsys):
+     assert len(monthly) == 1 and set(monthly[0]["breakdown"]) == {"gpt-6-astra", "claude-opus-5.5"}
+ 
+ 
++@pytest.mark.parametrize("value", ["0", "-1", "1.5", "abc", ""])
++def test_limit_rejects_invalid_values(value, capsys):
++    with pytest.raises(argparse.ArgumentTypeError, match="integer >= 1"):
++        tokenomics.limit_arg(value)
++    with pytest.raises(SystemExit) as error:
++        tokenomics.main(["--limit", value])
++    assert error.value.code == 2
++    assert "--limit" in capsys.readouterr().err
++
++
++@pytest.mark.parametrize("report", tokenomics.REPORTS)
++@pytest.mark.parametrize("order", ["asc", "desc"])
++@pytest.mark.parametrize("limit", [1, 2, 10])
++def test_limit_caps_sorted_rows_without_changing_filtered_totals(tmp_path, capsys, report, order, limit):
++    home = make_home(tmp_path)
++    args = (report, "--order", order, "--only", "tokenmaster", "--breakdown")
++    unlimited = run_json(home, capsys, *args)
++    limited = run_json(home, capsys, *args, "--limit", str(limit))
++    assert limited["rows"] == unlimited["rows"][:limit]
++    assert limited["totals"] == unlimited["totals"]
++    assert limited["totals"]["calls"] == 4
++
++
++def test_limit_preserves_table_total_and_handles_no_matches(tmp_path, capsys):
++    home = make_home(tmp_path)
++    args = ["session", "--only", "tokenmaster", "--ascii", "--no-color", "--full",
++            "--copilot-home", str(home)]
++    assert tokenomics.main(args) == 0
++    unlimited = capsys.readouterr().out
++    assert tokenomics.main([*args, "--limit", "1"]) == 0
++    limited = capsys.readouterr().out
++
++    def total_cells(output):
++        return [cell.strip() for cell in next(line for line in output.splitlines()
++                                              if line.startswith("| Total ")).split("|")]
++
++    assert total_cells(limited) == total_cells(unlimited)
++    assert "| T " in limited and "| U " not in limited
++    empty = run_json(home, capsys, "--project", "no-matching-project", "--limit", "1")
++    assert empty["rows"] == [] and empty["totals"]["calls"] == 0
++
++
+ def test_tables_render_in_box_and_ascii(tmp_path, capsys):
+     home = make_home(tmp_path)
+     for report in tokenomics.REPORTS:
+diff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py
+index 6512a82..86b2aeb 100644
+--- a/token-master-plugin/skills/token-master/tokenomics.py
++++ b/token-master-plugin/skills/token-master/tokenomics.py
+@@ -22,7 +22,7 @@ measured A/B runs (Copilot CLI 1.0.98 and 1.0.78-3), the method gave 59% to 125%
+ 
+   python tokenomics.py [daily|weekly|monthly|session] [--since YYYYMMDD] [--until YYYYMMDD] [--project TEXT]
+                        [--only tokenmaster|stock] [--breakdown] [--order asc|desc] [--json] [--compact | --full]
+-                       [--ascii] [--no-color] [--copilot-home PATH]
++                       [--limit N] [--ascii] [--no-color] [--copilot-home PATH]
+ """
+ from __future__ import annotations
+ 
+@@ -497,6 +497,16 @@ def day_arg(text: str) -> date:
+         raise argparse.ArgumentTypeError(f"expected YYYYMMDD, got {text!r}") from error
+ 
+ 
++def limit_arg(text: str) -> int:
++    try:
++        value = int(text)
++    except ValueError as error:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}") from error
++    if value <= 0:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}")
++    return value
++
++
+ def build(args) -> dict:
+     home = copilot_home(args.copilot_home)
+     store = home / "session-store.db"
+@@ -521,6 +531,7 @@ def build(args) -> dict:
+         rows.sort(key=lambda row: start[row[0]], reverse=args.order == "desc")
+     else:
+         rows.sort(key=lambda row: row[0], reverse=args.order == "desc")
++    rows = rows[:args.limit]
+     return {"home": home, "store": store, "calls": calls, "sessions": sessions, "launches": launches,
+             "rows": rows, "total": total}
+ 
+@@ -557,6 +568,8 @@ def main(argv=None) -> int:
+     parser.add_argument("--only", choices=("tokenmaster", "stock"), help="only TokenMaster or only stock calls")
+     parser.add_argument("--breakdown", action="store_true", help="one sub-row per model")
+     parser.add_argument("--order", choices=("asc", "desc"), default="asc")
++    parser.add_argument("--limit", type=limit_arg, default=None, metavar="N",
++                        help="show only the first N sorted rows; totals include all filtered calls")
+     parser.add_argument("--json", action="store_true", help="machine-readable output")
+     parser.add_argument("--compact", action="store_true", help="hide the input, output and cache columns")
+     parser.add_argument("--full", action="store_true", help="never switch to compact mode on a narrow terminal")

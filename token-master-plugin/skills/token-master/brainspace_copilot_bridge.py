@@ -217,16 +217,20 @@ def md1_scores(prompt: str) -> dict[str, float]:
             answers = json.loads(response.read()).get("answers", {})
         return {family: float(answers[family]["noul"]) for family in MD1_QUESTIONS
                 if isinstance(answers.get(family), dict) and "noul" in answers[family]}
-    except Exception:  # noqa: BLE001 - MD-1 only adds tools; never stop or fail a launch over it
+    except Exception:  # noqa: BLE001 - MD-1 is opt-in; never stop or fail a launch over it
         return {}
+
+
+def _md1_threshold() -> float:
+    try:
+        return float(os.environ.get("TOKENMASTER_MD1_THRESHOLD") or MD1_THRESHOLD)
+    except ValueError:
+        return MD1_THRESHOLD
 
 
 def md1_families(prompt: str) -> set[str]:
     """The families whose MD-1 probability reaches TOKENMASTER_MD1_THRESHOLD; none when MD-1 is off or fails."""
-    try:
-        threshold = float(os.environ.get("TOKENMASTER_MD1_THRESHOLD") or MD1_THRESHOLD)
-    except ValueError:
-        threshold = MD1_THRESHOLD
+    threshold = _md1_threshold()
     return {family for family, chance in md1_scores(prompt).items() if chance >= threshold}
 
 
@@ -321,11 +325,14 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
     prompt_text = "\n".join(prompts)
     named_text = _NEGATED.sub(" ", " ".join(prompt_text.split()))  # skill and agent names only; other families as is
     if prompt_text.strip():
+        scores = md1_scores(prompt_text)  # opt-in; empty unless TOKENMASTER_MD1_ENDPOINT answers
+        threshold = _md1_threshold()
         for family, (tools, pattern) in CAPABILITY_GROUPS.items():
-            if pattern.search(named_text if family == "skills" else prompt_text):
+            if family in scores:
+                if scores[family] >= threshold:
+                    keep.update(tools)
+            elif pattern.search(named_text if family == "skills" else prompt_text):
                 keep.update(tools)
-        for family in md1_families(prompt_text):  # opt-in; only ever adds families
-            keep.update(CAPABILITY_GROUPS[family][0])
         named = _NAMED.findall(named_text)
         wanted = {match.group(1) for match in _SLASH.finditer(named_text)} | {n for verb, n in named if verb != "ask"}
         if wanted:

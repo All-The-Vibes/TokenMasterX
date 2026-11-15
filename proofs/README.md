@@ -25,7 +25,7 @@ definitions have. Section 7 covers the method.
 | Shaping never makes a tool result bigger, in tokens or in bytes | Proven | `Shaping.guard_never_expands` |
 | `plan_request` with policies v1 to v4 never grows a request or touches a protected message | Proven | `Policy.greedy_never_expands`, `Policy.protected_unchanged` |
 | The `rg` and glob folds are lossless | Proven: `fold_paths` gives back its exact input, and `fold_search` refuses any input it could not give back (section 3) | `Folds.unfoldPaths_foldPaths`, `Folds.unfold_foldSearchChecked` |
-| Routing runs only with `--lean`, drops only auxiliary tools, and keeps every family whose trigger fires | Proven for the model; `default_excludes_nothing` holds by its definition, so that `main` routes only with `--lean` rests on the conformance tests. The keyword triggers miss some phrasings (finding 2); the opt-in MD-1 router only adds triggers, so the theorems still hold with it | `Routing.default_excludes_nothing`, `Routing.excluded_subset_lean`, `Routing.fired_family_kept` |
+| Routing runs only with `--lean`, drops only auxiliary tools, and keeps every family whose trigger fires | Proven for the model; `default_excludes_nothing` holds by its definition, so that `main` routes only with `--lean` rests on the conformance tests. The keyword triggers miss some phrasings (finding 2); when the opt-in MD-1 router answers for a family its score replaces that family's keyword trigger (falling back to the pattern on error), so the theorems still hold with it | `Routing.default_excludes_nothing`, `Routing.excluded_subset_lean`, `Routing.fired_family_kept` |
 | A keyword pattern that covers `n` independent phrasings of a family, and fires on no prompt that does not need it, has at least `n` branches | Proven for any branch matcher; independence is a hypothesis about the phrasings. MD-1's recall is measured, not proven (section 4) | `Tuning.branches_ge_phrasings`, `Tuning.new_phrasing_needs_a_branch` |
 | A resume that the launcher ties to the session's record gets the `--excluded-tools` the session started with | Proven for the model; which record applies is the launcher's lookup, which the conformance tests check (section 4) | `Routing.resume_same_list`, `Routing.resume_chain_keeps_first_list` |
 | Sessions whose system prompts differ only in the folder path get the same system prompt | Proven | `SessionPrefix.system_same_across_sessions` |
@@ -374,12 +374,15 @@ families are exactly the model's, tool by tool, and three more tests check each 
 `--fleet`, `--resume`, `-r`, `TOKENMASTER_KEEP_TOOLS`, the skill rule and the no-signal case on the real
 function.
 
-With `TOKENMASTER_MD1_ENDPOINT` set, `md1_families` asks Microsoft-Decision-1 (MD-1) one fixed question
-per family, and a family it picks fires as if its pattern had matched. MD-1 only adds families to
-`keep`, so in the model a family fires when its pattern or MD-1 fires, and every theorem above holds
-unchanged. `test_routing_md1_picks_fire_their_families` checks on the real function that, for random
-picks, the excluded list with MD-1 is a subset of the list without it, which is a subset of
-`LEAN_EXCLUDED_TOOLS`, and that every picked family is kept. On any error MD-1 picks nothing.
+With `TOKENMASTER_MD1_ENDPOINT` set, `md1_scores` asks Microsoft-Decision-1 (MD-1) one fixed question
+per family. For each family MD-1 answers on, `score >= threshold` replaces that family's regular
+expression, while explicit flags (`--agent`, `--fleet`, `--resume`), built-in slash commands,
+installed skill and agent names, and `TOKENMASTER_KEEP_TOOLS` still keep their families; any family
+MD-1 omits, or all families on error, fall back to the regular expressions. Because `Routing.lean`
+parameterizes `Signals.fires` over any family firing predicate, every theorem above holds unchanged.
+`test_routing_md1_picks_fire_their_families` checks on the real function that, for random MD-1 score
+maps, the excluded list is `LEAN_EXCLUDED_TOOLS` minus the picked families (plus `workflows` and
+`agents` when `skills` is picked), and that an empty score map falls back to the pattern-only list.
 
 **Tuning cost.** Source: the regular expressions of `CAPABILITY_GROUPS` and `MD1_QUESTIONS`. Lean:
 `TokenMasterProofs/Tuning.lean`. A family's pattern is an alternation of branches; `occurs b p`, a
@@ -405,9 +408,9 @@ also occurs in a prompt there that does not need the subagent tools. It also che
 `agents` pattern fires on no such prompt and misses at least one of the eight. MD-1's configuration
 stays at 7 questions whatever the phrasings; its recall is measured by `evals/md1_routing_eval.py`,
 not proven. On the eval's 22 held-out prompts, which were not used to choose the questions or the
-threshold, the patterns kept 3 of the 13 families the prompts needed, and the patterns
-with MD-1 kept all 13, at the cost of 4 families kept that no prompt needed against 2
-(`evidence/md1-routing-20261108`).
+threshold, the patterns kept 3 of the 13 families the prompts needed, and MD-1 kept all 13 at the
+cost of 2 families kept that no prompt needed, matching the patterns' 2 and down from 4 under their
+union (`evidence/md1-routing-20261108`; see also `evidence/md1-live-routing-20261115`).
 
 Nor does it cover which record applies; the model takes the record as given. `test_routing_default_sends_every_tool`
 checks on `main` that, without `--lean`, every trigger's prompt, `--resume`, `--continue` and

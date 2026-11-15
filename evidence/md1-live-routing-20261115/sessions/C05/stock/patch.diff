@@ -1,0 +1,130 @@
+diff --git a/token-master-plugin/skills/token-master/tests/test_tokenomics.py b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+index 4b3bff8..28d7e64 100644
+--- a/token-master-plugin/skills/token-master/tests/test_tokenomics.py
++++ b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+@@ -1,4 +1,5 @@
+ """tokenomics.py: a ccusage-style report from Copilot CLI's session store, with estimated TokenMaster savings."""
++import argparse
+ import importlib.util
+ import json
+ import re
+@@ -7,6 +8,8 @@ import sys
+ from datetime import datetime, timedelta, timezone
+ from pathlib import Path
+ 
++import pytest
++
+ SKILL = Path(__file__).resolve().parents[1]
+ sys.path.insert(0, str(SKILL))
+ _spec = importlib.util.spec_from_file_location("tokenomics", SKILL / "tokenomics.py")
+@@ -167,6 +170,58 @@ def test_tables_render_in_box_and_ascii(tmp_path, capsys):
+     assert "+--" in out and "â”Œ" not in out and "Cache Read" not in out
+ 
+ 
++@pytest.mark.parametrize("options, sessions", [
++    ({}, {"S", "T", "U", "V"}),
++    ({"min_calls": None}, {"S", "T", "U", "V"}),
++    ({"min_calls": 1}, {"S", "T", "U", "V"}),
++    ({"min_calls": 2}, {"S", "T"}),
++    ({"min_calls": 3}, {"T"}),
++    ({"min_calls": 4}, set()),
++])
++def test_build_min_calls(tmp_path, options, sessions):
++    home = make_home(tmp_path)
++    args = argparse.Namespace(copilot_home=str(home), since=None, until=None, project=None, only=None,
++                              report="session", breakdown=True, order="asc", **options)
++    data = tokenomics.build(args)
++    expected = [c for c in estimated(home) if c["session"] in sessions]
++    assert data["calls"] == expected
++    assert (data["rows"], data["total"]) == tokenomics.aggregate(expected, "session", True)
++
++
++@pytest.mark.parametrize("filter_name, moved_at", [
++    ("since", "2026-10-18T11:00:30Z"),
++    ("until", "2026-10-22T11:00:30Z"),
++    ("only", "2026-10-20T12:00:30Z"),
++])
++def test_min_calls_counts_after_other_filters(tmp_path, capsys, filter_name, moved_at):
++    home = make_home(tmp_path)
++    with sqlite3.connect(home / "session-store.db") as db:
++        db.execute("update assistant_usage_events set created_at = ? where agent_id = 'sub-1'", (moved_at,))
++    value = "tokenmaster" if filter_name == "only" else local_day(CALLS[2][-1])
++    report = run_json(home, capsys, "session", "--project", "org/a", f"--{filter_name}", value,
++                      "--min-calls", "3")
++    assert report["rows"] == []
++    assert report["totals"]["calls"] == report["totals"]["sessions"] == 0
++
++
++def test_min_calls_cli_includes_subagents(tmp_path, capsys):
++    home = make_home(tmp_path)
++    report = run_json(home, capsys, "session", "--min-calls", "3")
++    assert [row["session"] for row in report["rows"]] == ["T"]
++    assert report["totals"]["calls"] == 3
++    assert report["totals"]["total"] == sum(c[4] + c[5] for c in CALLS if c[0] == "T")
++
++
++@pytest.mark.parametrize("value", ["0", "-1", "1.5", "abc"])
++def test_min_calls_rejects_invalid_values(value, capsys):
++    with pytest.raises(argparse.ArgumentTypeError, match="integer >= 1"):
++        tokenomics.min_calls_arg(value)
++    with pytest.raises(SystemExit) as error:
++        tokenomics.main(["--min-calls", value])
++    assert error.value.code == 2
++    assert "--min-calls" in capsys.readouterr().err
++
++
+ def test_a_stock_session_just_before_a_launch_stays_stock(tmp_path):
+     # The real store of October 23: the stock session's last call came 66 ms after the launch's start second, and the
+     # launcher recorded whole seconds, so its end second also held the TokenMaster session's last call.
+diff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py
+index 6512a82..bf79ef8 100644
+--- a/token-master-plugin/skills/token-master/tokenomics.py
++++ b/token-master-plugin/skills/token-master/tokenomics.py
+@@ -22,7 +22,7 @@ measured A/B runs (Copilot CLI 1.0.98 and 1.0.78-3), the method gave 59% to 125%
+ 
+   python tokenomics.py [daily|weekly|monthly|session] [--since YYYYMMDD] [--until YYYYMMDD] [--project TEXT]
+                        [--only tokenmaster|stock] [--breakdown] [--order asc|desc] [--json] [--compact | --full]
+-                       [--ascii] [--no-color] [--copilot-home PATH]
++                       [--min-calls N] [--ascii] [--no-color] [--copilot-home PATH]
+ """
+ from __future__ import annotations
+ 
+@@ -497,6 +497,16 @@ def day_arg(text: str) -> date:
+         raise argparse.ArgumentTypeError(f"expected YYYYMMDD, got {text!r}") from error
+ 
+ 
++def min_calls_arg(text: str) -> int:
++    try:
++        value = int(text)
++    except ValueError as error:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}") from error
++    if value < 1:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}")
++    return value
++
++
+ def build(args) -> dict:
+     home = copilot_home(args.copilot_home)
+     store = home / "session-store.db"
+@@ -513,6 +523,12 @@ def build(args) -> dict:
+                                + (sessions.get(call["session"]) or {}).get("repository", "")).lower()]
+     if args.only:
+         calls = [call for call in calls if bool(call["launch"]) == (args.only == "tokenmaster")]
++    min_calls = getattr(args, "min_calls", None)
++    if min_calls is not None:
++        counts = defaultdict(int)
++        for call in calls:
++            counts[call["session"]] += 1
++        calls = [call for call in calls if counts[call["session"]] >= min_calls]
+     rows, total = aggregate(calls, args.report, args.breakdown)
+     if args.report == "session":
+         start = {}
+@@ -555,6 +571,8 @@ def main(argv=None) -> int:
+     parser.add_argument("--until", type=day_arg, help="last day to include, YYYYMMDD (local time)")
+     parser.add_argument("--project", help="only sessions whose folder or repository contains this text")
+     parser.add_argument("--only", choices=("tokenmaster", "stock"), help="only TokenMaster or only stock calls")
++    parser.add_argument("--min-calls", type=min_calls_arg, default=None,
++                        help="only sessions with at least N calls remaining after other filters", metavar="N")
+     parser.add_argument("--breakdown", action="store_true", help="one sub-row per model")
+     parser.add_argument("--order", choices=("asc", "desc"), default="asc")
+     parser.add_argument("--json", action="store_true", help="machine-readable output")
