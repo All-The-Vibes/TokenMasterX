@@ -43,8 +43,8 @@ import tempfile
 # call reads from the prompt cache when another session of the same version ran shortly before ("stock_first_cached").
 CALIBRATIONS = {
     # Probe of November 15, 2026 under default GitHub routing (evidence/md1-live-routing-20261115/probe_1_0_112.py).
-    "1.0.112": {"responses": {"model": "gpt-6-astra", "lean": 7952, "nav": 380, "stock_first_cached": 9733},
-                "messages": {"model": "claude-opus-5.5", "lean": 14318, "nav": 1124, "stock_first_cached": 17579}},
+    "1.0.112": {"responses": {"model": "gpt-6-astra", "lean": 7959, "nav": 257, "stock_first_cached": 9733},
+                "messages": {"model": "claude-opus-5.5", "lean": 14341, "nav": 542, "stock_first_cached": 17579}},
     # Probe of October 23, 2026 (evidence/copilot-version-probe-20261023); "nav" was measured on 1.0.78-3.
     "1.0.98": {"responses": {"model": "gpt-6-astra", "lean": 5558, "nav": 252, "stock_first_cached": 6450},
                "messages": {"model": "claude-opus-5.5", "lean": 9727, "nav": 531, "stock_first_cached": 11226}},

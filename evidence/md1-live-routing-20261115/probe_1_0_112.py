@@ -23,6 +23,7 @@ REPO = HERE.parents[1]
 SKILL = REPO / "token-master-plugin" / "skills" / "token-master"
 sys.path.insert(0, str(SKILL))
 import brainspace_copilot_bridge as bridge  # noqa: E402
+from hosts.runtime import runtime_entry  # noqa: E402
 
 PROMPT = "Reply with the single word OK. Do not use any tools."
 MODELS = (("responses", "gpt-6-astra"), ("messages", "claude-opus-5.5"))
@@ -67,9 +68,8 @@ def main() -> int:
             {
                 "mcpServers": {
                     "tokenmaster-nav": {
+                        **runtime_entry(str(PYTHON), str(SKILL / "navigation_mcp.py")),
                         "type": "local",
-                        "command": str(PYTHON),
-                        "args": [str(SKILL / "graphify_mcp.py")],
                         "tools": ["*"],
                     }
                 }
@@ -198,6 +198,7 @@ def main() -> int:
                 "kind": "calibration probe",
                 "copilot_version": ver.splitlines()[0],
                 "prompt": PROMPT,
+                "mcp_server": "navigation_mcp.py",
                 "excluded_tools": list(bridge.LEAN_EXCLUDED_TOOLS),
                 "calibrations": calibrations,
                 "runs": runs,

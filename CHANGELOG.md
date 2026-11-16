@@ -34,6 +34,10 @@ and the project aims to follow semantic versioning.
 
 ### Fixed
 
+- `brainspace_copilot_bridge`: validate `TOKENMASTER_MD1_THRESHOLD` and per-family MD-1 `noul` scores as finite
+  probabilities in `[0, 1]` before applying MD-1 per-family precedence, so `NaN`, `±Infinity`, booleans or out-of-range
+  values fall back cleanly (`MD1_THRESHOLD` for the threshold; per-family regex fallback for invalid family scores) and
+  recalibrate `CALIBRATIONS["1.0.112"][...]["nav"]` against `navigation_mcp.py` rather than legacy `graphify_mcp.py`.
 - `brainspace_copilot_bridge.select_excluded_tools`: when `TOKENMASTER_MD1_ENDPOINT` returns a score for a tool family,
   let `score >= threshold` decide that family's prompt trigger instead of taking the union with `CAPABILITY_GROUPS`
   regexes. Previously, lookalike words in ordinary coding prompts (`workflow`, `sql`, `in the background`, `previous

@@ -36,6 +36,7 @@ import copy
 import hashlib
 import http.client
 import json
+import math
 import os
 import re
 import shutil
@@ -190,6 +191,17 @@ def _md1_token(budget: float) -> str | None:
         return None
 
 
+def _probability(value: object) -> float | None:
+    """A finite probability in [0, 1], or None for booleans, non-numbers, NaN, infinities, and out-of-range values."""
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        return None
+    try:
+        chance = float(value)
+    except ValueError:
+        return None
+    return chance if math.isfinite(chance) and 0.0 <= chance <= 1.0 else None
+
+
 def md1_scores(prompt: str) -> dict[str, float]:
     """MD-1's probability that the prompt needs each family, or {}: unset, a non-https endpoint, no credential, an
     error, a timeout (TOKENMASTER_MD1_TIMEOUT, 3 s) or an answer it cannot read."""
@@ -199,6 +211,8 @@ def md1_scores(prompt: str) -> dict[str, float]:
     try:
         timeout = float(os.environ.get("TOKENMASTER_MD1_TIMEOUT") or 3)
     except ValueError:
+        return {}
+    if not math.isfinite(timeout) or timeout <= 0:
         return {}
     key = os.environ.get("TOKENMASTER_MD1_API_KEY", "").strip()
     headers = {"Content-Type": "application/json"}
@@ -215,23 +229,29 @@ def md1_scores(prompt: str) -> dict[str, float]:
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             answers = json.loads(response.read()).get("answers", {})
-        return {family: float(answers[family]["noul"]) for family in MD1_QUESTIONS
-                if isinstance(answers.get(family), dict) and "noul" in answers[family]}
+        if not isinstance(answers, dict):
+            return {}
+        scores: dict[str, float] = {}
+        for family in MD1_QUESTIONS:
+            answer = answers.get(family)
+            if isinstance(answer, dict) and (chance := _probability(answer.get("noul"))) is not None:
+                scores[family] = chance
+        return scores
     except Exception:  # noqa: BLE001 - MD-1 is opt-in; never stop or fail a launch over it
         return {}
 
 
 def _md1_threshold() -> float:
-    try:
-        return float(os.environ.get("TOKENMASTER_MD1_THRESHOLD") or MD1_THRESHOLD)
-    except ValueError:
-        return MD1_THRESHOLD
+    raw = os.environ.get("TOKENMASTER_MD1_THRESHOLD", "").strip()
+    chance = _probability(raw) if raw else None
+    return chance if chance is not None else MD1_THRESHOLD
 
 
 def md1_families(prompt: str) -> set[str]:
     """The families whose MD-1 probability reaches TOKENMASTER_MD1_THRESHOLD; none when MD-1 is off or fails."""
     threshold = _md1_threshold()
-    return {family for family, chance in md1_scores(prompt).items() if chance >= threshold}
+    return {family for family, raw in md1_scores(prompt).items()
+            if (chance := _probability(raw)) is not None and chance >= threshold}
 
 
 def _flag_values(command: list[str], *flags: str) -> list[str]:
@@ -328,8 +348,8 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
         scores = md1_scores(prompt_text)  # opt-in; empty unless TOKENMASTER_MD1_ENDPOINT answers
         threshold = _md1_threshold()
         for family, (tools, pattern) in CAPABILITY_GROUPS.items():
-            if family in scores:
-                if scores[family] >= threshold:
+            if (chance := _probability(scores.get(family))) is not None:
+                if chance >= threshold:
                     keep.update(tools)
             elif pattern.search(named_text if family == "skills" else prompt_text):
                 keep.update(tools)
