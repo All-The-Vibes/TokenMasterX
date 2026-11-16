@@ -409,11 +409,43 @@ def test_md1_decides_answered_families_and_falls_back_per_family_to_patterns(mon
 
 @pytest.mark.parametrize("fake", [FakeMD1(error=urllib.error.URLError("down")), FakeMD1(error=TimeoutError()),
                                   FakeMD1(raw="not json"), FakeMD1(raw='{"answers": {"agents": {"noul": "x"}}}'),
-                                  FakeMD1(raw='{"answers": []}')])
+                                  FakeMD1(raw='{"answers": []}'), FakeMD1(raw='{"answers": "bad"}')])
 def test_md1_fails_open_to_the_patterns(monkeypatch, tmp_path, fake):
     md1_on(monkeypatch, tmp_path, fake)
     assert excluded_for("have an agent review this diff") == set(bridge_module.LEAN_EXCLUDED_TOOLS)
     assert fake.requests
+
+
+@pytest.mark.parametrize("raw_threshold", ["nan", "NaN", "inf", "-inf", "-0.1", "1.5", "50", "bad", ""])
+def test_md1_rejects_invalid_thresholds_and_preserves_boundary_values(monkeypatch, tmp_path, raw_threshold):
+    agents = {"task", "read_agent", "write_agent", "list_agents"}
+    md1_on(monkeypatch, tmp_path, FakeMD1({"agents": 0.6, "sql": 0.4}))
+    monkeypatch.setenv("TOKENMASTER_MD1_THRESHOLD", raw_threshold)
+    assert bridge_module._md1_threshold() == bridge_module.MD1_THRESHOLD
+    excluded = excluded_for("summarize this file")
+    assert not agents & excluded and "sql" in excluded
+    monkeypatch.setenv("TOKENMASTER_MD1_THRESHOLD", "0")
+    assert bridge_module._md1_threshold() == 0.0 and "sql" not in excluded_for("summarize this file")
+    monkeypatch.setenv("TOKENMASTER_MD1_THRESHOLD", "1")
+    assert bridge_module._md1_threshold() == 1.0 and agents <= excluded_for("summarize this file")
+
+
+@pytest.mark.parametrize("bad_score", ["NaN", "Infinity", "-Infinity", -1, -0.01, 1.01, 2, None, True, False, "bad"])
+def test_md1_drops_invalid_family_scores_back_to_regex_without_dropping_valid_siblings(monkeypatch, tmp_path, bad_score):
+    agents = {"task", "read_agent", "write_agent", "list_agents"}
+    bg_shell = {"read_powershell", "stop_powershell", "list_powershell"}
+    workflows = {"run_dynamic_workflow", "dynamic_workflows_manage"}
+    md1_on(monkeypatch, tmp_path, FakeMD1({"background_shell": bad_score, "agents": 0.91, "workflows": 0.02}))
+    prompt = "start the server in the background for our github actions workflow"
+    assert bridge_module.md1_scores(prompt) == {"agents": 0.91, "workflows": 0.02}
+    excluded = excluded_for(prompt)
+    assert not bg_shell & excluded  # invalid MD-1 score falls back to background_shell regex
+    assert not agents & excluded  # valid sibling score >= 0.5 still keeps agents
+    assert workflows <= excluded  # valid sibling score < 0.5 still suppresses lookalike workflow regex
+    # Direct callers/mocks passing non-finite or out-of-range floats into select_excluded_tools also fall back safely.
+    monkeypatch.setattr(bridge_module, "md1_scores", lambda _: {"background_shell": float("nan"), "workflows": -1.0})
+    excluded_direct = bridge_module.select_excluded_tools(["copilot", "-p", prompt])
+    assert not bg_shell & set(excluded_direct) and not workflows & set(excluded_direct)
 
 
 def test_md1_sends_nothing_unless_configured_over_https(monkeypatch, tmp_path):

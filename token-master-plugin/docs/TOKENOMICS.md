@@ -124,8 +124,8 @@ GitHub routing across all 13 `LEAN_EXCLUDED_TOOLS`.
 
 | Copilot CLI | API | Model | `lean` | `nav` | `stock_first_cached` | Source |
 | --- | --- | --- | ---: | ---: | ---: | --- |
-| 1.0.112 | OpenAI Responses | `gpt-6-astra` | 7,952 | 380 | 9,733 | Probe, November 15 |
-| 1.0.112 | Anthropic Messages | `claude-opus-5.5` | 14,318 | 1,124 | 17,579 | Probe, November 15 |
+| 1.0.112 | OpenAI Responses | `gpt-6-astra` | 7,959 | 257 | 9,733 | Probe, November 15 |
+| 1.0.112 | Anthropic Messages | `claude-opus-5.5` | 14,341 | 542 | 17,579 | Probe, November 15 |
 | 1.0.98 | OpenAI Responses | `gpt-6-astra` | 5,558 | 252 | 6,450 | Probe, October 23 |
 | 1.0.98 | Anthropic Messages | `claude-opus-5.5` | 9,727 | 531 | 11,226 | Probe, October 23 |
 | 1.0.78-3 | OpenAI Responses | `gpt-6-astra` | 6,760 | 252 | 0 | 45-task Django A/B, October 22 |
@@ -133,9 +133,9 @@ GitHub routing across all 13 `LEAN_EXCLUDED_TOOLS`.
 
 - **1.0.112:** `evidence/md1-live-routing-20261115/probe_1_0_112.py` (`calibration_1_0_112.json`). Measured under
   default GitHub routing across all 13 `LEAN_EXCLUDED_TOOLS`: `lean` is the first-call input difference between stock
-  and `--lean`, `nav` is the difference when `tokenmaster-nav` is added, and `stock_first_cached` is the warm cache
-  read across back-to-back stock sessions in two folders. On the 30 TokenMaster sessions of
-  `evidence/md1-live-routing-20261115/`, the `1.0.112` calibration estimated 40.1% and 34.9% token savings against
+  and `--lean`, `nav` is the difference when `tokenmaster-nav` (`navigation_mcp.py`) is added, and `stock_first_cached`
+  is the warm cache read across back-to-back stock sessions in two folders. On the 30 TokenMaster sessions of
+  `evidence/md1-live-routing-20261115/`, the `1.0.112` calibration estimated 40.5% and 35.3% token savings against
   45.2% (`tm_regex`) and 41.4% (`tm_md1`) measured.
 - **1.0.98:** `evidence/copilot-version-probe-20261023/` (11 tools, before Copilot CLI added the two workflow tools).
   `lean` is the difference between the first calls of a stock session and a lean-tool-set session with the same
