@@ -196,56 +196,95 @@ def lean_share(launch: dict) -> float:
 
 def stock_first_cached(calls: list[dict]) -> dict:
     """Per model: the median tokens that this store's own stock sessions read from the cache on their first call."""
-    firsts = {}
+    tm_sessions = {call["session"] for call in calls if call["launch"]}
+    firsts, seen_sessions = {}, set()
     for call in calls:  # time order
-        if call["main"] and not call["launch"]:
-            firsts.setdefault((call["session"], call["model"]), call["cache_read"])
+        if call["main"] and call["session"] not in seen_sessions:
+            seen_sessions.add(call["session"])
+            if call["session"] not in tm_sessions:
+                firsts[(call["session"], call["model"])] = call["cache_read"]
     by_model = defaultdict(list)
     for (_, model), cache_read in firsts.items():
         by_model[model].append(cache_read)
     return {model: statistics.median(values) for model, values in by_model.items()}
 
 
+CACHE_WARM_WINDOW = timedelta(minutes=5)  # standard provider prompt-cache minimum retention window
+
+
 def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibrations: dict | None = None) -> None:
     """Tag TokenMaster calls and add their estimated savings, in place."""
     calibrations = calibrations or CALIBRATION
-    first_seen, session_start = set(), {}
-    for call in calls:  # calls arrive in time order
+    session_start, first_main, seen_launches, session_launch_count, prev_main = {}, {}, set(), defaultdict(int), {}
+    for index, call in enumerate(calls):  # calls arrive in time order
         session_start.setdefault(call["session"], call["at"])
+        if call["main"]:
+            first_main.setdefault(call["session"], index)
     for call in calls:
         call.update(launch=None, saved_tokens=0, saved_nano=0.0, lean_nano=0.0, first_nano=0.0, estimated=False)
         folder = norm((sessions.get(call["session"]) or {}).get("cwd"))
         started = session_start[call["session"]]
-        # The session must have started during the launch: a stock session that ran just before it, in the same
-        # folder, stays stock. A resumed session counts as stock.
-        matches = [launch for launch in launches if folder and launch["cwd"] == folder
-                   and launch["start"] <= started <= launch["end"] and launch["start"] <= call["at"] <= launch["end"]]
+        # A new-session launch matches when the session started in its folder during it (so a stock session that ran
+        # just before it stays stock); a resumed launch matches the exact session ID the launcher recorded.
+        matches = [launch for launch in launches if launch["start"] <= call["at"] <= launch["end"]
+                   and (launch.get("session") == call["session"]
+                        or (not launch.get("session") and folder and launch["cwd"] == folder
+                            and launch["start"] <= started <= launch["end"]))]
         if matches:
             call["launch"] = matches[-1]
     observed = stock_first_cached(calls)
-    for call in calls:
+    for index, call in enumerate(calls):
         launch = call["launch"]
-        if not launch:
+        cached = call["cache_read"] + call["cache_write"]
+        if not call["main"]:
             continue
+        if not launch:
+            prev = prev_main.get(call["session"])
+            if prev is None or call["at"] - prev["at"] > timedelta(seconds=10):
+                session_launch_count[call["session"]] += 1
+            prev_main[call["session"]] = {"at": call["at"], "cached": cached, "fixed": 0, "tools": frozenset()}
+            continue
+        curr_tools = frozenset(launch["excluded"]) if launch.get("excluded") is not None else None
         calibration = calibrations.get(call["api"])
         read, write = call["prices"].get("cache_read"), call["prices"].get("cache_write")
-        if not call["main"] or calibration is None or read is None:
-            continue  # subagent calls and uncalibrated APIs get no estimate
+        if calibration is None or read is None:
+            if (call["session"], launch["id"]) not in seen_launches:
+                seen_launches.add((call["session"], launch["id"]))
+                session_launch_count[call["session"]] += 1
+            prev_main[call["session"]] = {"at": call["at"], "cached": cached, "fixed": 0, "tools": curr_tools}
+            continue  # uncalibrated APIs get no estimate
         lean = round(calibration["lean"] * lean_share(launch)) if launch["lean"] else 0
         fixed = lean - (calibration["nav"] if launch["nav"] else 0)
         call.update(saved_tokens=fixed, lean_nano=fixed * read, estimated=True)
-        key = (call["session"], launch["id"])
-        cached = call["cache_read"] + call["cache_write"]
-        if key not in first_seen:
-            first_seen.add(key)
-            if write is not None and cached:
-                # Stock's first call: the same prompt plus the fixed tokens, minus the prefix that stock usually reads
-                # from the cache: measured from this store's stock sessions, else the calibration. It can be smaller
-                # than the actual write, for example on a cold TokenMaster start.
-                usual = observed.get(call["model"], calibration["stock_first_cached"])
-                stock_write = cached + fixed - min(usual, cached + fixed)
-                call["first_nano"] = (stock_write - call["cache_write"]) * (write - read)
+        launch_key = (call["session"], launch["id"])
+        if launch_key not in seen_launches:
+            seen_launches.add(launch_key)
+            session_launch_count[call["session"]] += 1
+            launch_num = session_launch_count[call["session"]]
+            prev = prev_main.get(call["session"])
+            if index == first_main.get(call["session"]):
+                if write is not None and cached:
+                    # Stock's first call: the same prompt plus the fixed tokens, minus the prefix that stock usually reads
+                    # from the cache: measured from this store's stock sessions, else the calibration. It can be smaller
+                    # than the actual write, for example on a cold TokenMaster start.
+                    usual = observed.get(call["model"], calibration["stock_first_cached"])
+                    stock_write = cached + fixed - min(usual, cached + fixed)
+                    call["first_nano"] = (stock_write - call["cache_write"]) * (write - read)
+            elif (prev is not None and write is not None and cached
+                  and curr_tools is not None and prev["tools"] is not None
+                  and curr_tools != prev["tools"]
+                  and timedelta(0) <= call["at"] - prev["at"] <= CACHE_WARM_WINDOW):
+                # On first resume (launch 2), Copilot CLI injects <session_context> so stock reads only its usual static
+                # prefix; on subsequent warm resumes (launch 3+), stock reads the full prior conversation prefix while a
+                # tool-list mutation rewrites the invalidated prefix.
+                if launch_num == 2:
+                    usual = observed.get(call["model"], calibration["stock_first_cached"])
+                    stock_write = cached + fixed - min(usual, cached + fixed)
+                else:
+                    stock_write = max(0, (cached + fixed) - (prev["cached"] + prev["fixed"]))
+                call["first_nano"] = min(0.0, (stock_write - call["cache_write"]) * (write - read))
         call["saved_nano"] = call["lean_nano"] + call["first_nano"]
+        prev_main[call["session"]] = {"at": call["at"], "cached": cached, "fixed": fixed, "tools": curr_tools}
 
 
 # ----------------------------------------------------------------------------------------------- aggregation

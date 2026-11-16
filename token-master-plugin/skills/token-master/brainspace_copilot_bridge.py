@@ -319,7 +319,11 @@ def _installed_names(subfolder: str, command: list[str] = ()) -> set[str]:
     return {name for name in names if name}
 
 
-def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
+def _resume_escalate() -> bool:
+    return os.environ.get("TOKENMASTER_RESUME_ESCALATE", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def select_excluded_tools(command: list[str], *, resume_keeps_history: bool = True) -> tuple[str, ...]:
     """Prune auxiliary tool families not needed by the command's flags, prompt, installed assets, or env."""
     keep: set[str] = set()
     env_keep = os.environ.get("TOKENMASTER_KEEP_TOOLS", "")
@@ -334,7 +338,7 @@ def select_excluded_tools(command: list[str]) -> tuple[str, ...]:
             keep.update(CAPABILITY_GROUPS["agents"][0])
         if head == "--fleet":  # fleet mode tracks its subagents in the sql tool's todos table
             keep.update(CAPABILITY_GROUPS["sql"][0])
-        if head in ("--resume", "--continue") or arg[:2] == "-r":  # -r, -r ID, -rID
+        if resume_keeps_history and (head in ("--resume", "--continue") or arg[:2] == "-r"):  # -r, -r ID, -rID
             keep.update(CAPABILITY_GROUPS["session_history"][0])
     prompts = [prompt.lower() for prompt in _flag_values(command, "-p", "--prompt", "-i", "--interactive")]
     commands = {match.group(1) for prompt in prompts if (match := re.match(r"\s*/([a-z][\w-]*)(?=\s|$)", prompt))}
@@ -479,6 +483,9 @@ def lean_command(command: list[str], session: str | None = None) -> list[str]:
     excluded = recorded_tools(session) if session else None
     if excluded is None:
         excluded = select_excluded_tools(command)
+    elif _resume_escalate():
+        fresh = select_excluded_tools(command, resume_keeps_history=False)
+        excluded = [tool for tool in excluded if tool in fresh]
     else:  # the routing of a launch with no prompt or flags: only LEAN_EXCLUDED_TOOLS, less TOKENMASTER_KEEP_TOOLS
         excluded = [tool for tool in excluded if tool in select_excluded_tools(command[:1])]
     return [*command, "--excluded-tools", *excluded] if excluded else command

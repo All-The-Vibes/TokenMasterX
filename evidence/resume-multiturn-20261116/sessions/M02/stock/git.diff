@@ -1,0 +1,140 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
+index a4af67a..a695aac 100644
+--- a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
++++ b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
+@@ -46,6 +46,31 @@ def _marker(data):
+                                 separators=(",", ":"), allow_nan=False) + _SUFFIX
+ 
+ 
++def has_exact_reuse_marker(text: object) -> bool:
++    if type(text) is not str or not text.startswith(_PREFIX) or not text.endswith(_SUFFIX):
++        return False
++    try:
++        data = json.loads(text[len(_PREFIX):-len(_SUFFIX)])
++        if type(data) is not dict or data.keys() != {
++            "source_index", "target_index", "tool_name", "source_path",
++            "source_call_id", "target_call_id", "content_sha256",
++        }:
++            return False
++        return (
++            type(data["source_index"]) is int
++            and type(data["target_index"]) is int
++            and 0 <= data["source_index"] < data["target_index"]
++            and data["tool_name"] in _TOOLS
++            and all(type(data[key]) is str and data[key]
++                    for key in ("source_path", "source_call_id", "target_call_id"))
++            and type(data["content_sha256"]) is str
++            and re.fullmatch(r"[0-9a-f]{64}", data["content_sha256"]) is not None
++            and text == _marker(data)
++        )
++    except (ValueError, TypeError, RecursionError):
++        return False
++
++
+ def _marker_looking(text):
+     # Conservatively exclude our markers, CCR references, and partial wrappers.
+     return "[[" in text or "]]" in text or "EXACT_READ_REUSE" in text
+diff --git a/token-master-plugin/skills/token-master/tests/test_exact_reuse.py b/token-master-plugin/skills/token-master/tests/test_exact_reuse.py
+index a687ab5..3656386 100644
+--- a/token-master-plugin/skills/token-master/tests/test_exact_reuse.py
++++ b/token-master-plugin/skills/token-master/tests/test_exact_reuse.py
+@@ -6,7 +6,9 @@ import json
+ 
+ import pytest
+ 
+-from brainspace.exact_reuse import ExactReuse, find_exact_reuses, restore_exact_reuses
++from brainspace.exact_reuse import (
++    ExactReuse, find_exact_reuses, has_exact_reuse_marker, restore_exact_reuses,
++)
+ from brainspace.request_policy import SourceReadInfo
+ 
+ 
+@@ -46,6 +48,88 @@ def marked(messages, reuses):
+     return output
+ 
+ 
++@pytest.mark.parametrize("tool", ["read_file", "fetch_artifact"])
++def test_has_exact_reuse_marker_accepts_generated_canonical_markers(tool):
++    messages, receipts = conversation(
++        (TEXT, TEXT), tools=[tool, tool],
++        paths=['src/"Î±".py'] * 2, call_ids=['first"\n', "second\\\r"],
++    )
++    reuse, = find_exact_reuses(messages, receipts, {5})
++    assert has_exact_reuse_marker(reuse.marker) is True
++
++
++@pytest.mark.parametrize("value", [
++    None, True, 1, {}, [], b"[[EXACT_READ_REUSE:]]", "",
++    "[[EXACT_READ_REUSE:{}]]",
++])
++def test_has_exact_reuse_marker_rejects_invalid_inputs(value):
++    assert has_exact_reuse_marker(value) is False
++
++
++@pytest.mark.parametrize("payload", [
++    "", "{", "null", "[]", "true", '"string"', "{}",
++    "[" * 2000 + "]" * 2000,
++])
++def test_has_exact_reuse_marker_rejects_invalid_json_payloads(payload):
++    marker = (
++        "[[EXACT_READ_REUSE:" + payload
++        + "]] Identical content remains visible in the earlier tool result in this request."
++    )
++    assert has_exact_reuse_marker(marker) is False
++
++
++@pytest.mark.parametrize("field, value", [
++    ("source_index", True), ("source_index", -1), ("source_index", 5),
++    ("source_index", "3"), ("source_index", 3.0),
++    ("target_index", False), ("target_index", 3), ("target_index", "5"),
++    ("target_index", 5.0),
++    ("tool_name", "read"), ("tool_name", []), ("tool_name", None),
++    ("source_path", ""), ("source_path", None),
++    ("source_call_id", ""), ("source_call_id", 1),
++    ("target_call_id", ""), ("target_call_id", []),
++    ("content_sha256", None), ("content_sha256", "a" * 63),
++    ("content_sha256", "a" * 65), ("content_sha256", "A" * 64),
++    ("content_sha256", "g" * 64), ("content_sha256", "a" * 64 + "\n"),
++])
++def test_has_exact_reuse_marker_rejects_invalid_fields(field, value):
++    messages, receipts = conversation((TEXT, TEXT))
++    reuse, = find_exact_reuses(messages, receipts, {5})
++    start, end = reuse.marker.index("{"), reuse.marker.rindex("}") + 1
++    data = json.loads(reuse.marker[start:end])
++    data[field] = value
++    payload = json.dumps(data, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
++    assert has_exact_reuse_marker(reuse.marker[:start] + payload + reuse.marker[end:]) is False
++
++
++def test_has_exact_reuse_marker_requires_exact_keys_and_canonical_encoding():
++    messages, receipts = conversation((TEXT, TEXT))
++    reuse, = find_exact_reuses(messages, receipts, {5})
++    marker = reuse.marker
++    start, end = marker.index("{"), marker.rindex("}") + 1
++    data = json.loads(marker[start:end])
++    payloads = [
++        json.dumps({key: value for key, value in data.items() if key != missing},
++                   sort_keys=True, separators=(",", ":"))
++        for missing in data
++    ]
++    payloads.extend([
++        json.dumps(dict(data, extra=True), sort_keys=True, separators=(",", ":")),
++        json.dumps(data, sort_keys=True),
++        json.dumps(dict(reversed(list(data.items()))), separators=(",", ":")),
++        marker[start:end].replace('"source_index":3', '"source_index":3,"source_index":3'),
++        marker[start:end].replace("read_file", r"read\u005ffile"),
++    ])
++    for payload in payloads:
++        assert has_exact_reuse_marker(marker[:start] + payload + marker[end:]) is False
++    for changed in (" " + marker, marker + "\n", marker[:-1], marker[1:]):
++        assert has_exact_reuse_marker(changed) is False
++
++    class StringSubclass(str):
++        pass
++
++    assert has_exact_reuse_marker(StringSubclass(marker)) is False
++
++
+ def test_full_roundtrip_preserves_every_field_and_original_and_frozen_plan():
+     messages, receipts = conversation()
+     before, before_receipts = deepcopy(messages), deepcopy(receipts)

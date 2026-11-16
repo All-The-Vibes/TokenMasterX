@@ -9,6 +9,18 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- Pre-registered 48-session (`144`-launch, `410`-call) 4-arm multi-turn resume study on Copilot CLI `1.0.112` under
+  default GitHub routing (`evidence/resume-multiturn-20261116/`, `gpt-6-astra` across 12 paired 3-turn workflows:
+  `start` → `--resume <id>` → `--continue` across pure-coding, mid-session capability-escalation and capability-shrink
+  buckets): all 4 arms passed 12/12; shipped `tm_locked` (`Routing.resume_same_list`) cut raw tokens 46.2% (`1.93M →
+  1.04M`), Turn-1-cold-normalized cost 34.3% (`$6.57 → $4.32`, −15.4% vs pre-PR-#20 per-turn re-routing) and resumed-turn
+  billed cost 25.3% (`$3.70 → $2.76`), while documenting Copilot CLI `1.0.112`'s 2-stage `<session_context>` resume cache
+  boundary (`57.7%` / `37.1%` hit on Launch 2 `--resume` vs `97.3%` / `92.6%` on Launch 3 `--continue`).
+- Opt-in `TOKENMASTER_RESUME_ESCALATE=1` monotonic resume escalation in `brainspace_copilot_bridge`: when set, a
+  `--lean` launch tied to a recorded `--lean` session intersects the session's recorded excluded list with the resume's
+  own routed list, unlocking newly triggered tool families without re-excluding previously kept ones (`4/4` native
+  capability recall vs `0/4` on mid-session escalation workflows, at the cost of prompt-cache rewrites when the tool list
+  narrows). Off by default so `Routing.resume_same_list` remains the default.
 - Pre-registered 45-session 3-arm live MD-1 routing study on Copilot CLI `1.0.112` under default GitHub routing
   (`evidence/md1-live-routing-20261115/`, `gpt-6-astra` across 5 pure-coding, 5 indirect multi-capability and 5
   lookalike coding tasks): `--lean` + MD-1 cut raw tokens 41.4% and cold-repriced cost 33.6% while passing 15/15 and
@@ -34,6 +46,11 @@ and the project aims to follow semantic versioning.
 
 ### Fixed
 
+- `tokenomics`: match resumed TokenMaster launches (`launch["session"] == call["session"]`) in addition to session-start
+  launches, exclude sessions with any TokenMaster launch from `stock_first_cached()`, and deduct warm-resume tool-list
+  mutation `cache_write` penalties using Copilot CLI `1.0.112`'s 2-stage resume cache boundary (static tool+instruction
+  prefix on Launch 2 vs full conversation prefix on Launch 3+). Previously, multi-turn resumed calls went unattributed
+  (`27.4% → 100.0%` across `303/303` multi-turn TokenMaster calls) and poisoned stock cache baselines.
 - `brainspace_copilot_bridge`: validate `TOKENMASTER_MD1_THRESHOLD` and per-family MD-1 `noul` scores as finite
   probabilities in `[0, 1]` before applying MD-1 per-family precedence, so `NaN`, `±Infinity`, booleans or out-of-range
   values fall back cleanly (`MD1_THRESHOLD` for the threshold; per-family regex fallback for invalid family scores) and

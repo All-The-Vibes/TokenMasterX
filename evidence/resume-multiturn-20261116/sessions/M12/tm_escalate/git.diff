@@ -1,0 +1,128 @@
+diff --git a/token-master-plugin/skills/token-master/tests/test_tokenomics.py b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+index 845b172..24f1579 100644
+--- a/token-master-plugin/skills/token-master/tests/test_tokenomics.py
++++ b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+@@ -1,4 +1,5 @@
+ """tokenomics.py: a ccusage-style report from Copilot CLI's session store, with estimated TokenMaster savings."""
++import argparse
+ import importlib.util
+ import json
+ import re
+@@ -6,6 +7,9 @@ import sqlite3
+ import sys
+ from datetime import datetime, timedelta, timezone
+ from pathlib import Path
++from types import SimpleNamespace
++
++import pytest
+ 
+ SKILL = Path(__file__).resolve().parents[1]
+ sys.path.insert(0, str(SKILL))
+@@ -156,6 +160,57 @@ def test_session_report_filters_and_modes(tmp_path, capsys):
+     assert len(monthly) == 1 and set(monthly[0]["breakdown"]) == {"gpt-6-astra", "claude-opus-5.5"}
+ 
+ 
++@pytest.mark.parametrize("value", ["0", "-1", "1.5", "abc", ""])
++def test_min_calls_rejects_invalid_values(value, capsys):
++    with pytest.raises(argparse.ArgumentTypeError):
++        tokenomics.min_calls_arg(value)
++    with pytest.raises(SystemExit) as error:
++        tokenomics.main(["--min-calls", value])
++    assert error.value.code == 2
++    assert "--min-calls" in capsys.readouterr().err
++
++
++def test_min_calls_keeps_whole_sessions_including_subagents(tmp_path, capsys):
++    home = make_home(tmp_path)
++    baseline = run_json(home, capsys, "session")
++    assert run_json(home, capsys, "session", "--min-calls", "1") == baseline
++    report = run_json(home, capsys, "session", "--min-calls", "3")
++    assert [row["session"] for row in report["rows"]] == ["T"]
++    assert report["rows"][0]["calls"] == report["totals"]["calls"] == 3
++    assert report["totals"]["total"] == sum(c[4] + c[5] for c in CALLS if c[0] == "T")
++    empty = run_json(home, capsys, "--min-calls", "4")
++    assert empty["rows"] == [] and empty["totals"]["calls"] == 0
++
++
++@pytest.mark.parametrize("filters", [
++    {"since": "2026-10-21T11:00:05Z"},
++    {"until": "2026-10-20T11:00:05Z"},
++    {"project": "repo/b"},
++    {"only": "tokenmaster"},
++    {"only": "stock"},
++])
++def test_min_calls_counts_only_calls_remaining_after_filters(tmp_path, monkeypatch, filters):
++    extra = call("T", "2026-10-21T11:00:05Z", "/responses", 2, 0, 0, 30)
++    monkeypatch.setattr(sys.modules[__name__], "CALLS", CALLS + [extra])
++    home = make_home(tmp_path)
++    args = SimpleNamespace(copilot_home=str(home), since=None, until=None, project=None, only=None,
++                           report="session", breakdown=False, order="asc")
++    assert len(tokenomics.build(args)["calls"]) == 8
++    args.min_calls = None
++    assert len(tokenomics.build(args)["calls"]) == 8
++    args.min_calls = 4
++    data = tokenomics.build(args)
++    assert len(data["calls"]) == data["total"]["calls"] == 4
++    assert {c["session"] for c in data["calls"]} == {"T"}
++    assert [row[0] for row in data["rows"]] == ["T"]
++    for key, value in filters.items():
++        if key in ("since", "until"):
++            value = tokenomics.day_arg(local_day(value))
++        setattr(args, key, value)
++    data = tokenomics.build(args)
++    assert data["calls"] == [] and data["rows"] == [] and data["total"]["calls"] == 0
++
++
+ def test_tables_render_in_box_and_ascii(tmp_path, capsys):
+     home = make_home(tmp_path)
+     for report in tokenomics.REPORTS:
+diff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py
+index fdfd066..a02f0e1 100644
+--- a/token-master-plugin/skills/token-master/tokenomics.py
++++ b/token-master-plugin/skills/token-master/tokenomics.py
+@@ -27,7 +27,7 @@ measured A/B runs (Copilot CLI 1.0.98 and 1.0.78-3), the method gave 59% to 125%
+ from __future__ import annotations
+ 
+ import argparse
+-from collections import defaultdict
++from collections import Counter, defaultdict
+ from datetime import date, datetime, timedelta, timezone
+ import json
+ import os
+@@ -500,6 +500,16 @@ def day_arg(text: str) -> date:
+         raise argparse.ArgumentTypeError(f"expected YYYYMMDD, got {text!r}") from error
+ 
+ 
++def min_calls_arg(text: str) -> int:
++    try:
++        value = int(text)
++    except ValueError as error:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}") from error
++    if value < 1:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}")
++    return value
++
++
+ def build(args) -> dict:
+     home = copilot_home(args.copilot_home)
+     store = home / "session-store.db"
+@@ -516,6 +526,10 @@ def build(args) -> dict:
+                                + (sessions.get(call["session"]) or {}).get("repository", "")).lower()]
+     if args.only:
+         calls = [call for call in calls if bool(call["launch"]) == (args.only == "tokenmaster")]
++    min_calls = getattr(args, "min_calls", None)
++    if min_calls is not None:
++        counts = Counter(call["session"] for call in calls)
++        calls = [call for call in calls if counts[call["session"]] >= min_calls]
+     rows, total = aggregate(calls, args.report, args.breakdown)
+     if args.report == "session":
+         start = {}
+@@ -558,6 +572,8 @@ def main(argv=None) -> int:
+     parser.add_argument("--until", type=day_arg, help="last day to include, YYYYMMDD (local time)")
+     parser.add_argument("--project", help="only sessions whose folder or repository contains this text")
+     parser.add_argument("--only", choices=("tokenmaster", "stock"), help="only TokenMaster or only stock calls")
++    parser.add_argument("--min-calls", type=min_calls_arg, default=None, metavar="N",
++                        help="only sessions with at least N calls remaining after other filters")
+     parser.add_argument("--breakdown", action="store_true", help="one sub-row per model")
+     parser.add_argument("--order", choices=("asc", "desc"), default="asc")
+     parser.add_argument("--json", action="store_true", help="machine-readable output")

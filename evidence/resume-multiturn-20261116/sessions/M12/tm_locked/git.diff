@@ -1,0 +1,117 @@
+diff --git a/token-master-plugin/skills/token-master/tests/test_tokenomics.py b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+index 845b172..4d3a6b6 100644
+--- a/token-master-plugin/skills/token-master/tests/test_tokenomics.py
++++ b/token-master-plugin/skills/token-master/tests/test_tokenomics.py
+@@ -4,9 +4,12 @@ import json
+ import re
+ import sqlite3
+ import sys
++from argparse import Namespace
+ from datetime import datetime, timedelta, timezone
+ from pathlib import Path
+ 
++import pytest
++
+ SKILL = Path(__file__).resolve().parents[1]
+ sys.path.insert(0, str(SKILL))
+ _spec = importlib.util.spec_from_file_location("tokenomics", SKILL / "tokenomics.py")
+@@ -156,6 +159,49 @@ def test_session_report_filters_and_modes(tmp_path, capsys):
+     assert len(monthly) == 1 and set(monthly[0]["breakdown"]) == {"gpt-6-astra", "claude-opus-5.5"}
+ 
+ 
++@pytest.mark.parametrize("value", ["0", "-1", "1.5", "abc", ""])
++def test_min_calls_rejects_invalid_values(value, capsys):
++    with pytest.raises(SystemExit) as error:
++        tokenomics.main(["--min-calls", value])
++    assert error.value.code == 2
++    assert "--min-calls: expected an integer >= 1" in capsys.readouterr().err
++
++
++def test_min_calls_filters_sessions_and_counts_subagents(tmp_path, capsys):
++    home = make_home(tmp_path)
++    baseline = run_json(home, capsys, "session")
++    assert run_json(home, capsys, "session", "--min-calls", "1") == baseline
++    report = run_json(home, capsys, "session", "--min-calls", "3")
++    assert [row["session"] for row in report["rows"]] == ["T"]
++    assert report["rows"][0]["calls"] == report["totals"]["calls"] == 3
++    for filters in ([], ["--project", "repo/b"], ["--only", "stock"]):
++        threshold = "4" if not filters else "3"
++        report = run_json(home, capsys, "session", "--min-calls", threshold, *filters)
++        assert report["rows"] == [] and report["totals"]["calls"] == 0
++
++
++@pytest.mark.parametrize("boundary", ["since", "until"])
++def test_min_calls_counts_only_calls_remaining_after_date_filters(tmp_path, monkeypatch, boundary):
++    moved = list(CALLS)
++    moved[4] = (*moved[4][:-1], "2026-10-22T11:00:30Z")
++    monkeypatch.setitem(globals(), "CALLS", moved)
++    home = make_home(tmp_path)
++    args = Namespace(copilot_home=str(home), since=None, until=None, project=None, only=None,
++                     report="session", breakdown=False, order="asc")
++    assert len(tokenomics.build(args)["calls"]) == len(CALLS)
++    args.min_calls = 3
++    data = tokenomics.build(args)
++    assert [c["session"] for c in data["calls"]] == ["T", "T", "T"]
++    assert len(data["rows"]) == 1 and data["total"]["calls"] == 3
++    args.min_calls = None
++    setattr(args, boundary, tokenomics.day_arg("20261021"))
++    assert any(c["session"] == "T" for c in tokenomics.build(args)["calls"])
++    args.min_calls = 3
++    data = tokenomics.build(args)
++    assert data["calls"] == data["rows"] == []
++    assert data["total"]["calls"] == 0
++
++
+ def test_tables_render_in_box_and_ascii(tmp_path, capsys):
+     home = make_home(tmp_path)
+     for report in tokenomics.REPORTS:
+diff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py
+index fdfd066..795dae3 100644
+--- a/token-master-plugin/skills/token-master/tokenomics.py
++++ b/token-master-plugin/skills/token-master/tokenomics.py
+@@ -27,7 +27,7 @@ measured A/B runs (Copilot CLI 1.0.98 and 1.0.78-3), the method gave 59% to 125%
+ from __future__ import annotations
+ 
+ import argparse
+-from collections import defaultdict
++from collections import Counter, defaultdict
+ from datetime import date, datetime, timedelta, timezone
+ import json
+ import os
+@@ -500,6 +500,16 @@ def day_arg(text: str) -> date:
+         raise argparse.ArgumentTypeError(f"expected YYYYMMDD, got {text!r}") from error
+ 
+ 
++def min_calls_arg(text: str) -> int:
++    try:
++        value = int(text)
++    except ValueError as error:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}") from error
++    if value < 1:
++        raise argparse.ArgumentTypeError(f"expected an integer >= 1, got {text!r}")
++    return value
++
++
+ def build(args) -> dict:
+     home = copilot_home(args.copilot_home)
+     store = home / "session-store.db"
+@@ -516,6 +526,10 @@ def build(args) -> dict:
+                                + (sessions.get(call["session"]) or {}).get("repository", "")).lower()]
+     if args.only:
+         calls = [call for call in calls if bool(call["launch"]) == (args.only == "tokenmaster")]
++    min_calls = getattr(args, "min_calls", None)
++    if min_calls is not None:
++        counts = Counter(call["session"] for call in calls)
++        calls = [call for call in calls if counts[call["session"]] >= min_calls]
+     rows, total = aggregate(calls, args.report, args.breakdown)
+     if args.report == "session":
+         start = {}
+@@ -558,6 +572,8 @@ def main(argv=None) -> int:
+     parser.add_argument("--until", type=day_arg, help="last day to include, YYYYMMDD (local time)")
+     parser.add_argument("--project", help="only sessions whose folder or repository contains this text")
+     parser.add_argument("--only", choices=("tokenmaster", "stock"), help="only TokenMaster or only stock calls")
++    parser.add_argument("--min-calls", type=min_calls_arg, default=None,
++                        help="only sessions with at least N calls after other filters", metavar="N")
+     parser.add_argument("--breakdown", action="store_true", help="one sub-row per model")
+     parser.add_argument("--order", choices=("asc", "desc"), default="asc")
+     parser.add_argument("--json", action="store_true", help="machine-readable output")

@@ -1,0 +1,113 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/v6_shaping.py b/token-master-plugin/skills/token-master/brainspace/v6_shaping.py
+index 18cffaf..c053b76 100644
+--- a/token-master-plugin/skills/token-master/brainspace/v6_shaping.py
++++ b/token-master-plugin/skills/token-master/brainspace/v6_shaping.py
+@@ -135,6 +135,41 @@ def fold_paths(text: str) -> str | None:
+     return result if len(result) < len(text) else None
+ 
+ 
++def unfold_paths(text: object) -> str | None:
++    """Reconstruct a path list only from a valid, canonical directory fold."""
++    if type(text) is not str or not text:
++        return None
++    body = text.rstrip("\n")
++    entries: list[str] = []
++    notices: list[str] = []
++    current: str | None = None
++    has_child = False
++    for line in body.split("\n"):
++        if _NOTICE.match(line):
++            if not has_child:
++                return None
++            notices.append(line)
++        elif notices:
++            return None
++        elif line.startswith("  "):
++            name = line[2:]
++            if current is None or not name or name.startswith(" "):
++                return None
++            entries.append(current + name)
++            has_child = True
++        elif line == "." or line.endswith(("/", "\\")):
++            if current is not None and not has_child:
++                return None
++            current = "" if line == "." else line
++            has_child = False
++        else:
++            return None
++    if not has_child or len(entries) < 3:
++        return None
++    result = "\n".join(entries + notices) + text[len(body):]
++    return result if fold_paths(result) == text else None
++
++
+ def _digest_lines(text: str, budget: int, count: Callable[[str], int], total: int, kind: str,
+                   folded: bool) -> str:
+     lines = text.rstrip("\n").split("\n")
+diff --git a/token-master-plugin/skills/token-master/tests/test_v6_shaping.py b/token-master-plugin/skills/token-master/tests/test_v6_shaping.py
+index 505ae63..2577e60 100644
+--- a/token-master-plugin/skills/token-master/tests/test_v6_shaping.py
++++ b/token-master-plugin/skills/token-master/tests/test_v6_shaping.py
+@@ -12,7 +12,7 @@ from brainspace.request_policy import PROTOCOL, RequestPolicy, plan_request
+ from brainspace.runtime import ExecutedToolResult, RuntimeSession
+ from brainspace.runtime_policy import RuntimePolicy
+ from brainspace.transport import Reply
+-from brainspace.v6_shaping import READ_BUDGET, SEARCH_BUDGET, fold_paths, fold_search, shape_tool_result
++from brainspace.v6_shaping import READ_BUDGET, SEARCH_BUDGET, fold_paths, fold_search, shape_tool_result, unfold_paths
+ 
+ count = tokens.count_tokens
+ V6 = RequestPolicy(version="request-policy-v6", enabled=True)
+@@ -48,6 +48,53 @@ def test_fold_paths_groups_by_directory_losslessly():
+     assert fold_paths("x = 1\ny = 2\nz = 3") is None
+ 
+ 
++@pytest.mark.parametrize("directory", [DIR, "long/parent/directory/"])
++@pytest.mark.parametrize("notices", ["", "\n[Output truncated.]\n[Narrow the search.]"])
++@pytest.mark.parametrize("ending", ["", "\n", "\n\n"])
++def test_unfold_paths_round_trips(directory, notices, ending):
++    raw = "\n".join([f"{directory}one.py", f"{directory}two.py",
++                     f"{directory}three.py:4", "local/"]) + notices + ending
++    folded = fold_paths(raw)
++    assert folded is not None
++    assert "\n.\n  local/" in folded
++    assert unfold_paths(folded) == raw
++
++
++@pytest.mark.parametrize("text", [None, 42, False, [], {}, b"paths"])
++def test_unfold_paths_rejects_non_strings(text):
++    assert unfold_paths(text) is None
++
++
++def test_unfold_paths_rejects_string_subclasses():
++    class StringSubclass(str):
++        pass
++
++    folded = fold_paths("\n".join(f"{DIR}{name}.py" for name in ("one", "two", "three")))
++    assert folded is not None
++    assert unfold_paths(StringSubclass(folded)) is None
++
++
++@pytest.mark.parametrize("text", [
++    "",
++    "\n",
++    f"{DIR}one.py\n{DIR}two.py\n{DIR}three.py",
++    "  one.py\n  two.py\n  three.py",
++    f"{DIR}\nother/\n  one.py\n  two.py\n  three.py",
++    f"{DIR}\n  one.py\n  two.py\n  three.py\nempty/",
++    f"{DIR}\n  one.py\n  two.py\n  three.py\nempty/\n[Notice]",
++    f"{DIR}\n  one.py\n  two.py\n  three.py\n[Notice]\n  four.py",
++    f"{DIR}\n  one.py\n  two.py\n  three.py\n[Notice]\nother/\n  four.py",
++    f"{DIR}\n  one.py\n  two.py",
++    f"{DIR}\n  one.py\n  two.py\n  ",
++    f"{DIR}\n  one.py\n  two.py\n   three.py",
++    f"{DIR}\n  one.py\n\n  two.py\n  three.py",
++    f"{DIR}\n  one.py\n{DIR}\n  two.py\n  three.py",
++    "a/\n  one\n  two\n  three",
++])
++def test_unfold_paths_rejects_invalid_folds(text):
++    assert unfold_paths(text) is None
++
++
+ def test_oversized_search_becomes_a_digest_that_says_how_to_narrow():
+     raw = "\n".join(f"src\\module_{i // 20}.py:{i}:def handler_{i}(request, context): return dispatch(request)"
+                     for i in range(400))

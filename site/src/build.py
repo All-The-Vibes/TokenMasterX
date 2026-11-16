@@ -165,7 +165,7 @@ CLAIMS = [
          tests=['test_tuning_agent_phrasings_are_independent']),
     dict(text="A recorded --lean resume keeps its session's tool list",
          lean=['Routing.resume_same_list', 'Routing.resume_chain_keeps_first_list'],
-         holds="Proved for the model, when the resume's `TOKENMASTER_KEEP_TOOLS` adds no tool. Which session record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, and a resume without `--lean` sends every tool.",
+         holds="Proved for the model, when `TOKENMASTER_RESUME_ESCALATE` is off (the default) and the resume's `TOKENMASTER_KEEP_TOOLS` adds no tool. Which session record applies is the launcher's lookup, which the conformance tests check. A resume the launcher cannot tie to a record is routed again, `TOKENMASTER_RESUME_ESCALATE=1` unlocks newly triggered families, and a resume without `--lean` sends every tool.",
          tests=['test_routing_resume_keeps_the_first_list']),
     dict(text="In BYOK mode, sessions that differ only in folder share a system prompt",
          lean=['SessionPrefix.system_same_across_sessions', 'SessionPrefix.folder_recoverable'],

@@ -75,6 +75,7 @@ def no_installed_assets(tmp_path, monkeypatch):
     (tmp_path / ".git").mkdir()  # a repository root: Copilot CLI's skill folders above it are not read
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
     monkeypatch.delenv("TOKENMASTER_MD1_ENDPOINT", raising=False)  # MD-1 routing is opt-in
+    monkeypatch.delenv("TOKENMASTER_RESUME_ESCALATE", raising=False)  # resume escalation is opt-in
 
 
 def test_routing_lists_match_the_lean_model():
@@ -187,6 +188,7 @@ def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monk
         return command[command.index("--excluded-tools") + 1:] if "--excluded-tools" in command else []
 
     monkeypatch.delenv("COPILOT_PROVIDER_BASE_URL", raising=False)
+    monkeypatch.delenv("TOKENMASTER_RESUME_ESCALATE", raising=False)
     monkeypatch.setattr(bridge, "run_child", copilot)
     for prompt in TRIGGERS.values():
         bridge.main(["--lean", "--", "copilot", "-p", prompt])
@@ -210,6 +212,13 @@ def test_routing_resume_keeps_the_first_list(no_installed_assets, tmp_path, monk
     bridge.main(["--lean", "--", *command])
     assert excluded(sent[-1]) == list(bridge.select_excluded_tools(command))
     earlier = "00000001-0000-4000-8000-000000000000"  # started and resumed with --lean, so its list is recorded
+    earlier_list = list(bridge.select_excluded_tools(["copilot", "-p", next(iter(TRIGGERS.values()))]))
+    monkeypatch.setenv("TOKENMASTER_RESUME_ESCALATE", "1")
+    escalate_cmd = ["copilot", "--resume", earlier, "-p", TRIGGERS["sql"]]
+    bridge.main(["--lean", "--", *escalate_cmd])
+    escalate_routed = set(bridge.select_excluded_tools(escalate_cmd))
+    assert excluded(sent[-1]) == [tool for tool in earlier_list if tool in escalate_routed]
+    monkeypatch.delenv("TOKENMASTER_RESUME_ESCALATE", raising=False)
     bridge.main(["--", "copilot", "--resume", earlier])
     assert sent[-1] == ["copilot", "--resume", earlier]  # Routing.default_excludes_nothing, with a record
     store.close()
