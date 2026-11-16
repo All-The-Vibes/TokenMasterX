@@ -251,3 +251,118 @@ def test_the_lean_credit_covers_only_the_tools_a_launch_removed(tmp_path, monkey
     wf_excluded = [tool for tool in bridge.LEAN_EXCLUDED_TOOLS if tool not in workflows]
     wf_share = 1 - sum(weights[tool] for tool in workflows) / sum(weights.values())
     assert saved(excluded=wf_excluded) == round(lean * wf_share) < lean
+
+
+def test_resumed_launches_match_by_session_id_and_apply_first_call_term_once(tmp_path):
+    def at(seconds):
+        return datetime(2026, 11, 16, 12, 0, tzinfo=timezone.utc) + timedelta(seconds=seconds)
+
+    prices = {"input": 1e6, "cache_read": 1e5, "cache_write": 1.25e6, "output": 5e6}
+    lean_all = list(bridge.LEAN_EXCLUDED_TOOLS)
+    agents = set(bridge.CAPABILITY_GROUPS["agents"][0])
+    lean_after_agents = [tool for tool in lean_all if tool not in agents]
+    calls = [
+        # Stock session S0: Turn 1 cold first call reads 4,000 from cache.
+        {"session": "S0", "at": at(5), "model": "gpt-6-astra", "api": "responses", "input": 12000,
+         "output": 40, "cache_read": 4000, "cache_write": 8000, "nano": 100, "prices": prices, "main": True},
+        # TokenMaster session TM1: Turn 1 (2 calls), Turn 2 (--resume, 13 excluded), Turn 3 (--continue, agents unlocked).
+        {"session": "TM1", "at": at(20), "model": "gpt-6-astra", "api": "responses", "input": 6500,
+         "output": 30, "cache_read": 0, "cache_write": 6500, "nano": 80, "prices": prices, "main": True},
+        {"session": "TM1", "at": at(25), "model": "gpt-6-astra", "api": "responses", "input": 12000,
+         "output": 20, "cache_read": 6500, "cache_write": 5500, "nano": 75, "prices": prices, "main": True},
+        {"session": "TM1", "at": at(120), "model": "gpt-6-astra", "api": "responses", "input": 12200,
+         "output": 25, "cache_read": 12000, "cache_write": 200, "nano": 15, "prices": prices, "main": True},
+        {"session": "TM1", "at": at(240), "model": "gpt-6-astra", "api": "responses", "input": 15000,
+         "output": 35, "cache_read": 0, "cache_write": 15000, "nano": 180, "prices": prices, "main": True},
+        # Mixed session TM2: Turn 1 started in TokenMaster, Turn 2 resumed directly in stock CLI (must not pollute stock_first_cached).
+        {"session": "TM2", "at": at(300), "model": "gpt-6-astra", "api": "responses", "input": 7000,
+         "output": 20, "cache_read": 0, "cache_write": 7000, "nano": 85, "prices": prices, "main": True},
+        {"session": "TM2", "at": at(400), "model": "gpt-6-astra", "api": "responses", "input": 28000,
+         "output": 20, "cache_read": 27500, "cache_write": 500, "nano": 35, "prices": prices, "main": True},
+    ]
+    sessions = {sid: {"cwd": "C:/repo"} for sid in ("S0", "TM1", "TM2")}
+    registry = tmp_path / "launches.jsonl"
+    events = [
+        {"event": "start", "id": "l1", "at": "2026-11-16T12:00:18.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_all, "session": None, "bridge": False, "nav": True},
+        {"event": "end", "id": "l1", "at": "2026-11-16T12:00:30.000Z"},
+        {"event": "start", "id": "l2", "at": "2026-11-16T12:01:58.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_all, "session": "TM1", "bridge": False, "nav": True},
+        {"event": "end", "id": "l2", "at": "2026-11-16T12:02:05.000Z"},
+        {"event": "start", "id": "l3", "at": "2026-11-16T12:03:58.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_after_agents, "session": "TM1", "bridge": False, "nav": True},
+        {"event": "end", "id": "l3", "at": "2026-11-16T12:04:10.000Z"},
+        {"event": "start", "id": "l4", "at": "2026-11-16T12:04:58.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_all, "session": None, "bridge": False, "nav": True},
+        {"event": "end", "id": "l4", "at": "2026-11-16T12:05:05.000Z"},
+    ]
+    registry.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    launches = tokenomics.load_launches(registry)
+    tokenomics.estimate(calls, sessions, launches)
+
+    assert [c["launch"]["id"] if c["launch"] else None for c in calls] == [None, "l1", "l1", "l2", "l3", "l4", None]
+    assert tokenomics.stock_first_cached(calls) == {"gpt-6-astra": 4000}  # TM2's stock resume call (27,500) excluded
+    cal = tokenomics.CALIBRATION["responses"]
+    full_fixed = cal["lean"] - cal["nav"]
+    esc_share = 1 - sum(tokenomics.LEAN_WEIGHTS[t] for t in agents) / sum(tokenomics.LEAN_WEIGHTS.values())
+    esc_fixed = round(cal["lean"] * esc_share) - cal["nav"]
+    assert [c["saved_tokens"] for c in calls] == [0, full_fixed, full_fixed, full_fixed, esc_fixed, full_fixed, 0]
+    # Session-start first_nano applies on calls[1] and calls[5]; l2 keeps the same tool list (first_nano == 0.0),
+    # while l3 mutates --excluded-tools within 5 minutes and records the negative cache-rewrite penalty on calls[4].
+    assert calls[1]["first_nano"] != 0.0 and calls[5]["first_nano"] != 0.0
+    assert calls[2]["first_nano"] == 0.0 and calls[3]["first_nano"] == 0.0
+    expected_stock_write = max(0, (15000 + esc_fixed) - (12200 + full_fixed))
+    assert calls[4]["first_nano"] == (expected_stock_write - 15000) * (prices["cache_write"] - prices["cache_read"]) < 0.0
+
+
+def test_warm_first_resume_vs_cold_resume_tool_mutation_boundaries(tmp_path):
+    def at(seconds):
+        return datetime(2026, 11, 16, 14, 0, tzinfo=timezone.utc) + timedelta(seconds=seconds)
+
+    prices = {"input": 1e6, "cache_read": 1e5, "cache_write": 1.25e6, "output": 5e6}
+    lean_all = list(bridge.LEAN_EXCLUDED_TOOLS)
+    agents = set(bridge.CAPABILITY_GROUPS["agents"][0])
+    lean_after_agents = [tool for tool in lean_all if tool not in agents]
+    cal = tokenomics.CALIBRATION["responses"]
+    usual = cal["stock_first_cached"]
+    esc_share = 1 - sum(tokenomics.LEAN_WEIGHTS[t] for t in agents) / sum(tokenomics.LEAN_WEIGHTS.values())
+    esc_fixed = round(cal["lean"] * esc_share) - cal["nav"]
+
+    calls = [
+        # Session A: Launch 1 start, then warm Launch 2 (first resume, <5 min) mutates tools with cr=0 (cold prefix).
+        {"session": "SA", "at": at(10), "model": "gpt-6-astra", "api": "responses", "input": 6350,
+         "output": 30, "cache_read": 3259, "cache_write": 3091, "nano": 45, "prices": prices, "main": True},
+        {"session": "SA", "at": at(40), "model": "gpt-6-astra", "api": "responses", "input": 9680,
+         "output": 40, "cache_read": 0, "cache_write": 9680, "nano": 130, "prices": prices, "main": True},
+        # Session B: Launch 1 start, then cold Launch 2 (>5 min later) mutates tools -> no warm-cache penalty.
+        {"session": "SB", "at": at(50), "model": "gpt-6-astra", "api": "responses", "input": 6350,
+         "output": 30, "cache_read": 3259, "cache_write": 3091, "nano": 45, "prices": prices, "main": True},
+        {"session": "SB", "at": at(500), "model": "gpt-6-astra", "api": "responses", "input": 9680,
+         "output": 40, "cache_read": 0, "cache_write": 9680, "nano": 130, "prices": prices, "main": True},
+    ]
+    sessions = {"SA": {"cwd": "C:/repo"}, "SB": {"cwd": "C:/repo"}}
+    registry = tmp_path / "launches.jsonl"
+    events = [
+        {"event": "start", "id": "a1", "at": "2026-11-16T14:00:08.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_all, "session": None, "bridge": False, "nav": True},
+        {"event": "end", "id": "a1", "at": "2026-11-16T14:00:15.000Z"},
+        {"event": "start", "id": "a2", "at": "2026-11-16T14:00:38.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_after_agents, "session": "SA", "bridge": False, "nav": True},
+        {"event": "end", "id": "a2", "at": "2026-11-16T14:00:45.000Z"},
+        {"event": "start", "id": "b1", "at": "2026-11-16T14:00:48.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_all, "session": None, "bridge": False, "nav": True},
+        {"event": "end", "id": "b1", "at": "2026-11-16T14:00:55.000Z"},
+        {"event": "start", "id": "b2", "at": "2026-11-16T14:08:18.000Z", "cwd": "C:/repo",
+         "lean": True, "excluded": lean_after_agents, "session": "SB", "bridge": False, "nav": True},
+        {"event": "end", "id": "b2", "at": "2026-11-16T14:08:25.000Z"},
+    ]
+    registry.write_text("\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8")
+    tokenomics.estimate(calls, sessions, tokenomics.load_launches(registry))
+
+    # Launch 2 warm mutation compares against stock's usual static prefix (<session_context> boundary).
+    expected_sa2_write = 9680 + esc_fixed - min(usual, 9680 + esc_fixed)
+    assert calls[1]["first_nano"] == (expected_sa2_write - 9680) * (prices["cache_write"] - prices["cache_read"]) < 0.0
+    # Launch 2 cold mutation (>5 min) applies zero cache-rewrite penalty.
+    assert calls[3]["first_nano"] == 0.0
+
+

@@ -70,10 +70,12 @@ it is `! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "<python>" "<
 | `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, whether the lean tool set, the bridge and the navigation tools were on, and which tools the lean tool set excluded |
 
 - The dashboard opens the database read-only. If Copilot CLI holds it, the dashboard reads a private copy.
-- The launch records hold no prompt text. A session counts as a TokenMaster session if its folder matches a launch
-  and its first call came during that launch. Its calls during the launch count as TokenMaster calls.
-- Sessions that did not start through the launcher count as stock, with no savings. So do sessions resumed through
-  the launcher, because their first call came before the launch.
+- The launch records hold no prompt text. A new-session launch counts a session's calls during it as TokenMaster calls
+  if the session's folder matches the launch and its first call came during that launch; a resumed launch matches the
+  session ID the launcher recorded (`--resume`, `-r`, `--session-id` or `--continue`) and counts that session's calls
+  during the resumed launch using the tools that resume excluded, without repeating the session-start cache-write term.
+- Sessions that did not start through the launcher count as stock, with no savings, unless a later turn is resumed
+  through the launcher with a recorded session ID (in which case only the resumed launch's calls count).
 - A stock session started in the same folder while a TokenMaster launch was running counts as TokenMaster.
 
 ## How the savings are estimated
@@ -111,7 +113,14 @@ have made the same model calls.
      from the cache, per model. Only for a model with no stock session in the store does the dashboard use the
      calibration value `stock_first_cached`.
    - Cost saved = (stock's write − the actual write) × (cache-write price − cache-read price).
-   - The result can be negative. Example: a TokenMaster session starts cold, while stock's prefix is warm.
+   - On a resumed launch that keeps the same `--excluded-tools` list, this term is zero (the cached prefix carries
+     over just as in stock). If a resumed launch changes `--excluded-tools` within the 5-minute warm-cache window (for
+     example when `TOKENMASTER_RESUME_ESCALATE=1` unlocks a new tool family mid-session), the first main-agent call of
+     that resume deducts the extra `cache_write` caused by invalidating the cached prefix: against `stock_first_cached`
+     on the session's first resume (`Launch 2`, where Copilot CLI `1.0.112` injects `<session_context>` right after the
+     static prefix) and against the full prior conversation prefix (`prev_cached + prev_fixed`) on `Launch 3+`.
+   - The result can be negative. Example: a TokenMaster session starts cold while stock's prefix is warm, or a warm
+     resumed session unlocks additional tools and re-writes its prefix.
    - This term changes only cost, not raw tokens.
    - Why the dashboard measures it: on October 23, 2026, every stock first call in a Copilot CLI 1.0.98 home
      with default GitHub routing read 0 tokens from the cache (6 sessions, `gpt-6.1-sol` and `claude-sonnet-5.5`),
@@ -156,6 +165,9 @@ same time. Those runs used Copilot CLI 1.0.78-3, so the check uses the 1.0.78-3 
 
 | Model | Copilot CLI | Run | Token saving, estimated | Token saving, measured | Cost saving, estimated | Cost saving, measured |
 | --- | --- | --- | ---: | ---: | ---: | ---: |
+| `gpt-6-astra` | 1.0.112 | Multi-turn resume, 12 × 3-turn workflows (`tm_locked`) | 42.1% | 46.2% | 19.3% | 26.1% |
+| `gpt-6-astra` | 1.0.112 | Multi-turn resume, 12 × 3-turn workflows (`tm_escalate`) | 40.1% | 42.6% | 8.7% | 15.6% |
+| `gpt-6-astra` | 1.0.112 | Multi-turn resume, 12 × 3-turn workflows (`tm_reroute`) | 34.4% | 37.5% | 5.1% | 11.0% |
 | `gpt-6-astra` | 1.0.98 | PRS-6 This repository, 29 tasks, full TokenMaster | 38.0% | 49.5% | 39.1% | 50.2% |
 | `gpt-6-astra` | 1.0.98 | PRS-6 Django, 15 tasks, full TokenMaster | 45.4% | 58.5% | 57.5% | 70.7% |
 | `claude-opus-5.5` | 1.0.98 | PRS-6 This repository, 29 tasks, full TokenMaster | 43.2% | 38.0% | 40.9% | 40.1% |

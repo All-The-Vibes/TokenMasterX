@@ -30,9 +30,10 @@ OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 @pytest.fixture(autouse=True)
 def no_md1(monkeypatch):
-    """MD-1 routing is opt-in: no test calls out to it unless it sets TOKENMASTER_MD1_ENDPOINT itself."""
+    """MD-1 routing and resume escalation are opt-in: no test enables them unless it sets the env var itself."""
     for name in ("TOKENMASTER_MD1_ENDPOINT", "TOKENMASTER_MD1_API_KEY", "TOKENMASTER_MD1_THRESHOLD",
-                 "TOKENMASTER_MD1_TIMEOUT", "TOKENMASTER_MD1_DEPLOYMENT", "TOKENMASTER_MD1_TENANT"):
+                 "TOKENMASTER_MD1_TIMEOUT", "TOKENMASTER_MD1_DEPLOYMENT", "TOKENMASTER_MD1_TENANT",
+                 "TOKENMASTER_RESUME_ESCALATE"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -942,3 +943,54 @@ def test_the_users_own_tools_and_a_damaged_record_route_as_before(copilot):
     bridge_module._record_launch({"event": "start", "id": "damaged", "at": 1})  # valid JSON, wrong types
     assert bridge_module.main(["--lean", "--", *command]) == 0  # no traceback: a damaged record never stops a launch
     assert copilot.excluded() == list(bridge_module.select_excluded_tools(command))
+
+
+def test_opt_in_resume_escalation_unlocks_new_families_monotonically_without_history_self_trigger(copilot, monkeypatch):
+    lean = set(bridge_module.LEAN_EXCLUDED_TOOLS)
+    agents = set(bridge_module.CAPABILITY_GROUPS["agents"][0])
+    bg = set(bridge_module.CAPABILITY_GROUPS["background_shell"][0])
+    workflows = set(bridge_module.CAPABILITY_GROUPS["workflows"][0])
+
+    bridge_module.main(["--lean", "--", "copilot", "-p", "fix the parser"])
+    session = copilot.session
+    assert set(copilot.excluded()) == lean
+
+    # Falsy values keep strict lock (Routing.resume_same_list).
+    for falsy in ("0", "false", "no", "off", ""):
+        monkeypatch.setenv("TOKENMASTER_RESUME_ESCALATE", falsy)
+        bridge_module.main(["--lean", "--", "copilot", "--resume", session, "-p", "spawn an agent to review this"])
+        assert set(copilot.excluded()) == lean
+
+    # Truthy opt-in: resuming alone (--resume / --continue / -r) does NOT add session_store_sql.
+    monkeypatch.setenv("TOKENMASTER_RESUME_ESCALATE", "1")
+    bridge_module.main(["--lean", "--", "copilot", "--resume", session, "-p", "now add edge-case unit tests"])
+    assert set(copilot.excluded()) == lean
+    bridge_module.main(["--lean", "--", "copilot", "--continue", "-p", "tighten the return type annotation"])
+    assert set(copilot.excluded()) == lean
+
+    # With MD-1 enabled, lookalike coding prompts stay cache-stable while genuine mid-session escalations unlock
+    # monotonically and stay unlocked on subsequent coding turns.
+    monkeypatch.setenv("TOKENMASTER_MD1_ENDPOINT", "https://md1.example.services.ai.azure.com")
+    monkeypatch.setenv("TOKENMASTER_MD1_API_KEY", "key")
+    scores = {"agents": 0.02, "workflows": 0.01, "background_shell": 0.03}
+    monkeypatch.setattr(bridge_module, "md1_scores", lambda _: dict(scores))
+    bridge_module.main(["--lean", "--", "copilot", "--resume", session, "-p",
+                        "audit the workflow weights and background_shell regex in tokenomics.py"])
+    assert set(copilot.excluded()) == lean  # MD-1 suppresses lookalike false cache break on resume
+    assert workflows <= set(copilot.excluded())
+
+    scores["agents"] = 0.92
+    bridge_module.main(["--lean", "--", "copilot", "--resume", session, "-p",
+                        "have two helper workers independently review symbol_index.py and v6_shaping.py"])
+    after_agents = copilot.excluded()
+    assert set(after_agents) == lean - agents
+
+    scores["agents"] = 0.01  # Turn 3 needs no auxiliary tools: monotonic rule keeps agents unlocked (no 2nd cache break)
+    bridge_module.main(["--lean", "--", "copilot", "--continue", "-p", "summarize their findings in one paragraph"])
+    assert copilot.excluded() == after_agents
+
+    scores["background_shell"] = 0.88  # A later escalation unlocks only the newly needed family
+    bridge_module.main(["--lean", "--", "copilot", "--resume", session, "-p",
+                        "start the local fixture listener and probe it twice"])
+    assert set(copilot.excluded()) == lean - agents - bg
+

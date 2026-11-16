@@ -203,11 +203,24 @@ system message included, and carried the new launch's tools: with the same `--ex
 same tools, and with `session_store_sql` kept, that tool more
 ([evidence/session-tools-20261030](../../evidence/session-tools-20261030/resume_probe.py)).
 Providers cache a prompt by its prefix, and Anthropic documents the order tools, system prompt,
-messages, so a resume with another tool list cannot read the history from the cache. No run has
-measured that cost, or what keeping the list saves. Before this change the launcher routed every
-launch again, and `--resume` and `--continue` kept `session_store_sql`: a session started with a
-plain launch went from 13 excluded tools to 12 on a resume, and one started with
-`-p "spawn an agent to review this"` changed 5 tools.
+messages, so a resume with another tool list cannot read the history from the cache. Before this
+change the launcher routed every launch again, and `--resume` and `--continue` kept
+`session_store_sql`: a session started with a plain launch went from 13 excluded tools to 12 on a
+resume, and one started with `-p "spawn an agent to review this"` changed 5 tools.
+
+In a pre-registered 48-session (`144`-launch) 4-arm multi-turn benchmark on Copilot CLI `1.0.112`
+(`gpt-6-astra`, `start` → `--resume <id>` → `--continue`,
+[evidence/resume-multiturn-20261116](../../evidence/resume-multiturn-20261116/REPORT.md)), keeping
+the session's `--excluded-tools` list (`tm_locked`, the default) passed `12/12` workflows while
+cutting Turn-1-cold-normalized cost by **34.3% vs stock** (`$6.57` → `$4.32`, Holm $p = 0.0029$,
+lower on `12/12` pairs) and by **15.4% vs per-turn re-routing (`tm_reroute`)** (`$5.10` → `$4.32`,
+Holm $p = 0.0073$, lower on `11/12` pairs), and cutting resumed-turn billed cost (`Turns 2+3`) by
+**25.3% vs stock** (`$3.70` → `$2.76`) vs only 4.7% for `tm_reroute` (`$3.52`). On Copilot CLI
+`1.0.112`, the first `--resume` injects `<session_context>` right after the static tool and
+instruction prefix (`9,695` cached tokens on stock, `3,259` on `--lean`), whereas `--continue` on
+Turn 3+ reads **92.6%–97.3%** of the entire multi-turn transcript from cache when the tool list
+stays fixed (dropping to `0%` on Turn 2 when unlocking an uncached tool set and `31%–59%` on Turn 3
+after a tool-list mutation).
 
 - With `--lean`, a launch that resumes a session gets the `--excluded-tools` that the launcher last
   gave the session, whatever prompt and routing flags the resume has. The list comes from
@@ -240,6 +253,19 @@ plain launch went from 13 excluded tools to 12 on a resume, and one started with
   another session than Copilot CLI does, and then send that session's list.
 - `TOKENMASTER_KEEP_TOOLS` still adds tools on a `--lean` resume, and later resumes keep the list
   that resume sent.
+- Setting `TOKENMASTER_RESUME_ESCALATE=1` (`true`, `yes` or `on`) opts into monotonic capability
+  escalation on a recorded `--lean` resume: instead of ignoring the resume's prompt and flags, the
+  launcher routes the resume command without letting `--resume`, `-r` or `--continue` itself add
+  `session_store_sql`, and keeps any newly triggered family unlocked for that turn and every later
+  resume of the session. Tools unlocked in earlier turns are never excluded again, so normal coding
+  resumes (and lookalike coding resumes under `TOKENMASTER_MD1_ENDPOINT`) keep the exact recorded
+  list, while a mid-session request for subagents, a background shell, `sql`, Copilot CLI docs or
+  session history unlocks only that family once. In
+  `evidence/resume-multiturn-20261116` (`Bucket B`, `M05`–`M08`), `TOKENMASTER_RESUME_ESCALATE=1`
+  unlocked `4/4` mid-session capabilities (`0/4` shell workarounds vs `4/4` under the default lock),
+  at the cost of rewriting the prompt cache when tools unlock (`$4.86` cold-normalized total vs
+  `$4.32` locked and `$6.57` stock; note also that follow-up prompts mentioning `"Turn 1"` or
+  `"Turn 2"` can cause stateless MD-1 to unlock `session_store_sql`).
 - Without a recorded list, the launcher routes a `--lean` resume like any `--lean` launch, as before,
   and `--resume`, `-r` and `--continue` keep session history. That happens for:
   - a session started without the launcher, or with `--worktree`, which runs it in another folder;

@@ -1,7 +1,14 @@
-# Copilot CLI results (October 18 to November 15, 2026)
+# Copilot CLI results (October 18 to November 16, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
+- **Pre-registered 4-arm multi-turn & resumed-session study on Copilot CLI `1.0.112` (November 16, 2026):** 48 sessions
+  (`144` CLI launches: Turn 1 start → Turn 2 `--resume <id>` → Turn 3 `--continue`, `410` API calls) under default
+  GitHub routing on this repository (`gpt-6-astra`, reasoning `low`), comparing stock Copilot CLI, pre-PR-#20 per-turn
+  resume re-routing (`tm_reroute`), shipped resume tool-list locking (`tm_locked`), and opt-in monotonic resume
+  escalation (`tm_escalate`, `TOKENMASTER_RESUME_ESCALATE=1`) across 12 frozen 3-turn workflows (4 stable coding, 4
+  mid-session capability escalation, 4 adversarial resume lookalikes). The protocol was hashed before any session
+  (`evidence/resume-multiturn-20261116/`).
 - **Pre-registered 3-arm MD-1 live routing study on Copilot CLI `1.0.112` (November 15, 2026):** 45 sessions under
   default GitHub routing on this repository (`gpt-6-astra`, reasoning `low`), comparing stock Copilot CLI, `--lean`
   with regex rules only (`tm_regex`), and `--lean` with live Microsoft-Decision-1 routing (`tm_md1`) across 15 frozen
@@ -32,6 +39,31 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
+
+### Pre-registered 4-arm multi-turn & resumed-session study (Copilot CLI `1.0.112`, November 16, 2026)
+
+- **12 paired 3-turn workflows (`M01`–`M04` stable coding, `M05`–`M08` mid-session capability escalation, `M09`–`M12`
+  adversarial resume lookalikes), 48 sessions / 144 CLI launches (`gpt-6-astra`, default GitHub routing,
+  `evidence/resume-multiturn-20261116/`):** all four arms passed **12/12** with **12/12** session continuity across
+  `start` → `--resume <id>` → `--continue`.
+  - **Shipped `--lean` resume lock (`tm_locked`, `Routing.resume_same_list`):** raw tokens `1,926,066` → **`1,036,427`
+    (−46.2%; 95% CI −52.0% to −40.7%; Holm $p = 0.0029$; lower on 12 of 12 workflows)**. Turn-1-cold-normalized cost
+    `$6.57` → **`$4.32` (−34.3%; 95% CI −38.2% to −30.7%; Holm $p = 0.0029$; lower on 12 of 12 workflows; −15.4% vs
+    `tm_reroute`, Holm $p = 0.0073$)**. As-run cost `$5.23` → **`$3.87` (−26.1%)**, and resumed-turns-only cost
+    (`Turns 2+3`) `$3.70` → **`$2.76` (−25.3%, Holm $p = 0.0146$)**.
+  - **Opt-in monotonic escalation (`tm_escalate`, `TOKENMASTER_RESUME_ESCALATE=1`):** raw tokens `1,926,066` →
+    **`1,105,416` (−42.6%)**, cold-normalized cost **`$4.86` (−25.9%)**, as-run cost **`$4.41` (−15.6%)**. Recalled
+    **12/12** capability groups across all turns and used native tools on **4/4** mid-session escalations (`M05`–`M08`,
+    `0/4` workarounds vs `4/4` workarounds under `tm_locked`), while paying prompt-cache rewrite costs when tools
+    unlocked (`$1.04` vs `$0.76` stock on `M05`–`M08` Turns 2+3, exacerbated on Turn 3 when prompts referencing
+    `"Turn 1"` / `"Turn 2"` triggered `session_history` in stateless MD-1).
+  - **Pre-PR-#20 per-turn re-routing (`tm_reroute`):** raw tokens **`1,203,192` (−37.5%)**, cold-normalized cost
+    **`$5.10` (−22.3%)**, and resumed-turn cost **`$3.52` (−4.7%, $p = 0.62$)** due to **17** resume tool-list
+    mutations across 24 resumed turns.
+  - **2-stage Copilot CLI `1.0.112` resume cache boundary:** `--resume` (Launch 2) injects `<session_context>` right
+    after the static tool+instruction prefix (`57.7%` stock and `37.1%` `tm_locked` first-call cache hit), whereas
+    `--continue` (Launch 3) caches **97.3% (`stock`)** and **92.6% (`tm_locked`)** of the entire multi-turn transcript
+    when `--excluded-tools` stays fixed.
 
 ### Pre-registered 3-arm MD-1 live routing study (Copilot CLI `1.0.112`, November 15, 2026)
 

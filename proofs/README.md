@@ -56,7 +56,7 @@ To list the axioms a theorem depends on, run `lake env lean` on a file that impo
 | --- | --- | --- |
 | `shape_tool_result` depends only on the tool name, the arguments and the output | sections 1, 2 | Holds by reading the code: it reads nothing else, and the counter is fixed for a session. The tests only show that it gives the same output twice |
 | A new item never reuses a call id the earlier history mentions | sections 1, 2 | Assumed: Copilot CLI gives every call a new id |
-| The client sends the same instructions and tool list on every call of a session | section 1 | Assumed. The test fixture builds them equal, so it cannot check the client. A resume that the launcher ties to the session's record passes the recorded `--excluded-tools` again (section 4), and given the same list, Copilot CLI 1.0.105 sent the same tools and the earlier input on a resume in one probe (`evidence/session-tools-20261030`). Other resumes, a resume without `--lean`, or `TOKENMASTER_KEEP_TOOLS` on a resume may change the list |
+| The client sends the same instructions and tool list on every call of a session | section 1 | Assumed. The test fixture builds them equal, so it cannot check the client. A resume that the launcher ties to the session's record passes the recorded `--excluded-tools` again (section 4), and given the same list, Copilot CLI 1.0.105 sent the same tools and the earlier input on a resume in one probe (`evidence/session-tools-20261030`). Other resumes, a resume without `--lean`, `TOKENMASTER_RESUME_ESCALATE=1`, or `TOKENMASTER_KEEP_TOOLS` on a resume may change the list |
 | The provider's cached prefix puts the instructions and the tool list before the items | section 1 | Assumed. Anthropic documents the order tools, system, messages; Theorem 3 needs only both before the items |
 | `shape` is total: it returns for every tool output | section 1 | Checked: `test_bridge_passes_a_lone_surrogate_through`. The pinned counter refuses a lone surrogate, so shaping leaves that output as it came, and the bridge sends it as a JSON `\uXXXX` escape |
 | A request's bytes are a fixed part plus each content's escaped size | section 2 | Follows from how `json.dumps` writes a string; not tested |
@@ -348,8 +348,10 @@ For every set of signals:
 For a routed launch that resumes a session, whatever list was recorded for it:
 
 - `Routing.resume_same_list`: if the first launch's list is recorded, a resume sends it again,
-  whatever prompt and routing flags the resume has, as long as its `TOKENMASTER_KEEP_TOOLS` names
-  nothing the first launch's did not.
+  whatever prompt and routing flags the resume has, as long as `TOKENMASTER_RESUME_ESCALATE` is off
+  (the default) and its `TOKENMASTER_KEEP_TOOLS` names nothing the first launch's did not. With
+  opt-in `TOKENMASTER_RESUME_ESCALATE=1`, a resume instead intersects the recorded list with the
+  resume's own routed list, unlocking newly triggered families (`evidence/resume-multiturn-20261116`).
 - `Routing.resume_chain_keeps_first_list`: so does every later resume that the launcher ties to the
   session, each given the list the launch before it recorded.
 - `Routing.resumed_env_kept`: a tool named in the resume's `TOKENMASTER_KEEP_TOOLS` is not excluded.
