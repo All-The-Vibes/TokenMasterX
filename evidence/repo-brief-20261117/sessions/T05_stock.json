@@ -1,0 +1,88 @@
+{
+  "task_id": "T05",
+  "arm": "stock",
+  "session_id": "7f0a3fda-5217-485b-aecf-1a71b6d3a777",
+  "returncode": 0,
+  "wall_seconds": 14.219,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "sqlite_timeout_seconds": 5.0,
+    "journal_mode": "WAL",
+    "table_count": 4,
+    "compact_marker_suffix": "r=1"
+  },
+  "final_answer": "{\"sqlite_timeout_seconds\":5.0,\"journal_mode\":\"WAL\",\"table_count\":4,\"compact_marker_suffix\":\"r=1\"}",
+  "tool_starts": [
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "sqlite3\\.connect|\\[\\[BR:",
+        "glob": "*.py",
+        "output_mode": "content",
+        "-n": true,
+        "head_limit": 80
+      }
+    },
+    {
+      "name": "view",
+      "arguments": {
+        "path": "C:\\tm-lanes\\repo-brief-20261117\\lanes\\l1\\repos\\tokenmasterx\\token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "view_range": [
+          130,
+          210
+        ]
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 43,
+      "session_id": "7f0a3fda-5217-485b-aecf-1a71b6d3a777",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14471,
+      "uncached_input_tokens": 3,
+      "output_tokens": 48,
+      "cache_read_tokens": 9695,
+      "cache_write_tokens": 4773,
+      "total_nano_aiu": 7178750000,
+      "recharged_nano_aiu": 7178750000,
+      "cold_nano_aiu": 18328000000,
+      "created_at": "2026-11-17T09:54:29.498Z"
+    },
+    {
+      "row_id": 44,
+      "session_id": "7f0a3fda-5217-485b-aecf-1a71b6d3a777",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18530,
+      "uncached_input_tokens": 3,
+      "output_tokens": 64,
+      "cache_read_tokens": 14468,
+      "cache_write_tokens": 4059,
+      "total_nano_aiu": 6843550000,
+      "recharged_nano_aiu": 6843550000,
+      "cold_nano_aiu": 6843550000,
+      "created_at": "2026-11-17T09:54:34.434Z"
+    },
+    {
+      "row_id": 45,
+      "session_id": "7f0a3fda-5217-485b-aecf-1a71b6d3a777",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 19487,
+      "uncached_input_tokens": 3,
+      "output_tokens": 32,
+      "cache_read_tokens": 18527,
+      "cache_write_tokens": 957,
+      "total_nano_aiu": 3211950000,
+      "recharged_nano_aiu": 3211950000,
+      "cold_nano_aiu": 3211950000,
+      "created_at": "2026-11-17T09:54:36.264Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": null,
+  "stderr_tail": []
+}

@@ -295,8 +295,61 @@ def copilot_hook(path, command):
         else:
             data.pop("hooks", None)
         if command is None:
-            owned.pop("copilot:preserve_empty_hooks", None)
+            if "hook:repo-brief:copilot" not in owned:
+                owned.pop("copilot:preserve_empty_hooks", None)
             owned.pop("copilot:preserve_empty_postToolUse", None)
+        return text if data == parse(text) else json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    return transaction(path, edit)
+
+
+def copilot_session_hook(path, command):
+    """One explicitly opted-in native sessionStart command hook; preserve all neighboring hooks."""
+    key = "hook:repo-brief:copilot"
+
+    def edit(text, owned):
+        data = parse(text)
+        hooks = data.get("hooks", {})
+        if not isinstance(hooks, dict):
+            raise ValueError("hooks must be an object")
+        start = hooks.get("sessionStart", [])
+        if not isinstance(start, list) or any(not isinstance(item, dict) for item in start):
+            raise ValueError("sessionStart must be a list of objects")
+        previous = owned.get(key)
+        position = len(start)
+        if previous is not None:
+            if start.count(previous) != 1:
+                raise ValueError("owned Copilot sessionStart hook was edited; preserving it")
+            position = start.index(previous)
+            start = start[:position] + start[position + 1:]
+        elif command is None:
+            return text
+        else:
+            if "hooks" in data and not hooks:
+                owned["copilot:preserve_empty_hooks"] = True
+            if "sessionStart" in hooks and not start:
+                owned["copilot:preserve_empty_sessionStart"] = True
+        if command is not None:
+            if not isinstance(command, dict):
+                raise ValueError("native Copilot sessionStart hook requires an exec-argv object")
+            entry = dict(command)
+            if entry in start:
+                raise ValueError("Copilot sessionStart hook already exists without ownership receipt")
+            start.insert(position, entry)
+            owned[key] = entry
+        else:
+            owned.pop(key, None)
+        if start or owned.get("copilot:preserve_empty_sessionStart"):
+            hooks["sessionStart"] = start
+        else:
+            hooks.pop("sessionStart", None)
+        if hooks or owned.get("copilot:preserve_empty_hooks"):
+            data["hooks"] = hooks
+        else:
+            data.pop("hooks", None)
+        if command is None:
+            owned.pop("copilot:preserve_empty_sessionStart", None)
+            if "hook:brainspace:copilot" not in owned:
+                owned.pop("copilot:preserve_empty_hooks", None)
         return text if data == parse(text) else json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     return transaction(path, edit)
 

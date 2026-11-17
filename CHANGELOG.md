@@ -9,6 +9,20 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- Pre-registered 96-session 4-arm Pillar 5 repo-brief & cross-session recall study on Copilot CLI `1.0.112` under
+  default GitHub routing (`evidence/repo-brief-20261117/`, `gpt-6-astra` across 24 paired tasks on this repository and
+  `pallets/click` `8.1.8` spanning cold architecture, cross-session recall, and direct-symbol negative controls): all 4
+  arms passed 24/24 (`96/96` live sessions); adding the one-shot `<= 320`-token `hooks.sessionStart` brief raised Turn-1
+  direct `read_symbol`/`impact` jumps from `0.0%` (`0/24`) to `62.5%` (`15/24`), cut orientation calls 43.9% (`2.75 →
+  1.54`) and cut raw tokens an additional 14.9%–15.3% beyond `--lean` (`41,253 → 34,957` / `35,118`; −49.9% to −50.1%
+  raw tokens, −45.0% to −45.1% cold-repriced cost and −33.1% to −33.4% billed cost vs stock).
+- Pillar 5 (*Recall over re-establishment*) repository brief and one-shot session-start hook (`brainspace/repo_brief.py`,
+  `brainspace_sessionstart.py`, `setup.py --refresh-brief`, and default-on `--copilot-repo-brief` / `--no-copilot-repo-brief`
+  in `brainspace_setup.py`): `setup.py` writes a deterministic `<= 320`-token `cl100k_base` brief (`.token-master/brief.md`
+  via `symbol_index._assemble`) from `symbols.sqlite`, `graph.json` and AST-verified prior-session MCP navigation logs
+  (`.token-master/recall.jsonl`, appended without mutating `brief.md` mid-session); `hooks.sessionStart` injects it once on
+  new sessions (`source == "new"` / `"startup"`), skips `--resume`, and `tokenomics.py` subtracts recorded `brief` tokens
+  alongside `nav` on every call (`0.7–2.4` token agreement with empirical Call-1 `input_tokens` deltas).
 - Two opt-in gate settings for new profile-learning registries, fixed at `initialize-profile` and repeated on
   `learn-profile`. `--quality-margin DELTA` (0 < DELTA < 1) replaces the quality side with an exact binomial test on the
   number of tasks the incumbent passes and the candidate fails, against the true-off incumbent only, so margins cannot

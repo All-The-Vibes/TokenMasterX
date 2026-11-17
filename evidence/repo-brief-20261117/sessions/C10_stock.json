@@ -1,0 +1,63 @@
+{
+  "task_id": "C10",
+  "arm": "stock",
+  "session_id": "1e45ab01-1dd0-4997-b4cd-ef5e092b4f0f",
+  "returncode": 0,
+  "wall_seconds": 10.219,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "no_param_prefix": "Invalid value: ",
+    "prefers_param_hint_over_param": true,
+    "helper_for_joining_hints": "_join_param_hints"
+  },
+  "final_answer": "{\"no_param_prefix\":\"Invalid value: \",\"prefers_param_hint_over_param\":true,\"helper_for_joining_hints\":\"_join_param_hints\"}",
+  "tool_starts": [
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "class BadParameter|def format_message|join_param",
+        "glob": "*exceptions.py",
+        "output_mode": "content",
+        "-n": true,
+        "-A": 65,
+        "-B": 2
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 99,
+      "session_id": "1e45ab01-1dd0-4997-b4cd-ef5e092b4f0f",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14448,
+      "uncached_input_tokens": 3,
+      "output_tokens": 53,
+      "cache_read_tokens": 9695,
+      "cache_write_tokens": 4750,
+      "total_nano_aiu": 7175000000,
+      "recharged_nano_aiu": 7175000000,
+      "cold_nano_aiu": 18324250000,
+      "created_at": "2026-11-17T09:59:49.828Z"
+    },
+    {
+      "row_id": 100,
+      "session_id": "1e45ab01-1dd0-4997-b4cd-ef5e092b4f0f",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 17797,
+      "uncached_input_tokens": 3,
+      "output_tokens": 35,
+      "cache_read_tokens": 14445,
+      "cache_write_tokens": 3349,
+      "total_nano_aiu": 5808750000,
+      "recharged_nano_aiu": 5808750000,
+      "cold_nano_aiu": 5808750000,
+      "created_at": "2026-11-17T09:59:52.004Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": null,
+  "stderr_tail": []
+}

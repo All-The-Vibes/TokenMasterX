@@ -94,9 +94,30 @@ Django pilot was never replicated
    - Oversized results become digests that say how to fetch the rest.
    - History is never rewritten, so the provider's cache stays valid.
    - It runs in the bridge, the Copilot output hook and the native Copilot route.
-5. **Recall over re-establishment (not yet measured).** Reusing what an earlier
-   session learned, instead of re-deriving it, remains an idea. No study has
-   measured it.
+5. **Recall over re-establishment (`repo_brief.py` + `hooks.sessionStart`).** Give each new session a
+   deterministic, cache-stable architectural and cross-session recall map once, instead of paying Turn 1
+   to rediscover repository structure.
+   - `setup.py` writes `.token-master/brief.md` capped at 320 `cl100k_base` tokens (`symbol_index._assemble`):
+     layout, call-graph hubs (`Hub:`) and entrypoints (`Entry:`). While `tokenmaster-nav` serves a session,
+     successful non-test `read_symbol` and `impact` lookups append to `.token-master/recall.jsonl` without
+     mutating `.token-master/brief.md` mid-session; `setup.py <repo> --refresh-brief` folds verified symbols
+     into `Recall:` lines between epochs and drops stale or deleted symbols.
+   - On Copilot CLI, `brainspace_setup.py --host copilot` installs `hooks.sessionStart` by default
+     (`--no-copilot-repo-brief` skips or removes it). The hook injects `.token-master/brief.md` once as
+     `additionalContext` on new sessions (`source == "new"`) and emits `{}` on `--resume`, so resumed
+     transcripts never duplicate the brief.
+   - In a pre-registered 4-arm, 96-session run on Copilot CLI `1.0.112` (`gpt-6-astra`, 24 tasks across this
+     repository and Click 8.1.8, `evidence/repo-brief-20261117/`), all four arms passed 24/24. Without the
+     brief (`tm_lean`), 0 of 24 sessions called `read_symbol` or `impact` on Turn 1; with the `<= 306`-token
+     brief (`tm_brief`, `tm_recall`), 15 of 24 (62.5%) did, cutting orientation calls by 43.9% (`2.75 -> 1.54`,
+     Wilcoxon $p = 2.7 \times 10^{-5}$). Against `tm_lean`, raw tokens fell 15.3% with the cold brief
+     (`41,253 -> 34,957`, $p = 0.0211$) and 14.9% with recall (`41,253 -> 35,118`, $p = 0.0035$), and billed
+     cost fell 7.5% and 7.9% (49.9% fewer raw tokens and 33.4% lower billed cost against stock, Holm $p < 0.0001$).
+   - Two honest limits from that run: on the 8 cross-session recall tasks (`Bucket B`), `tm_recall` doubled
+     Turn-1 direct symbol hits (`37.5% -> 75.0%`) and lowered mean tokens 10.3% vs `tm_brief` (`47,564 -> 42,656`,
+     6 of 8 tasks), but multi-call edit variance left $n = 8$ nonsignificant ($p = 0.3828$); and under the strict
+     320-token cap on this repository, adding four `Recall:` lines displaced the `Entry:` lines, so `tm_brief`
+     beat `tm_recall` on entrypoint tasks (`Bucket A`: −29.8% vs −19.8% against `tm_lean`).
 
 ## Principles
 
@@ -145,7 +166,9 @@ Django pilot was never replicated
   The earlier exploratory runs are in `evidence/django-scale-20261022/` and
   `evidence/copilot-lean-*-20261019/`. The PRS studies are in `evidence/prs*-20261018/`, except
   PRS-5 (`evidence/prs5-20261019/`) and PRS-6 (`evidence/prs6-copilot-1.0.98-20261026/`). The
-  MD-1 routing eval is in `evidence/md1-routing-20261108/`.
+  MD-1 routing evals are in `evidence/md1-routing-20261108/` and `evidence/md1-live-routing-20261115/`,
+  the 3-turn `--resume` / `--continue` study is in `evidence/resume-multiturn-20261116/`, and the
+  Pillar 5 repo-brief and cross-session recall study is in `evidence/repo-brief-20261117/`.
 - [`token-efficient-harness-research.md`](docs/research/token-efficient-harness-research.md):
   early pilots, including the §7.9 retraction and the §7.10 Django pilot. The later studies
   supersede them.

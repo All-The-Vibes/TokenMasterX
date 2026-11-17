@@ -444,16 +444,14 @@ def resumed_session(command: list[str]) -> str | None:
     return matches[0] if len(matches) == 1 else None
 
 
-def recorded_tools(session: str) -> list[str] | None:
-    """The --excluded-tools that the launcher last gave a session: those of the latest launch that resumed it, else of
-    the launch that started it, which is the one new launch in the session's folder whose first STARTUP saw this
-    session start and no other. None when no launch can be tied to the session, or its record lists no tools (written
-    before the launcher recorded them, or the user chose the tools)."""
+def _matching_session_launches(session: str | None) -> list[dict]:
+    if not session:
+        return []
     from tokenomics import load_launches, parse_time  # installed next to this script
     try:
         launches = load_launches(launch_registry())  # in start order
     except Exception:  # noqa: BLE001 - a damaged launches.jsonl must not stop a launch
-        return None
+        return []
     mine = [launch for launch in launches if launch["session"] == session]
     if not mine:
         sessions = {sid: (folder, parse_time(created)) for sid, (folder, _, created, _) in _copilot_sessions().items()}
@@ -467,7 +465,23 @@ def recorded_tools(session: str) -> list[str] | None:
         if len(mine) != 1 or any(where == folder and first(mine[0], at)
                                  for sid, (where, at) in sessions.items() if sid != session):
             mine = []  # two launches, or two sessions: which list went where is a guess
+    return mine
+
+
+def recorded_tools(session: str | None) -> list[str] | None:
+    """The excluded-tool list that the launcher last gave `session`: an earlier --resume launch for it, else the single
+    new-session launch in its folder whose first STARTUP covers its start, if only one session in that folder started
+    then. Copilot CLI's session store keeps the time the session started, so a slow first message still falls inside the
+    session start and no other. None when no launch can be tied to the session, or its record lists no tools (written
+    before the launcher recorded them, or the user chose the tools)."""
+    mine = _matching_session_launches(session)
     return mine[-1]["excluded"] if mine else None
+
+
+def recorded_brief(session: str | None) -> int | None:
+    """Brief token overhead persisted in `session`'s conversation history from its initial launch."""
+    mine = _matching_session_launches(session)
+    return int(mine[-1].get("brief", 0) or 0) if mine else None
 
 
 def lean_command(command: list[str], session: str | None = None) -> list[str]:
@@ -525,6 +539,40 @@ def _nav_installed(command: list[str] = ()) -> bool:
     return False
 
 
+def _brief_tokens(command: list[str], env: dict, session: str | None = None) -> int:
+    """Tokens that the sessionStart repo-brief hook adds to every call of this session (0 when off)."""
+    if session:
+        prior = recorded_brief(session)
+        return prior if prior is not None else 0
+    merged_env = {**os.environ, **(env or {})}
+    if merged_env.get("TOKENMASTER_REPO_BRIEF", "").strip() == "0":
+        return 0
+    if any(arg == "--disable-all-hooks" for arg in command[1:]):
+        return 0
+    settings_path = launch_registry().parents[1] / "settings.json"
+    try:
+        settings = json.loads(settings_path.read_text(encoding="utf-8-sig"))
+        if settings.get("disableAllHooks") is True:
+            return 0
+        start_hooks = (settings.get("hooks") or {}).get("sessionStart") or []
+        if not isinstance(start_hooks, list) or not any(
+            isinstance(h, dict) and "brainspace_sessionstart.py" in json.dumps(h)
+            for h in start_hooks
+        ):
+            return 0
+    except (OSError, ValueError, AttributeError):
+        return 0
+    try:
+        from brainspace import repo_brief
+        budget = int(merged_env.get("TOKENMASTER_REPO_BRIEF_BUDGET", str(repo_brief.BRIEF_BUDGET)))
+        loaded = repo_brief.read_valid_brief(_working_folder(command), budget=budget)
+        if loaded is None:
+            return 0
+        return tokens.count_tokens(loaded[0]) if tokens.backend_info().get("exact_reference") else tokens.estimate(loaded[0])
+    except Exception:
+        return 0
+
+
 def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool, session: str | None = None) -> int:
     """run_child, plus a start and an end record (the folder Copilot CLI works in, lean tool set and the tools it
     excluded, the session it resumes, bridge, navigation tools; no prompt text)."""
@@ -538,9 +586,13 @@ def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: b
         excluded = command[command.index("--excluded-tools") + 1:]
     else:
         excluded = None if any(arg.split("=")[0] in _TOOL_FLAGS for arg in command[1:]) else []
-    _record_launch({"event": "start", "id": launch_id, "at": now(), "cwd": str(_working_folder(command)),
+    start_record = {"event": "start", "id": launch_id, "at": now(), "cwd": str(_working_folder(command)),
                     "lean": lean, "excluded": excluded, "session": session, "bridge": bridge,
-                    "nav": _nav_installed(command)})
+                    "nav": _nav_installed(command)}
+    brief_tok = _brief_tokens(command, env, session=session)
+    if brief_tok > 0:
+        start_record["brief"] = brief_tok
+    _record_launch(start_record)
     try:
         return run_child(parser, command, env)
     finally:

@@ -177,9 +177,12 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
         settings = json.loads((host_home(host) / "settings.json").read_bytes())
         assert settings["env"]["BRAINSPACE_TOKENIZER_FILE"] == str(installed_vocab)
         assert settings["hooks"]["PostToolUse"][0]["hooks"][0]["args"][-2:] == ["--host", "claude"]
-    if host == "copilot":  # the v6 output hook is on by default
-        saved = json.loads((host_home(host) / "settings.json").read_bytes())["hooks"]["postToolUse"][0]
+    if host == "copilot":  # the v6 output hook and repo-brief sessionStart hook are on by default
+        hooks = json.loads((host_home(host) / "settings.json").read_bytes())["hooks"]
+        saved = hooks["postToolUse"][0]
         assert saved["matcher"] == "view" and "--contract" in saved["args"]
+        session_saved = hooks["sessionStart"][0]
+        assert "brainspace_sessionstart.py" in " ".join(session_saved["args"]) and "--contract" in session_saved["args"]
         skill = (host_home(host) / "skills" / "tokenomics" / "SKILL.md").read_text("utf-8")
         assert setup.TOKENOMICS_MARKER in skill and "name: tokenomics" in skill
         assert str(Path(sys.executable).resolve()) in skill and "tokenomics.py" in skill
@@ -205,6 +208,7 @@ def test_brainspace_cli_install_and_uninstall(homes, tokenizer_source, monkeypat
     if host == "copilot":
         settings = json.loads((host_home(host) / "settings.json").read_bytes())
         assert not settings.get("hooks", {}).get("postToolUse")
+        assert not settings.get("hooks", {}).get("sessionStart")
         assert not (host_home(host) / "skills" / "tokenomics").exists()
 
 

@@ -1,0 +1,89 @@
+{
+  "task_id": "T09",
+  "arm": "stock",
+  "session_id": "0a681bd4-eb1e-46d2-bdf8-814f1cf4af10",
+  "returncode": 0,
+  "wall_seconds": 11.953,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "calls_full_hash": false,
+    "default_headroom_strategy": "upstream-default-v1",
+    "returned_keys": [
+      "headroom_options",
+      "ponytail"
+    ]
+  },
+  "final_answer": "{\"calls_full_hash\":false,\"default_headroom_strategy\":\"upstream-default-v1\",\"returned_keys\":[\"headroom_options\",\"ponytail\"]}",
+  "tool_starts": [
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "class RuntimeResources",
+        "glob": "*.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "def resolve",
+        "glob": "runtime_resources.py",
+        "output_mode": "content",
+        "-n": true,
+        "-A": 130
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 83,
+      "session_id": "0a681bd4-eb1e-46d2-bdf8-814f1cf4af10",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14433,
+      "uncached_input_tokens": 3,
+      "output_tokens": 35,
+      "cache_read_tokens": 9695,
+      "cache_write_tokens": 4735,
+      "total_nano_aiu": 7066250000,
+      "recharged_nano_aiu": 7066250000,
+      "cold_nano_aiu": 18215500000,
+      "created_at": "2026-11-17T09:58:24.058Z"
+    },
+    {
+      "row_id": 84,
+      "session_id": "0a681bd4-eb1e-46d2-bdf8-814f1cf4af10",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14502,
+      "uncached_input_tokens": 3,
+      "output_tokens": 40,
+      "cache_read_tokens": 14430,
+      "cache_write_tokens": 69,
+      "total_nano_aiu": 1732250000,
+      "recharged_nano_aiu": 1732250000,
+      "cold_nano_aiu": 1732250000,
+      "created_at": "2026-11-17T09:58:26.626Z"
+    },
+    {
+      "row_id": 85,
+      "session_id": "0a681bd4-eb1e-46d2-bdf8-814f1cf4af10",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14951,
+      "uncached_input_tokens": 3,
+      "output_tokens": 34,
+      "cache_read_tokens": 14499,
+      "cache_write_tokens": 449,
+      "total_nano_aiu": 2184150000,
+      "recharged_nano_aiu": 2184150000,
+      "cold_nano_aiu": 2184150000,
+      "created_at": "2026-11-17T09:58:28.681Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": null,
+  "stderr_tail": []
+}

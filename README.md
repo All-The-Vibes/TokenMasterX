@@ -45,7 +45,7 @@ The `tiktoken` line downloads the 1.7 MB vocabulary once. Setup verifies its SHA
 
 ### 3. Run `/token-master` in your repository
 
-Start `copilot` in the repository and type **`/token-master`**. It indexes the repository with [Graphify](https://github.com/Graphify-Labs/graphify), which takes a few minutes on a large repository the first time. Then it runs two installers with the runtime: `setup.py` wires up `tokenmaster-nav`, and `brainspace_setup.py` adds the `view` output-shaping hook, the launcher, and `/tokenomics`. Approve the commands when Copilot asks. Besides `$HOME\.copilot`, they write `.token-master/` and `graphify-out/` in the repository and add any missing `.gitignore` lines for them.
+Start `copilot` in the repository and type **`/token-master`**. It indexes the repository with [Graphify](https://github.com/Graphify-Labs/graphify), which takes a few minutes on a large repository the first time. Then it runs two installers with the runtime: `setup.py` wires up `tokenmaster-nav` and builds `.token-master/brief.md` (`<= 320` tokens; run `setup.py <repo> --refresh-brief` later to fold verified cross-session symbol lookups into it), and `brainspace_setup.py` adds the `view` output-shaping hook, the new-session `hooks.sessionStart` brief hook, the launcher, and `/tokenomics`. Approve the commands when Copilot asks. Besides `$HOME\.copilot`, they write `.token-master/` and `graphify-out/` in the repository and add any missing `.gitignore` lines for them.
 
 Type **`/tokenomics`** anytime to view your token usage, GitHub charges, and TokenMaster savings.
 
@@ -57,7 +57,7 @@ Once `/token-master` has configured your host (or after running `brainspace_setu
 & "$HOME\.copilot\token-master-runtime\Scripts\python.exe" "$HOME\.copilot\token-master\brainspace_copilot_bridge.py" -- copilot
 ```
 
-- **Normal GitHub sign-in:** **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook** and **`/tokenomics`** work in any Copilot CLI session once installed; the launcher adds **Dynamic Tool Routing** (`--excluded-tools`) with `--lean`.
+- **Normal GitHub sign-in:** **Graph Code Navigation** (`tokenmaster-nav`), the **one-shot `view` output hook**, the **new-session repo brief** (`hooks.sessionStart`), and **`/tokenomics`** work in any Copilot CLI session once installed; the launcher adds **Dynamic Tool Routing** (`--excluded-tools`) with `--lean`.
 - **BYOK mode (`COPILOT_PROVIDER_BASE_URL` set):** Also activates the local **prompt-cache bridge** (`stable_session_prefix` + wire-level `rg`/`glob` shaping).
 - **Lean tool set is opt-in:** By default the launcher sends every built-in Copilot CLI tool. Add `--lean` before `--` to remove 13 auxiliary tool definitions unless the prompt asks for their family. The about-half savings were measured with `--lean`; without it, the November 1 run measured 19% fewer tokens (95% CI 9 to 29%). With it, `TOKENMASTER_KEEP_TOOLS=agents,sql` keeps tool families. `--all-tools` is still accepted and changes nothing.
 
@@ -65,7 +65,7 @@ Once `/token-master` has configured your host (or after running `brainspace_setu
 
 Remove TokenMaster's Copilot configuration before you remove the plugin, because the uninstall scripts ship inside it:
 
-1. In Copilot CLI, type **`/token-master uninstall`**. It runs `setup.py --host copilot --uninstall` and `brainspace_setup.py --host copilot --uninstall`, which remove only what TokenMaster added: `tokenmaster-nav`, its agent, the `view` hook, and `/tokenomics`.
+1. In Copilot CLI, type **`/token-master uninstall`**. It runs `setup.py --host copilot --uninstall` and `brainspace_setup.py --host copilot --uninstall`, which remove only what TokenMaster added: `tokenmaster-nav`, its agent, the `view` and `sessionStart` hooks, and `/tokenomics`.
 2. Run `copilot plugin uninstall token-master@token-master`, then `copilot plugin marketplace remove token-master`. If you installed with the older direct command, run `copilot plugin uninstall token-master` instead.
 3. Optional, with Copilot closed: delete `$HOME\.copilot\token-master` (the launcher, its launch log and, if you used MD-1 routing without an API key, `md1-token.json`, a cached Entra access token) and `$HOME\.copilot\token-master-runtime`. Also delete the `*.token-master-backup-*` and `*.token-master-owned.json` files that uninstall leaves next to `mcp-config.json`, `settings.json` and `agents\token-master.agent.md`; the backups are full copies of those files, including other servers' settings. In each indexed repository, delete `.token-master` and its `.gitignore` line, and `graphify-out` with its line unless you use Graphify on its own.
 
@@ -79,8 +79,9 @@ If you already uninstalled the plugin, install it again, run step 1, then uninst
 2. **Graph Code Navigation (`tokenmaster-nav`)** — Combines [Graphify](https://github.com/Graphify-Labs/graphify) call edges with a local SQLite AST index into 3 compact tools (`locate`, `read_symbol`, `impact`), each result capped at 2,400 tokens. Answers "who calls X?" in one turn instead of dumping 100k+ tokens of `rg`. Covers Python and Rust today.
 3. **Cache-Safe Output Shaping (`request_policy.py`)** — Folds `rg`/`glob` output losslessly and compacts oversized `view` reads **once** when appended. Never rewrites earlier messages, so the provider's prompt cache stays valid.
 4. **Cache-Stable BYOK Bridge (`stable_session_prefix`)** — Moves the per-session `Session folder:` UUID out of the system prompt in BYOK mode so sessions in the same folder share the cached prompt on call 1.
+5. **One-Shot Repo & Cross-Session Recall Brief (`repo_brief.py` + `hooks.sessionStart`)** — Injects a deterministic `<= 320`-token architectural map (`.token-master/brief.md`: layout, call-graph hubs, entrypoints, and verified prior-session `Recall:` targets refreshed from `.token-master/recall.jsonl`) once at `source == "new"` session start, skipping `--resume` so transcripts stay cache-stable (`--no-copilot-repo-brief` or `TOKENMASTER_REPO_BRIEF=0` disables it).
 
-The rules behind these four are proved in Lean 4. See [Proof-driven development](#proof-driven-development).
+The rules behind 1–4 are proved in Lean 4. See [Proof-driven development](#proof-driven-development).
 
 ---
 
@@ -164,6 +165,8 @@ All runs used the `copilot.exe` binary against GitHub's Copilot API. The Novembe
 
 | Benchmark | CLI Version | Model | Raw Tokens (`Stock → TM`) | Cold Cost | Back-to-Back Cost | Passed (`Stock vs TM`) |
 | :--- | :--- | :--- | ---: | ---: | ---: | ---: |
+| **This Repo + Click 8.1.8 (24 tasks), `--lean` + recall brief, Nov 17** | `1.0.112` | `gpt-6-astra` | **−49.9%** (`1.68M → 843k`) | **−45.1%** (`$6.90 → $3.79`) | **−33.4%** (`$4.23 → $2.82`) | **24/24 vs 24/24** |
+| **This Repo + Click 8.1.8 (24 tasks), `--lean` + cold brief, Nov 17** | `1.0.112` | `gpt-6-astra` | **−50.1%** (`1.68M → 839k`) | **−45.0%** (`$6.90 → $3.80`) | **−33.1%** (`$4.23 → $2.83`) | **24/24 vs 24/24** |
 | **This Repo (12 × 3-turn resumes), `--lean` locked, Nov 16** | `1.0.112` | `gpt-6-astra` | **−46.2%** (`1.93M → 1.04M`) | **−34.3%** (`$6.57 → $4.32`) | **−26.1%** (`$5.23 → $3.87`) | **12/12 vs 12/12** |
 | **This Repo (12 × 3-turn resumes), `--lean` escalate, Nov 16** | `1.0.112` | `gpt-6-astra` | **−42.6%** (`1.93M → 1.11M`) | **−25.9%** (`$6.57 → $4.86`) | **−15.6%** (`$5.23 → $4.41`) | **12/12 vs 12/12** |
 | **This Repo (15 mixed tasks), `--lean` + MD-1, Nov 15** | `1.0.112` | `gpt-6-astra` | **−41.4%** (`981k → 574k`) | **−33.6%** (`$4.55 → $3.02`) | **−12.6%** (`$2.87 → $2.51`) | **15/15 vs 15/15** |

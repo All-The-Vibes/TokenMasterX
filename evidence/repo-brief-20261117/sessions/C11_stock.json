@@ -1,0 +1,61 @@
+{
+  "task_id": "C11",
+  "arm": "stock",
+  "session_id": "25d009f1-2757-4c0b-9995-7735b8aa815a",
+  "returncode": 0,
+  "wall_seconds": 10.86,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "sorts_possibilities": true,
+    "singular_suggestion_template": "Did you mean {possibility}?",
+    "plural_suggestion_template": "(Possible options: {possibilities})"
+  },
+  "final_answer": "{\"sorts_possibilities\":true,\"singular_suggestion_template\":\"Did you mean {possibility}?\",\"plural_suggestion_template\":\"(Possible options: {possibilities})\"}",
+  "tool_starts": [
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "class NoSuchOption",
+        "glob": "*.py",
+        "output_mode": "content",
+        "-A": 85
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 101,
+      "session_id": "25d009f1-2757-4c0b-9995-7735b8aa815a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14436,
+      "uncached_input_tokens": 3,
+      "output_tokens": 36,
+      "cache_read_tokens": 9695,
+      "cache_write_tokens": 4738,
+      "total_nano_aiu": 7075000000,
+      "recharged_nano_aiu": 7075000000,
+      "cold_nano_aiu": 18224250000,
+      "created_at": "2026-11-17T10:00:03.744Z"
+    },
+    {
+      "row_id": 102,
+      "session_id": "25d009f1-2757-4c0b-9995-7735b8aa815a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 15756,
+      "uncached_input_tokens": 3,
+      "output_tokens": 41,
+      "cache_read_tokens": 14433,
+      "cache_write_tokens": 1320,
+      "total_nano_aiu": 3301300000,
+      "recharged_nano_aiu": 3301300000,
+      "cold_nano_aiu": 3301300000,
+      "created_at": "2026-11-17T10:00:05.732Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": null,
+  "stderr_tail": []
+}

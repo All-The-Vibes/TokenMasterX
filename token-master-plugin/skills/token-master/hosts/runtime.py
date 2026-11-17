@@ -74,3 +74,14 @@ def copilot_hook_entry(python, script, tokenizer):
     ])
     return {"type": "command", "matcher": "view", "exec": entry["command"],
             "args": entry["args"], "timeoutSec": 20}
+
+
+def copilot_session_hook_entry(python, script, tokenizer):
+    from brainspace_sessionstart import COPILOT_SESSIONSTART_CONTRACT
+
+    entry = runtime_entry(python, script, [
+        "--host", "copilot", "--contract", COPILOT_SESSIONSTART_CONTRACT,
+        "--tokenizer-file", str(Path(tokenizer).resolve()),
+    ])
+    return {"type": "command", "exec": entry["command"],
+            "args": entry["args"], "timeoutSec": 10}

@@ -1,0 +1,155 @@
+{
+  "task_id": "T07",
+  "arm": "tm_recall",
+  "session_id": "5fb5a328-1fb0-4f7b-9152-630f5be66efd",
+  "returncode": 0,
+  "wall_seconds": 23.218,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/tokenomics.py"
+    ]
+  },
+  "final_answer": "DONE",
+  "tool_starts": [
+    {
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "LEAN_WEIGHTS"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\tokenomics.py:1-130"
+      }
+    },
+    {
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "name": "powershell",
+      "arguments": {
+        "command": "python -B -c \"import runpy; m = runpy.run_path(r'token-master-plugin\\skills\\token-master\\tokenomics.py'); f = m['kept_lean_tools']; w = m['LEAN_WEIGHTS']; assert f({}) == []; assert f({'excluded': None}) == []; assert f({'excluded': []}) == sorted(w); assert f({'excluded': list(w)}) == []; assert f({'excluded': ['task', 'task', 'unknown']}) == sorted(t for t in w if t != 'task')\"; git --no-pager diff --check",
+        "description": "Verify helper edge cases without creating files and check patch whitespace"
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 46,
+      "session_id": "5fb5a328-1fb0-4f7b-9152-630f5be66efd",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7111,
+      "uncached_input_tokens": 3,
+      "output_tokens": 23,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3596,
+      "total_nano_aiu": 4964200000,
+      "recharged_nano_aiu": 4964200000,
+      "cold_nano_aiu": 9003000000,
+      "created_at": "2026-11-17T09:55:23.289Z"
+    },
+    {
+      "row_id": 47,
+      "session_id": "5fb5a328-1fb0-4f7b-9152-630f5be66efd",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7230,
+      "uncached_input_tokens": 3,
+      "output_tokens": 36,
+      "cache_read_tokens": 7108,
+      "cache_write_tokens": 119,
+      "total_nano_aiu": 1042550000,
+      "recharged_nano_aiu": 1042550000,
+      "cold_nano_aiu": 1042550000,
+      "created_at": "2026-11-17T09:55:25.689Z"
+    },
+    {
+      "row_id": 48,
+      "session_id": "5fb5a328-1fb0-4f7b-9152-630f5be66efd",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9613,
+      "uncached_input_tokens": 3,
+      "output_tokens": 125,
+      "cache_read_tokens": 7227,
+      "cache_write_tokens": 2383,
+      "total_nano_aiu": 4329450000,
+      "recharged_nano_aiu": 4329450000,
+      "cold_nano_aiu": 4329450000,
+      "created_at": "2026-11-17T09:55:28.684Z"
+    },
+    {
+      "row_id": 49,
+      "session_id": "5fb5a328-1fb0-4f7b-9152-630f5be66efd",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9793,
+      "uncached_input_tokens": 3,
+      "output_tokens": 156,
+      "cache_read_tokens": 9610,
+      "cache_write_tokens": 180,
+      "total_nano_aiu": 1969000000,
+      "recharged_nano_aiu": 1969000000,
+      "cold_nano_aiu": 1969000000,
+      "created_at": "2026-11-17T09:55:34.129Z"
+    },
+    {
+      "row_id": 50,
+      "session_id": "5fb5a328-1fb0-4f7b-9152-630f5be66efd",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9975,
+      "uncached_input_tokens": 3,
+      "output_tokens": 5,
+      "cache_read_tokens": 9790,
+      "cache_write_tokens": 182,
+      "total_nano_aiu": 1234500000,
+      "recharged_nano_aiu": 1234500000,
+      "cold_nano_aiu": 1234500000,
+      "created_at": "2026-11-17T09:55:37.079Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "88d7a7620d86ca96",
+    "at": "2026-11-17T09:55:16.369Z",
+    "cwd": "C:\\tm-lanes\\repo-brief-20261117\\lanes\\l4\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 301
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7401,
+    "fixed_saved": 37005,
+    "saved_usd": 0.050575,
+    "lean_usd": 0.037005,
+    "first_usd": 0.01357,
+    "brief_tokens_recorded": 301
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

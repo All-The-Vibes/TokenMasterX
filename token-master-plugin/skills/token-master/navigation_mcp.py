@@ -13,7 +13,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from brainspace import symbol_index  # noqa: E402
+from brainspace import repo_brief, symbol_index  # noqa: E402
 
 SERVER_NAME = "tokenmaster-nav"
 DESCRIPTIONS = {spec["name"]: spec["description"] for spec in symbol_index.TOOL_SPECS}
@@ -30,7 +30,9 @@ def make_server(root: Path):
         with lock:  # one SQLite connection, built on first use so host startup never waits
             if "index" not in state:
                 state["index"] = symbol_index.SymbolIndex(root)
-            return symbol_index.dispatch(state["index"], name, arguments)
+            result = symbol_index.dispatch(state["index"], name, arguments)
+            repo_brief.record_recall(state["index"], name, arguments, result)
+            return result
 
     @server.tool(description=DESCRIPTIONS["locate"], structured_output=False)
     def locate(query: str) -> str:

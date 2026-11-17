@@ -1,0 +1,120 @@
+{
+  "task_id": "T10",
+  "arm": "tm_recall",
+  "session_id": "84699e51-62fc-4ce4-9fc5-b02b12c42877",
+  "returncode": 0,
+  "wall_seconds": 19.406,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "large_file_line_span_cap": 999,
+    "empty_files_prefix": "Error: no file",
+    "more_suffix_word": "more"
+  },
+  "final_answer": "{\"large_file_line_span_cap\":999,\"empty_files_prefix\":\"Error: no file\",\"more_suffix_word\":\"more\"}",
+  "tool_starts": [
+    {
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "SymbolIndex"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\symbol_index.py::SymbolIndex._lines"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\symbol_index.py::SymbolIndex._not_one_file"
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 81,
+      "session_id": "84699e51-62fc-4ce4-9fc5-b02b12c42877",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7103,
+      "uncached_input_tokens": 3,
+      "output_tokens": 22,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3588,
+      "total_nano_aiu": 4949200000,
+      "recharged_nano_aiu": 4949200000,
+      "cold_nano_aiu": 8988000000,
+      "created_at": "2026-11-17T09:58:42.223Z"
+    },
+    {
+      "row_id": 82,
+      "session_id": "84699e51-62fc-4ce4-9fc5-b02b12c42877",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7186,
+      "uncached_input_tokens": 3,
+      "output_tokens": 94,
+      "cache_read_tokens": 7100,
+      "cache_write_tokens": 83,
+      "total_nano_aiu": 1286750000,
+      "recharged_nano_aiu": 1286750000,
+      "cold_nano_aiu": 1286750000,
+      "created_at": "2026-11-17T09:58:46.132Z"
+    },
+    {
+      "row_id": 83,
+      "session_id": "84699e51-62fc-4ce4-9fc5-b02b12c42877",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8275,
+      "uncached_input_tokens": 3,
+      "output_tokens": 28,
+      "cache_read_tokens": 7183,
+      "cache_write_tokens": 1089,
+      "total_nano_aiu": 2222550000,
+      "recharged_nano_aiu": 2222550000,
+      "cold_nano_aiu": 2222550000,
+      "created_at": "2026-11-17T09:58:51.338Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "de7f6d9e0bd3d144",
+    "at": "2026-11-17T09:58:34.067Z",
+    "cwd": "C:\\tm-lanes\\repo-brief-20261117\\lanes\\l4\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 301
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7401,
+    "fixed_saved": 22203,
+    "saved_usd": 0.035773,
+    "lean_usd": 0.022203,
+    "first_usd": 0.01357,
+    "brief_tokens_recorded": 301
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

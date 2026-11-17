@@ -1,0 +1,244 @@
+{
+  "task_id": "T03",
+  "arm": "tm_lean",
+  "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+  "returncode": 0,
+  "wall_seconds": 56.515,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace_copilot_bridge.py"
+    ]
+  },
+  "final_answer": "DONE",
+  "tool_starts": [
+    {
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "--lean"
+      }
+    },
+    {
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/*copilot*.py"
+      }
+    },
+    {
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check working tree"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "brainspace_copilot_bridge.py"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace_copilot_bridge.py:838-915"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace_copilot_bridge.py:447-491"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "main",
+        "depth": 1
+      }
+    },
+    {
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "test_copilot_bridge.py"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace_copilot_bridge.py:528-547"
+      }
+    },
+    {
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; @'\nimport contextlib\nimport io\nimport json\nimport sys\nfrom unittest.mock import patch\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nimport brainspace_copilot_bridge as b\nfor upstream in ([], ['--upstream', 'http://127.0.0.1:1']):\n    for flags, command, expected in [([], ['copilot'], []), (['--lean'], ['copilot'], ['tool_a', 'tool_b']), (['--lean'], ['other'], []), (['--all-tools'], ['copilot'], [])]:\n        out = io.StringIO()\n        with patch.object(b, 'resumed_session', return_value=None), patch.object(b, 'select_excluded_tools', return_value=('tool_a', 'tool_b')), patch.object(b, 'Bridge', side_effect=AssertionError('bridge started')), patch.object(b, 'run_recorded', side_effect=AssertionError('launch recorded')), patch.object(b.subprocess, 'Popen', side_effect=AssertionError('child spawned')), contextlib.redirect_stdout(out):\n            assert b.main([*upstream, *flags, '--print-excluded', '--', *command]) == 0\n        assert json.loads(out.getvalue()) == expected\n        assert len(out.getvalue().splitlines()) == 1\nprint('print-excluded checks passed')\n'@ | python -B -; if ($LASTEXITCODE -eq 0) { python -B -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\tests\\test_copilot_bridge.py }; git --no-pager diff --check; git --no-pager status --short",
+        "description": "Verify preview side effects and existing bridge behavior",
+        "initial_wait": 120
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 11,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 6847,
+      "uncached_input_tokens": 3,
+      "output_tokens": 22,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3332,
+      "total_nano_aiu": 4629200000,
+      "recharged_nano_aiu": 4629200000,
+      "cold_nano_aiu": 8668000000,
+      "created_at": "2026-11-17T09:50:13.677Z"
+    },
+    {
+      "row_id": 12,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8673,
+      "uncached_input_tokens": 3,
+      "output_tokens": 66,
+      "cache_read_tokens": 6844,
+      "cache_write_tokens": 1826,
+      "total_nano_aiu": 3299900000,
+      "recharged_nano_aiu": 3299900000,
+      "cold_nano_aiu": 3299900000,
+      "created_at": "2026-11-17T09:50:16.475Z"
+    },
+    {
+      "row_id": 13,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8918,
+      "uncached_input_tokens": 3,
+      "output_tokens": 27,
+      "cache_read_tokens": 8670,
+      "cache_write_tokens": 245,
+      "total_nano_aiu": 1311250000,
+      "recharged_nano_aiu": 1311250000,
+      "cold_nano_aiu": 1311250000,
+      "created_at": "2026-11-17T09:50:19.332Z"
+    },
+    {
+      "row_id": 14,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10708,
+      "uncached_input_tokens": 3,
+      "output_tokens": 134,
+      "cache_read_tokens": 8915,
+      "cache_write_tokens": 1790,
+      "total_nano_aiu": 3802000000,
+      "recharged_nano_aiu": 3802000000,
+      "cold_nano_aiu": 3802000000,
+      "created_at": "2026-11-17T09:50:22.903Z"
+    },
+    {
+      "row_id": 15,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 17623,
+      "uncached_input_tokens": 3,
+      "output_tokens": 57,
+      "cache_read_tokens": 10705,
+      "cache_write_tokens": 6915,
+      "total_nano_aiu": 10002250000,
+      "recharged_nano_aiu": 10002250000,
+      "cold_nano_aiu": 10002250000,
+      "created_at": "2026-11-17T09:50:28.041Z"
+    },
+    {
+      "row_id": 16,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18126,
+      "uncached_input_tokens": 3,
+      "output_tokens": 233,
+      "cache_read_tokens": 17620,
+      "cache_write_tokens": 503,
+      "total_nano_aiu": 3558750000,
+      "recharged_nano_aiu": 3558750000,
+      "cold_nano_aiu": 3558750000,
+      "created_at": "2026-11-17T09:50:35.283Z"
+    },
+    {
+      "row_id": 17,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18418,
+      "uncached_input_tokens": 3,
+      "output_tokens": 414,
+      "cache_read_tokens": 18123,
+      "cache_write_tokens": 292,
+      "total_nano_aiu": 4250300000,
+      "recharged_nano_aiu": 4250300000,
+      "cold_nano_aiu": 4250300000,
+      "created_at": "2026-11-17T09:50:41.659Z"
+    },
+    {
+      "row_id": 18,
+      "session_id": "31333c0e-865b-4a2d-a158-dbc00f890c03",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18896,
+      "uncached_input_tokens": 3,
+      "output_tokens": 5,
+      "cache_read_tokens": 18415,
+      "cache_write_tokens": 478,
+      "total_nano_aiu": 2467000000,
+      "recharged_nano_aiu": 2467000000,
+      "cold_nano_aiu": 2467000000,
+      "created_at": "2026-11-17T09:51:03.337Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "bae15a7da18f6e81",
+    "at": "2026-11-17T09:50:09.207Z",
+    "cwd": "C:\\tm-lanes\\repo-brief-20261117\\lanes\\l2\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7702,
+    "fixed_saved": 61616,
+    "saved_usd": 0.078647,
+    "lean_usd": 0.061616,
+    "first_usd": 0.017032,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}
