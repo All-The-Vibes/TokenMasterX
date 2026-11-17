@@ -13,7 +13,7 @@ Claude: https://code.claude.com/docs/en/mcp?plain=1
 import os
 from pathlib import Path
 
-from .config import copilot_hook, hook, json_server, parse, read, toml_server
+from .config import copilot_hook, copilot_session_hook, hook, json_server, parse, read, toml_server
 
 HOSTS = ("claude", "codex", "copilot")
 CLAUDE_HOOK_CONTRACT = {
@@ -76,20 +76,28 @@ def config_path(host):
     return Path.home() / ".claude.json"
 
 
-def preflight(host, include_hook=False):
+def preflight(host, include_hook=False, include_session_hook=False):
     path = config_path(host)
     data = parse(read(path).decode("utf-8-sig"), toml=host == "codex")
     servers = data.get("mcp_servers" if host == "codex" else "mcpServers", {})
     if not isinstance(servers, dict):
         raise ValueError("MCP servers must be an object/table")
-    if include_hook:
+    if include_hook or include_session_hook:
         data = parse(read(host_home(host) / "settings.json").decode("utf-8-sig"))
         if host == "copilot":
             hooks = data.get("hooks", {})
-            if not isinstance(hooks, dict) or not isinstance(hooks.get("postToolUse", []), list):
+            if not isinstance(hooks, dict):
                 raise ValueError("malformed Copilot postToolUse hooks configuration")
-            if any(not isinstance(handler, dict) for handler in hooks.get("postToolUse", [])):
-                raise ValueError("malformed Copilot postToolUse handler")
+            if include_hook:
+                if not isinstance(hooks.get("postToolUse", []), list):
+                    raise ValueError("malformed Copilot postToolUse hooks configuration")
+                if any(not isinstance(handler, dict) for handler in hooks.get("postToolUse", [])):
+                    raise ValueError("malformed Copilot postToolUse handler")
+            if include_session_hook:
+                if not isinstance(hooks.get("sessionStart", []), list):
+                    raise ValueError("malformed Copilot sessionStart hooks configuration")
+                if any(not isinstance(handler, dict) for handler in hooks.get("sessionStart", [])):
+                    raise ValueError("malformed Copilot sessionStart handler")
             return
         if not isinstance(data.get("env", {}), dict):
             raise ValueError("settings env must be an object")
@@ -118,6 +126,10 @@ def wire_copilot_hook(home, command):
     return copilot_hook(home / "settings.json", command)
 
 
+def wire_copilot_session_hook(home, command):
+    return copilot_session_hook(home / "settings.json", command)
+
+
 def copilot_hook_status(home):
     """Registered owned entry only; not proof of enabled/accepted native behavior."""
     path = home / "settings.json"
@@ -129,6 +141,19 @@ def copilot_hook_status(home):
     hooks = data.get("hooks", {})
     post = hooks.get("postToolUse", []) if isinstance(hooks, dict) else None
     return True if isinstance(post, list) and post.count(entry) == 1 else None
+
+
+def copilot_session_hook_status(home):
+    """Registered owned sessionStart entry only; None indicates an edited/conflicting owned hook."""
+    path = home / "settings.json"
+    receipt = parse(read(path.with_name(path.name + ".token-master-owned.json")).decode("utf-8"))
+    entry = receipt.get("hook:repo-brief:copilot")
+    if entry is None:
+        return False
+    data = parse(read(path).decode("utf-8-sig"))
+    hooks = data.get("hooks", {})
+    start = hooks.get("sessionStart", []) if isinstance(hooks, dict) else None
+    return True if isinstance(start, list) and start.count(entry) == 1 else None
 
 
 def capabilities(host):

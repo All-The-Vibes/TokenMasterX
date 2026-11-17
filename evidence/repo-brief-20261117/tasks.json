@@ -1,0 +1,433 @@
+{
+  "study_id": "repo-brief-20261117",
+  "version": "1.0.0",
+  "model": "gpt-6-astra",
+  "cli_version": "1.0.112",
+  "brief_budget_tokens": 320,
+  "arms": [
+    {
+      "id": "stock",
+      "label": "Stock Copilot CLI",
+      "description": "Default Copilot CLI 1.0.112 with built-in tools only; no TokenMaster MCP, PostToolUse, lean launcher, or sessionStart brief."
+    },
+    {
+      "id": "tm_lean",
+      "label": "TokenMaster Lean (No Brief)",
+      "description": "TokenMaster MCP navigation + PostToolUse output reducer + --lean launcher; hooks.sessionStart disabled."
+    },
+    {
+      "id": "tm_brief",
+      "label": "TokenMaster + Cold Repo Brief",
+      "description": "tm_lean + hooks.sessionStart injecting deterministic <=320-token cold architectural brief (.token-master/brief.md: Layout + Hubs + Entrypoints; zero cross-session recall)."
+    },
+    {
+      "id": "tm_recall",
+      "label": "TokenMaster + Warm Recall Brief",
+      "description": "tm_lean + hooks.sessionStart injecting <=320-token refreshed brief seeded from genuine prior-session MCP navigation logs (.token-master/recall.jsonl -> setup.py --refresh-brief)."
+    }
+  ],
+  "repositories": {
+    "tokenmasterx": {
+      "label": "All-The-Vibes/TokenMasterX",
+      "commit": "f4228f7e52282b956bc745e50fc364379c3d7e2a",
+      "clone_url": "https://github.com/All-The-Vibes/TokenMasterX.git",
+      "prior_recall_queries": [
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "ccr.py::CCR"
+          },
+          "repeats": 3
+        },
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "host_output.py::_copilot_output"
+          },
+          "repeats": 3
+        },
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "tokenomics.py::estimate"
+          },
+          "repeats": 2
+        },
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "jev.py::validate_request"
+          },
+          "repeats": 2
+        }
+      ]
+    },
+    "click": {
+      "label": "pallets/click (8.1.8)",
+      "commit": "934813e4d421071a1b3db3973c02fe2721359a6e",
+      "clone_url": "https://github.com/pallets/click.git",
+      "prior_recall_queries": [
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "formatting.py::HelpFormatter"
+          },
+          "repeats": 3
+        },
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "_termui_impl.py::ProgressBar"
+          },
+          "repeats": 3
+        },
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "parser.py::OptionParser"
+          },
+          "repeats": 2
+        },
+        {
+          "tool": "read_symbol",
+          "arguments": {
+            "target": "testing.py::CliRunner"
+          },
+          "repeats": 2
+        }
+      ]
+    }
+  },
+  "buckets": {
+    "A_cold_architecture": "Symptom- and architecture-driven tasks omitting internal file paths and symbol names, targeting core repository hubs/entrypoints covered by the cold structural brief.",
+    "B_cross_session_recall": "Follow-up tasks in deep subsystems absent from the cold structural top-hub list, seeded via prior-session navigation logs (recall.jsonl -> --refresh-brief) without answer leakage.",
+    "C_direct_symbol_control": "Negative-control lookups that explicitly name the exact non-hub, non-recalled Class.method or function in sentence 1 so tm_lean needs zero orientation, measuring fixed brief overhead."
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "repo": "tokenmasterx",
+      "bucket": "A_cold_architecture",
+      "kind": "trace",
+      "title": "Offline reference tokenizer path resolution and fallback divisor",
+      "prompt": "Without modifying any files, inspect how the plugin's offline reference tokenizer resolves its vocabulary file on disk and estimates token counts when the exact reference tokenizer is unavailable. Return ONLY a JSON object with keys \"explicit_env_var\" (string), \"primary_cache_env_var\" (string), \"fallback_divisor_chars\" (integer divisor applied to UTF-8/character length in the ceiling fallback estimate), and \"special_token_count\" (integer number of special tokens registered on the encoding).",
+      "expected": {
+        "explicit_env_var": "BRAINSPACE_TOKENIZER_FILE",
+        "primary_cache_env_var": "TIKTOKEN_CACHE_DIR",
+        "fallback_divisor_chars": 4,
+        "special_token_count": 5
+      }
+    },
+    {
+      "id": "T02",
+      "repo": "tokenmasterx",
+      "bucket": "A_cold_architecture",
+      "kind": "trace",
+      "title": "Post-tool-use stdin/stdout limits and request-policy transform cap",
+      "prompt": "Without modifying any files, inspect the post-tool-use CLI hook entrypoint and the immutable versioned request-shaping policy configuration. Return ONLY a JSON object with keys \"max_stdin_bytes\" (integer maximum stdin payload size accepted by the post-tool-use CLI before passthrough), \"default_min_chars\" (integer default minimum character threshold read from the post-tool-use environment), \"default_stdout_cap_bytes\" (integer default stdout byte cap in the post-tool-use CLI), and \"policy_default_max_transforms\" (integer default max_transforms on the versioned request policy).",
+      "expected": {
+        "max_stdin_bytes": 8388608,
+        "default_min_chars": 800,
+        "default_stdout_cap_bytes": 9000,
+        "policy_default_max_transforms": 4
+      }
+    },
+    {
+      "id": "T03",
+      "repo": "tokenmasterx",
+      "bucket": "A_cold_architecture",
+      "kind": "edit",
+      "title": "Add --print-excluded dry-run JSON flag to Copilot launcher entrypoint",
+      "prompt": "In the Copilot CLI launcher/bridge entrypoint module, add an optional boolean CLI flag `--print-excluded` (`action=\"store_true\"`). When `--print-excluded` is passed alongside a child command, do NOT start the HTTP bridge, record a launch, or spawn the child process; instead print a single JSON array of the excluded built-in tool names computed for that command (for example `[\"tool_a\", ...]` when `--lean` excludes tools, or `[]` when no tools are excluded) to stdout and return exit code `0`. Preserve all existing CLI behavior when `--print-excluded` is omitted. Modify only the existing launcher implementation file (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace_copilot_bridge.py"
+      ],
+      "check_id": "tmx_bridge_print_excluded",
+      "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace_copilot_bridge.py b/token-master-plugin/skills/token-master/brainspace_copilot_bridge.py\n--- a/token-master-plugin/skills/token-master/brainspace_copilot_bridge.py\n+++ b/token-master-plugin/skills/token-master/brainspace_copilot_bridge.py\n@@ -866,6 +866,8 @@ def main(argv=None) -> int:\n                                \"resume gets its session's recorded list (default: every built-in tool)\")\n     tool_set.add_argument(\"--all-tools\", action=\"store_true\",\n                           help=\"every built-in tool, which is now the default; kept so existing commands still work\")\n+    parser.add_argument(\"--print-excluded\", action=\"store_true\",\n+                        help=\"print JSON array of excluded built-in tools for command and exit 0\")\n     parser.add_argument(\"command\", nargs=argparse.REMAINDER, help=\"-- copilot [args...]; omit to serve only\")\n     args = parser.parse_args(argv)\n     command = args.command[1:] if args.command[:1] == [\"--\"] else args.command\n@@ -874,6 +876,10 @@ def main(argv=None) -> int:\n     if command and args.lean:\n         command = lean_command(command, session)\n     lean = command != original\n+    if args.print_excluded:\n+        excluded = command[command.index(\"--excluded-tools\") + 1:] if (lean and \"--excluded-tools\" in command) else []\n+        print(json.dumps(excluded))\n+        return 0\n     lean_state = \"on\" if lean else \"on, nothing to exclude\" if args.lean else \"off\"\n     if not args.upstream:\n         if not command:\n"
+    },
+    {
+      "id": "T04",
+      "repo": "tokenmasterx",
+      "bucket": "A_cold_architecture",
+      "kind": "edit",
+      "title": "Add validated with_limits() builder to versioned request policy",
+      "prompt": "In the immutable versioned request-shaping policy configuration module, add a method `with_limits(self, *, max_input_tokens=..., max_wire_bytes=..., max_output_tokens=...) -> RequestPolicy` on the policy dataclass. Omitted keyword arguments must preserve the current instance's limit values, while passing an explicit integer or `None` updates or clears that limit and returns a new validated policy instance (preserving all existing validation checks). Modify only that policy implementation module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/request_policy.py"
+      ],
+      "check_id": "tmx_request_policy_with_limits",
+      "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/request_policy.py b/token-master-plugin/skills/token-master/brainspace/request_policy.py\n--- a/token-master-plugin/skills/token-master/brainspace/request_policy.py\n+++ b/token-master-plugin/skills/token-master/brainspace/request_policy.py\n@@ -34,6 +34,7 @@\n from urllib.parse import quote\n \n \n+_UNSET = object()\n PROTOCOL = \"chat-completions-v1\"\n SERIALIZATION = \"json-utf8-compact-v1\"\n _PROTECTED_ROLES = (\"system\", \"developer\")\n@@ -118,6 +119,22 @@\n     @property\n     def policy_id(self) -> str:\n         return self.version + \":\" + hashlib.sha256(self.to_json().encode(\"utf-8\")).hexdigest()\n+\n+    def with_limits(\n+        self,\n+        *,\n+        max_input_tokens: object = _UNSET,\n+        max_wire_bytes: object = _UNSET,\n+        max_output_tokens: object = _UNSET,\n+    ) -> RequestPolicy:\n+        updates = {}\n+        if max_input_tokens is not _UNSET:\n+            updates[\"max_input_tokens\"] = max_input_tokens\n+        if max_wire_bytes is not _UNSET:\n+            updates[\"max_wire_bytes\"] = max_wire_bytes\n+        if max_output_tokens is not _UNSET:\n+            updates[\"max_output_tokens\"] = max_output_tokens\n+        return replace(self, **updates)\n \n \n def policy_neighbors(policy: RequestPolicy) -> tuple[RequestPolicy, ...]:\n"
+    },
+    {
+      "id": "C01",
+      "repo": "click",
+      "bucket": "A_cold_architecture",
+      "kind": "trace",
+      "title": "Default-value parameter converter inference and completion item metadata",
+      "prompt": "Without modifying any files, inspect how this CLI library infers a parameter converter when `ty` is `None` and only a default value is given, and how shell completion suggestion items expose extra metadata attributes. Return ONLY a JSON object with keys \"empty_sequence_type_name\" (string `.name` of the parameter type returned when `ty` is `None` and `default` is `()`), \"default_completion_type\" (string default `type` value on a shell completion item), and \"missing_completion_attr_returns_none\" (boolean: whether accessing an unset extra attribute on a completion item returns `None` rather than raising `AttributeError`).",
+      "expected": {
+        "empty_sequence_type_name": "text",
+        "default_completion_type": "plain",
+        "missing_completion_attr_returns_none": true
+      }
+    },
+    {
+      "id": "C02",
+      "repo": "click",
+      "bucket": "A_cold_architecture",
+      "kind": "trace",
+      "title": "Filename terminal-display encoding handlers and active-context color default",
+      "prompt": "Without modifying any files, inspect how this CLI library formats filenames for safe terminal display and how it resolves the default terminal color setting from the active context. Return ONLY a JSON object with keys \"bytes_decode_error_handler\" (string error handler passed when decoding `bytes` filenames), \"str_roundtrip_source_error_handler\" (string error handler passed when encoding `str` filenames to UTF-8 before replacing bad sequences), and \"color_without_active_context\" (null or boolean returned by the color-default resolver when `color=None` and no context is active).",
+      "expected": {
+        "bytes_decode_error_handler": "replace",
+        "str_roundtrip_source_error_handler": "surrogateescape",
+        "color_without_active_context": null
+      }
+    },
+    {
+      "id": "C03",
+      "repo": "click",
+      "bucket": "A_cold_architecture",
+      "kind": "edit",
+      "title": "Add keyword-only normalize_slashes option to filename display formatter",
+      "prompt": "In this CLI library's filename terminal-display formatting function, add an optional keyword-only boolean parameter `normalize_slashes: bool = False`. When `normalize_slashes=True`, replace all backslashes (`\\`) in the resulting formatted string with forward slashes (`/`); preserve exact existing behavior when `normalize_slashes=False`. Modify only that utility module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "src/click/utils.py"
+      ],
+      "check_id": "click_format_filename_slashes",
+      "reference_patch": "diff --git a/src/click/utils.py b/src/click/utils.py\n--- a/src/click/utils.py\n+++ b/src/click/utils.py\n@@ -404,6 +404,8 @@\n def format_filename(\n     filename: \"t.Union[str, bytes, os.PathLike[str], os.PathLike[bytes]]\",\n     shorten: bool = False,\n+    *,\n+    normalize_slashes: bool = False,\n ) -> str:\n     \"\"\"Format a filename as a string for display. Ensures the filename can be\n     displayed by replacing any invalid bytes or surrogate escapes in the name\n@@ -439,6 +441,9 @@\n         filename = filename.encode(\"utf-8\", \"surrogateescape\").decode(\n             \"utf-8\", \"replace\"\n         )\n+\n+    if normalize_slashes:\n+        filename = filename.replace(\"\\\\\", \"/\")\n \n     return filename\n \n"
+    },
+    {
+      "id": "C04",
+      "repo": "click",
+      "bucket": "A_cold_architecture",
+      "kind": "edit",
+      "title": "Add non-mutating to_dict() serializer on shell completion items",
+      "prompt": "On shell completion suggestion items in this CLI library, add a `to_dict(self) -> t.Dict[str, t.Any]` method returning a fresh dictionary that merges any extra keyword metadata stored on the item with the item's `\"value\"`, `\"type\"`, and `\"help\"` attributes (with `\"value\"`, `\"type\"`, and `\"help\"` taking precedence over same-named extra metadata keys, and without mutating the item's internal metadata dictionary). Modify only the shell completion module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "src/click/shell_completion.py"
+      ],
+      "check_id": "click_completion_item_to_dict",
+      "reference_patch": "diff --git a/src/click/shell_completion.py b/src/click/shell_completion.py\n--- a/src/click/shell_completion.py\n+++ b/src/click/shell_completion.py\n@@ -87,6 +87,11 @@\n \n     def __getattr__(self, name: str) -> t.Any:\n         return self._info.get(name)\n+\n+    def to_dict(self) -> t.Dict[str, t.Any]:\n+        out = dict(self._info)\n+        out.update({\"value\": self.value, \"type\": self.type, \"help\": self.help})\n+        return out\n \n \n # Only Bash >= 4.4 has the nosort option.\n"
+    },
+    {
+      "id": "T05",
+      "repo": "tokenmasterx",
+      "bucket": "B_cross_session_recall",
+      "kind": "trace",
+      "title": "Compressed context retrieval SQLite connection settings and compact marker",
+      "prompt": "Without modifying any files, inspect our SQLite-backed compressed context retrieval store's connection initialization and compact reference marker format. Return ONLY a JSON object with keys \"sqlite_timeout_seconds\" (number passed as `timeout` to `sqlite3.connect`), \"journal_mode\" (string SQLite `journal_mode` pragma value), \"table_count\" (integer number of `CREATE TABLE IF NOT EXISTS` tables initialized on connect), and \"compact_marker_suffix\" (string suffix after `|` inside the `[[BR:...|...]]` compact root marker).",
+      "expected": {
+        "sqlite_timeout_seconds": 5.0,
+        "journal_mode": "WAL",
+        "table_count": 4,
+        "compact_marker_suffix": "r=1"
+      }
+    },
+    {
+      "id": "T06",
+      "repo": "tokenmasterx",
+      "bucket": "B_cross_session_recall",
+      "kind": "trace",
+      "title": "Host post-tool output envelope contract and exit-code failure keys",
+      "prompt": "Without modifying any files, inspect our host post-tool output envelope validator for Copilot file-read results and its generic non-zero exit-code detector. Return ONLY a JSON object with keys \"copilot_contract_id\" (string), \"qualified_tool_name\" (string), \"replacement_outer_key\" (string top-level dictionary key emitted when Copilot output is rewritten), and \"exit_code_keys\" (JSON array of the 4 integer exit-code field names checked in order for non-zero failure).",
+      "expected": {
+        "copilot_contract_id": "copilot-posttooluse-2026-10-09",
+        "qualified_tool_name": "view",
+        "replacement_outer_key": "modifiedResult",
+        "exit_code_keys": [
+          "exitCode",
+          "exit_code",
+          "returncode",
+          "return_code"
+        ]
+      }
+    },
+    {
+      "id": "T07",
+      "repo": "tokenmasterx",
+      "bucket": "B_cross_session_recall",
+      "kind": "edit",
+      "title": "Add kept_lean_tools(launch) helper to Copilot token-savings reporter",
+      "prompt": "In the Copilot CLI usage and token-savings reporting module, add a helper function `kept_lean_tools(launch: dict) -> list[str]` that returns the sorted list of tool names from `LEAN_WEIGHTS` that were NOT excluded by `launch`: return `[]` when `launch.get(\"excluded\") is None`, and otherwise return `sorted(tool for tool in LEAN_WEIGHTS if tool not in set(launch[\"excluded\"]))`. Modify only that reporting module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/tokenomics.py"
+      ],
+      "check_id": "tmx_tokenomics_kept_lean_tools",
+      "reference_patch": "diff --git a/token-master-plugin/skills/token-master/tokenomics.py b/token-master-plugin/skills/token-master/tokenomics.py\n--- a/token-master-plugin/skills/token-master/tokenomics.py\n+++ b/token-master-plugin/skills/token-master/tokenomics.py\n@@ -192,6 +192,13 @@\n     if launch.get(\"excluded\") is None:\n         return 1.0\n     return sum(LEAN_WEIGHTS.get(tool, 0) for tool in set(launch[\"excluded\"])) / sum(LEAN_WEIGHTS.values())\n+\n+\n+def kept_lean_tools(launch: dict) -> list[str]:\n+    if launch.get(\"excluded\") is None:\n+        return []\n+    excluded = set(launch[\"excluded\"])\n+    return sorted(tool for tool in LEAN_WEIGHTS if tool not in excluded)\n \n \n def stock_first_cached(calls: list[dict]) -> dict:\n"
+    },
+    {
+      "id": "T08",
+      "repo": "tokenmasterx",
+      "bucket": "B_cross_session_recall",
+      "kind": "edit",
+      "title": "Add is_high_confidence() helper to structured evaluation validator",
+      "prompt": "In the structured choice/score/noul evaluation response validator module, add a pure function `is_high_confidence(answer: ChoiceAnswer | ScoreAnswer | NoulAnswer, min_confidence: float = 0.8) -> bool`. Validate that `min_confidence` is a finite `int` or `float` (not `bool`) in `[0.0, 1.0]`, raising `ValidationError(\"invalid_threshold\")` otherwise. For `\"choice\"` and `\"score\"` answer dicts, return `answer[\"confidence\"] >= min_confidence`; for `\"noul\"` answer dicts, return `max(answer[\"noul\"], 1.0 - answer[\"noul\"]) >= min_confidence` (raising `ValidationError(\"invalid_response\")` on an unknown/malformed answer dict). Modify only that validator module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/jev.py"
+      ],
+      "check_id": "tmx_jev_high_confidence",
+      "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/jev.py b/token-master-plugin/skills/token-master/brainspace/jev.py\n--- a/token-master-plugin/skills/token-master/brainspace/jev.py\n+++ b/token-master-plugin/skills/token-master/brainspace/jev.py\n@@ -216,6 +216,24 @@\n     return body\n \n \n+def is_high_confidence(\n+    answer: ChoiceAnswer | ScoreAnswer | NoulAnswer,\n+    min_confidence: float = 0.8,\n+) -> bool:\n+    _require(_number(min_confidence) and 0.0 <= min_confidence <= 1.0, \"invalid_threshold\")\n+    _require(type(answer) is dict, \"invalid_response\")\n+    kind = answer.get(\"type\")\n+    if kind in (\"choice\", \"score\"):\n+        conf = answer.get(\"confidence\")\n+        _require(_number(conf) and 0.0 <= conf <= 1.0, \"invalid_response\")\n+        return bool(conf >= min_confidence)\n+    if kind == \"noul\":\n+        val = answer.get(\"noul\")\n+        _require(_number(val) and 0.0 <= val <= 1.0, \"invalid_response\")\n+        return bool(max(val, 1.0 - val) >= min_confidence)\n+    raise ValidationError(\"invalid_response\")\n+\n+\n @dataclass(frozen=True)\n class Diagnostics:\n     \"\"\"Native counts/transport facts, NOT reference-token ledger measurements.\"\"\"\n"
+    },
+    {
+      "id": "C05",
+      "repo": "click",
+      "bucket": "B_cross_session_recall",
+      "kind": "trace",
+      "title": "Help-page formatter definition-list defaults and column floor",
+      "prompt": "Without modifying any files, inspect the help-page text formatter's definition-list layout writer in this CLI library. Return ONLY a JSON object with keys \"default_col_max\" (integer), \"default_col_spacing\" (integer), \"min_wrapped_second_col_width\" (integer floor passed to `max(..., floor)` when computing the wrapped second-column width), and \"wrong_column_count_exception\" (string exception class name raised if the measured table does not have exactly 2 columns).",
+      "expected": {
+        "default_col_max": 30,
+        "default_col_spacing": 2,
+        "min_wrapped_second_col_width": 10,
+        "wrong_column_count_exception": "TypeError"
+      }
+    },
+    {
+      "id": "C06",
+      "repo": "click",
+      "bucket": "B_cross_session_recall",
+      "kind": "trace",
+      "title": "Terminal progress-bar ETA interval, rolling window, and finish reset",
+      "prompt": "Without modifying any files, inspect the internal terminal progress-bar implementation's step, ETA rolling average, and finish logic in this CLI library. Return ONLY a JSON object with keys \"min_eta_interval_seconds\" (number minimum elapsed seconds before recomputing ETA), \"rolling_avg_max_samples\" (integer maximum number of step samples retained in `self.avg`), and \"finish_resets_current_item_to_none\" (boolean: whether `finish()` sets `self.current_item` to `None`).",
+      "expected": {
+        "min_eta_interval_seconds": 1.0,
+        "rolling_avg_max_samples": 7,
+        "finish_resets_current_item_to_none": true
+      }
+    },
+    {
+      "id": "C07",
+      "repo": "click",
+      "bucket": "B_cross_session_recall",
+      "kind": "edit",
+      "title": "Add normalized has_option(opt) lookup to internal option parser",
+      "prompt": "In this CLI library's internal command-line option parser class, add a `has_option(self, opt: str) -> bool` method that normalizes `opt` via `normalize_opt(opt, self.ctx)` and returns `True` if the normalized option is registered in either the parser's short-option dictionary or long-option dictionary, and `False` otherwise. Modify only the parser module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "src/click/parser.py"
+      ],
+      "check_id": "click_option_parser_has_option",
+      "reference_patch": "diff --git a/src/click/parser.py b/src/click/parser.py\n--- a/src/click/parser.py\n+++ b/src/click/parser.py\n@@ -324,6 +324,10 @@\n         that is returned from the parser.\n         \"\"\"\n         self._args.append(Argument(obj, dest=dest, nargs=nargs))\n+\n+    def has_option(self, opt: str) -> bool:\n+        norm = normalize_opt(opt, self.ctx)\n+        return norm in self._short_opt or norm in self._long_opt\n \n     def parse_args(\n         self, args: t.List[str]\n"
+    },
+    {
+      "id": "C08",
+      "repo": "click",
+      "bucket": "B_cross_session_recall",
+      "kind": "edit",
+      "title": "Add keyword-only keep=False option to test runner isolated_filesystem",
+      "prompt": "In this CLI library's test CLI runner `isolated_filesystem` context manager, add an optional keyword-only boolean parameter `keep: bool = False`. When `keep=True` and `temp_dir is None`, leave the created temporary directory on disk on exit instead of deleting it (while still restoring the original working directory); preserve all existing behavior when `keep=False` or when `temp_dir` is provided. Modify only the testing module (do not edit test files or leave temporary files) and reply `DONE` once finished.",
+      "allowed_paths": [
+        "src/click/testing.py"
+      ],
+      "check_id": "click_isolated_filesystem_keep",
+      "reference_patch": "diff --git a/src/click/testing.py b/src/click/testing.py\n--- a/src/click/testing.py\n+++ b/src/click/testing.py\n@@ -453,7 +453,10 @@\n \n     @contextlib.contextmanager\n     def isolated_filesystem(\n-        self, temp_dir: t.Optional[t.Union[str, \"os.PathLike[str]\"]] = None\n+        self,\n+        temp_dir: t.Optional[t.Union[str, \"os.PathLike[str]\"]] = None,\n+        *,\n+        keep: bool = False,\n     ) -> t.Iterator[str]:\n         \"\"\"A context manager that creates a temporary directory and\n         changes the current working directory to it. This isolates tests\n@@ -476,7 +479,7 @@\n         finally:\n             os.chdir(cwd)\n \n-            if temp_dir is None:\n+            if temp_dir is None and not keep:\n                 try:\n                     shutil.rmtree(dt)\n                 except OSError:\n"
+    },
+    {
+      "id": "T09",
+      "repo": "tokenmasterx",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: RuntimeResources.resolve",
+      "prompt": "Inspect `RuntimeResources.resolve` without modifying any files. Return ONLY a JSON object with keys \"calls_full_hash\" (boolean `full_hash` argument passed to `self._check`), \"default_headroom_strategy\" (string strategy value omitted from `options[\"strategy\"]`), and \"returned_keys\" (sorted JSON array of the 2 top-level keys in the returned dictionary).",
+      "expected": {
+        "calls_full_hash": false,
+        "default_headroom_strategy": "upstream-default-v1",
+        "returned_keys": [
+          "headroom_options",
+          "ponytail"
+        ]
+      }
+    },
+    {
+      "id": "T10",
+      "repo": "tokenmasterx",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: SymbolIndex._lines and SymbolIndex._not_one_file",
+      "prompt": "Inspect `SymbolIndex._lines` and `SymbolIndex._not_one_file` without modifying any files. Return ONLY a JSON object with keys \"large_file_line_span_cap\" (integer `N` in `min(end, start + N)` when a file exceeds `MAX_FILE_BYTES`), \"empty_files_prefix\" (exact first 14 characters returned by `_not_one_file` when `files` is empty), and \"more_suffix_word\" (the word after the count inside `[<remaining> ...]` when `_not_one_file` truncates).",
+      "expected": {
+        "large_file_line_span_cap": 999,
+        "empty_files_prefix": "Error: no file",
+        "more_suffix_word": "more"
+      }
+    },
+    {
+      "id": "T11",
+      "repo": "tokenmasterx",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: PonytailInstructions",
+      "prompt": "Inspect `PonytailInstructions` without modifying any files. Return ONLY a JSON object with keys \"max_export_bytes\" (integer byte limit enforced in `__post_init__`), \"supported_mode\" (string mode value required in `__post_init__`), and \"identity_domain_prefix\" (ASCII string before the null byte in `PonytailInstructions.identity`).",
+      "expected": {
+        "max_export_bytes": 131072,
+        "supported_mode": "full",
+        "identity_domain_prefix": "ponytail-instructions-v1"
+      }
+    },
+    {
+      "id": "T12",
+      "repo": "tokenmasterx",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: config_lock and transaction in hosts/config.py",
+      "prompt": "Inspect `config_lock` and `transaction` in `hosts/config.py` without modifying any files. Return ONLY a JSON object with keys \"default_lock_timeout_seconds\" (integer default `timeout` on `config_lock`), \"retry_sleep_seconds\" (number passed to `time.sleep` while waiting on the lock), and \"receipt_filename_suffix\" (string suffix appended to `path.name` for the ownership receipt in `transaction`).",
+      "expected": {
+        "default_lock_timeout_seconds": 10,
+        "retry_sleep_seconds": 0.025,
+        "receipt_filename_suffix": ".token-master-owned.json"
+      }
+    },
+    {
+      "id": "C09",
+      "repo": "click",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: Choice.get_metavar and Choice.convert",
+      "prompt": "Inspect `Choice.get_metavar` and `Choice.convert` without modifying any files. Return ONLY a JSON object with keys \"required_argument_brackets\" (2-character string of opening and closing brackets used for a required argument), \"optional_brackets\" (2-character string of opening and closing brackets used otherwise), and \"case_insensitive_method_in_convert\" (string `str` method name called when normalizing values with `case_sensitive=False`).",
+      "expected": {
+        "required_argument_brackets": "{}",
+        "optional_brackets": "[]",
+        "case_insensitive_method_in_convert": "casefold"
+      }
+    },
+    {
+      "id": "C10",
+      "repo": "click",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: BadParameter.format_message",
+      "prompt": "Inspect `BadParameter.format_message` without modifying any files. Return ONLY a JSON object with keys \"no_param_prefix\" (exact string prefix before `{message}` when both `param_hint` and `param` are `None`), \"prefers_param_hint_over_param\" (boolean: whether `self.param_hint` takes precedence over `self.param`), and \"helper_for_joining_hints\" (string helper function name called to format `param_hint`).",
+      "expected": {
+        "no_param_prefix": "Invalid value: ",
+        "prefers_param_hint_over_param": true,
+        "helper_for_joining_hints": "_join_param_hints"
+      }
+    },
+    {
+      "id": "C11",
+      "repo": "click",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: NoSuchOption.format_message",
+      "prompt": "Inspect `NoSuchOption.format_message` without modifying any files. Return ONLY a JSON object with keys \"sorts_possibilities\" (boolean: whether `self.possibilities` is sorted before joining), \"singular_suggestion_template\" (string template passed as the singular form to `ngettext`), and \"plural_suggestion_template\" (string template passed as the plural form to `ngettext`).",
+      "expected": {
+        "sorts_possibilities": true,
+        "singular_suggestion_template": "Did you mean {possibility}?",
+        "plural_suggestion_template": "(Possible options: {possibilities})"
+      }
+    },
+    {
+      "id": "C12",
+      "repo": "click",
+      "bucket": "C_direct_symbol_control",
+      "kind": "trace",
+      "title": "Direct symbol lookup: File.resolve_lazy_flag",
+      "prompt": "Inspect `File.resolve_lazy_flag` without modifying any files. Return ONLY a JSON object with keys \"dash_returns\" (boolean returned when `os.fspath(value) == \"-\"` and `self.lazy is None`), \"write_mode_returns\" (boolean returned when `\"w\" in self.mode` and `self.lazy is None`), and \"read_mode_default_returns\" (boolean returned for an ordinary path in `\"r\"` mode when `self.lazy is None`).",
+      "expected": {
+        "dash_returns": false,
+        "write_mode_returns": true,
+        "read_mode_default_returns": false
+      }
+    }
+  ]
+}

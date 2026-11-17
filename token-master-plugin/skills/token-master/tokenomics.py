@@ -173,9 +173,12 @@ def load_launches(path: Path) -> list[dict]:
             end += timedelta(seconds=1)  # records before October 23, 2026 hold whole seconds; cover the last one
         end = end or start + LAUNCH_TIMEOUT
         excluded = record.get("excluded")
+        brief = record.get("brief")
         launches.append({"id": launch_id, "start": start, "end": end, "cwd": norm(record.get("cwd")),
                          "lean": bool(record.get("lean")), "bridge": bool(record.get("bridge")),
-                         "nav": bool(record.get("nav")), "session": record.get("session"),
+                         "nav": bool(record.get("nav")),
+                         "brief": brief if type(brief) is int and brief > 0 else 0,
+                         "session": record.get("session"),
                          "excluded": [t for t in excluded if isinstance(t, str)] if isinstance(excluded, list) else None})
     return sorted(launches, key=lambda launch: launch["start"])
 
@@ -254,7 +257,7 @@ def estimate(calls: list[dict], sessions: dict, launches: list[dict], calibratio
             prev_main[call["session"]] = {"at": call["at"], "cached": cached, "fixed": 0, "tools": curr_tools}
             continue  # uncalibrated APIs get no estimate
         lean = round(calibration["lean"] * lean_share(launch)) if launch["lean"] else 0
-        fixed = lean - (calibration["nav"] if launch["nav"] else 0)
+        fixed = lean - (calibration["nav"] if launch["nav"] else 0) - launch.get("brief", 0)
         call.update(saved_tokens=fixed, lean_nano=fixed * read, estimated=True)
         launch_key = (call["session"], launch["id"])
         if launch_key not in seen_launches:

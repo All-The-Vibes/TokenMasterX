@@ -11,9 +11,11 @@ import sys
 from pathlib import Path
 
 from hosts import (HOSTS, capabilities, config_path, host_home, preflight,
-                   resolve_host, wire_hook, wire_mcp, wire_copilot_hook, copilot_hook_status)
+                   resolve_host, wire_hook, wire_mcp, wire_copilot_hook, copilot_hook_status,
+                   wire_copilot_session_hook, copilot_session_hook_status)
 from hosts.config import atomic_write, environment, parse, read
-from hosts.runtime import copilot_hook_entry, hook_entry, runtime_entry, validate_runtime
+from hosts.runtime import (copilot_hook_entry, copilot_session_hook_entry,
+                           hook_entry, runtime_entry, validate_runtime)
 from hosts.tokenizer import read_tokenizer
 
 SKILL_DIR = Path(__file__).resolve().parent
@@ -72,9 +74,9 @@ def _install_files(home):
     install_dir.mkdir(parents=True, exist_ok=True)
     atomic_write(install_dir / "THIRD_PARTY_NOTICES.txt",
                  (SKILL_DIR.parents[1] / "THIRD_PARTY_NOTICES.txt").read_bytes())
-    for name in ("brainspace_mcp.py", "brainspace_posttooluse.py", "brainspace_benchmark.py",
-                 "brainspace_tools.py", "token_efficiency.py", "brainspace_native_mcp.py",
-                 "brainspace_copilot_bridge.py", "tokenomics.py"):
+    for name in ("brainspace_mcp.py", "brainspace_posttooluse.py", "brainspace_sessionstart.py",
+                 "brainspace_benchmark.py", "brainspace_tools.py", "token_efficiency.py",
+                 "brainspace_native_mcp.py", "brainspace_copilot_bridge.py", "tokenomics.py"):
         atomic_write(install_dir / name, (SKILL_DIR / name).read_bytes())
     for name in ("__init__.py", "synthetic_efficiency.py"):
         atomic_write(install_dir / "evals" / name, (SKILL_DIR / "evals" / name).read_bytes())
@@ -96,6 +98,9 @@ def main():
     parser.add_argument("--copilot-output-hook", action=argparse.BooleanOptionalAction, default=None,
                         help="Copilot only, on by default: shape whole-file view results with "
                              "request-policy-v6 (--no-copilot-output-hook skips it); not a task-savings certificate")
+    parser.add_argument("--copilot-repo-brief", action=argparse.BooleanOptionalAction, default=None,
+                        help="Copilot only, on by default: inject .token-master/brief.md once at new session start via "
+                             "hooks.sessionStart (--no-copilot-repo-brief removes an owned repo-brief hook)")
     parser.add_argument("--brainspace-mcp", action=argparse.BooleanOptionalAction, default=None,
                         help="install the brainspace MCP server (compress/retrieve tools). Default: on, except for "
                              "Copilot, where live sessions never called its 5 tools and their definitions add about "
@@ -108,22 +113,35 @@ def main():
         brainspace_mcp = args.brainspace_mcp if args.brainspace_mcp is not None else host != "copilot"
         if args.copilot_output_hook and host != "copilot":
             raise ValueError("--copilot-output-hook requires --host copilot")
+        if args.copilot_repo_brief and host != "copilot":
+            raise ValueError("--copilot-repo-brief requires --host copilot")
         copilot_hook = host == "copilot" and args.copilot_output_hook is not False and not args.uninstall
-        preflight(host, include_hook=host == "claude" or host == "copilot"
-                  and (copilot_hook or args.uninstall))
+        copilot_brief_hook = host == "copilot" and args.copilot_repo_brief is not False and not args.uninstall
+        preflight(
+            host,
+            include_hook=host == "claude" or host == "copilot" and (copilot_hook or args.uninstall),
+            include_session_hook=host == "copilot" and (
+                copilot_brief_hook or args.copilot_repo_brief is False or args.uninstall
+            ),
+        )
         if host == "copilot" and (copilot_hook or args.uninstall) \
                 and copilot_hook_status(home) is None:
             raise ValueError("owned Copilot hook was edited; preserving hook and MCP configuration")
-        if copilot_hook:
+        if host == "copilot" and (copilot_brief_hook or args.copilot_repo_brief is False or args.uninstall) \
+                and copilot_session_hook_status(home) is None:
+            raise ValueError("owned Copilot sessionStart hook was edited; preserving hook and MCP configuration")
+        if copilot_hook or copilot_brief_hook:
             settings = parse(read(home / "settings.json").decode("utf-8-sig"))
             if settings.get("disableAllHooks") is True:
-                if args.copilot_output_hook:
+                if args.copilot_output_hook or args.copilot_repo_brief:
                     raise ValueError("Copilot hooks are disabled in existing settings; preserving that choice")
                 copilot_hook = False
-                print("[brainspace] Copilot hooks are disabled in existing settings; skipping the output hook.")
+                copilot_brief_hook = False
+                print("[brainspace] Copilot hooks are disabled in existing settings; skipping Copilot hooks.")
         install_dir = home / "token-master"
         mcp_script = str(install_dir / "brainspace_mcp.py")
         hook_script = str(install_dir / "brainspace_posttooluse.py")
+        session_hook_script = str(install_dir / "brainspace_sessionstart.py")
         tokenizer_path = install_dir / "tokenizer" / "cl100k_base.tiktoken"
         tokenomics = None
         if args.uninstall:
@@ -133,6 +151,7 @@ def main():
                 environment(home / "settings.json", "BRAINSPACE_TOKENIZER_FILE", None)
             elif host == "copilot":
                 wire_copilot_hook(home, None)
+                wire_copilot_session_hook(home, None)
                 _wire_tokenomics_skill(home, None)
         else:
             receipt = validate_runtime(args.python)
@@ -157,14 +176,20 @@ def main():
             if host == "claude":
                 wire_hook(home, command)
                 environment(home / "settings.json", "BRAINSPACE_TOKENIZER_FILE", str(tokenizer_path))
-            elif copilot_hook:
-                wire_copilot_hook(home, copilot_hook_entry(python, hook_script, tokenizer_path))
+            elif host == "copilot":
+                if copilot_hook:
+                    wire_copilot_hook(home, copilot_hook_entry(python, hook_script, tokenizer_path))
+                if copilot_brief_hook:
+                    wire_copilot_session_hook(home, copilot_session_hook_entry(python, session_hook_script, tokenizer_path))
+                elif args.copilot_repo_brief is False:
+                    wire_copilot_session_hook(home, None)
             if host == "copilot":
                 tokenomics = _wire_tokenomics_skill(home, python)
         print(f"[brainspace] {'uninstalled configuration' if args.uninstall else 'configured'}: {config_path(host)}")
         print(json.dumps({**capabilities(host),
                           "hook_installed": copilot_hook_status(home) if host == "copilot"
                               else host == "claude" and not args.uninstall,
+                          "repo_brief_hook_installed": copilot_session_hook_status(home) if host == "copilot" else False,
                           "mcp_installed": brainspace_mcp and not args.uninstall,
                           "tokenomics_skill": tokenomics}, indent=2))
         print("Runtime acceptance is NOT verified by installation. Uninstall retains package files and data.")

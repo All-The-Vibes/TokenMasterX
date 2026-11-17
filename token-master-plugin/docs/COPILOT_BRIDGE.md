@@ -27,10 +27,15 @@ November 1 run under normal GitHub routing used 19.1% fewer raw tokens (95% CI 8
 1. Install TokenMaster for Copilot:
    `python brainspace_setup.py --host copilot --python <runtime> --tokenizer-file <cl100k_base.tiktoken>`.
    - This step copies the launcher and the verified tokenizer to `<COPILOT_HOME>/token-master/`.
-   - It also installs the v6 output hook for whole-file `view` results.
+   - It also installs the v6 output hook for whole-file `view` results and the `hooks.sessionStart`
+     hook (`--no-copilot-output-hook` and `--no-copilot-repo-brief` skip or remove them). On new
+     sessions (`source == "new"`), `hooks.sessionStart` injects `.token-master/brief.md` (`<= 320`
+     tokens) once as `additionalContext` and emits `{}` on `--resume` (`TOKENMASTER_REPO_BRIEF=0`
+     disables it per launch).
    - It does not install the `brainspace` MCP server for Copilot. `--brainspace-mcp` adds it.
-2. Optional: install graph navigation for a repository with
-   `python setup.py <repo> --host copilot --python <runtime>`. This step needs graphify.
+2. Optional: install graph navigation and `.token-master/brief.md` for a repository with
+   `python setup.py <repo> --host copilot --python <runtime>` (this step needs graphify; later run
+   `python setup.py <repo> --refresh-brief` to fold verified cross-session symbol lookups into the brief).
 3. Start Copilot CLI through the launcher with the runtime's Python:
    `<runtime> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot [args...]`, and add
    `--lean` before `--` for the lean tool set. In BYOK mode, v6 shaping needs that Python's
@@ -40,9 +45,10 @@ November 1 run under normal GitHub routing used 19.1% fewer raw tokens (95% CI 8
 
 The launcher appends a start record and an end record for each Copilot CLI launch to
 `<COPILOT_HOME>/token-master/launches.jsonl`: time, the folder Copilot CLI works in (the `-C` folder when one is
-given), whether the lean tool set, the bridge and the navigation tools were on, the names of the tools that the lean
-tool set excluded, and the ID of the session the launch resumes. The records hold no prompt text. `/tokenomics` uses
-them to tell TokenMaster sessions from stock sessions, and to credit only the tools a launch removed. The launcher
+given), whether the lean tool set, the bridge and the navigation tools were on, the `cl100k_base` token count of any
+injected `.token-master/brief.md` (`brief`, inherited across `--resume` and `--continue`), the names of the tools that
+the lean tool set excluded, and the ID of the session the launch resumes. The records hold no prompt text. `/tokenomics` uses
+them to tell TokenMaster sessions from stock sessions, and to credit only the tools a launch removed minus `nav` and `brief`. The launcher
 uses them to give a resumed session its tool list again ([Resumed sessions](#resumed-sessions)).
 
 ## Lean tool set
