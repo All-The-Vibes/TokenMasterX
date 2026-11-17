@@ -81,9 +81,10 @@ fresh confirmation to force a win.
 - Jev never supplies truth labels, authorization, or its own promotion
   certificate. Keep advisory calls bounded and sanitized; use only explicitly
   configured credentials, never persist or echo secrets.
-- Preserve the existing strict quality/promotion rules. Keep deterministic
-  reconstruction/size guarantees separate from measured model behavior and
-  statistical claims.
+- Preserve the existing quality/promotion rules: the strict gate, or the quality
+  margin and token test a new profile registry fixes when it is created
+  (`PROFILE_LEARNING.md`). Keep deterministic reconstruction/size guarantees
+  separate from measured model behavior and statistical claims.
 - No new dependency, global host/profile/routing change, destructive action,
   or external deployment is authorized merely by this plan. Use existing
   components and isolated/project-local execution first.

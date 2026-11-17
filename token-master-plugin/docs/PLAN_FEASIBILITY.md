@@ -1,9 +1,10 @@
 # Certification planning: check before spending calls
 
 **A read-only planning check, not a certificate or permission to run.**
-The strict quality/token rule is unchanged. This command exposes when a
-proposed fixed-size trial cannot pass even under the most favorable bounded
-observations.
+It applies the registry's own quality/token rule unchanged: the strict rule,
+or the quality margin and token test the registry was created with. This
+command exposes when a proposed fixed-size trial cannot pass even under the
+most favorable bounded observations.
 
 ```powershell
 python token_efficiency.py --db REGISTRY plan-feasibility --samples 8
@@ -21,7 +22,7 @@ arithmetic/allocation statuses and the explicit `authority=false` field.
 
 ## Necessary-condition proof
 
-The existing gate allocates round error and a finite-sample radius as:
+The strict gate allocates round error and a finite-sample radius as:
 
 \[
 \alpha_k=\frac{6\alpha}{\pi^2k^2},
@@ -32,7 +33,7 @@ r=\sqrt{\frac{2\log(2/\alpha_k)}{n}}.
 Let \(\bar X\) be the mean candidate-minus-incumbent binary quality difference,
 \(D\) the mean incumbent-minus-candidate token saving, \(B\) the declared
 per-task token cap, and \(\eta>0\) the required mean token reduction.
-The unchanged gate requires:
+The strict gate requires:
 
 \[
 \bar X\ge r,\qquad D\ge\eta+Br.
@@ -54,8 +55,9 @@ n\ \ge\
 \]
 
 If \(\eta=B\), no finite \(n\) suffices because \(r>0\). If observed quality is
-equal, \(\bar X=0<r\), so **no finite equal-observed-quality trial passes this
-particular rule**, regardless of observed token saving.
+equal, \(\bar X=0<r\), so **no finite equal-observed-quality trial passes the
+strict rule**, regardless of observed token saving. A quality margin changes
+this (next section).
 
 For \(\alpha=.05,\ k=1,\ B=100{,}000,\ \eta=1\), eight pairs are impossible:
 \(r\approx1.02306>1\). Nine pairs are algebraically not ruled out.
@@ -63,13 +65,54 @@ For \(\alpha=.05,\ k=1,\ B=100{,}000,\ \eta=1\), eight pairs are impossible:
 token improvements. The bound is not statistical power, attainable outcomes,
 freshness, task independence or likely certification.
 
+## Margin and bet registries
+
+A registry created with `--quality-margin` or `--token-test max-bet-v1`
+(`PROFILE_LEARNING.md`) gets a report for its own gate. The snapshot reads both
+settings from the stored configuration; this command has no flag for them.
+The report keeps every default key and adds `quality_margin`, `token_test`,
+`max_passing_harms`, `equal_quality_minimum_samples` and
+`token_minimum_samples`. `gate` names the registry's label,
+`controller_sample_limit` is 4,000, and a proposal above 4,000 tasks is refused
+with `gate_sample_limit_exceeded`.
+
+- Quality margin \(\delta\): the exact harm count replaces the strict quality
+  side. `max_passing_harms` is the largest harm count (tasks the incumbent
+  passes and the candidate fails) that passes at \(n\), or null if none does,
+  and `equal_quality_minimum_samples` is the smallest \(n\) at which zero harms
+  pass. `required_mean_quality_difference` is null, `best_case_quality_lower`
+  is \(-\delta\) when zero harms pass at \(n\) and \(-1\) otherwise, and
+  `equal_observed_quality_can_pass` is true when some harm count passes. At
+  round 1 with \(\alpha=.05\), \(\delta=0.10\) needs 40 tasks and allows at most
+  3 harms at \(n=100\) and 5 at \(n=128\); \(\delta=0.05\) needs 82 tasks and
+  allows 1 harm at \(n=128\).
+- `max-bet-v1`: the exact fixed bet replaces the Hoeffding token side.
+  `token_minimum_samples` is the smallest \(n\) at which every task saving
+  \(B\) passes (7 at round 1 with \(B=100{,}000\) and \(\eta=1\), 9 at round 2).
+  `required_mean_token_saving` is the smallest whole saving that passes when
+  every task saves it: 3,326 at \(n=128\), against \(\eta+Br\), about 25,577,
+  under Hoeffding. `best_case_normalized_token_upper` is \(-\eta/B\) when that
+  best case passes and 1 otherwise.
+- Without a margin the quality side stays strict, so a bet plan at round 1
+  still needs 9 tasks.
+
+`minimum_samples` is the larger of the quality and token minimums, for example
+40 at \(\delta=0.10\) under either token test, with `minimum_samples_reason`
+`larger_of_quality_and_token_minimums`. `status` is `mathematically_impossible`
+if either side is, else `numerically_indeterminate` if either side is, else
+`not_ruled_out`. The harm and bet sides are exact and add no numerical
+limitation. A snapshot for a proposed trial uses the next round, so after one
+trial a \(\delta=0.10\) registry reports at most 4 passing harms at \(n=128\).
+
 ## Numerical honesty
 
 The implementation reuses the existing `radius`/`round_alpha` functions.
 It computes the margin with exact rational arithmetic, then checks the rounded
 sample-floor candidate and predecessor using the actual floating-point gate.
 Cases near the boundary, reduction-ratio underflow, unsupported integer sizes
-or allocation underflow are explicitly reported.
+or allocation underflow are explicitly reported. The harm count and the fixed
+bet are decided exactly in integers, as the gate decides them; their minimums
+are searched up to 4,000 tasks.
 
 `not_ruled_out` is weaker than “feasible in practice.” Numerical ambiguity is
 not rounded into permission or a passing certificate. The log calculation
@@ -119,8 +162,9 @@ plans reject; existing allocation/admission and certification checks remain
 authoritative. A second snapshot detects intervening changes before dispatch.
 
 Synthetic demo/confirmation commands and existing-trial evaluation/replay are
-not reinterpreted or silently re-certified. No quality margin, token threshold,
-error budget, stored identity or old outcome is changed.
+not reinterpreted or silently re-certified. This check changes no quality
+margin, token test, token threshold, error budget, stored identity or old
+outcome; a registry's margin and test are fixed when it is created.
 
 ## Verified existing-registry result
 

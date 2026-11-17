@@ -121,7 +121,7 @@ Allocate a single lifetime error budget:
 r_k=\sqrt{\frac{2\log(2/\alpha_k)}{n_k}}.
 \]
 
-**Strict promotion gate**
+**Strict promotion gate** (the default)
 
 \[
 \bar X-r_k\ge0,\qquad
@@ -163,6 +163,73 @@ If the true incumbent success probability is positive:
 Thus the gate improves the declared expected reference tokens per verified
 success, under these assumptions—not universal correctness or internal compute.
 
+### Opt-in gates for new profile registries
+
+`initialize-profile` can create a registry with a quality margin, the
+fixed-bet token test, or both (`--quality-margin`, `--token-test max-bet-v1`;
+see `PROFILE_LEARNING.md`). The settings are stored in the registry's
+configuration and gate label and copied into every frozen comparison. They
+cannot be added to an existing registry. A registry created without them, and
+every registry that already exists, keeps the strict gate above byte for byte.
+
+| `--quality-margin` | `--token-test` | Registry gate label |
+| --- | --- | --- |
+| 0 (default) | `hoeffding-v1` (default) | `strict-paired-hoeffding-v1` |
+| \(0<\delta<1\) | `hoeffding-v1` | `harm-margin-hoeffding-tokens-v1` |
+| 0 | `max-bet-v1` | `strict-quality-max-bet-tokens-v1` |
+| \(0<\delta<1\) | `max-bet-v1` | `harm-margin-max-bet-tokens-v1` |
+
+Each setting replaces only its own side of the gate, and both sides must pass.
+Rounds under either setting are fixed, with at most 4,000 tasks, and each side
+still spends \(\alpha_k/2\). Both tests are decided exactly in integers; the
+stored \(\delta\), \(\eta\) and \(\alpha_k\) enter as exact fractions.
+
+**Quality margin.** Let \(H\) be the number of tasks the incumbent passes and
+the candidate fails. The quality side passes when
+
+\[
+\Pr[\mathrm{Bin}(n_k,\delta)\le H]\le\alpha_k/2.
+\]
+
+With tasks drawn independently from the pool, \(H\sim\mathrm{Bin}(n_k,h)\) for
+the harm rate \(h\). If \(h\ge\delta\), \(H\) is stochastically at least
+\(\mathrm{Bin}(n_k,\delta)\), so a pass has probability at most
+\(\alpha_k/2\). Since \(q_b-q_a=\Pr(\text{gain})-h\ge-h\), a pass gives
+\(q_b\ge q_a-\delta\) outside that event. The incumbent must be true off: a
+`RuntimePolicy` whose backend and instruction are both `none`. The controller
+checks this at initialization, preflight, proposal and freeze, and again on
+every saved certificate it reads for promotion, rollback or deployment, against
+that trial's frozen incumbent. Every margin trial is therefore compared with
+true off itself, and margins never add up along a promotion chain: when the
+chain's certificates are correct, every champion is at most \(\delta\) below
+true off. After a promotion the registry runs no further margin trial until it
+rolls back to true off. The certificate stores \(-\delta\) as its quality bound
+on a pass and \(-1\) otherwise. The harm count ignores gains, so a candidate
+that improves quality but has a few harms can fail a margin round that the
+strict gate would pass. Under a margin the ratio step above does not follow:
+tokens per success need not improve, and margin certificates say so.
+
+**Fixed-bet token test.** The token side passes when
+
+\[
+\frac{\alpha_k}{2}\prod_{i=1}^{n_k}\frac{B+T_{\tau,a,i}-T_{\tau,b,i}}{B+\eta_\tau}\ge1.
+\]
+
+Every factor is nonnegative because every total lies in \([0,B]\). For
+independent tasks the expected product is \(\prod_i(B+\mu_i)/(B+\eta_\tau)\),
+where \(\mu_i\) is task \(i\)'s expected saving. If the average of the
+\(\mu_i\) is at most \(\eta_\tau\), the AM-GM inequality bounds this by 1, and
+Markov's inequality bounds a false pass by \(\alpha_k/2\). No task order,
+variance estimate or tuning parameter enters. The claim is the same
+\(\mathbb E T_{\tau,b}\le\mathbb E T_{\tau,a}-\eta_\tau\), with each task's
+total counted at most \(B\); it equals the uncapped claim only where every run,
+not only the observed ones, stays within \(B\). The certificate stores
+\(-\eta_\tau/B\) as its token bound on a pass and \(1\) otherwise, so the shared
+pass rule decides as the exact test did. With the same saving on every task,
+the bet passes from 3,326 reference tokens per task at \(B=100{,}000\),
+\(\eta_\tau=1\) and \(n=128\), where the Hoeffding side needs a mean saving of
+\(\eta_\tau+Br_k\), 25,577.
+
 ### Optional stopping
 
 A fixed round commits its sample size before evaluation and closes after its
@@ -175,12 +242,15 @@ r_{k,n}=\sqrt{\frac{2\log(2n(n+1)/\alpha_k)}{n}}.
 
 Because \(\sum_{n\ge1}1/[n(n+1)]=1\), the same lifetime error budget holds over
 all looks. Rechecking a fixed-sample bound after every sample is not equivalent.
+The anytime mode is strict-gate only: `start_round` refuses an anytime round
+under a quality margin or the fixed bet before it spends any error.
 
 ### What this does not prove
 
 - Equal observed quality differences are inconclusive under the strict
-  zero-regression gate at every finite sample size. The implementation does
-  not quietly replace this with a tolerated decline or a quality-floor rule.
+  zero-regression gate at every finite sample size. A tolerated decline exists
+  only as the opt-in quality margin above, fixed when the registry is created
+  and stated in every certificate it issues; there is no quality-floor rule.
 - Jev probabilities are not outcome labels, calibrated correctness, or proof.
 - Unique task IDs prevent known replay; they do not establish statistical
   independence or detect relabeled duplicate tasks outside the registry.
@@ -206,7 +276,7 @@ explicit validated baseline
   -> freeze incumbent/candidate/oracle/measurement/regime
   -> reserve fresh confirmation inventory and spend round budget
   -> execute independently evaluated full paired tasks
-  -> persist the strict certificate
+  -> persist the certificate under the registry's gate
   -> atomically promote only the still-current incumbent
 ```
 
@@ -256,7 +326,7 @@ correct. Freshness covers indexed files, not unindexed newly created files.
 | --- | --- |
 | Reference identity and final envelope guard | `brainspace/tokens.py` |
 | Complete call/task/learning inventories | `brainspace/token_ledger.py` |
-| Fresh fixed/anytime confirmation and error spending | `brainspace/certification.py` |
+| Fresh fixed/anytime confirmation, exact harm and bet tests, error spending | `brainspace/certification.py` |
 | Immutable policies, protected request structure | `brainspace/request_policy.py` |
 | Durable bounded search, champion and rollback | `brainspace/optimizer.py` |
 | Advisory network decisions only | `brainspace/jev.py` |

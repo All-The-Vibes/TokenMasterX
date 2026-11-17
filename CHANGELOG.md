@@ -9,6 +9,18 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- Two opt-in gate settings for new profile-learning registries, fixed at `initialize-profile` and repeated on
+  `learn-profile`. `--quality-margin DELTA` (0 < DELTA < 1) replaces the quality side with an exact binomial test on the
+  number of tasks the incumbent passes and the candidate fails, against the true-off incumbent only, so margins cannot
+  add up across promotions. `--token-test max-bet-v1` replaces the Hoeffding token bound with an exact fixed-bet test of
+  the same mean saving, for totals counted at most `--token-cap`: at the default cap and 128 tasks a constant saving
+  passes from 3,326 reference tokens per task, where Hoeffding needs 25,577. Both are decided in integers, run fixed
+  rounds of at most 4,000 tasks and store their own gate label (`GateComparisonSpec`, `GateOptimizerConfig`), and
+  `plan-feasibility` reports the harm limit and both minimums for such registries. Without the flags nothing changes:
+  existing registries, certificates and feasibility reports stay byte-identical. `proofs/TokenMasterProofs/Gate.lean`
+  and `Bet.lean` prove the pass rule, that margins do not add up along a chain of correct certificates, and the bet's
+  false-pass bound for tasks with finitely many outcomes and rational probabilities; the binomial coverage of the harm
+  test is cited, not proved.
 - Pre-registered 48-session (`144`-launch, `410`-call) 4-arm multi-turn resume study on Copilot CLI `1.0.112` under
   default GitHub routing (`evidence/resume-multiturn-20261116/`, `gpt-6-astra` across 12 paired 3-turn workflows:
   `start` → `--resume <id>` → `--continue` across pure-coding, mid-session capability-escalation and capability-shrink
@@ -64,6 +76,13 @@ and the project aims to follow semantic versioning.
 
 ### Changed
 
+- The gate docs describe the two opt-in settings: `TOKEN_EFFICIENCY.md` (the rules and their proofs),
+  `PLAN_FEASIBILITY.md` (the new report fields), `PROFILE_LEARNING.md` (the flags, the true-off rule, both token floors
+  and the call budget a 128-task round needs), `EVALUATION_PROTOCOL.md`, `VERIFICATION.md`, `ACTIVE_EVALUATION_GOAL.md`,
+  `PRODUCT_RUNTIME.md`, `SKILL.md` and a dated note in `PROOFS-AND-CONTINUOUS-IMPROVEMENT.md`. Section 6.4 of
+  `APPLICABILITY.md` gains a dated amendment that admits both settings for a profile registry created under an approved
+  pre-registration note merged before any live call, and `MISSION.md` admits a certified, pre-registered quality margin
+  where it says "at equal quality".
 - The deck and the README describe the proofs by what they establish and how they are checked, not by how many theorems,
   tests or findings there are. The cover's proof strip no longer carries counts.
 - The docs catch up with `--lean` becoming opt-in, the November 1 and November 15 runs, `1.0.112` `tokenomics.py`

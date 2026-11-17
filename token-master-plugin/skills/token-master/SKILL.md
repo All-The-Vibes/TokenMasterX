@@ -166,7 +166,9 @@ learning compares an enabled local incumbent with a local neighbor, not an
 optimizer-off baseline. See `docs/PRODUCT_RUNTIME.md` before using these paths.
 For full compositions, `initialize-profile` / `learn-profile` use closed
 `RuntimePolicy` data and explicit pinned resources, with a true-off default.
-They reuse the strict registry/evaluator and do not promote automatically.
+They reuse the registry/evaluator and do not promote automatically. The gate is
+strict unless `initialize-profile` creates a new registry with a pre-registered
+`--quality-margin` or `--token-test max-bet-v1`; existing registries stay strict.
 See `docs/PROFILE_LEARNING.md`; Jev abstention is not an improvement judgment.
 Opt-in V4 adds lexical JSON payload compaction with exact original recovery;
 it is not sampling or a default change. See `docs/LEXICAL_JSON_POLICY.md` and

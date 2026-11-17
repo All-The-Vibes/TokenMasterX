@@ -14,7 +14,7 @@ call. We treat that as an engineering defect, not an inevitability to be billed 
 ## What "token economics" means here
 
 A token is work the model is forced to do. What matters is not one call but **the
-whole task**, summed over every call, at equal quality. We report two measures, in this order:
+whole task**, summed over every call, at equal quality (or within a certified, pre-registered quality margin). We report two measures, in this order:
 
 ```text
 raw tokens  = input + output                                        (provider-reported usage)
@@ -100,7 +100,7 @@ Django pilot was never replicated
 
 ## Principles
 
-- **Raw tokens first, then billed cost, per finished task, at equal quality.** Not per-turn
+- **Raw tokens first, then billed cost, per finished task, at equal quality (or within a certified, pre-registered quality margin).** Not per-turn
   size, and not premium requests.
 - **Test on the client itself.** A replica harness can mislead: Copilot CLI's own fixed
   prompt was almost 4 times the size of the PRS-4 agent's.

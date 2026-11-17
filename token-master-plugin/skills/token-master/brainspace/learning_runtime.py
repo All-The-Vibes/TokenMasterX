@@ -30,7 +30,7 @@ from . import tokens
 from .certification import PairedObservation, VerifiedOutcome
 from .optimizer import (
     EvaluationAttemptFailed, EvaluationAttemptInterrupted, FrozenTrial,
-    Optimizer, OptimizerConfig, reference_measurement,
+    GateOptimizerConfig, Optimizer, OptimizerConfig, reference_measurement,
 )
 from .runtime import RuntimeSession
 from .runtime_io import parse_json, safe_root
@@ -143,7 +143,7 @@ class RuntimeLearningManifest:
     order_seed: int = 0
 
     def __post_init__(self):
-        _require(type(self.config) is OptimizerConfig, "optimizer_config_required")
+        _require(type(self.config) in (OptimizerConfig, GateOptimizerConfig), "optimizer_config_required")
         self.config.__post_init__()
         _require(type(self.host_id) is str and bool(self.host_id.strip()), "host_identity_required")
         _require(type(self.order_seed) is int, "invalid_order_seed")

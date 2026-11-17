@@ -1,7 +1,8 @@
 # Full-runtime policy learning
 
 **Experimental and opt-in.** This extends the existing controller; it does not
-replace its quality gate, reset its budgets, or enable a policy globally.
+reset its budgets or enable a policy globally. It keeps the strict quality gate
+unless a new registry is created with the opt-in gate settings below.
 A bounded installed live check has completed; broad qualification remains open.
 
 ## What was missing
@@ -92,6 +93,12 @@ budgets are rejected before screening; final transactional checks remain.
 - Optional `--policy FILE` on initialization selects an explicit RuntimePolicy;
   omission is true off. Admission exercises materialization with primary
   transport disabled. It is **safety-only, not model-quality evidence**.
+- Optional `--quality-margin DELTA` and `--token-test max-bet-v1` on
+  initialization fix the registry's gate (see the opt-in gate settings below).
+  Give `learn-profile` the same values; a different value stops with
+  `runtime_configuration_mismatch`. The defaults, `0` and `hoeffding-v1`, keep
+  the strict gate and store the same configuration as omitting the flags.
+  `initialize-runtime` and `learn-runtime` reject both flags.
 - Optional `--jev` makes one advisory policy-settings-only screen using an
   already configured `TYPESAFE_API_KEY`. Task source and private gold are not
   sent. Abstention/failure retains deterministic ordering, with overhead counted.
@@ -116,21 +123,23 @@ claim.
 
 ## Mathematical boundary
 
-The strict paired quality/token test, lifetime error allocation, complete-task
-bounds, independent-outcome requirement, task/call exclusion and registry-only
-certificate checks are unchanged. A typed runtime policy widens the eligible
-action space; it does not strengthen statistical assumptions.
+The lifetime error allocation, complete-task bounds, independent-outcome
+requirement, task/call exclusion and registry-only certificate checks are
+unchanged. The paired quality/token test is the strict one unless the registry
+was created with the opt-in gate settings below. A typed runtime policy widens
+the eligible action space; it does not strengthen statistical assumptions.
 
 Fixed/exposed cases are not fresh IID confirmation. Equal observed successes
 remain inconclusive under the existing strict gate. Jev confidence is not a
 truth label. A hill climb can keep the incumbent and can miss a global optimum.
 
-**Plan feasibility before inference:** the actual fixed-look gate requires
+**Plan feasibility before inference:** the strict fixed-look gate requires
 `mean_quality_difference >= r` and `mean_token_saving >= minimum_reduction + B*r`,
 where `r = sqrt(2*log(2/alpha_k)/n) > 0`. Thus **no finite equal-observed-quality
-sample can pass this particular gate**. Repeating all-pass trials cannot turn
-them into a certificate. Some sufficiently strong positive quality difference
-is necessary under the current rule; the gate has not been relaxed.
+sample can pass the strict gate**. Repeating all-pass trials cannot turn
+them into a certificate. Under the strict gate some sufficiently strong positive
+quality difference is necessary. The opt-in settings below change these
+requirements only for a registry created with them, before its first trial.
 
 The saved eight-pair V4 diagnostic had `alpha=.05`, `k=1`, `n=8` and
 `r=1.0230566646800021 > 1`. It was arithmetically incapable of certification
@@ -145,6 +154,59 @@ overall**; this controller extension does not turn it into a successful update.
 
 See `TOKEN_EFFICIENCY.md`, `PRODUCT_RUNTIME.md`,
 `GUARDED_RUNTIME_RESULTS.md` and `ACTIVE_EVALUATION_GOAL.md`.
+
+## Opt-in gate settings
+
+`initialize-profile` takes two settings that fix a new registry's gate. They
+are stored in its configuration under their own gate label and cannot be added
+to or changed in an existing registry. Every registry that already exists, and
+every registry created without them, keeps the strict gate and its stored
+bytes. `TOKEN_EFFICIENCY.md` gives the rules and their proofs.
+
+- `--quality-margin DELTA`, with \(0<\delta<1\): the quality side passes when
+  an exact binomial test on the number of tasks the incumbent passes and the
+  candidate fails holds at \(\alpha_k/2\). A pass certifies verified success at
+  most \(\delta\) below the incumbent's. It is not an equal-quality result, and
+  tokens per success need not improve. The incumbent must be true off:
+  initialization, preflight, proposal and freeze refuse any other incumbent
+  with `margin_requires_true_off_incumbent` before spending call budget, and
+  promotion re-checks the trial's frozen incumbent. A margin with a `--policy`
+  that is not true off is refused after the registry file is created, as other
+  initialization refusals are. At round 1 with \(\alpha=.05\), \(\delta=0.10\)
+  needs at least 40 tasks and allows at most 5 harms in 128 tasks;
+  \(\delta=0.05\) needs 82 and allows at most 1 in 128. The harm count ignores
+  gains, so a candidate expected to improve quality belongs in a strict registry.
+- `--token-test max-bet-v1`: the token side uses the exact fixed bet in place
+  of the Hoeffding bound. The claim is the same mean saving of at least
+  `minimum_reduction` reference tokens per task, for each task's total counted
+  at most `--token-cap`. With the same saving on every task it passes from
+  3,326 tokens per task at the default cap, 128 tasks and round 1, where
+  Hoeffding needs 25,577. Without a margin it needs no true-off incumbent and
+  the quality side stays strict.
+- Either setting runs fixed rounds of at most 4,000 tasks. `freeze` refuses a
+  larger trial before it reserves anything: with `gate_sample_limit_exceeded`
+  when the call budget admits that many pairs, and otherwise with
+  `call_budget_exhausted`, which the call budget raises first.
+
+Under `hoeffding-v1`, a margin alone cannot certify unless the incumbent
+averages at least `minimum_reduction + B*r` reference tokens per task: 25,577
+at the default cap and 128 tasks. The true-off arms of the October 9
+diagnostic below used 6,935 and 8,414 reference tokens. A lower `--token-cap`
+lowers both floors, but one arm above the cap aborts the round and spends its
+error.
+
+Budget the whole study at initialization. `--max-search-calls` is fixed in the
+stored configuration and must be at least 2 times `--max-calls-per-arm` times
+the round size, plus 1 with `--jev`, summed over every trial the registry will
+run: 2,048 for one 128-task trial with the default 8 calls per arm (2,049 with
+`--jev`). The default of 256 stops any round above 16 tasks (15 with `--jev`).
+
+A certificate from such a registry supports a claim only under the
+pre-registration rules of the amendment to section 6.4 of
+`docs/research/2026-10-05-paper-2608.05643/APPLICABILITY.md`: a tracked note,
+approved by the owner and merged into `master` by pull request before any live
+call, fixes the margin, the cap or its rule, the round size, the task pool and
+the exact command lines.
 
 ## Installed live diagnostic — October 9, 2026
 

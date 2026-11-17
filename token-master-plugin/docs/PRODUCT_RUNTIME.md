@@ -32,7 +32,7 @@ qualification remain open. Upstream-default Headroom still excludes native
 | Model submission | Caller-owned `encode`/`send` boundary; builtin opt-in loopback Responses-compatible gateway adapter | Text/function-call histories only; no ambient credential lookup, redirect, proxy or retry |
 | Deployment selection | `Optimizer.deployment_policy(...)` | Rejects synthetic registries, wrong regimes/versions and unvalidated ancestry; does not promote or optimize on the hot path |
 | Local-policy learning | `RuntimePairEvaluator` plus the fixed `ReadonlyGatewayHost`; `token_efficiency.py initialize-runtime` / `learn-runtime` | Actual runtime calls and private checks, one bounded iteration; no backend/instruction search or automatic promotion |
-| Full-profile learning | Closed `RuntimePolicy` plus explicit `RuntimeResources`, `ProfileLearningManifest`, and `initialize-profile` / `learn-profile` | True-off default, actual components, same strict registry/gates; both arms ready before primary calls; no automatic promotion |
+| Full-profile learning | Closed `RuntimePolicy` plus explicit `RuntimeResources`, `ProfileLearningManifest`, and `initialize-profile` / `learn-profile` | True-off default, actual components, same registry/gates (strict unless created with `--quality-margin` or `--token-test max-bet-v1`); both arms ready before primary calls; no automatic promotion |
 | Accounting | Durable attempts/captures, `TaskTrace`, `TokenLedger` | Complete API-body reference tokens and reported gateway usage remain separate |
 
 The Ponytail instruction source is the pinned `DietrichGebert/ponytail` export,
