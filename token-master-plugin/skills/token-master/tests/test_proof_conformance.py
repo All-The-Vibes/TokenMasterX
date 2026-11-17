@@ -781,3 +781,220 @@ def test_hero_verdicts_follow_the_rule():
     for endpoint in ("raw_tokens", "usd_cold"):
         entry = check[endpoint]
         assert entry["holds"] == (entry["reduction_ci95"][1] >= entry["hero"])
+
+
+# ---------- Gate.lean and Bet.lean: the certification gate's pass rule, harm count and fixed bet ----------
+from fractions import Fraction  # noqa: E402
+import math  # noqa: E402
+
+from brainspace import certification  # noqa: E402
+from brainspace.optimizer import _true_off  # noqa: E402
+from brainspace.runtime_policy import RuntimePolicy, controller_policy_neighbors  # noqa: E402
+from brainspace.token_ledger import MeasurementIdentity  # noqa: E402
+
+GATE_A1, GATE_A2 = certification.round_alpha(0.05, 1), certification.round_alpha(0.05, 2)
+
+
+def _gate_spec(**settings):
+    return certification.GateComparisonSpec(
+        candidate_id="candidate-v1", incumbent_id="incumbent-v1",
+        measurement=MeasurementIdentity("ref", "1", "vocab-1", "full", "1", "full-model-text"),
+        oracle_id="trusted-tests-v1", workload_id="iid-fixtures-v1", environment_id="model-tools-v1",
+        token_cap=100000, minimum_token_reduction=1, **settings)
+
+
+def _lean_tail(n: int, harms: int, a: int, b: int) -> int:
+    """Gate.tail n harms a b, built up one task at a time by its recursion, for a <= b."""
+    row = [1] * (harms + 1)  # tail 0 l = 1
+    for _ in range(n):
+        row = [(b - a) * row[0]] + [(b - a) * row[j] + a * row[j - 1] for j in range(1, harms + 1)]
+    return row[harms]
+
+
+def _lean_bet(cap: int, eta, alpha_round: float, pairs) -> bool:
+    """Bet.passes p q c (ts.map (Bet.factor B d)), with e/d = eta, c = d * B + e and p/q = alpha_round/2."""
+    p, q = (Fraction(alpha_round) / 2).as_integer_ratio()
+    e, d = Fraction(eta).as_integer_ratio()
+    product = 1
+    for incumbent, candidate in pairs:
+        product *= d * max(cap + incumbent - candidate, 0)  # Nat subtraction stops at 0
+    return q * (d * cap + e) ** len(pairs) <= p * product
+
+
+def _rounds_near_the_floor(rng, cap, eta, alpha_round, count, spread):
+    """Seeded rounds whose per-task savings centre on the constant saving that just passes."""
+    for _ in range(count):
+        n = rng.randint(1, 60)
+        target = (cap + eta) * (2 / alpha_round) ** (1 / n) - cap
+        pairs = []
+        for _ in range(n):
+            saving = max(-cap, min(cap, round(rng.gauss(target, spread * cap))))
+            incumbent = rng.randint(max(0, saving), min(cap, cap + saving))
+            pairs.append((incumbent, incumbent - saving))  # both arms within [0, cap]
+        yield pairs
+
+
+def test_gate_rule_matches_the_lean_model():
+    """Gate.passes, Gate.zero_margin_is_strict and Gate.margin_lower_decides: certification.passes is
+    the model's rule on exactly scaled values and today's strict rule at margin 0, and the -margin or
+    -1.0 that quality_lower stores makes it accept exactly when the harm test passed and the token
+    bound holds."""
+    rng = random.Random(6100)
+    for _ in range(4000):
+        margin, lower, upper, required = (rng.randint(-40, 40) for _ in range(4))
+        scale = 2.0 ** rng.choice([0, -3, -17])  # exact binary64 values
+        model = -margin <= lower and upper <= -required
+        assert certification.passes(lower * scale, upper * scale, required * scale, margin * scale) is model
+        assert certification.passes(lower * scale, upper * scale, required * scale) is (
+            0 <= lower and upper <= -required)
+    required = 1 / 100000
+    for delta, limit in ((0.1, 5), (0.05, 1)):
+        margin_spec = _gate_spec(quality_margin=delta)
+        for harms in range(limit + 3):
+            rows = ([{"incumbent_success": 1, "candidate_success": 0}] * harms
+                    + [{"incumbent_success": 0, "candidate_success": 1}] * harms
+                    + [{"incumbent_success": 1, "candidate_success": 1}] * (128 - 2 * harms))
+            stored = certification.quality_lower(margin_spec, GATE_A1, rows, 0.0, 0.0)
+            assert stored == (-delta if harms <= limit else -1.0)
+            for upper in (-1.0, -required, 0.0, 1.0):
+                assert certification.passes(stored, upper, required, delta) is (
+                    harms <= limit and upper <= -required)
+
+
+def test_harm_test_matches_tail():
+    """Gate.tail, Gate.harmPasses and Gate.zero_harm_iff: tail is the binomial sum, harm_passes is
+    harmPasses with a/b the stored margin and p/q half the stored alpha_round, and the zero-harm
+    minimum is the first n with q * (b - a) ^ n <= p * b ^ n."""
+    for n in range(13):
+        for harms in range(n + 2):
+            for a, b in ((1, 10), (3, 7), (5, 6)):
+                assert _lean_tail(n, harms, a, b) == sum(
+                    math.comb(n, i) * a**i * (b - a) ** (n - i) for i in range(min(harms, n) + 1))
+    swapped = 0
+    for n in range(1, 13):
+        for harms in range(n + 2):
+            for delta in (0.1, 0.05, 0.3, 0.75):
+                for alpha_round in (GATE_A1, GATE_A2, 0.5, 0.9):
+                    a, b = Fraction(delta).as_integer_ratio()
+                    p, q = (Fraction(alpha_round) / 2).as_integer_ratio()
+                    lean = q * _lean_tail(n, harms, a, b) <= p * b**n
+                    assert certification.harm_passes(n, harms, delta, alpha_round) is lean
+                    swapped += (q * _lean_tail(n, harms, b - a, b) <= p * b**n) != lean
+    assert swapped > 100  # a sum with its weights swapped would be caught
+    for delta in (0.1, 0.05):
+        for alpha_round in (GATE_A1, GATE_A2):
+            a, b = Fraction(delta).as_integer_ratio()
+            p, q = (Fraction(alpha_round) / 2).as_integer_ratio()
+            first = next(n for n in range(1, 4001) if q * (b - a) ** n <= p * b**n)
+            assert certification.harm_minimum_samples(delta, alpha_round) == first
+    assert certification.harm_minimum_samples(0.1, GATE_A1) == 40
+
+
+def test_margin_needs_true_off_incumbent():
+    """Gate.no_compounding assumes every positive margin is used against one reference. _true_off holds
+    for a RuntimePolicy with no reducer and no instructions and for no neighbor of one, so a promoted
+    margin candidate is never the incumbent of a later margin round; only a rollback returns to it."""
+    assert _true_off(RuntimePolicy())
+    for policy in (RuntimePolicy(instruction="ponytail"), RequestPolicy(), RequestPolicy(enabled=True)):
+        assert not _true_off(policy)
+    neighbors = controller_policy_neighbors(RuntimePolicy())
+    assert neighbors and not any(_true_off(policy) for policy in neighbors)
+
+
+def test_bet_matches_the_lean_integer_form():
+    """Bet.passes and Bet.factor: bet_passes decides q * (d * B + e) ^ n <= p * prod d * (B + Ta - Tb)
+    on seeded rounds near the floor, for several caps, minimum savings and levels."""
+    rng = random.Random(6101)
+    seen = {True: 0, False: 0}
+    for cap in (10, 1000, 100000):
+        for eta in (1, 0.1, 2.5):
+            for alpha_round in (GATE_A1, GATE_A2, 0.5):
+                for pairs in _rounds_near_the_floor(rng, cap, eta, alpha_round, 40, 0.05):
+                    decision = certification.bet_passes(cap, eta, alpha_round, pairs)
+                    assert decision is _lean_bet(cap, eta, alpha_round, pairs), (cap, eta, alpha_round)
+                    seen[decision] += 1
+    assert min(seen.values()) >= 200, seen
+
+
+def test_bet_default_minimum_is_seven():
+    """Bet.pDefault, Bet.qDefault, Bet.default_min_samples, Bet.default_seven_can_pass and
+    Bet.default_six_cannot: the stored round-1 level at alpha 0.05 is the model's p/q, the model's
+    search finds 7, and the code agrees."""
+    p, q = 4380576431005153, 2 * 144115188075855872
+    assert (Fraction(GATE_A1) / 2).as_integer_ratio() == (p, q)
+    assert next(i for i in range(64) if q * 100001**i <= p * 200000**i) == 7
+    assert certification.bet_minimum_samples(100000, 1, GATE_A1) == 7
+    assert certification.bet_passes(100000, 1, GATE_A1, [(100000, 0)] * 7) is True
+    assert certification.bet_passes(100000, 1, GATE_A1, [(100000, 0)] * 6) is False
+
+
+def test_bet_upper_decides_with_passes():
+    """Bet.betUpper and Bet.bet_upper_decides: token_upper stores -required when the bet passes and
+    1.0 when it fails, so certification.passes accepts exactly when the quality bound holds and the
+    bet passed."""
+    rng = random.Random(6102)
+    bet = _gate_spec(token_test="max-bet-v1")
+    required = 1 / 100000
+    seen = {True: 0, False: 0}
+    for _ in range(100):
+        n = rng.randint(7, 140)
+        saving = rng.randint(0, 9000)
+        rows = [{"incumbent_tokens": 20000, "candidate_tokens": 20000 - saving + rng.randint(-500, 500)}
+                for _ in range(n)]
+        bet_ok = _lean_bet(100000, 1, GATE_A1, [(r["incumbent_tokens"], r["candidate_tokens"]) for r in rows])
+        stored = certification.token_upper(bet, GATE_A1, rows, 0.0, 0.0)
+        assert stored == (-required if bet_ok else 1.0)
+        for margin in (0, 0.1):
+            for lower in (-1.0, -0.1, 0.0, 0.5):
+                assert certification.passes(lower, stored, required, margin) is (lower >= -margin and bet_ok)
+        seen[bet_ok] += 1
+    assert min(seen.values()) >= 20, seen
+
+
+def test_bet_is_order_free_and_monotone():
+    """Bet.passes_perm, Bet.passes_mono and Bet.passes_mono_saving: reordering the tasks never changes
+    bet_passes, and a passing round still passes after one task saves more, whether its incumbent
+    used more or its candidate fewer, or both arms moved and the saving did not drop."""
+    rng = random.Random(6103)
+    cap, passing = 1000, 0
+    for pairs in _rounds_near_the_floor(rng, cap, 1, GATE_A1, 400, 0.1):
+        decision = certification.bet_passes(cap, 1, GATE_A1, pairs)
+        assert certification.bet_passes(cap, 1, GATE_A1, rng.sample(pairs, len(pairs))) is decision
+        if not decision:
+            continue
+        passing += 1
+        i = rng.randrange(len(pairs))
+        incumbent, candidate = pairs[i]
+        more = list(pairs)
+        more[i] = (rng.randint(incumbent, cap), rng.randint(0, candidate))  # Bet.MoreSaving
+        assert certification.bet_passes(cap, 1, GATE_A1, more)
+        bigger = rng.randint(incumbent - candidate, cap)
+        start = rng.randint(max(0, bigger), min(cap, cap + bigger))
+        moved = list(pairs)
+        moved[i] = (start, start - bigger)  # Bet.SavesMore: either arm may rise or fall
+        assert certification.bet_passes(cap, 1, GATE_A1, moved)
+    assert passing >= 50, passing
+
+
+def test_bet_false_pass_at_the_boundary():
+    """Bet.false_pass_chance at its hardest null, the shape of Bet.example_attained: every task saves
+    -B or s, with mean saving exactly eta (B 100,000, eta 1, n 128, round 1). A task at -B makes its
+    factor 0, so only a round in which every task saves s can pass, and the exact false-pass chance is
+    P(s) ^ 128: zero at s = 3,325, which bet_passes refuses, and 0.99985 of alpha_round/2 at the floor
+    s = 3,326. A seeded Monte Carlo of 10,000 rounds at s = 3,326 passes 100 to 191 (152 expected)."""
+    cap, n, half = 100000, 128, Fraction(GATE_A1) / 2
+    ratios = {}
+    for s in (3325, 3326, 3327, 3331):
+        chance_s = Fraction(cap + 1, cap + s)
+        assert chance_s * s - (1 - chance_s) * cap == 1  # the null's mean saving is exactly eta
+        assert certification.bet_passes(cap, 1, GATE_A1, [(s, 0)] * (n - 1) + [(0, cap)]) is False
+        every_task = certification.bet_passes(cap, 1, GATE_A1, [(s, 0)] * n)
+        ratios[s] = (chance_s**n if every_task else Fraction(0)) / half
+    assert ratios[3325] == 0 and all(ratio <= 1 for ratio in ratios.values())
+    assert abs(float(ratios[3326]) - 0.99985) < 5e-6 and ratios[3326] > ratios[3327] > ratios[3331]
+    rng = random.Random(191)
+    chance = (cap + 1) / (cap + 3326)
+    passed = sum(certification.bet_passes(cap, 1, GATE_A1, [(3326, 0) if rng.random() < chance else (0, cap)
+                                                            for _ in range(n)])
+                 for _ in range(10000))
+    assert 100 <= passed <= 191, passed

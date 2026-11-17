@@ -18,15 +18,21 @@ and an evidence digest. Labels are supplied by the configured trusted evaluator,
 not accepted as model confidence or Jev score. The controller owns promotion
 and must check certificate.comparison against its CURRENT immutable identities.
 
-Only the strict success-preserving gate is implemented:
+The strict success-preserving gate is the default (ComparisonSpec):
   alpha_k = 6 alpha / (pi^2 k^2)
   r = sqrt(2 log(2/alpha_k) / n)
   mean(Q_b-Q_a)-r >= 0 and mean((T_b-T_a)/B)+r <= -eta/B.
 ``mode="anytime"`` (no sample_size) uses alpha_k/[n(n+1)] at look n.
 Fixed rounds require the predeclared n and close at the first complete look.
 An anytime stream may continue after an inconclusive look, never after passing.
-No tolerated noninferiority loss, quality floor, or ratio alternative is hidden
-in this gate. Ratio improvement is conditional on positive incumbent success.
+A GateComparisonSpec, fixed in the registry before any round, replaces one or
+both sides, in fixed rounds of at most 4000 tasks, each side at alpha_k/2:
+quality_margin delta > 0 passes when P(Bin(n, delta) <= harms) <= alpha_k/2,
+harms counting tasks the incumbent passes and the candidate fails, exactly in
+integers, against a true-off incumbent only; token_test "max-bet-v1" passes when
+alpha_k/2 * prod(B + T_a - T_b) >= (B + eta)^n, exactly in integers. No other
+tolerance, quality floor, or ratio alternative is hidden in these gates. Ratio
+improvement is conditional on positive incumbent success and zero margin.
 
 SQLite BEGIN IMMEDIATE transactions reserve round budgets and holdouts, reject
 duplicate submissions, and atomically save results. Restarts use the SAME file
@@ -41,7 +47,9 @@ Software cannot prove external labels true, task independence/freshness outside
 this registry, a cap on unseen future runs, faithful identity pins, or complete
 capture. Callers must enforce the cap WITHOUT clipping observations, maintain a
 stable regime, and draw genuinely fresh independent task pairs after freezing.
-IDs/hashes and aggregate evidence are persisted, never raw model payloads.
+Under max-bet-v1 the token claim covers each task's total counted at most
+token_cap. IDs/hashes and aggregate evidence are persisted, never raw model
+payloads.
 """
 from __future__ import annotations
 
@@ -51,6 +59,7 @@ import sqlite3
 import uuid
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+from fractions import Fraction
 from pathlib import Path
 from typing import Iterable
 
@@ -69,6 +78,15 @@ _ASSUMPTIONS = (
     "Binary success labels come from the configured independent evaluator, never the optimized model score.",
     "One intact registry covers the entire error-budget family; predeclared fixed looks or the anytime rule are respected.",
 )
+STRICT_GATE = "strict-paired-hoeffding-v1"
+TOKEN_TESTS = ("hoeffding-v1", "max-bet-v1")
+MAX_GATE_SAMPLES = 4000
+_GATES = {
+    (False, "hoeffding-v1"): STRICT_GATE,
+    (True, "hoeffding-v1"): "harm-margin-hoeffding-tokens-v1",
+    (False, "max-bet-v1"): "strict-quality-max-bet-tokens-v1",
+    (True, "max-bet-v1"): "harm-margin-max-bet-tokens-v1",
+}
 _LIMITS = (
     "Software cannot prove external labels true; correctness authority belongs to the configured evaluator.",
     "No universal truth, per-task correctness, global optimum, hidden-compute, or future-drift guarantee.",
@@ -76,6 +94,24 @@ _LIMITS = (
     "Strict equal-quality observations generally cannot pass this finite-sample zero-regression gate.",
     "Tokens per success improve only conditional on positive true incumbent success probability.",
     "Freshness outside registered task IDs, capture completeness and immutable identity fidelity remain caller responsibilities.",
+)
+_MARGIN_LIMIT = (
+    "This margin certificate allows verified success up to quality_margin below the frozen true-off "
+    "incumbent, bounded by an exact count of tasks the incumbent passes and the candidate fails; it is "
+    "not a zero-regression or equal-quality claim."
+)
+_MARGIN_TOKENS_LIMIT = (
+    "Tokens per success need not improve under a tolerated quality loss; the radius field applies to "
+    "the token condition only."
+)
+_MARGIN_BET_TOKENS_LIMIT = (
+    "Tokens per success need not improve under a tolerated quality loss; the radius field applies to "
+    "neither condition."
+)
+_BET_LIMIT = (
+    "The token decision is an exact fixed-bet test at alpha_round/2; normalized_token_difference_upper "
+    "is -required on a pass and 1.0 otherwise, not an interval; the claim covers each task's reference "
+    "total counted at most token_cap, which equals the uncapped total where the cap assumption holds."
 )
 
 
@@ -111,6 +147,143 @@ def radius(alpha: float, k: int, n: int, *, anytime: bool = False) -> float:
     return math.sqrt(2 * log_term / n)
 
 
+def passes(quality_lower, token_upper, required, margin=0) -> bool:
+    """The one pass rule: quality bound >= -margin and token bound <= -required."""
+    return quality_lower >= -margin and token_upper <= -required
+
+
+def margin_of(value) -> float:
+    """quality_margin of a spec or config; 0 for the plain classes."""
+    return getattr(value, "quality_margin", 0)
+
+
+def token_test_of(value) -> str:
+    """token_test of a spec or config; hoeffding-v1 for the plain classes."""
+    return getattr(value, "token_test", "hoeffding-v1")
+
+
+def gate_label(quality_margin=0, token_test="hoeffding-v1") -> str:
+    """Registry gate label for validated settings; the defaults give STRICT_GATE."""
+    return _GATES[quality_margin > 0, token_test]
+
+
+def _harm_ratios(quality_margin, alpha_round):
+    if type(quality_margin) is not float or not 0 < quality_margin < 1:
+        raise ValueError("quality_margin must be a float strictly between zero and one")
+    _probability(alpha_round)
+    a, b = Fraction(quality_margin).as_integer_ratio()
+    p, q = (Fraction(alpha_round) / 2).as_integer_ratio()
+    return a, b, p, q
+
+
+def harm_limit(sample_size: int, quality_margin: float, alpha_round: float) -> int:
+    """Largest h with P(Bin(n, quality_margin) <= h) <= alpha_round/2, exactly; -1 if none."""
+    _positive_sqlite_integer(sample_size, "sample_size")
+    a, b, p, q = _harm_ratios(quality_margin, alpha_round)
+    n, bound = sample_size, p * b ** sample_size
+    term, total = (b - a) ** n, 0
+    for i in range(n + 1):
+        total += term
+        if q * total > bound:
+            return i - 1
+        term = term * (n - i) * a // ((i + 1) * (b - a))
+    return n
+
+
+def harm_passes(sample_size: int, harms: int, quality_margin: float, alpha_round: float) -> bool:
+    """The exact harm test: P(Bin(n, quality_margin) <= harms) <= alpha_round/2."""
+    _integer(harms, "harms")
+    return harms <= harm_limit(sample_size, quality_margin, alpha_round)
+
+
+def harm_minimum_samples(quality_margin: float, alpha_round: float,
+                         limit: int = MAX_GATE_SAMPLES) -> int | None:
+    """Smallest n <= limit at which zero harms pass, or None."""
+    _positive_sqlite_integer(limit, "limit")
+    a, b, p, q = _harm_ratios(quality_margin, alpha_round)
+    left, right = q, p
+    for n in range(1, limit + 1):
+        left, right = left * (b - a), right * b
+        if left <= right:
+            return n
+    return None
+
+
+def _bet_inputs(token_cap, minimum_token_reduction, alpha_round):
+    _positive_sqlite_integer(token_cap, "token_cap")
+    eta = minimum_token_reduction
+    if type(eta) not in (float, int) or not 0 < eta <= token_cap or not math.isfinite(eta):
+        raise ValueError("minimum_token_reduction must be finite, positive and <= token_cap")
+    _probability(alpha_round)
+    p, q = Fraction(alpha_round).as_integer_ratio()
+    e, d = Fraction(eta).as_integer_ratio()
+    return p, q, e, d
+
+
+def bet_passes(token_cap: int, minimum_token_reduction: float, alpha_round: float,
+               pairs) -> bool:
+    """Exact fixed full bet: alpha_round/2 * prod(B + T_a - T_b) >= (B + eta)^n."""
+    p, q, e, d = _bet_inputs(token_cap, minimum_token_reduction, alpha_round)
+    if isinstance(pairs, (str, bytes)):
+        raise ValueError("pairs must be a sequence of (incumbent_tokens, candidate_tokens)")
+    pairs = tuple(pairs)
+    if not pairs:
+        raise ValueError("a bet round needs at least one paired task")
+    capital = p
+    for pair in pairs:
+        if type(pair) is not tuple or len(pair) != 2:
+            raise ValueError("pairs must be a sequence of (incumbent_tokens, candidate_tokens)")
+        _integer(pair[0], "incumbent_tokens")
+        _integer(pair[1], "candidate_tokens")
+        factor = token_cap + pair[0] - pair[1]
+        if factor < 0:
+            raise ValueError("bet factor is negative; a run exceeds token_cap")
+        capital *= d * factor
+    return capital >= 2 * q * (d * token_cap + e) ** len(pairs)
+
+
+def bet_minimum_samples(token_cap: int, minimum_token_reduction: float, alpha_round: float,
+                        limit: int = MAX_GATE_SAMPLES) -> int | None:
+    """Smallest n <= limit at which every task saving token_cap passes the bet, or None."""
+    p, q, e, d = _bet_inputs(token_cap, minimum_token_reduction, alpha_round)
+    _positive_sqlite_integer(limit, "limit")
+    left, right = 2 * q, p
+    for n in range(1, limit + 1):
+        left, right = left * (d * token_cap + e), right * (2 * d * token_cap)
+        if right >= left:
+            return n
+    return None
+
+
+def quality_lower(spec, alpha_round, observations, x, r) -> float:
+    """x - r at margin 0; at a margin, -margin if the exact harm test passes, else -1.0."""
+    margin = margin_of(spec)
+    if not margin:
+        return x - r
+    harms = sum(o["incumbent_success"] == 1 and o["candidate_success"] == 0 for o in observations)
+    return -margin if harm_passes(len(observations), harms, margin, alpha_round) else -1.0
+
+
+def token_upper(spec, alpha_round, observations, z, r) -> float:
+    """z + r under hoeffding-v1; under max-bet-v1, -required if the bet passes, else 1.0."""
+    if token_test_of(spec) == "hoeffding-v1":
+        return z + r
+    pairs = tuple((o["incumbent_tokens"], o["candidate_tokens"]) for o in observations)
+    if bet_passes(spec.token_cap, spec.minimum_token_reduction, alpha_round, pairs):
+        return -(spec.minimum_token_reduction / spec.token_cap)
+    return 1.0
+
+
+def certificate_limits(spec) -> tuple[str, ...]:
+    """_LIMITS for the strict gate; the margin lines replace 3 and 4; the bet line is appended."""
+    bet = token_test_of(spec) == "max-bet-v1"
+    limits = _LIMITS
+    if margin_of(spec) > 0:
+        limits = (*_LIMITS[:3], _MARGIN_LIMIT,
+                  _MARGIN_BET_TOKENS_LIMIT if bet else _MARGIN_TOKENS_LIMIT, *_LIMITS[5:])
+    return (*limits, _BET_LIMIT) if bet else limits
+
+
 @dataclass(frozen=True, slots=True)
 class ComparisonSpec:
     candidate_id: str
@@ -143,7 +316,26 @@ class ComparisonSpec:
     def from_dict(cls, data: dict) -> ComparisonSpec:
         values = dict(data)
         values["measurement"] = MeasurementIdentity(**values["measurement"])
+        if "quality_margin" in values or "token_test" in values:
+            return GateComparisonSpec(**values)
         return cls(**values)
+
+
+@dataclass(frozen=True, slots=True)
+class GateComparisonSpec(ComparisonSpec):
+    """A pre-registered quality margin, the max-bet token test, or both, never neither."""
+    quality_margin: float = 0
+    token_test: str = "hoeffding-v1"
+
+    def __post_init__(self):
+        ComparisonSpec.__post_init__(self)  # zero-argument super() fails in a slots subclass
+        margin = self.quality_margin
+        if not (type(margin) is int and margin == 0 or type(margin) is float and 0 < margin < 1):
+            raise ValueError("quality_margin must be 0 or a float strictly between zero and one")
+        if type(self.token_test) is not str or self.token_test not in TOKEN_TESTS:
+            raise ValueError("token_test must be hoeffding-v1 or max-bet-v1")
+        if margin == 0 and self.token_test == "hoeffding-v1":
+            raise ValueError("the strict gate uses ComparisonSpec, not GateComparisonSpec")
 
 
 @dataclass(frozen=True, slots=True)
@@ -269,18 +461,21 @@ class CertificationRegistry:
     and processes on a filesystem with SQLite's ordinary locking guarantees.
     """
 
-    def __init__(self, path: str | Path, *, alpha: float, trusted_oracle_id: str):
+    def __init__(self, path: str | Path, *, alpha: float, trusted_oracle_id: str,
+                 gate: str = STRICT_GATE):
         _probability(alpha)
         round_alpha(alpha, 1)  # reject underflow before creating persistent state
         _text(trusted_oracle_id, "trusted_oracle_id")
+        if gate not in _GATES.values():
+            raise ValueError("gate must be a supported certification gate label")
+        self._gate = gate
         if str(path) == ":memory:":
             raise ValueError("confirmation registry must be durable, not :memory:")
         self._path = Path(path).expanduser().resolve()
         self._alpha = float(alpha)
         self._oracle = trusted_oracle_id
         self._config = _canonical(dict(
-            schema_version=1, alpha=self._alpha, trusted_oracle_id=self._oracle,
-            gate="strict-paired-hoeffding-v1",
+            schema_version=1, alpha=self._alpha, trusted_oracle_id=self._oracle, gate=gate,
         ))
         with self._transaction(initialize=True) as db:
             for statement in (
@@ -365,6 +560,9 @@ class CertificationRegistry:
             raise ValueError("spec must be a ComparisonSpec")
         if spec.oracle_id != self._oracle:
             raise ValueError("comparison oracle is not the configured trusted evaluator")
+        label = gate_label(margin_of(spec), token_test_of(spec))
+        if label != self._gate:
+            raise ValueError("comparison gate does not match this registry's gate")
         if mode == "fixed":
             if sample_size is None:
                 raise ValueError("fixed rounds require a positive sample_size")
@@ -374,6 +572,11 @@ class CertificationRegistry:
                 raise ValueError("anytime rounds do not take a fixed sample_size")
         else:
             raise ValueError("mode must be fixed or anytime")
+        if label != STRICT_GATE:
+            if mode != "fixed":
+                raise ValueError("margin and max-bet rounds must be fixed rounds")
+            if sample_size > MAX_GATE_SAMPLES:
+                raise ValueError("margin and max-bet rounds allow at most 4000 tasks")
         with self._transaction() as db:
             k = db.execute(
                 "INSERT INTO rounds(spec,mode,sample_size) VALUES(?,?,?)",
@@ -563,10 +766,10 @@ class CertificationRegistry:
             x = math.fsum(o["candidate_success"] - o["incumbent_success"] for o in observations) / n
             z = math.fsum((o["candidate_tokens"] - o["incumbent_tokens"]) / spec.token_cap
                           for o in observations) / n
-            lower = x - r
-            upper = z + r
+            lower = quality_lower(spec, a, observations, x, r)
+            upper = token_upper(spec, a, observations, z, r)
             required = spec.minimum_token_reduction / spec.token_cap
-            promoted = lower >= 0 and upper <= -required
+            promoted = passes(lower, upper, required, margin_of(spec))
             result = Certificate(
                 schema_version=1, registry_id=self._registry_id,
                 round_id=k, comparison=spec, mode=row["mode"],
@@ -577,6 +780,7 @@ class CertificationRegistry:
                 required_normalized_token_reduction=required,
                 task_set_sha256=_hash(_canonical([o["task_hash"] for o in observations])),
                 evidence_sha256=_hash(_canonical([dict(o) for o in observations])),
+                limits=certificate_limits(spec),
             )
             db.execute(
                 "INSERT INTO looks(round_id,n,certificate) VALUES(?,?,?)",

@@ -70,6 +70,9 @@ To list the axioms a theorem depends on, run `lake env lean` on a file that impo
 | The folder path has no newline and no surrounding whitespace | section 5 | No newline by the regular expression; whitespace is stripped (finding 2) |
 | The empty text fits the budget | section 6 | Holds for both the exact count and the fallback estimate, which count it as 0 |
 | A cache write never costs less than a cache read | section 7 | Checked: `test_cache_writes_never_cost_less_than_reads`, on the one price pair the recorded calls have |
+| A round's tasks are independent of each other and freshly drawn | section 8 | Assumed, as for the strict gate. An outage that fails one arm on many tasks breaks it |
+| `tail` is the binomial sum that `harm_limit` adds up | section 8 | Checked: `test_harm_test_matches_tail`, on every case with n up to 12 |
+| A run within the cap records its capped factor | section 8 | Holds by reading the code: within the cap nothing is capped, and any arm above `token_cap` fails the round |
 
 ## 1. The bridge keeps the provider's cache valid
 
@@ -577,6 +580,142 @@ Checks on the recorded data:
 Not covered: whether the bootstrap interval has 95% coverage, which is a statistical property of the
 resampling scheme and an assumption of the protocol, and the Wilcoxon and Holm-Bonferroni steps.
 
+## 8. The certification gate: a quality margin and a fixed-bet token test
+
+Source: `passes`, `quality_lower`, `harm_passes`, `harm_limit`, `token_upper`, `bet_passes` and
+`bet_minimum_samples` in `brainspace/certification.py`, and `_true_off` and its checks in
+`brainspace/optimizer.py`. Lean: `TokenMasterProofs/Gate.lean` and `TokenMasterProofs/Bet.lean`.
+
+A certification round compares a candidate policy with its incumbent on `n` fresh paired tasks. One
+function, `passes`, decides every round: the quality bound must be at least −δ, the `quality_margin`,
+and the token bound at most −η/B, with η the `minimum_token_reduction` and B the `token_cap`.
+`certify`, `_saved_certificate`, `_deployment_certificate` and the feasibility report all call it. The
+strict gate, the default, uses Hoeffding bounds on both sides and δ = 0. A registry can instead be
+created with a quality margin δ between 0 and 1, which replaces the quality side with an exact count
+of harms (tasks the incumbent passes and the candidate fails); with the token test `max-bet-v1`, which
+replaces the token side with an exact fixed bet; or with both. Both tests run in whole numbers on the
+exact values of the stored floats, in fixed rounds of at most 4,000 tasks, each at half of
+`alpha_round`, the round's share of the error budget. Their stored bounds are not intervals: the
+quality bound is −δ when the harm count passes and −1.0 when it fails, and the token bound is −η/B
+when the bet passes and 1.0 when it fails.
+
+With a/b the stored δ, p/q half the stored `alpha_round` and h harms in n tasks, the harm count passes
+when
+
+```math
+q \sum_{i=0}^{h} \binom{n}{i}\, a^i (b-a)^{n-i} \le p\, b^n ,
+```
+
+that is, when the chance of at most h harms at harm rate δ is at most `alpha_round / 2`.
+
+**Theorem 25** (`Gate.zero_margin_is_strict`, `Gate.margin_monotone`). At margin 0 the rule is the
+strict rule, and with the bounds held fixed, a larger margin never turns a pass into a fail. ∎
+
+The gate as a whole is not monotone across δ = 0, because its quality bound changes there and the
+harm count ignores gains: at n = 128 and round 1, 50 gains and 6 harms pass the strict quality side
+but fail the harm count at δ = 0.10, which allows at most 5 harms. A candidate expected to improve
+quality belongs in a strict registry.
+
+**Theorem 26** (`Gate.sound_on_coverage`, `Gate.harm_within_margin`). If the bounds cover the true
+values, a pass means the true success difference is at least −δ and the true token saving meets the
+requirement. If the harm rate is at most δ, the expected paired success difference is at least −δ. ∎
+
+**Theorem 27** (`Gate.margin_lower_decides`). For δ below the scaled 1.0, storing −δ when the harm
+count passes and −1.0 when it fails makes the shared rule accept exactly when the harm count passed and
+the token bound holds, so promotion and the deployment re-check decide as `certify` did. ∎
+
+**Theorem 28** (`Gate.no_compounding`, `Gate.within_margin_of_reference`, `Gate.compounding_example`).
+Take a chain of promotions from the reference policy in which every margin is at most δ, every step
+with a positive margin has the reference as its incumbent, and every step's certificate is correct.
+Then every champion of the chain is at most δ below the reference. Without the restriction, three
+promotions each within 1 end 3 below the start. *Proof:* by induction on the chain. ∎
+
+The code meets the hypothesis with the true-off rule. A margin registry's incumbent must be a
+`RuntimePolicy` with no reducer and no instructions, which `initialize`, `preflight_learning`,
+`propose` and `freeze` check, and which `_saved_certificate` checks against the trial's frozen
+incumbent. No neighbor of a true-off policy is true off, so after a margin promotion no margin round
+starts until a rollback returns to the reference. Rollback is not a step in the model: it returns to
+an earlier champion of the same chain, from which the theorem applies again.
+
+**Theorem 29** (`Gate.tail_mono_l`, `Gate.tail_antitone`, `Gate.passes_down`,
+`Gate.false_pass_bounded`). `tail n l a b` is $b^n$ times the chance of at most `l` harms in `n`
+independent tasks, each harmed with chance a/b, and `harmPasses` is the test above. The passing counts
+are the counts up to a limit, and if the true harm rate is at least the margin, a passing count has
+chance at most p/q. ∎
+
+**Theorem 30** (`Gate.zero_harm_iff`, `Gate.count_test_needs_margin`). With no harms the test reads
+$q(b-a)^n \le p\,b^n$, the condition `harm_minimum_samples` searches: 40 tasks at δ = 0.10 and 82 at
+δ = 0.05, at round 1. At margin 0 no count passes when p/q < 1, so the harm count needs a positive
+margin. ∎
+
+For the bet, with e/d the stored η, c = dB + e and p/q again half the stored `alpha_round`, the token
+side passes when
+
+```math
+q\, c^{n} \le p \prod_{i=1}^{n} d\,(B + T_{a,i} - T_{b,i}) ,
+```
+
+the capital after betting the largest fraction the cap allows on each task's saving beyond η.
+
+**Theorem 31** (`Bet.factor_exact`, `Bet.bet_factor_nonneg`). With both totals within the cap, every
+factor is nonnegative, for the full bet and for any smaller one. ∎
+
+**Theorem 32** (`Bet.bet_upper_decides`). Storing −η/B when the bet passes and 1.0 when it fails
+makes the shared rule accept exactly when the quality bound holds and the bet passed. ∎
+
+**Theorem 33** (`Bet.passes_mono`, `Bet.passes_mono_saving`, `Bet.passes_perm`). A pass stays a pass
+when any task saves more, whichever arm's tokens moved, and reordering the tasks never changes the
+decision, so no task order needs registering. ∎
+
+**Theorem 34** (`Bet.minSamples_le`, `Bet.default_min_samples`, `Bet.default_seven_can_pass`,
+`Bet.default_six_cannot`). No round smaller than `minSamples` can pass. At B = 100,000, η = 1 and
+round 1 at α = 0.05 the minimum is 7 tasks: 6 tasks that each save B fail, and 7 pass. ∎
+
+**Theorem 35** (`Bet.incumbent_floor`). Since no task saves more than its incumbent used, a pass
+needs the incumbent's mean tokens per task to reach $(B + \eta)(q/p)^{1/n} - B$. *Proof:* the AM-GM
+inequality. ∎
+
+At B = 100,000, η = 1, n = 128 and round 1 the smallest constant saving that passes is 3,326 tokens
+per task, against 25,577 for the Hoeffding bound.
+
+**Theorem 36** (`Bet.expected_capital_le_one`, `Bet.false_pass_bounded`, `Bet.false_pass_chance`,
+`Bet.example_attained`). Take independent tasks, each with finitely many outcomes, which may differ.
+If their average expected saving is at most η, the expected capital is at most 1, and a pass has
+chance at most p/q. One task at B = 3 reaches the bound. *Proof:* Markov's inequality, and the AM-GM
+inequality by Bernoulli's inequality, both proved in the file. ∎
+
+**Theorem 37** (`Bet.abort_sound_het`). The cap is checked after each run, and an arm above it fails
+the round. For independent tasks that may differ, the chance that every run stays within the cap and
+the bet passes is at most p/q whenever the tasks' capped totals meet the null of Theorem 36, however
+the runs above the cap behave. ∎
+
+So a bet certificate covers each task's total counted at most `token_cap`, which equals the uncapped
+total wherever the cap holds.
+
+Not proved here: that Hoeffding's bounds hold with the stated chance, which is a cited result; that
+`tail` is the binomial sum `harm_limit` adds up, which a test checks; probabilities that are not
+rational; drawing tasks without replacement from a finite pool; and the union bound over rounds.
+
+- `test_gate_rule_matches_the_lean_model`: `passes` equals the model's rule on 4,000 exactly scaled
+  cases and the strict rule at margin 0, and the stored −δ or −1.0 decides as Theorem 27 says.
+- `test_harm_test_matches_tail`: `tail` is the binomial sum, and `harm_passes` equals `harmPasses` on
+  every case with n up to 12, for four margins and four levels; a sum with its weights swapped differs
+  on more than 100 of them. The zero-harm minimums are the first passing n.
+- `test_margin_needs_true_off_incumbent`: `_true_off` accepts true off and rejects Ponytail, a
+  `RequestPolicy` and every neighbor of true off.
+- `test_bet_matches_the_lean_integer_form`: `bet_passes` equals `Bet.passes` on 1,080 seeded rounds
+  near the floor.
+- `test_bet_default_minimum_is_seven`: the stored level at α = 0.05 is the model's
+  `pDefault / qDefault`, and the code's minimum is 7.
+- `test_bet_upper_decides_with_passes`: `token_upper` stores −η/B or 1.0 as the integer form decides,
+  and `passes` then decides as Theorem 32 says.
+- `test_bet_is_order_free_and_monotone`: shuffling never changes the decision, and a passing round
+  still passes after a task saves more.
+- `test_bet_false_pass_at_the_boundary`: where each task saves −B or s with mean exactly η, at
+  B = 100,000, η = 1 and n = 128, the exact false-pass chance is 0 at s = 3,325 and 0.99985 of
+  `alpha_round / 2` at s = 3,326, so the bet uses nearly all of its error budget. A seeded Monte Carlo
+  of 10,000 rounds at s = 3,326 passes between 100 and 191 of them (152 expected).
+
 ## Findings
 
 Writing and reviewing the proofs found these gaps between the code's claims and its behavior, and
@@ -618,3 +757,4 @@ These gaps were found the same way and are fixed; the sections above describe th
 | `TokenMasterProofs/SessionPrefix.lean` | section 5 |
 | `TokenMasterProofs/NavCap.lean` | section 6 |
 | `TokenMasterProofs/Measurement.lean` | section 7 |
+| `TokenMasterProofs/Gate.lean`, `TokenMasterProofs/Bet.lean` | section 8 |

@@ -17,7 +17,8 @@ Record immutable identities for:
 - Reference tokenizer/version/vocabulary, complete-body extraction protocol,
   observable boundary and how missing calls are detected.
 - Whole-task token cap, maximum calls/retries/recovery and termination handling.
-- Minimum expected token reduction, total alpha, fixed sample size or anytime rule.
+- Minimum expected token reduction, total alpha, fixed sample size or anytime rule,
+  and any quality margin or token test the registry is created with.
 
 Use one intact registry for the error-budget family. Do not create a new database
 to retry unfavorable results or pretend previously exposed tasks are fresh.
@@ -69,7 +70,9 @@ Seal each completed learning run's exact task inventory.
 3. Execute both under the same declared limits; do not clip over-cap observations.
 4. Use the independent oracle on actual artifacts/answers.
 5. Submit both full traces and evidence digests to the registry.
-6. At the predeclared look, evaluate the strict gate in `TOKEN_EFFICIENCY.md`.
+6. At the predeclared look, evaluate the registry's gate in `TOKEN_EFFICIENCY.md`:
+   the strict gate, or the quality margin or fixed-bet token test the registry
+   was created with.
 7. Promote only a registry-saved passing certificate for the still-current
    incumbent and exact frozen regime. Otherwise retain it.
 
@@ -77,7 +80,9 @@ Report raw paired outcomes, failures, complete token vectors, rejected candidate
 learning overhead, uncertainty, unsupported cells and all inconclusive gates.
 For equal observed quality the strict finite-sample zero-regression gate remains
 inconclusive. Do not silently reinterpret “all observed tasks passed” as proof of
-zero expected quality decline.
+zero expected quality decline. A tolerated decline needs a new profile registry
+created with a quality margin before any live call; its certificate bounds the
+decline against true off by that margin and is not an equal-quality result.
 
 `evals/verify_savings.py` audits the current explicit stateless study adapter
 offline: it verifies source/vocabulary, run/call inventories and outcome hashes,

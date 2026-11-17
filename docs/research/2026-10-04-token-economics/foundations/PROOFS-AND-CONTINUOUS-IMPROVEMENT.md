@@ -367,6 +367,25 @@ The first inequality uses nonnegative cost and
 \(q_{b_k}\ge q_{a_k}>0\). This is a genuine conditional improvement result
 with fixed model weights.
 
+**Note, 2026-11-16: opt-in gate settings.** The implemented gate now has two
+settings that a new profile registry fixes when it is created
+(`token-master-plugin/docs/TOKEN_EFFICIENCY.md`); a registry without them uses
+(G) unchanged. Under a quality margin \(\delta>0\), an exact binomial test on
+the number of tasks the incumbent passes and the candidate fails replaces the
+quality side of (G), and the incumbent must be the fixed true-off policy
+\(a_0\) of §5.1. A pass then gives only \(q_{b_k}\ge q_{a_0}-\delta\), so the
+first inequality above can fail and cost per success need not improve; margin
+certificates say so. Under the fixed-bet token test, the token side passes
+when \(\tfrac{\alpha_k}{2}\prod_i(B+C_{a_k,i}-C_{b_k,i})\ge(B+\eta)^{n_k}\).
+For independent pairs whose average expected saving is at most \(\eta\), the
+AM-GM inequality bounds the expected product of the factors
+\((B+C_{a_k,i}-C_{b_k,i})/(B+\eta)\) by 1, and Markov's inequality bounds a
+false pass by \(\alpha_k/2\), the share Theorem 4 gives the token side. The bet
+certifies \(c_{b_k}\le c_{a_k}-\eta\) for each task's cost counted at most
+\(B\), so with the strict quality side Theorem 4 and this corollary hold for
+those capped costs. Both settings run in fixed rounds only; Corollary 4.2
+covers (G) alone.
+
 ### Important power limitation
 
 If true quality is exactly unchanged, a finite-sample lower bound proving
@@ -444,6 +463,12 @@ candidate: cost 0.99, success 0.90 -> cost/success 1.10
 ```
 
 Therefore use an explicit ratio-improvement gate when the ratio is the target.
+
+**Note, 2026-11-16.** The implemented quality margin (see the note after
+Corollary 4.1) follows this design: \(a_0\) is the true-off policy, and the
+controller refuses a margin trial against any other incumbent, so per-step
+losses cannot add up. It adds no ratio gate, so the caution above about cost
+per success applies to it.
 
 ### Proposition 5 — conservative ratio gate
 

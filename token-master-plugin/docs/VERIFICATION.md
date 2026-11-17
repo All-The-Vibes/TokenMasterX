@@ -457,7 +457,9 @@ The unclosed gates are representative independently graded real-model task
 evaluation and behavioral qualification beyond the bounded challenges, strict Codex isolation, Desktop
 runtime validation, and native versions/protocols outside the named matrix. Follow
 `EVALUATION_PROTOCOL.md`; do not relax the strict quality gate merely because
-equal-quality samples remain inconclusive.
+equal-quality samples remain inconclusive. A quality margin is allowed only as
+an opt-in setting fixed when a new profile registry is created
+(`PROFILE_LEARNING.md`).
 
 No model weights changed. No monetary objective, real host-profile installation,
 commit, push or production deployment is part of this checkpoint.

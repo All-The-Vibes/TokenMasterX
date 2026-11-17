@@ -7,3 +7,5 @@ import TokenMasterProofs.SessionPrefix
 import TokenMasterProofs.Cache
 import TokenMasterProofs.Folds
 import TokenMasterProofs.Tuning
+import TokenMasterProofs.Gate
+import TokenMasterProofs.Bet

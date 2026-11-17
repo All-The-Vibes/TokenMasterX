@@ -99,6 +99,10 @@ def _parser():
             runtime.add_argument("--ponytail-export", required=True)
             runtime.add_argument("--headroom-cache", required=True)
             runtime.add_argument("--headroom-assets", required=True)
+            runtime.add_argument("--quality-margin", type=float, default=0,
+                                 help="Pre-registered quality tolerance against true off; 0 keeps the strict gate.")
+            runtime.add_argument("--token-test", choices=("hoeffding-v1", "max-bet-v1"),
+                                 default="hoeffding-v1", help="Token-side test, fixed at initialize-profile.")
             if name == "learn-profile":
                 runtime.add_argument("--candidate-id",
                                      help="One declared neighbor instead of advisory selection; cannot combine with --jev.")
@@ -133,7 +137,7 @@ def _write_data(path, value):
 def _runtime_setup(args, *, profile_resources=None):
     from brainspace import runtime as runtime_module
     from brainspace.learning_runtime import RuntimeLearningManifest
-    from brainspace.optimizer import OptimizerConfig, reference_measurement
+    from brainspace.optimizer import GateOptimizerConfig, OptimizerConfig, reference_measurement
     from brainspace.readonly_learning_host import ORACLE, ReadonlyGatewayHost
 
     if not args.allow_network:
@@ -155,14 +159,18 @@ def _runtime_setup(args, *, profile_resources=None):
         from brainspace.runtime_policy import EXECUTION_CONTRACT, VERSION
         environment.update(resources=profile_resources.to_manifest(),
                            policy_family=VERSION, execution_contract=EXECUTION_CONTRACT)
-    config = OptimizerConfig(
+    margin = getattr(args, "quality_margin", 0) or 0  # an explicit 0.0 is the default 0
+    token_test = getattr(args, "token_test", "hoeffding-v1")
+    gate = ({} if (margin, token_test) == (0, "hoeffding-v1")
+            else {"quality_margin": margin, "token_test": token_test})
+    config = (GateOptimizerConfig if gate else OptimizerConfig)(
         measurement=reference_measurement(), oracle_id=ORACLE,
         workload_id="declared-readonly-tasks:" + _digest(list(host.task_ids)),
         environment_id=("readonly-profile-runtime:" if profile_resources is not None
                         else "readonly-runtime:") + _digest(environment),
         model_id=args.model, token_cap=args.token_cap,
         max_candidates=args.max_candidates, max_calls=args.max_search_calls,
-        calls_per_pair=2 * args.max_calls_per_arm, synthetic_only=False,
+        calls_per_pair=2 * args.max_calls_per_arm, synthetic_only=False, **gate,
     )
     inputs = (config, host.identity, tuple((task, host.task_digest(task)) for task in host.task_ids),
               args.max_calls_per_arm, args.order_seed)

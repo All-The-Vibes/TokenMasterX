@@ -18,7 +18,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from copy import deepcopy
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 import json
 import math
 from itertools import islice
@@ -28,7 +28,9 @@ from typing import Callable, Iterable
 
 from . import tokens
 from .certification import (
-    Certificate, CertificationRegistry, ComparisonSpec, PairedObservation, radius, round_alpha,
+    MAX_GATE_SAMPLES, STRICT_GATE, Certificate, CertificationRegistry, ComparisonSpec,
+    GateComparisonSpec, PairedObservation, certificate_limits, gate_label, margin_of, passes,
+    quality_lower, radius, round_alpha, token_test_of, token_upper,
 )
 from .jev import MODEL as JEV_MODEL, Result as JevResult
 from .request_policy import RequestPolicy, policy_neighbors
@@ -69,6 +71,11 @@ def _policy_neighbors(policy):
     for candidate in neighbors:
         _same_policy_family(policy, candidate)
     return neighbors
+
+
+def _true_off(policy):
+    """The fixed reference of a margin registry: no reducer and no instructions."""
+    return type(policy) is RuntimePolicy and policy.backend == "none" and policy.instruction == "none"
 
 
 def _trace_from_dict(value):
@@ -201,7 +208,21 @@ class OptimizerConfig:
     def from_dict(cls, value):
         data = dict(value)
         data["measurement"] = MeasurementIdentity(**data["measurement"])
+        if "quality_margin" in data or "token_test" in data:
+            return GateOptimizerConfig(**data)
         return cls(**data)
+
+
+@dataclass(frozen=True)
+class GateOptimizerConfig(OptimizerConfig):
+    """A registry-level quality margin and token test, frozen at creation."""
+    quality_margin: float = 0
+    token_test: str = "hoeffding-v1"
+
+    def comparison(self, candidate_id, incumbent_id):
+        spec = super().comparison(candidate_id, incumbent_id)
+        return GateComparisonSpec(*(getattr(spec, f.name) for f in fields(ComparisonSpec)),
+                                  quality_margin=self.quality_margin, token_test=self.token_test)
 
 
 @dataclass(frozen=True)
@@ -287,6 +308,7 @@ class Optimizer:
         self._count = tokens.count_tokens
         self._registry = CertificationRegistry(
             self.path, alpha=config.alpha, trusted_oracle_id=config.oracle_id,
+            gate=gate_label(margin_of(config), token_test_of(config)),
         )
         with self._registry._transaction() as db:
             existing = {row[0] for row in db.execute(
@@ -412,6 +434,7 @@ class Optimizer:
                 row = db.execute("SELECT value FROM opt_config WHERE id=1").fetchone()
                 _require(row is not None, "not_initialized")
                 config = OptimizerConfig.from_dict(parse_json(row[0]))
+                gate = gate_label(margin_of(config), token_test_of(config))
                 accounting = db.execute("SELECT version FROM opt_accounting WHERE id=1").fetchone()
                 _require(accounting is not None and accounting[0] == 2, "accounting_schema_mismatch")
                 registry = db.execute("SELECT value,registry_id FROM config WHERE id=1").fetchone()
@@ -420,7 +443,7 @@ class Optimizer:
                 # silently equate True, 1 and 1.0 in persisted identities.
                 _require(_canonical(parse_json(registry["value"])) == _canonical({
                     "schema_version": 1, "alpha": config.alpha,
-                    "trusted_oracle_id": config.oracle_id, "gate": "strict-paired-hoeffding-v1",
+                    "trusted_oracle_id": config.oracle_id, "gate": gate,
                 }), "configuration_changed")
                 trials = db.execute("SELECT * FROM opt_trials").fetchall()
                 _require(all(_positive(t["sample_size"], MAX_CONTROLLER_SAMPLES) for t in trials),
@@ -480,9 +503,11 @@ class Optimizer:
                     _require(incumbent_version is None or _positive(incumbent_version),
                              "invalid_trial")
                     version_source = "frozen_trial" if incumbent_version is not None else "unknown"
+                _require(gate == STRICT_GATE or n <= MAX_GATE_SAMPLES, "gate_sample_limit_exceeded")
                 arithmetic = fixed_plan_feasibility(
                     alpha=config.alpha, round_index=k, sample_size=n, token_cap=config.token_cap,
-                    minimum_token_reduction=config.minimum_token_reduction)
+                    minimum_token_reduction=config.minimum_token_reduction,
+                    quality_margin=margin_of(config), token_test=token_test_of(config))
                 required = n * config.calls_per_pair + int(screening) if trial_id is None else 0
                 affordable = min(MAX_CONTROLLER_SAMPLES, max(
                     0, (config.max_calls - allocated - int(screening)) // config.calls_per_pair))
@@ -590,6 +615,8 @@ class Optimizer:
         _require(not isinstance(task_ids, (str, bytes)), "invalid_task_ids")
         with self._transaction() as db:
             champion = self._champion(db)
+            _require(not margin_of(self.config) or _true_off(self._policy(db, champion["policy_id"])),
+                     "margin_requires_true_off_incumbent")
             max_tasks = self.config.max_calls // self.config.calls_per_pair
             try:
                 ids = self._registry._task_ids(tuple(islice(task_ids, max_tasks + 1)))
@@ -634,6 +661,7 @@ class Optimizer:
         _require(type(baseline) in (RequestPolicy, RuntimePolicy) and callable(validator),
                  "invalid_baseline")
         _require(baseline_policy_admissible(baseline), "enabled_baseline_required")
+        _require(not margin_of(self.config) or _true_off(baseline), "margin_requires_true_off_incumbent")
         _require(type(validation_call_limit) is int
                  and 0 <= validation_call_limit <= self.config.max_calls,
                  "invalid_validation_call_limit")
@@ -739,6 +767,7 @@ class Optimizer:
         with self._transaction() as db:
             champion = self._champion(db)
             policy = self._policy(db, champion["policy_id"])
+            _require(not margin_of(self.config) or _true_off(policy), "margin_requires_true_off_incumbent")
             tried = {row[0] for row in db.execute(
                 "SELECT candidate_id FROM opt_trials WHERE incumbent_id=?", (policy.policy_id,))}
             candidates = tuple(sorted(
@@ -1108,6 +1137,7 @@ class Optimizer:
         with self._transaction() as db:
             champion = self._champion(db)
             incumbent = self._policy(db, champion["policy_id"])
+            _require(not margin_of(self.config) or _true_off(incumbent), "margin_requires_true_off_incumbent")
             candidate = self._policy(db, candidate_id)
             _same_policy_family(incumbent, candidate)
             _require(candidate_id in {p.policy_id for p in _policy_neighbors(incumbent)},
@@ -1119,6 +1149,8 @@ class Optimizer:
             _require(db.execute("SELECT 1 FROM opt_trials WHERE candidate_id=? AND incumbent_id=?",
                                 (candidate_id, incumbent.policy_id)).fetchone() is None,
                      "candidate_already_attempted")
+            _require(gate_label(margin_of(self.config), token_test_of(self.config)) == STRICT_GATE
+                     or sample_size <= MAX_GATE_SAMPLES, "gate_sample_limit_exceeded")
             spec = self.config.comparison(candidate.policy_id, incumbent.policy_id)
             trial_id = db.execute(
                 """INSERT INTO opt_trials(spec_json,incumbent_version,candidate_id,
@@ -1275,9 +1307,11 @@ class Optimizer:
                  and certificate.mode == "fixed"
                  and certificate.sample_size == trial.sample_size
                  and certificate.decision == "certified"
-                 and certificate.quality_difference_lower >= 0
-                 and certificate.normalized_token_difference_upper
-                     <= -certificate.required_normalized_token_reduction,
+                 and passes(certificate.quality_difference_lower,
+                            certificate.normalized_token_difference_upper,
+                            certificate.required_normalized_token_reduction,
+                            margin_of(certificate.comparison))
+                 and (not margin_of(trial.comparison) or _true_off(trial.incumbent)),
                  "registry_certificate_required")
         return certificate
 
@@ -1410,16 +1444,19 @@ class Optimizer:
         z = math.fsum((o["candidate_tokens"] - o["incumbent_tokens"]) / spec.token_cap
                       for o in observations) / n
         required = spec.minimum_token_reduction / spec.token_cap
+        lower = quality_lower(spec, a, observations, x, r)
+        upper = token_upper(spec, a, observations, z, r)
         expected = Certificate(
             schema_version=1, registry_id=self._registry._registry_id,
             round_id=trial.round_id, comparison=spec, mode="fixed",
-            decision="certified" if x - r >= 0 and z + r <= -required else "not_certified",
+            decision="certified" if passes(lower, upper, required, margin_of(spec)) else "not_certified",
             sample_size=n, alpha_total=self.config.alpha, alpha_round=a, alpha_look=a,
             radius=r, mean_quality_difference=x, mean_normalized_token_difference=z,
-            quality_difference_lower=x - r, normalized_token_difference_upper=z + r,
+            quality_difference_lower=lower, normalized_token_difference_upper=upper,
             required_normalized_token_reduction=required,
             task_set_sha256=_hash(_canonical([o["task_hash"] for o in observations])),
             evidence_sha256=_hash(_canonical([dict(o) for o in observations])),
+            limits=certificate_limits(spec),
         )
         _require(_canonical(saved.to_dict()) == _canonical(expected.to_dict())
                  and expected.decision == "certified",
