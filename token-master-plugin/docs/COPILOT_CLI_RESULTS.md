@@ -1,7 +1,13 @@
-# Copilot CLI results (October 18 to November 16, 2026)
+# Copilot CLI results (October 18 to November 17, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
+- **Pre-registered 4-arm Pillar 5 repo-brief & cross-session recall study on Copilot CLI `1.0.112` (November 17, 2026):**
+  96 sessions (`24` paired tasks × `4` arms: `stock`, `tm_lean`, `tm_brief` with cold `.token-master/brief.md`, and
+  `tm_recall` with prior-session `Recall:` targets refreshed via `setup.py --refresh-brief`) under default GitHub
+  routing across this repository (`f4228f7e`) and `pallets/click` `8.1.8` (`934813e4`) (`gpt-6-astra`, reasoning `low`,
+  16 trace + 8 edit tasks stratified into 8 cold architecture, 8 cross-session recall, and 8 direct-symbol controls).
+  The protocol was hashed before any session (`evidence/repo-brief-20261117/`).
 - **Pre-registered 4-arm multi-turn & resumed-session study on Copilot CLI `1.0.112` (November 16, 2026):** 48 sessions
   (`144` CLI launches: Turn 1 start → Turn 2 `--resume <id>` → Turn 3 `--continue`, `410` API calls) under default
   GitHub routing on this repository (`gpt-6-astra`, reasoning `low`), comparing stock Copilot CLI, pre-PR-#20 per-turn
@@ -39,6 +45,36 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
+
+### Pre-registered 4-arm Pillar 5 repo-brief & cross-session recall study (Copilot CLI `1.0.112`, November 17, 2026)
+
+- **24 paired tasks (`T01`–`T12` on this repository + `C01`–`C12` on `pallets/click` `8.1.8`; `Bucket A` cold
+  architecture, `Bucket B` cross-session recall, `Bucket C` direct-symbol controls; 16 trace + 8 `pytest`-verified
+  edits), 96 sessions (`gpt-6-astra`, default GitHub routing, `evidence/repo-brief-20261117/`):** all four arms passed
+  **24/24** (`96/96` sessions).
+  - **`--lean` + cross-session recall brief (`tm_recall`, `301t` / `288t` via `hooks.sessionStart`):** raw tokens
+    `1,681,304` → **`842,824` (−49.9%; 95% CI −55.6% to −44.3%; Wilcoxon $p = 1.19 \times 10^{-7}$, Holm $p < 0.0001$;
+    lower on 24 of 24 tasks vs `stock`)**, cold-repriced cost `$6.90` → **`$3.79` (−45.1%)**, as-run billed cost `$4.23`
+    → **`$2.82` (−33.4%)**. Against `tm_lean` (`990,069` tokens, `$3.06`), `tm_recall` cut raw tokens **`−14.9%`
+    (95% CI −26.6% to −3.2%; Wilcoxon $p = 0.0035$; lower on 16 of 24 tasks)** and billed cost **`−7.9%` (raw Wilcoxon
+    $p = 0.0194$, Holm $p = 0.0583$)**.
+  - **`--lean` + cold architectural brief (`tm_brief`, `306t` / `296t`):** raw tokens `1,681,304` → **`838,974`
+    (−50.1% vs `stock`; −15.3% vs `tm_lean`, Wilcoxon $p = 0.0211$, lower on 17 of 24 tasks)**, cold-repriced cost
+    `$6.90` → **`$3.80` (−45.0%)**, as-run billed cost `$4.23` → **`$2.83` (−33.1% vs `stock`, −7.5% vs `tm_lean`)**.
+  - **Turn-1 navigation mechanism & causal buckets:** without `.token-master/brief.md`, **0 of 24 (`0.0%`)** `tm_lean`
+    sessions called `read_symbol` or `impact` on Turn 1; with the brief (`tm_brief`, `tm_recall`), **15 of 24 (`62.5%`)**
+    did (`8/8 = 100%` on `Bucket A` under `tm_brief`; `6/8 = 75%` on `Bucket B` under `tm_recall`), cutting orientation
+    calls by **43.9%** (`2.75 → 1.54`, Wilcoxon $p = 2.7 \times 10^{-5}$) and model calls by **16.2%** (`4.88 → 4.08`,
+    $p = 0.0021$). On `Bucket C` controls, the brief's `Layout: src/click (16)` line let `tm_brief`/`tm_recall` skip an
+    initial `locate` call on `T12` and `C09`–`C12`, yielding a net **−15.7%** token reduction (`23,032 → 19,422`) rather
+    than a pure overhead tax.
+  - **Honest limits & `/tokenomics` verification:** under the strict `320`-token cap on this repository, adding four
+    `Recall:` lines displaced the `Entry:` lines (`brainspace_posttooluse.py::main`, `brainspace_copilot_bridge.py::main`),
+    so `tm_brief` saved more than `tm_recall` on `Bucket A` (−29.8% vs −19.8% against `tm_lean`), while on `Bucket B`
+    `tm_recall` lowered mean tokens −10.3% vs `tm_brief` (`47,564 → 42,656`, 6 of 8 tasks) with $n = 8$ Wilcoxon
+    $p = 0.3828$ nonsignificant due to multi-call edit variance. Across all 48 brief sessions, `cl100k_base` brief
+    counts (`306`, `301`, `296`, `288`) matched empirical Call-1 API `input_tokens` deltas (`+306.7`, `+302.0`,
+    `+298.4`, `+288.7`) within **0.7 to 2.4 tokens**.
 
 ### Pre-registered 4-arm multi-turn & resumed-session study (Copilot CLI `1.0.112`, November 16, 2026)
 

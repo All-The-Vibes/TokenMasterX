@@ -1,0 +1,162 @@
+{
+  "task_id": "T04",
+  "arm": "tm_recall",
+  "session_id": "b70114b7-781c-4d59-b3a5-ba114e8c04f1",
+  "returncode": 0,
+  "wall_seconds": 39.219,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/request_policy.py"
+    ]
+  },
+  "final_answer": "DONE",
+  "tool_starts": [
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\request_policy.py"
+      }
+    },
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\request_policy.py:1-135"
+      }
+    },
+    {
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check existing worktree changes"
+      }
+    },
+    {
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport sys\nsys.dont_write_bytecode = True\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.request_policy import RequestPolicy\nfrom dataclasses import fields\nfrom itertools import product\np = RequestPolicy(version='request-policy-v6', enabled=True, max_input_tokens=100, max_wire_bytes=200, max_output_tokens=300)\nnames = ('max_input_tokens', 'max_wire_bytes', 'max_output_tokens')\nfor values in product((..., None, 42), repeat=3):\n    changes = {name: value for name, value in zip(names, values) if value is not ...}\n    q = p.with_limits(**changes)\n    assert q is not p\n    for field in fields(p):\n        assert getattr(q, field.name) == changes.get(field.name, getattr(p, field.name))\nfor name in names:\n    for invalid in (0, -1, True, False, 1.5, '10', [], {}):\n        try:\n            p.with_limits(**{name: invalid})\n        except ValueError:\n            pass\n        else:\n            raise AssertionError((name, invalid))\nassert (p.max_input_tokens, p.max_wire_bytes, p.max_output_tokens) == (100, 200, 300)\ntry:\n    p.with_limits(42)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('positional argument accepted')\nprint('Limit update checks passed')\n'@ | python -B -; if ($LASTEXITCODE -eq 0) { git --no-pager diff --check; git --no-pager diff --stat }",
+        "description": "Verify limit preservation, clearing, validation, and clean diff"
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 16,
+      "session_id": "b70114b7-781c-4d59-b3a5-ba114e8c04f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7105,
+      "uncached_input_tokens": 3,
+      "output_tokens": 35,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3590,
+      "total_nano_aiu": 5016700000,
+      "recharged_nano_aiu": 5016700000,
+      "cold_nano_aiu": 9055500000,
+      "created_at": "2026-11-17T09:51:43.560Z"
+    },
+    {
+      "row_id": 17,
+      "session_id": "b70114b7-781c-4d59-b3a5-ba114e8c04f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8138,
+      "uncached_input_tokens": 3,
+      "output_tokens": 85,
+      "cache_read_tokens": 7102,
+      "cache_write_tokens": 1033,
+      "total_nano_aiu": 2429450000,
+      "recharged_nano_aiu": 2429450000,
+      "cold_nano_aiu": 2429450000,
+      "created_at": "2026-11-17T09:51:46.810Z"
+    },
+    {
+      "row_id": 18,
+      "session_id": "b70114b7-781c-4d59-b3a5-ba114e8c04f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10044,
+      "uncached_input_tokens": 3,
+      "output_tokens": 341,
+      "cache_read_tokens": 8135,
+      "cache_write_tokens": 1906,
+      "total_nano_aiu": 4904000000,
+      "recharged_nano_aiu": 4904000000,
+      "cold_nano_aiu": 4904000000,
+      "created_at": "2026-11-17T09:51:54.381Z"
+    },
+    {
+      "row_id": 19,
+      "session_id": "b70114b7-781c-4d59-b3a5-ba114e8c04f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10443,
+      "uncached_input_tokens": 3,
+      "output_tokens": 408,
+      "cache_read_tokens": 10041,
+      "cache_write_tokens": 399,
+      "total_nano_aiu": 3545850000,
+      "recharged_nano_aiu": 3545850000,
+      "cold_nano_aiu": 3545850000,
+      "created_at": "2026-11-17T09:52:00.276Z"
+    },
+    {
+      "row_id": 20,
+      "session_id": "b70114b7-781c-4d59-b3a5-ba114e8c04f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10911,
+      "uncached_input_tokens": 3,
+      "output_tokens": 5,
+      "cache_read_tokens": 10440,
+      "cache_write_tokens": 468,
+      "total_nano_aiu": 1657000000,
+      "recharged_nano_aiu": 1657000000,
+      "cold_nano_aiu": 1657000000,
+      "created_at": "2026-11-17T09:52:02.692Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "5e0801e9f7cc7d7b",
+    "at": "2026-11-17T09:51:25.830Z",
+    "cwd": "C:\\tm-lanes\\repo-brief-20261117\\lanes\\l4\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 301
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7401,
+    "fixed_saved": 37005,
+    "saved_usd": 0.050575,
+    "lean_usd": 0.037005,
+    "first_usd": 0.01357,
+    "brief_tokens_recorded": 301
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

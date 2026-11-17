@@ -52,8 +52,10 @@ at every launch.
 `setup.py` installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`), with three
 tools: `locate` (a symbol or a file's outline), `read_symbol` (one symbol, file or
 line range) and `impact` (callers). It builds `.token-master/graph.json` with
-graphify and prebuilds `.token-master/symbols.sqlite`; both are gitignored. It also
-gitignores graphify's own output folder, `graphify-out/`, so searches skip it. Graph
+graphify, prebuilds `.token-master/symbols.sqlite`, and writes `.token-master/brief.md`
+(`<= 320` tokens; `--no-brief` skips it, and `setup.py <repo> --refresh-brief` refreshes it
+with verified symbol lookups recorded in `.token-master/recall.jsonl`); all are gitignored.
+It also gitignores graphify's own output folder, `graphify-out/`, so searches skip it. Graph
 servers installed by earlier versions (`graphify-nav`, `codegraph`) are removed
 when TokenMaster owns them.
 
@@ -102,13 +104,16 @@ MCP is model-invoked, not transparent interception. The Claude PostToolUse adapt
 has a separate versioned schema and runtime-acceptance gate. Unknown hosts/shapes
 are not assumed compatible. No model-visible savings footer is required.
 
-For Copilot, `brainspace_setup.py --host copilot` also installs an output hook by
-default; `--no-copilot-output-hook` skips it. The hook applies `request-policy-v6`
+For Copilot, `brainspace_setup.py --host copilot` also installs an output hook and a
+new-session brief hook by default; `--no-copilot-output-hook` and
+`--no-copilot-repo-brief` skip or remove them. The output hook applies `request-policy-v6`
 to whole-file `view` results: oversized files become outline digests, and folder
 listings are folded losslessly. A result that would not fit the hook's 9,000-byte
-output cap passes through unchanged. The native Copilot route defaults to the same
-policy. For Copilot, setup does not install the `brainspace` MCP server unless
-`--brainspace-mcp` is given.
+output cap passes through unchanged. The `hooks.sessionStart` brief hook injects
+`.token-master/brief.md` once as `additionalContext` on new sessions (`source == "new"`)
+and emits `{}` on `--resume` (`TOKENMASTER_REPO_BRIEF=0` disables it per launch). The
+native Copilot route defaults to the same v6 policy. For Copilot, setup does not install
+the `brainspace` MCP server unless `--brainspace-mcp` is given.
 
 Setup also copies the launcher to `<COPILOT_HOME>/token-master/`. Start Copilot CLI
 with `<runtime-python> <COPILOT_HOME>/token-master/brainspace_copilot_bridge.py -- copilot`;

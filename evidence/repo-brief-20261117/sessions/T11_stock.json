@@ -1,0 +1,86 @@
+{
+  "task_id": "T11",
+  "arm": "stock",
+  "session_id": "4006decd-886a-4c8d-9e06-2d996f0b0de0",
+  "returncode": 0,
+  "wall_seconds": 10.734,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "max_export_bytes": 131072,
+    "supported_mode": "full",
+    "identity_domain_prefix": "ponytail-instructions-v1"
+  },
+  "final_answer": "{\"max_export_bytes\":131072,\"supported_mode\":\"full\",\"identity_domain_prefix\":\"ponytail-instructions-v1\"}",
+  "tool_starts": [
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "class PonytailInstructions",
+        "glob": "*.py",
+        "output_mode": "content",
+        "-n": true,
+        "-A": 130
+      }
+    },
+    {
+      "name": "rg",
+      "arguments": {
+        "pattern": "MAX_EXPORT_BYTES",
+        "glob": "ponytail.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 88,
+      "session_id": "4006decd-886a-4c8d-9e06-2d996f0b0de0",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14436,
+      "uncached_input_tokens": 3,
+      "output_tokens": 41,
+      "cache_read_tokens": 9695,
+      "cache_write_tokens": 4738,
+      "total_nano_aiu": 7100000000,
+      "recharged_nano_aiu": 7100000000,
+      "cold_nano_aiu": 18249250000,
+      "created_at": "2026-11-17T09:58:58.897Z"
+    },
+    {
+      "row_id": 89,
+      "session_id": "4006decd-886a-4c8d-9e06-2d996f0b0de0",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 15978,
+      "uncached_input_tokens": 3,
+      "output_tokens": 37,
+      "cache_read_tokens": 14433,
+      "cache_write_tokens": 1542,
+      "total_nano_aiu": 3558800000,
+      "recharged_nano_aiu": 3558800000,
+      "cold_nano_aiu": 3558800000,
+      "created_at": "2026-11-17T09:59:01.041Z"
+    },
+    {
+      "row_id": 90,
+      "session_id": "4006decd-886a-4c8d-9e06-2d996f0b0de0",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 16190,
+      "uncached_input_tokens": 3,
+      "output_tokens": 29,
+      "cache_read_tokens": 15975,
+      "cache_write_tokens": 212,
+      "total_nano_aiu": 2010500000,
+      "recharged_nano_aiu": 2010500000,
+      "cold_nano_aiu": 2010500000,
+      "created_at": "2026-11-17T09:59:02.824Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": null,
+  "stderr_tail": []
+}

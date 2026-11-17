@@ -67,7 +67,7 @@ it is `! [Console]::OutputEncoding = [Text.UTF8Encoding]::new(); & "<python>" "<
 | --- | --- | --- |
 | `<COPILOT_HOME>/session-store.db`, table `assistant_usage_events` | Copilot CLI, for every model call | Model, API, token counts, cache reads and writes, GitHub's charge and price per token type |
 | `<COPILOT_HOME>/session-store.db`, table `sessions` | Copilot CLI | Session folder and repository |
-| `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, whether the lean tool set, the bridge and the navigation tools were on, and which tools the lean tool set excluded |
+| `<COPILOT_HOME>/token-master/launches.jsonl` | TokenMaster launcher | Start and end time, folder, whether the lean tool set, the bridge and the navigation tools were on, any injected `.token-master/brief.md` token count (`brief`), and which tools the lean tool set excluded |
 
 - The dashboard opens the database read-only. If Copilot CLI holds it, the dashboard reads a private copy.
 - The launch records hold no prompt text. A new-session launch counts a session's calls during it as TokenMaster calls
@@ -97,7 +97,8 @@ have made the same model calls.
    - The weights come from 1.0.104, `lean` from 1.0.112, and one set of weights serves both APIs. `skill` weighs 438
      with three skills installed; with the 128 skills of the test machine, keeping it adds about 3,990 tokens.
    - Fixed tokens saved per main-agent call = `lean` × the excluded tools' share (when the lean tool set was on) −
-     `nav` (when the navigation tools were installed).
+     `nav` (when the navigation tools were installed) − `brief` (when `hooks.sessionStart` injected
+     `.token-master/brief.md` at session start; inherited on resumed launches of the same session).
    - Cost saved per call = those tokens × the call's own cache-read price. Stock reads its fixed prefix from the cache
      after its first call.
    - A launch without `--lean`, the launcher's default since 0.3.0, gets no `lean` credit. With the navigation tools
@@ -145,7 +146,10 @@ GitHub routing across all 13 `LEAN_EXCLUDED_TOOLS`.
   and `--lean`, `nav` is the difference when `tokenmaster-nav` (`navigation_mcp.py`) is added, and `stock_first_cached`
   is the warm cache read across back-to-back stock sessions in two folders. On the 30 TokenMaster sessions of
   `evidence/md1-live-routing-20261115/`, the `1.0.112` calibration estimated 40.5% and 35.3% token savings against
-  45.2% (`tm_regex`) and 41.4% (`tm_md1`) measured.
+  45.2% (`tm_regex`) and 41.4% (`tm_md1`) measured. In the 96-session Pillar 5 repo-brief study
+  (`evidence/repo-brief-20261117/`), the `cl100k_base` `brief` counts (`306` / `301` on this repository and `296` /
+  `288` on Click 8.1.8) matched empirical `gpt-6-astra` Call-1 `input_tokens` differences (`+306.7` / `+302.0` and
+  `+298.4` / `+288.7` vs `tm_lean`) within 0.7 to 2.4 tokens.
 - **1.0.98:** `evidence/copilot-version-probe-20261023/` (11 tools, before Copilot CLI added the two workflow tools).
   `lean` is the difference between the first calls of a stock session and a lean-tool-set session with the same
   prompt; `nav` on 1.0.98 reused the 1.0.78-3 measurement. `stock_first_cached` is what three back-to-back stock

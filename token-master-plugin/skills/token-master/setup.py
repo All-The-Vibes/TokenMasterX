@@ -33,7 +33,12 @@ NAV_SERVER = "tokenmaster-nav"
 # Graph servers installed before v7; removed on install and uninstall when TokenMaster owns them.
 LEGACY_SERVERS = ("graphify-nav", "codegraph")
 # What navigation_mcp.py imports, copied next to it.
-NAV_MODULES = ("brainspace/__init__.py", "brainspace/tokens.py", "brainspace/symbol_index.py")
+NAV_MODULES = (
+    "brainspace/__init__.py",
+    "brainspace/tokens.py",
+    "brainspace/symbol_index.py",
+    "brainspace/repo_brief.py",
+)
 
 
 _resolve_host = resolve_host
@@ -130,8 +135,25 @@ def main() -> int:
     parser.add_argument("repo", nargs="?")
     parser.add_argument("--host", "-H", choices=HOSTS, default="")
     parser.add_argument("--python", default=sys.executable)
+    parser.add_argument("--brief", action=argparse.BooleanOptionalAction, default=True,
+                        help="write .token-master/brief.md alongside the symbol index (default: on)")
+    parser.add_argument("--refresh-brief", action="store_true",
+                        help="rebuild .token-master/brief.md from the existing index and recall.jsonl without re-running graphify")
     parser.add_argument("--uninstall", action="store_true")
     args = parser.parse_args()
+    if args.refresh_brief:
+        passed = Path(args.repo).resolve() if args.repo else Path.cwd()
+        if not passed.is_dir():
+            return _fail(f"repository path is not a directory: {passed}")
+        repo = _git_root(passed)
+        tm_dir = repo / ".token-master"
+        if not tm_dir.is_dir():
+            return _fail(f"no .token-master/ index found at {repo}; run setup.py first")
+        from brainspace.repo_brief import write_brief
+        meta = write_brief(repo, include_recall=True)
+        print(f"[token-master] refreshed brief: {repo / '.token-master' / 'brief.md'} "
+              f"({meta['tokens']} tokens, {meta['hub_count']} hubs, {meta['recall_count']} recall)")
+        return 0
     host = _resolve_host(args.host)
     home = _host_home(host)
     preflight(host)
@@ -215,10 +237,14 @@ def main() -> int:
     atomic_write(install_dir / "graph-runtime.json", (json.dumps(receipt, indent=2) + "\n").encode("utf-8"))
 
     # Build the symbol index now, so the first navigation call does not wait for it.
+    from brainspace.repo_brief import write_brief
     from brainspace.symbol_index import SymbolIndex
     index = SymbolIndex(repo)
+    brief_meta = None
     try:
         symbols = index.db.execute("SELECT count(*) FROM symbols WHERE kind != 'module'").fetchone()[0]
+        if args.brief:
+            brief_meta = write_brief(repo, index=index, include_recall=True)
     finally:
         index.close()
 
@@ -276,6 +302,11 @@ def main() -> int:
     if calls_edge_count is not None:
         summary.append(f"  calls edges: {calls_edge_count}" + (" (SPARSE — see warning above)" if sparse_warning else ""))
     summary.append(f"  symbols: {symbols} in {repo / '.token-master' / 'symbols.sqlite'}")
+    if brief_meta is not None and brief_meta.get("tokens"):
+        summary.append(
+            f"  brief:   {repo / '.token-master' / 'brief.md'}  "
+            f"({brief_meta['tokens']} tokens, {brief_meta['hub_count']} hubs, {brief_meta['recall_count']} recall)"
+        )
     summary.append(f"  agent:  {agent_path}")
     summary.append(f"  server: {nav_target}")
     if mcp_config_path is not None:
