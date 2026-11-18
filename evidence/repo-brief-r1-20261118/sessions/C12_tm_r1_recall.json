@@ -1,0 +1,92 @@
+{
+  "task_id": "C12",
+  "arm": "tm_r1_recall",
+  "session_id": "93546737-12c8-4661-a249-26485e08888d",
+  "returncode": 0,
+  "wall_seconds": 25.141,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "multicommand_flag": "chain",
+    "skip_list_attr": "protected_args"
+  },
+  "final_answer": "{\"multicommand_flag\":\"chain\",\"skip_list_attr\":\"protected_args\"}",
+  "tool_starts": [
+    {
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "src\\click\\core.py::BaseCommand.shell_complete"
+      }
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 89,
+      "session_id": "93546737-12c8-4661-a249-26485e08888d",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7099,
+      "uncached_input_tokens": 3,
+      "output_tokens": 31,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3584,
+      "total_nano_aiu": 4989200000,
+      "recharged_nano_aiu": 4989200000,
+      "cold_nano_aiu": 9028000000,
+      "created_at": "2026-11-18T20:40:08.051Z"
+    },
+    {
+      "row_id": 90,
+      "session_id": "93546737-12c8-4661-a249-26485e08888d",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7435,
+      "uncached_input_tokens": 3,
+      "output_tokens": 19,
+      "cache_read_tokens": 7096,
+      "cache_write_tokens": 336,
+      "total_nano_aiu": 1227600000,
+      "recharged_nano_aiu": 1227600000,
+      "cold_nano_aiu": 1227600000,
+      "created_at": "2026-11-18T20:40:14.747Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "b6427416558fe89a",
+    "at": "2026-11-18T20:39:53.658Z",
+    "cwd": "C:\\tm-lanes\\repo-brief-r1-20261118\\lanes\\l3\\repos\\click",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 309
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7393,
+    "fixed_saved": 14786,
+    "saved_usd": 0.028264,
+    "lean_usd": 0.014786,
+    "first_usd": 0.013478,
+    "brief_tokens_recorded": 309
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

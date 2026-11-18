@@ -1,0 +1,126 @@
+{
+  "tokenmasterx": {
+    "commit": "204d388ba34765fa2a0f4ccebda08d6fe27c793e",
+    "recall_jsonl_sha256": "fbf4f4103d6dfbd402fbfeae54405d214edc25407d076d3bde183bce4997fb50",
+    "cold_r1": {
+      "meta": {
+        "schema_version": 2,
+        "algorithm": "r1",
+        "root_prefix": "token-master-plugin/skills/token-master",
+        "sha256": "63aeb4f3e8d82d68084644c02e0e36487b790481a676509bb1d40d4a178ba7fb",
+        "tokens": 296,
+        "estimated_tokens": 296,
+        "token_budget": 320,
+        "source_fingerprint": "a73a124a3b18ca7d0dbcba8d60c64d0a1bf763a65fe24ed5b2631f396881a8f3",
+        "code_files": 203,
+        "hub_count": 7,
+        "entrypoint_count": 3,
+        "recall_count": 0,
+        "covered_modules": 10,
+        "objective_value": 34234,
+        "include_recall": true
+      },
+      "text": "[TokenMaster repo brief (@root=token-master-plugin/skills/token-master/): jump directly with read_symbol(path::Symbol) or impact(path::Symbol); skip broad glob/rg orientation]\nLayout (62 core, 141 aux; tests: 134 files): token-master-plugin/skills/token-master/ -> brainspace (39), . (13), brainspace/compressors (5), hosts (5)\nHub: brainspace/tokens.py::count_tokens (82-90, ~96t, callers=44)\nHub: brainspace/runtime_io.py::parse_json (8-27, ~129t, callers=18)\nHub: brainspace/runtime.py::RuntimeSession (103-1089, ~11483t, callers=12)\nHub: brainspace/request_policy.py::RequestPolicy (62-120, ~607t, callers=19)\nHub: brainspace/transport.py::ResponsesTransport (56-241, ~2017t, callers=17)\nHub: tokenomics.py::prices_of (97-104, ~98t, callers=8)\nHub: brainspace/ccr.py::CCR (118-608, ~5381t, callers=11)\nEntry: setup.py::main (133-322, ~2303t)\nEntry: brainspace_tools.py::main (201-219, ~217t)\nEntry: brainspace_setup.py::main (92-198, ~1500t)\n"
+    },
+    "v1_warm": {
+      "meta": {
+        "schema_version": 2,
+        "algorithm": "v1",
+        "root_prefix": "",
+        "sha256": "1c734922b38ce12968a5bbb1f1611bbb8745c965055af910d1b633452dc7f072",
+        "tokens": 312,
+        "estimated_tokens": 312,
+        "token_budget": 320,
+        "source_fingerprint": "a73a124a3b18ca7d0dbcba8d60c64d0a1bf763a65fe24ed5b2631f396881a8f3",
+        "code_files": 203,
+        "hub_count": 2,
+        "entrypoint_count": 0,
+        "recall_count": 5,
+        "include_recall": true
+      },
+      "text": "[TokenMaster repo brief: jump directly with read_symbol(path::Symbol) or impact(path::Symbol); skip broad glob/rg orientation]\nLayout (203 code files; tests: 134 files): evidence (64), token-master-plugin/skills (64), token-master-plugin/evals (56), docs (14), site (3), assets (2)\nRecall: token-master-plugin/skills/token-master/brainspace/runtime_io.py::parse_json (8-27, ~129t, hits=3, callers=18)\nRecall: token-master-plugin/skills/token-master/brainspace/tokens.py::_vocabulary_path (33-43, ~106t, hits=3, callers=4)\nRecall: token-master-plugin/skills/token-master/brainspace/certification.py::bet_passes (223-242, ~269t, hits=2, callers=1)\nRecall: token-master-plugin/skills/token-master/brainspace/host_output.py::_copilot_output (21-61, ~496t, hits=2)\nRecall: token-master-plugin/skills/token-master/brainspace/jev.py::validate_request (123-148, ~322t, hits=2)\nHub: token-master-plugin/skills/token-master/brainspace/tokens.py::count_tokens (82-90, ~96t, callers=44)\nHub: token-master-plugin/skills/token-master/brainspace/tokens.py::backend_info (112-122, ~110t, callers=23)\n"
+    },
+    "r1_warm": {
+      "meta": {
+        "schema_version": 2,
+        "algorithm": "r1",
+        "root_prefix": "token-master-plugin/skills/token-master",
+        "sha256": "d015c3b8ae76abb9858f788131bba1f1c3fb3e5e15ea4fb706c02a7898589cf4",
+        "tokens": 304,
+        "estimated_tokens": 304,
+        "token_budget": 320,
+        "source_fingerprint": "a73a124a3b18ca7d0dbcba8d60c64d0a1bf763a65fe24ed5b2631f396881a8f3",
+        "code_files": 203,
+        "hub_count": 4,
+        "entrypoint_count": 3,
+        "recall_count": 3,
+        "covered_modules": 10,
+        "objective_value": 35554,
+        "include_recall": true
+      },
+      "text": "[TokenMaster repo brief (@root=token-master-plugin/skills/token-master/): jump directly with read_symbol(path::Symbol) or impact(path::Symbol); skip broad glob/rg orientation]\nLayout (62 core, 141 aux; tests: 134 files): token-master-plugin/skills/token-master/ -> brainspace (39), . (13), brainspace/compressors (5), hosts (5)\nRecall: brainspace/host_output.py::_copilot_output (21-61, ~496t, hits=2)\nRecall: tokenomics.py::estimate (218-290, ~1175t, hits=2, callers=3)\nRecall: brainspace/jev.py::validate_request (123-148, ~322t, hits=2)\nHub: brainspace/tokens.py::count_tokens (82-90, ~96t, callers=44)\nHub: brainspace/runtime_io.py::parse_json (8-27, ~129t, callers=18)\nHub: brainspace/runtime.py::RuntimeSession (103-1089, ~11483t, callers=12)\nHub: brainspace/request_policy.py::RequestPolicy (62-120, ~607t, callers=19)\nEntry: setup.py::main (133-322, ~2303t)\nEntry: brainspace_tools.py::main (201-219, ~217t)\nEntry: brainspace_setup.py::main (92-198, ~1500t)\n"
+    }
+  },
+  "click": {
+    "commit": "934813e4d421071a1b3db3973c02fe2721359a6e",
+    "recall_jsonl_sha256": "2db4d3ad98b101743b038dc426081cae410f035f9faf656cff580235591a2f85",
+    "cold_r1": {
+      "meta": {
+        "schema_version": 2,
+        "algorithm": "r1",
+        "root_prefix": "",
+        "sha256": "d110304ca57a83e7f5d453e002e0f18f9ea2968753219160f34bf89f5b931cb6",
+        "tokens": 292,
+        "estimated_tokens": 292,
+        "token_budget": 320,
+        "source_fingerprint": "1e3299cde24114dc78152c0e2c355abfbd7985266afc18d5a79ac2c3b3b21e19",
+        "code_files": 41,
+        "hub_count": 10,
+        "entrypoint_count": 0,
+        "recall_count": 0,
+        "covered_modules": 10,
+        "objective_value": 10543,
+        "include_recall": true
+      },
+      "text": "[TokenMaster repo brief: jump directly with read_symbol(path::Symbol) or impact(path::Symbol); skip broad glob/rg orientation]\nLayout (16 core, 25 aux; tests: 29 files): src/click/ -> . (16)\nHub: src/click/utils.py::echo (219-319, ~800t, callers=6)\nHub: src/click/core.py::Context (169-834, ~5558t, callers=4)\nHub: src/click/shell_completion.py::CompletionItem (55-89, ~301t, callers=3)\nHub: src/click/_compat.py::open_stream (373-451, ~686t, callers=3)\nHub: src/click/exceptions.py::BadParameter (94-133, ~347t, callers=2)\nHub: src/click/termui.py::prompt (79-187, ~948t, callers=1)\nHub: src/click/parser.py::split_opt (111-117, ~62t, callers=2)\nHub: src/click/globals.py::resolve_color_default (54-67, ~97t, callers=3)\nHub: src/click/formatting.py::HelpFormatter (102-280, ~1271t, callers=1)\nHub: src/click/_termui_impl.py::Editor (514-608, ~688t, callers=1)\n"
+    },
+    "v1_warm": {
+      "meta": {
+        "schema_version": 2,
+        "algorithm": "v1",
+        "root_prefix": "",
+        "sha256": "0e49a47bc01cdaa1b04c9e26d1eda0bc69769f83e4ed24f8febc6ca684588b7f",
+        "tokens": 293,
+        "estimated_tokens": 293,
+        "token_budget": 320,
+        "source_fingerprint": "1e3299cde24114dc78152c0e2c355abfbd7985266afc18d5a79ac2c3b3b21e19",
+        "code_files": 41,
+        "hub_count": 3,
+        "entrypoint_count": 0,
+        "recall_count": 5,
+        "include_recall": true
+      },
+      "text": "[TokenMaster repo brief: jump directly with read_symbol(path::Symbol) or impact(path::Symbol); skip broad glob/rg orientation]\nLayout (41 code files; tests: 29 files): src/click (16), examples/complex (6), examples/aliases (2), examples/colors (2), examples/completion (2), examples/imagepipe (2), +6 dirs\nRecall: src/click/_compat.py::strip_ansi (485-486, ~20t, hits=3, callers=3)\nRecall: src/click/_termui_impl.py::ProgressBar (39-359, ~2432t, hits=2, callers=1)\nRecall: src/click/formatting.py::HelpFormatter (102-280, ~1271t, hits=2, callers=1)\nRecall: src/click/parser.py::OptionParser (255-531, ~2477t, hits=2, callers=1)\nRecall: src/click/testing.py::CliRunner (160-483, ~2523t, hits=2)\nHub: src/click/utils.py::echo (219-319, ~800t, callers=6)\nHub: src/click/core.py::Context (169-834, ~5558t, callers=4)\nHub: src/click/_compat.py::open_stream (373-451, ~686t, callers=3)\n"
+    },
+    "r1_warm": {
+      "meta": {
+        "schema_version": 2,
+        "algorithm": "r1",
+        "root_prefix": "src/click",
+        "sha256": "75f27db8cf36f24bf081c66871399d452c05659c5ca31f9dcbf4966b78d1ed7b",
+        "tokens": 309,
+        "estimated_tokens": 309,
+        "token_budget": 320,
+        "source_fingerprint": "1e3299cde24114dc78152c0e2c355abfbd7985266afc18d5a79ac2c3b3b21e19",
+        "code_files": 41,
+        "hub_count": 6,
+        "entrypoint_count": 0,
+        "recall_count": 5,
+        "covered_modules": 11,
+        "objective_value": 21028,
+        "include_recall": true
+      },
+      "text": "[TokenMaster repo brief (@root=src/click/): jump directly with read_symbol(path::Symbol) or impact(path::Symbol); skip broad glob/rg orientation]\nLayout (16 core, 25 aux; tests: 29 files): src/click/ -> . (16)\nRecall: testing.py::CliRunner (160-483, ~2523t, hits=2)\nRecall: formatting.py::HelpFormatter (102-280, ~1271t, hits=2, callers=1)\nRecall: parser.py::OptionParser (255-531, ~2477t, hits=2, callers=1)\nRecall: _termui_impl.py::ProgressBar (39-359, ~2432t, hits=2, callers=1)\nRecall: _compat.py::strip_ansi (485-486, ~20t, hits=3, callers=3)\nHub: utils.py::echo (219-319, ~800t, callers=6)\nHub: core.py::Context (169-834, ~5558t, callers=4)\nHub: shell_completion.py::CompletionItem (55-89, ~301t, callers=3)\nHub: exceptions.py::BadParameter (94-133, ~347t, callers=2)\nHub: globals.py::resolve_color_default (54-67, ~97t, callers=3)\nHub: decorators.py::HelpOption (525-551, ~214t, callers=1)\n"
+    }
+  }
+}
