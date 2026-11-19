@@ -1,0 +1,197 @@
+{
+  "task_id": "T04",
+  "arm": "stock",
+  "session_id": "4aa28906-234e-41c8-b3f2-61ab87340264",
+  "returncode": 0,
+  "wall_seconds": 34.0,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "rpc_send_timeout_s": 15,
+    "rpc_receive_timeout_s": 120,
+    "max_frame_error": "comparator request too large",
+    "retrieve_identity_error": "retrieval call identity changed",
+    "lock_busy_error": "native_operation_in_progress",
+    "http_error_states": [
+      "cancelled",
+      "rejected",
+      "waiter_timeout"
+    ]
+  },
+  "final_answer": "{\"rpc_send_timeout_s\":15,\"rpc_receive_timeout_s\":120,\"max_frame_error\":\"comparator request too large\",\"retrieve_identity_error\":\"retrieval call identity changed\",\"lock_busy_error\":\"native_operation_in_progress\",\"http_error_states\":[\"cancelled\",\"rejected\",\"waiter_timeout\"]}",
+  "tool_starts": [
+    {
+      "call_id": "call_RKu5RqAn9TgsUrrdqIxmb0Bs",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/{headroom,native_runtime}.py"
+      }
+    },
+    {
+      "call_id": "call_pgaji49qX8WXF53EbTogfkyx",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def rpc|def retrieve|written.get|self._receive|MAX_FRAME|raise ValueError",
+        "paths": ".\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      }
+    },
+    {
+      "call_id": "call_7iA4cjgM0BdvMm9nqkYH0uXt",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def recover|def note_http_state|blocking=False|rejected_before_dispatch|operation_error|raise ValueError",
+        "paths": ".\\token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      }
+    },
+    {
+      "call_id": "call_ItQq0TJFfT6BYxacylApasRl",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def rpc|def retrieve",
+        "paths": ".\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py",
+        "output_mode": "content",
+        "-A": 65
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_RKu5RqAn9TgsUrrdqIxmb0Bs",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/{headroom,native_runtime}.py"
+      },
+      "success": true,
+      "tokens": 33,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_pgaji49qX8WXF53EbTogfkyx",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def rpc|def retrieve|written.get|self._receive|MAX_FRAME|raise ValueError",
+        "paths": ".\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      },
+      "success": true,
+      "tokens": 420,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_7iA4cjgM0BdvMm9nqkYH0uXt",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def recover|def note_http_state|blocking=False|rejected_before_dispatch|operation_error|raise ValueError",
+        "paths": ".\\token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      },
+      "success": true,
+      "tokens": 2720,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_ItQq0TJFfT6BYxacylApasRl",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def rpc|def retrieve",
+        "paths": ".\\token-master-plugin\\skills\\token-master\\brainspace\\headroom.py",
+        "output_mode": "content",
+        "-A": 65
+      },
+      "success": true,
+      "tokens": 3568,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 12,
+      "session_id": "4aa28906-234e-41c8-b3f2-61ab87340264",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14655,
+      "uncached_input_tokens": 3,
+      "output_tokens": 25,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4885,
+      "total_nano_aiu": 7210950000,
+      "recharged_nano_aiu": 7210950000,
+      "cold_nano_aiu": 18443000000,
+      "created_at": "2026-11-19T07:35:22.524Z"
+    },
+    {
+      "row_id": 13,
+      "session_id": "4aa28906-234e-41c8-b3f2-61ab87340264",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14723,
+      "uncached_input_tokens": 3,
+      "output_tokens": 157,
+      "cache_read_tokens": 14652,
+      "cache_write_tokens": 68,
+      "total_nano_aiu": 2338200000,
+      "recharged_nano_aiu": 2338200000,
+      "cold_nano_aiu": 2338200000,
+      "created_at": "2026-11-19T07:35:27.239Z"
+    },
+    {
+      "row_id": 14,
+      "session_id": "4aa28906-234e-41c8-b3f2-61ab87340264",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18074,
+      "uncached_input_tokens": 3,
+      "output_tokens": 52,
+      "cache_read_tokens": 14720,
+      "cache_write_tokens": 3351,
+      "total_nano_aiu": 5923750000,
+      "recharged_nano_aiu": 5923750000,
+      "cold_nano_aiu": 5923750000,
+      "created_at": "2026-11-19T07:35:32.282Z"
+    },
+    {
+      "row_id": 15,
+      "session_id": "4aa28906-234e-41c8-b3f2-61ab87340264",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 21726,
+      "uncached_input_tokens": 3,
+      "output_tokens": 63,
+      "cache_read_tokens": 18071,
+      "cache_write_tokens": 3652,
+      "total_nano_aiu": 6690100000,
+      "recharged_nano_aiu": 6690100000,
+      "cold_nano_aiu": 6690100000,
+      "created_at": "2026-11-19T07:35:36.472Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

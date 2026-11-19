@@ -9,6 +9,24 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- R6 skeletal class projection and `@overload` 1-step resolution in `read_symbol` (`brainspace/symbol_index.py`,
+  `navigation_mcp.py`, and default `--class-skeleton r6` / `--class-skeleton v1` in `setup.py`, preserving `NavCap.lean`
+  `OUTPUT_BUDGET = 2,400`), evaluated across two sequential pre-registered 3-arm live studies (`150` sessions, `150/150`
+  passed) on Copilot CLI `1.0.112` (`gpt-6-astra`, this repository `@ dcd73c4a` and `pallets/click` `8.1.8 @ 934813e4`):
+  oversized containers (`> 120` lines) project header + class attributes + full `__init__`/`__new__`/`__post_init__` (`<=
+  80` lines) + 1-line member signatures with exact `Lstart-end` spans, contiguous `@overload` stubs + implementation
+  resolve in one call, and duplicate short names emit actionable `path:start-end` spans. Round 1 ($k = 1$, $\alpha_1 =
+  0.0304$, `evidence/class-skeleton-r6-20261119/`, `72` sessions) certified `tm_r6` vs `stock` on both PR `#35` exact
+  integer gates (`−56.3%` raw tokens, `71,324 → 31,137`, `0` harms, `max-bet-v1` wealth `1.0065 >= 1.0` vs `0.9211` for
+  `tm_v1`; `−18.7%` vs `tm_v1` on the `4/16` tasks that did not name target methods in the prompt). Confirmation Round 2
+  ($k = 2$, $\alpha_2 = 0.0076$, `evidence/class-skeleton-r6-discovery-20261119/`, `78` sessions across `26` paired tasks
+  with mechanical anti-leakage guards) triggered R6 on `15/18` oversized tasks, cutting `tool_result_tokens` `33.0%` vs
+  `tm_v1` (`15W/0T/3L`, Holm $p = 0.0047$; `read_symbol` tokens `−39.8%`, $p = 0.00038$), cutting billed cost `17.8%` on
+  `10/10` (`100%`) naturalistic class-discovery traces (`$0.1405 → $0.1154`, exact Wilcoxon $p = 0.00195$; `−6.2%` pooled,
+  $p = 0.0296$), and cutting raw tokens `48.0%` vs `stock` (Holm $p < 10^{-6}$), while raw `total_tokens` vs `tm_v1`
+  improved `−9.4%` on discovery traces and `−2.5%` on `Buckets A + B` (Holm $p = 0.504$) due to cached-prefix turns on
+  2-step skeleton → method lookups and multi-turn edit/`pytest` variance.
+
 - R1 submodular knapsack & marginal graph-coverage brief synthesis (`BRIEF_SCHEMA = 2` in `brainspace/repo_brief.py`,
   default `--brief-algorithm r1` with `--brief-algorithm v1` retained in `setup.py` for exact A/B baselines) and
   pre-registered 72-session 3-arm live study on Copilot CLI `1.0.112` (`evidence/repo-brief-r1-20261118/`, `gpt-6-astra`

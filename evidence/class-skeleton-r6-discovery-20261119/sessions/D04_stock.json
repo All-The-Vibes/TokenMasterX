@@ -1,0 +1,217 @@
+{
+  "task_id": "D04",
+  "arm": "stock",
+  "session_id": "9d9f87de-2055-43a9-810d-0f0196b4392a",
+  "returncode": 0,
+  "wall_seconds": 23.984,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "claim_method": "claim_pending_call",
+    "collector_scope": "native-executor-observed-only",
+    "non_unique_recovery_error": "native_recovery_call_not_unique",
+    "not_pending_recovery_error": "native_recovery_not_pending",
+    "http_error_states": [
+      "cancelled",
+      "rejected",
+      "waiter_timeout"
+    ]
+  },
+  "final_answer": "{\"claim_method\":\"claim_pending_call\",\"collector_scope\":\"native-executor-observed-only\",\"non_unique_recovery_error\":\"native_recovery_call_not_unique\",\"not_pending_recovery_error\":\"native_recovery_not_pending\",\"http_error_states\":[\"cancelled\",\"rejected\",\"waiter_timeout\"]}",
+  "tool_starts": [
+    {
+      "call_id": "call_05j3k7u7nDYkjOxJHl0uaPDR",
+      "name": "rg",
+      "arguments": {
+        "pattern": "claim|coverage|scope|len\\(matches\\)|_require|rejected_before_dispatch|operation_error",
+        "paths": [
+          "brainspace\\native_events.py",
+          "brainspace\\native_runtime.py"
+        ],
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "call_id": "call_PwBZbI1rR2dGgZ93KbIl1uoK",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name",
+        "description": "Locate repository files"
+      }
+    },
+    {
+      "call_id": "call_cPfZmOqIAm54f87fMRXcKi5Z",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/native_{events,runtime}.py"
+      }
+    },
+    {
+      "call_id": "call_f0bV8ymViIvxUmDY7BHwq34f",
+      "name": "rg",
+      "arguments": {
+        "pattern": "claim|coverage|scope|len\\(matches\\)|rejected_before_dispatch|operation_error",
+        "paths": [
+          "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py",
+          "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py"
+        ],
+        "output_mode": "content",
+        "-n": true,
+        "-C": 5
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_05j3k7u7nDYkjOxJHl0uaPDR",
+      "name": "rg",
+      "arguments": {
+        "pattern": "claim|coverage|scope|len\\(matches\\)|_require|rejected_before_dispatch|operation_error",
+        "paths": [
+          "brainspace\\native_events.py",
+          "brainspace\\native_runtime.py"
+        ],
+        "output_mode": "content",
+        "-n": true
+      },
+      "success": false,
+      "tokens": 21,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_PwBZbI1rR2dGgZ93KbIl1uoK",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name",
+        "description": "Locate repository files"
+      },
+      "success": true,
+      "tokens": 85,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_cPfZmOqIAm54f87fMRXcKi5Z",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/native_{events,runtime}.py"
+      },
+      "success": true,
+      "tokens": 33,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_f0bV8ymViIvxUmDY7BHwq34f",
+      "name": "rg",
+      "arguments": {
+        "pattern": "claim|coverage|scope|len\\(matches\\)|rejected_before_dispatch|operation_error",
+        "paths": [
+          "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py",
+          "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py"
+        ],
+        "output_mode": "content",
+        "-n": true,
+        "-C": 5
+      },
+      "success": true,
+      "tokens": 3773,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 10,
+      "session_id": "9d9f87de-2055-43a9-810d-0f0196b4392a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14668,
+      "uncached_input_tokens": 3,
+      "output_tokens": 66,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4898,
+      "total_nano_aiu": 7432200000,
+      "recharged_nano_aiu": 7432200000,
+      "cold_nano_aiu": 18664250000,
+      "created_at": "2026-11-19T08:38:05.446Z"
+    },
+    {
+      "row_id": 11,
+      "session_id": "9d9f87de-2055-43a9-810d-0f0196b4392a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14766,
+      "uncached_input_tokens": 3,
+      "output_tokens": 34,
+      "cache_read_tokens": 14665,
+      "cache_write_tokens": 98,
+      "total_nano_aiu": 1762000000,
+      "recharged_nano_aiu": 1762000000,
+      "cold_nano_aiu": 1762000000,
+      "created_at": "2026-11-19T08:38:07.716Z"
+    },
+    {
+      "row_id": 12,
+      "session_id": "9d9f87de-2055-43a9-810d-0f0196b4392a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14898,
+      "uncached_input_tokens": 3,
+      "output_tokens": 25,
+      "cache_read_tokens": 14763,
+      "cache_write_tokens": 132,
+      "total_nano_aiu": 1769300000,
+      "recharged_nano_aiu": 1769300000,
+      "cold_nano_aiu": 1769300000,
+      "created_at": "2026-11-19T08:38:11.300Z"
+    },
+    {
+      "row_id": 13,
+      "session_id": "9d9f87de-2055-43a9-810d-0f0196b4392a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14966,
+      "uncached_input_tokens": 3,
+      "output_tokens": 86,
+      "cache_read_tokens": 14895,
+      "cache_write_tokens": 68,
+      "total_nano_aiu": 2007500000,
+      "recharged_nano_aiu": 2007500000,
+      "cold_nano_aiu": 2007500000,
+      "created_at": "2026-11-19T08:38:16.154Z"
+    },
+    {
+      "row_id": 14,
+      "session_id": "9d9f87de-2055-43a9-810d-0f0196b4392a",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18849,
+      "uncached_input_tokens": 3,
+      "output_tokens": 62,
+      "cache_read_tokens": 14963,
+      "cache_write_tokens": 3883,
+      "total_nano_aiu": 6663050000,
+      "recharged_nano_aiu": 6663050000,
+      "cold_nano_aiu": 6663050000,
+      "created_at": "2026-11-19T08:38:20.971Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

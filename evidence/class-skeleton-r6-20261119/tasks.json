@@ -1,0 +1,472 @@
+{
+  "study_id": "class-skeleton-r6-20261119",
+  "title": "R6 Skeletal Class Projection vs Truncated Linear Reads in read_symbol",
+  "repositories": {
+    "tokenmasterx": {
+      "name": "All-The-Vibes/TokenMasterX",
+      "commit": "dcd73c4aa32a85f0423a2a99adf9934b86b4a609",
+      "pythonpath": "token-master-plugin/skills/token-master"
+    },
+    "click": {
+      "name": "pallets/click",
+      "commit": "934813e4d421071a1b3db3973c02fe2721359a6e",
+      "pythonpath": "src"
+    }
+  },
+  "tasks": [
+    {
+      "id": "T01",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "CCR"
+      ],
+      "prompt": "Inspect the `CCR` class in TokenMaster's CCR module (`ccr.py`), specifically its `stats`, `gc_report`, and `migrate_legacy` methods. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `ttl_policy`: exact string value of `ttl_policy` returned by `CCR.stats()`\n- `quota_unit`: exact string value of `quota_unit` returned by `CCR.stats()`\n- `invalid_gc_error`: exact `error` string set by `CCR.gc_report` when `max_bytes` or `ttl_seconds` fails validation\n- `eviction_reasons`: sorted 2-element list of the reason strings `CCR.gc_report` inserts into `ccr_evictions`\n- `legacy_table`: exact legacy SQLite table name queried in `CCR.migrate_legacy`",
+      "expected": {
+        "ttl_policy": "explicit_gc_idle_age",
+        "quota_unit": "compressed_content_bytes",
+        "invalid_gc_error": "invalid_policy",
+        "eviction_reasons": [
+          "evicted",
+          "expired"
+        ],
+        "legacy_table": "ccr"
+      }
+    },
+    {
+      "id": "T02",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "RuntimeSession"
+      ],
+      "prompt": "Inspect the `RuntimeSession` class in TokenMaster's `runtime.py` module, including its frozen field guard, `invoke`, and `recover` methods. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `frozen_error`: exact `AttributeError` message raised by `RuntimeSession.__setattr__` when mutating an already-set frozen field\n- `frozen_field_count`: integer count of field names in `RuntimeSession._FROZEN_FIELDS`\n- `default_intent`: default string value of the `intent` parameter on `RuntimeSession.invoke`\n- `recover_tools`: sorted 2-element list of tool name strings accepted by `RuntimeSession.recover`\n- `unsupported_recover_error`: exact `ValueError` message raised by `RuntimeSession.recover` when `name` is not one of those tools",
+      "expected": {
+        "frozen_error": "runtime_configuration_is_frozen",
+        "frozen_field_count": 23,
+        "default_intent": "conservative",
+        "recover_tools": [
+          "headroom_retrieve",
+          "retrieve_original"
+        ],
+        "unsupported_recover_error": "unsupported_recovery_namespace"
+      }
+    },
+    {
+      "id": "T03",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "CertificationRegistry"
+      ],
+      "prompt": "Inspect the `CertificationRegistry` class in TokenMaster's `certification.py` module, specifically `start_round`, `certify`, and `budget`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `modes`: sorted 2-element list of valid `mode` strings accepted by `CertificationRegistry.start_round`\n- `max_gated_samples`: integer maximum `sample_size` allowed in `start_round` when the gate is not `STRICT_GATE`\n- `incomplete_reserved_error`: exact `ValueError` message raised in `certify` when `n != reserved`\n- `budget_keys`: sorted list of the 6 dictionary keys returned by `CertificationRegistry.budget()`",
+      "expected": {
+        "modes": [
+          "anytime",
+          "fixed"
+        ],
+        "max_gated_samples": 4000,
+        "incomplete_reserved_error": "reserved tasks are still incomplete; cannot select only submitted outcomes",
+        "budget_keys": [
+          "allocated_alpha",
+          "alpha",
+          "next_round_alpha",
+          "registry_id",
+          "remaining_alpha",
+          "rounds"
+        ]
+      }
+    },
+    {
+      "id": "T04",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "HeadroomContainer",
+        "NativeRuntime"
+      ],
+      "prompt": "Inspect `HeadroomContainer` (`headroom.py`) and `NativeRuntime` (`native_runtime.py`). Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 6 keys:\n- `rpc_send_timeout_s`: integer timeout in seconds passed to `written.get(...)` in `HeadroomContainer.rpc`\n- `rpc_receive_timeout_s`: integer timeout in seconds passed to `self._receive(...)` in `HeadroomContainer.rpc`\n- `max_frame_error`: exact `ValueError` message raised in `HeadroomContainer.rpc` when `len(raw) > MAX_FRAME`\n- `retrieve_identity_error`: exact `ValueError` message raised at the end of `HeadroomContainer.retrieve` when `tool_call_id` or `tool_name` mismatches\n- `lock_busy_error`: exact `ValueError` message raised in `NativeRuntime.recover` when `self._lock.acquire(blocking=False)` fails\n- `http_error_states`: sorted 3-element list of `state` strings in `NativeRuntime.note_http_state` that set `rejected_before_dispatch` or `operation_error`",
+      "expected": {
+        "rpc_send_timeout_s": 15,
+        "rpc_receive_timeout_s": 120,
+        "max_frame_error": "comparator request too large",
+        "retrieve_identity_error": "retrieval call identity changed",
+        "lock_busy_error": "native_operation_in_progress",
+        "http_error_states": [
+          "cancelled",
+          "rejected",
+          "waiter_timeout"
+        ]
+      }
+    },
+    {
+      "id": "C01",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "Context"
+      ],
+      "prompt": "Inspect Click's `Context` class in `src/click/core.py`, specifically `lookup_default`, `invoke`, and `get_parameter_source`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `default_lookup_calls_callable_by_default`: boolean default value of the `call` parameter on `Context.lookup_default`\n- `missing_callback_error`: exact `TypeError` message raised in `Context.invoke` when a `Command` has `callback is None`\n- `sub_context_helper`: exact method name on `Context` called by `Context.invoke` to create `ctx` for a `Command`\n- `usage_error_wrapper`: exact context-manager function name wrapping `with ctx:` at the end of `Context.invoke`\n- `parameter_source_attr`: exact private attribute name on `Context` read by `Context.get_parameter_source`",
+      "expected": {
+        "default_lookup_calls_callable_by_default": true,
+        "missing_callback_error": "The given command does not have a callback that can be invoked.",
+        "sub_context_helper": "_make_sub_context",
+        "usage_error_wrapper": "augment_usage_errors",
+        "parameter_source_attr": "_parameter_source"
+      }
+    },
+    {
+      "id": "C02",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "BaseCommand",
+        "MultiCommand"
+      ],
+      "prompt": "Inspect `BaseCommand` and `MultiCommand` in `src/click/core.py`, specifically `BaseCommand.main` and `MultiCommand.resolve_command`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 6 keys:\n- `multi_allow_extra_args`: class-level boolean value of `MultiCommand.allow_extra_args`\n- `multi_allow_interspersed_args`: class-level boolean value of `MultiCommand.allow_interspersed_args`\n- `epipe_wrapper_class`: exact wrapper class name applied to `sys.stdout` and `sys.stderr` on `errno.EPIPE` in `BaseCommand.main`\n- `epipe_exit_code`: integer exit code passed to `sys.exit(...)` on `errno.EPIPE` in `BaseCommand.main`\n- `abort_exit_code`: integer exit code passed to `sys.exit(...)` when `Abort` is caught in standalone mode in `BaseCommand.main`\n- `unknown_cmd_template`: exact unformatted template string passed to `_(\"...\")` inside `ctx.fail(...)` in `MultiCommand.resolve_command`",
+      "expected": {
+        "multi_allow_extra_args": true,
+        "multi_allow_interspersed_args": false,
+        "epipe_wrapper_class": "PacifyFlushWrapper",
+        "epipe_exit_code": 1,
+        "abort_exit_code": 1,
+        "unknown_cmd_template": "No such command {name!r}."
+      }
+    },
+    {
+      "id": "C03",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "Parameter",
+        "Option"
+      ],
+      "prompt": "Inspect `Parameter` and `Option` in `src/click/core.py`, specifically `Parameter.get_default`, `Option.get_default`, `Option.to_info_dict`, `Option._parse_decls`, and `Option.consume_value`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `param_lookup_default_call_arg`: boolean `call` keyword value that `Parameter.get_default` passes to `ctx.lookup_default(...)`\n- `non_bool_flag_default_attr`: exact attribute name returned from the matching `Option` in `ctx.command.params` when `self.is_flag and not self.is_bool_flag` in `Option.get_default`\n- `option_extra_info_count`: integer number of keyword arguments passed to `info_dict.update(...)` in `Option.to_info_dict`\n- `slash_prefix_split_char`: exact 1-character `split_char` string used in `Option._parse_decls` when `decl[:1] == \"/\"`\n- `flag_sentinel_name`: exact module-level sentinel variable name compared via `is` in `Option.consume_value`",
+      "expected": {
+        "param_lookup_default_call_arg": false,
+        "non_bool_flag_default_attr": "flag_value",
+        "option_extra_info_count": 6,
+        "slash_prefix_split_char": ";",
+        "flag_sentinel_name": "_flag_needs_value"
+      }
+    },
+    {
+      "id": "C04",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "CliRunner",
+        "ProgressBar"
+      ],
+      "prompt": "Inspect `CliRunner` (`src/click/testing.py`) and `ProgressBar` (`src/click/_termui_impl.py`). Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `default_prog_name_fallback`: exact fallback string returned by `CliRunner.get_default_prog_name` when `cli.name` is falsy\n- `keeps_temp_dir_when_provided`: boolean indicating whether `CliRunner.isolated_filesystem(temp_dir=...)` leaves the created directory on disk (does not call `shutil.rmtree`) when `temp_dir` is not `None`\n- `finish_eta_known`: boolean value assigned to `self.eta_known` in `ProgressBar.finish()`\n- `finish_current_item`: value (`null` in JSON) assigned to `self.current_item` in `ProgressBar.finish()`\n- `finish_finished`: boolean value assigned to `self.finished` in `ProgressBar.finish()`",
+      "expected": {
+        "default_prog_name_fallback": "root",
+        "keeps_temp_dir_when_provided": true,
+        "finish_eta_known": false,
+        "finish_current_item": null,
+        "finish_finished": true
+      }
+    },
+    {
+      "id": "T05",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "CCR"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/ccr.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_compact_root_reference.py"
+      ],
+      "prompt": "Modify `CCR.stats` in `token-master-plugin/skills/token-master/brainspace/ccr.py` to accept an optional keyword-only parameter `include_evictions: bool = False`:\n- When `include_evictions=False` (the default), return the exact existing dictionary without an `\"evicted_records\"` key.\n- When `include_evictions=True`, query `SELECT COUNT(*) FROM ccr_evictions WHERE scope=?` for `self._scope_key` inside the existing connection block and include `\"evicted_records\": <int>` in the returned dictionary (and include `\"evicted_records\": 0` in the `_STORAGE_ERRORS` fallback dictionary when `include_evictions=True`).\nModify ONLY `token-master-plugin/skills/token-master/brainspace/ccr.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.ccr import CCR\nwith tempfile.TemporaryDirectory() as td:\n    db = Path(td) / 'ccr.sqlite'\n    c = CCR(db_path=db, workspace_root=Path(td), session_id='s1')\n    s0 = c.stats()\n    assert 'evicted_records' not in s0\n    assert c.stats(include_evictions=True)['evicted_records'] == 0\n    ref = c.stash('hello world ' * 50, source='a.txt', kind='fragment')\n    c.release_session()\n    rep = c.gc_report(max_bytes=0)\n    assert rep['evicted'] == 1\n    assert 'evicted_records' not in c.stats()\n    assert c.stats(include_evictions=True)['evicted_records'] == 1\n    sub = Path(td) / 'sub'\n    sub.mkdir(exist_ok=True)\n    other = CCR(db_path=db, workspace_root=sub, session_id='s2')\n    assert other.stats(include_evictions=True)['evicted_records'] == 0\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/ccr.py\n+++ b/token-master-plugin/skills/token-master/brainspace/ccr.py\n@@ -505,7 +505,7 @@\n         except (*_STORAGE_ERRORS, ValueError):\n             return 0\n \n-    def stats(self) -> dict:\n+    def stats(self, *, include_evictions: bool = False) -> dict:\n         \"\"\"Scoped statistics; do not inspect or expose unscoped legacy records.\"\"\"\n         try:\n             with self._connect() as conn:\n@@ -518,15 +518,25 @@\n                     \"SELECT COUNT(DISTINCT hash), COUNT(DISTINCT session) FROM ccr_leases WHERE scope=?\",\n                     (self._scope_key,),\n                 ).fetchone()\n-            return dict(entries=entries, original_bytes=orig, stored_bytes=stored,\n-                        compression_ratio=round(orig / stored, 2) if stored else None,\n-                        total_retrievals=hits, db_path=str(self._db_path), scope=self._scope_key,\n-                        shared=self.shared, pinned_entries=pins, active_sessions=sessions,\n-                        legacy_migration=\"explicit_full_digest_import_only\",\n-                        last_gc=self.last_gc, ttl_policy=\"explicit_gc_idle_age\",\n-                        quota_unit=\"compressed_content_bytes\")\n+                evicted = conn.execute(\n+                    \"SELECT COUNT(*) FROM ccr_evictions WHERE scope=?\",\n+                    (self._scope_key,),\n+                ).fetchone()[0] if include_evictions else None\n+            out = dict(entries=entries, original_bytes=orig, stored_bytes=stored,\n+                       compression_ratio=round(orig / stored, 2) if stored else None,\n+                       total_retrievals=hits, db_path=str(self._db_path), scope=self._scope_key,\n+                       shared=self.shared, pinned_entries=pins, active_sessions=sessions,\n+                       legacy_migration=\"explicit_full_digest_import_only\",\n+                       last_gc=self.last_gc, ttl_policy=\"explicit_gc_idle_age\",\n+                       quota_unit=\"compressed_content_bytes\")\n+            if include_evictions:\n+                out[\"evicted_records\"] = int(evicted)\n+            return out\n         except _STORAGE_ERRORS:\n-            return dict(entries=0, db_path=str(self._db_path), error=\"unreadable\", last_gc=self.last_gc)\n+            err = dict(entries=0, db_path=str(self._db_path), error=\"unreadable\", last_gc=self.last_gc)\n+            if include_evictions:\n+                err[\"evicted_records\"] = 0\n+            return err\n \n     def gc(self, max_bytes: int = 500 * 1024 * 1024, *, ttl_seconds=None) -> int:\n         \"\"\"Compatibility count API; see last_gc or gc_report for success/failure.\"\"\"\n"
+    },
+    {
+      "id": "T06",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "CertificationRegistry"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/certification.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_certification.py"
+      ],
+      "prompt": "Modify `CertificationRegistry.budget` in `token-master-plugin/skills/token-master/brainspace/certification.py` to accept an optional keyword-only parameter `include_open_rounds: bool = False`:\n- When `include_open_rounds=False` (the default), return the exact existing dictionary without an `\"open_rounds\"` key.\n- When `include_open_rounds=True`, include `\"open_rounds\": <int>` counting rows in `rounds` with `state='open'` inside the same transaction.\nModify ONLY `token-master-plugin/skills/token-master/brainspace/certification.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.certification import CertificationRegistry, ComparisonSpec, PairedObservation, VerifiedOutcome\nfrom brainspace.token_ledger import CallRecord, MeasurementIdentity, TaskTrace\nwith tempfile.TemporaryDirectory() as td:\n    meas = MeasurementIdentity('ref', '1', 'vocab-1', 'full', '1', 'full-model-text')\n    reg = CertificationRegistry(Path(td) / 'cert.sqlite', alpha=0.05, trusted_oracle_id='oracle-v1')\n    spec = ComparisonSpec(candidate_id='cand', incumbent_id='inc', measurement=meas, oracle_id='oracle-v1', workload_id='w1', environment_id='e1', token_cap=100, minimum_token_reduction=10)\n    assert 'open_rounds' not in reg.budget()\n    assert reg.budget(include_open_rounds=True)['open_rounds'] == 0\n    k1 = reg.start_round(spec, sample_size=1)\n    k2 = reg.start_round(spec, sample_size=1)\n    assert reg.budget(include_open_rounds=True)['open_rounds'] == 2\n    def mk_trace(pol, tok):\n        c = CallRecord(call_id=f't1:{pol}', task_id='t1', attempt_id='a1', phase='learning', role='primary', model_id='m1', harness_id='h1', measurement_id=meas.identity, reference_input_tokens=tok, reference_output_tokens=0, completion_status='succeeded', coverage='complete_for_declared_boundary')\n        return TaskTrace(task_id='t1', policy_id=pol, measurement=meas, phase='learning', learning_run_id='r1', calls=(c,), expected_call_ids=(c.call_id,), coverage='complete_for_declared_boundary')\n    reg.reserve_tasks(k1, spec, ['t1'])\n    obs = PairedObservation(task_id='t1', incumbent=mk_trace('inc', 90), candidate=mk_trace('cand', 10), incumbent_outcome=VerifiedOutcome('t1', 'inc', 'oracle-v1', True, 'a' * 64), candidate_outcome=VerifiedOutcome('t1', 'cand', 'oracle-v1', True, 'b' * 64))\n    reg.submit(k1, spec, [obs])\n    reg.certify(k1, spec)\n    assert 'open_rounds' not in reg.budget()\n    b = reg.budget(include_open_rounds=True)\n    assert b['rounds'] == 2 and b['open_rounds'] == 1\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/certification.py\n+++ b/token-master-plugin/skills/token-master/brainspace/certification.py\n@@ -790,14 +790,19 @@\n                 db.execute(\"UPDATE rounds SET state='closed' WHERE k=?\", (k,))\n             return result\n \n-    def budget(self) -> dict:\n+    def budget(self, *, include_open_rounds: bool = False) -> dict:\n         \"\"\"Every started round spends its allocation, even if abandoned/incomplete.\"\"\"\n         with self._transaction() as db:\n             ks = [row[0] for row in db.execute(\"SELECT k FROM rounds ORDER BY k\")]\n             allocated = math.fsum(round_alpha(self._alpha, k) for k in ks)\n-            return dict(\n+            out = dict(\n                 registry_id=self._registry_id,\n                 alpha=self._alpha, rounds=len(ks), allocated_alpha=allocated,\n                 remaining_alpha=max(0.0, self._alpha - allocated),\n                 next_round_alpha=round_alpha(self._alpha, (max(ks) if ks else 0) + 1),\n             )\n+            if include_open_rounds:\n+                out[\"open_rounds\"] = int(\n+                    db.execute(\"SELECT COUNT(*) FROM rounds WHERE state='open'\").fetchone()[0]\n+                )\n+            return out\n"
+    },
+    {
+      "id": "T07",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "NativeRuntime"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/native_runtime.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_native_runtime.py"
+      ],
+      "prompt": "Modify `NativeRuntime.http_summary` in `token-master-plugin/skills/token-master/brainspace/native_runtime.py` to accept an optional keyword-only parameter `include_waiter_timeouts: bool = False`:\n- When `include_waiter_timeouts=False` (the default), return the exact existing dictionary without a `\"waiter_timeouts\"` key.\n- When `include_waiter_timeouts=True`, include `\"waiter_timeouts\": <int>` counting recorded HTTP rows whose current `row[\"state\"] == \"waiter_timeout\"` under `self._http_lock`.\nModify ONLY `token-master-plugin/skills/token-master/brainspace/native_runtime.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.native_runtime import NativeRuntime\nwith tempfile.TemporaryDirectory() as td:\n    ws = Path(td) / 'ws'\n    ws.mkdir()\n    nr = NativeRuntime(workspace=ws, session_id='t07', output=Path(td) / 'out', base_url='http://127.0.0.1:1/v1', model='fixture', allow_network=True, event_wait_seconds=0)\n    r1 = nr.begin_http_request('/v1/responses')\n    nr.note_http_state(r1, 'dispatched')\n    nr.note_http_state(r1, 'waiter_timeout')\n    r2 = nr.begin_http_request('/v1/responses')\n    nr.note_http_state(r2, 'rejected')\n    nr.note_http_state(r2, 'responded')\n    assert 'waiter_timeouts' not in nr.http_summary()\n    s = nr.http_summary(include_waiter_timeouts=True)\n    assert s['waiter_timeouts'] == 1 and s['operation_errors'] == 1\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/native_runtime.py\n+++ b/token-master-plugin/skills/token-master/brainspace/native_runtime.py\n@@ -161,10 +161,10 @@\n             row[\"state\"] = state\n             self._http_record(request_id)\n \n-    def http_summary(self):\n+    def http_summary(self, *, include_waiter_timeouts: bool = False):\n         with self._http_lock:\n             rows = tuple(self._http_records.values())\n-            return {\n+            out = {\n                 \"authenticated_requests\": self._http_total,\n                 \"primary_requests\": self._http_primary,\n                 \"control_requests\": self._http_control,\n@@ -178,6 +178,9 @@\n                 \"journal_complete\": self._http_journal_complete,\n                 \"scope\": \"HTTP/control attempts; no invented token or model-call records\",\n             }\n+            if include_waiter_timeouts:\n+                out[\"waiter_timeouts\"] = sum(row[\"state\"] == \"waiter_timeout\" for row in rows)\n+            return out\n \n     def _model_calls(self, body, native):\n         tools = {item[\"name\"] for item in native.get(\"tools\", [])\n"
+    },
+    {
+      "id": "T08",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "Optimizer"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_optimizer.py"
+      ],
+      "prompt": "Modify `Optimizer.status` in `token-master-plugin/skills/token-master/brainspace/optimizer.py` to accept an optional keyword-only parameter `include_sealed_runs: bool = False`:\n- When `include_sealed_runs=False` (the default), return the exact existing dictionary without adding `\"sealed_runs\"` to `status()[\"learning\"]`.\n- When `include_sealed_runs=True`, include `\"sealed_runs\": <int>` inside `status()[\"learning\"]` counting rows in `runs` (`opt_learning_runs`) where `run[\"state\"] == \"sealed\"`.\nModify ONLY `token-master-plugin/skills/token-master/brainspace/optimizer.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.optimizer import BaselineValidation, Optimizer, OptimizerConfig, reference_measurement\nfrom brainspace.request_policy import RequestPolicy\nfrom brainspace.token_ledger import COMPLETE, TaskTrace\nwith tempfile.TemporaryDirectory() as td:\n    cfg = OptimizerConfig(measurement=reference_measurement(), oracle_id='o1', workload_id='w1', model_id='m1', environment_id='e1', token_cap=100, minimum_token_reduction=1, alpha=0.05, max_candidates=6, max_calls=2000, calls_per_pair=2)\n    opt = Optimizer(Path(td) / 'opt.sqlite', config=cfg, evaluator=lambda *a: None)\n    assert 'sealed_runs' not in opt.status()['learning']\n    assert opt.status(include_sealed_runs=True)['learning']['sealed_runs'] == 0\n    opt.initialize(RequestPolicy(enabled=True), validator=lambda pol, reg, res: BaselineValidation(pol.policy_id, reg.identity, reg.oracle_id, True, 'a' * 64, TaskTrace(res.task_id, pol.policy_id, reg.measurement, 'learning', (), (), COMPLETE, res.learning_run_id)), validation_call_limit=0)\n    cand = opt.propose()[0]\n    opt.freeze(cand.policy_id, sample_size=2)\n    assert 'sealed_runs' not in opt.status()['learning']\n    st = opt.status(include_sealed_runs=True)['learning']\n    assert st['sealed_runs'] == 1 and st['unsealed_runs'] == 1\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/optimizer.py\n+++ b/token-master-plugin/skills/token-master/brainspace/optimizer.py\n@@ -1576,7 +1576,7 @@\n             _require(changed == 1, \"stale_incumbent\")\n         return self.status()\n \n-    def status(self):\n+    def status(self, *, include_sealed_runs: bool = False):\n         with self._transaction() as db:\n             champion = db.execute(\"SELECT * FROM opt_champion WHERE id=1\").fetchone()\n             if champion is not None:\n@@ -1627,7 +1627,9 @@\n                              \"complete_calls\": complete_calls,\n                              \"unique_complete_calls\": unique_complete_calls,\n                              \"reference_tokens\": None if unknown or unsealed else known,\n-                             \"known_reference_tokens\": known},\n+                             \"known_reference_tokens\": known,\n+                             **({\"sealed_runs\": sum(run[\"state\"] == \"sealed\" for run in runs)}\n+                                if include_sealed_runs else {})},\n                 \"limits\": [\"Local bounded search, not a global optimum or real-model quality promise.\",\n                            \"Incomplete learning coverage is not a zero-cost observation.\"],\n             }\n"
+    },
+    {
+      "id": "C05",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "CliRunner"
+      ],
+      "allowed_paths": [
+        "src/click/testing.py"
+      ],
+      "pytest_targets": [
+        "tests/test_testing.py"
+      ],
+      "prompt": "Modify `CliRunner.make_env` in `src/click/testing.py` to accept an optional keyword-only parameter `strip_none: bool = False`:\n- When `strip_none=False` (the default), preserve existing behavior (keeping keys mapped to `None` after merging `self.env` and `overrides`).\n- When `strip_none=True`, omit any key whose merged value is `None` from the returned dictionary.\nModify ONLY `src/click/testing.py` and leave no untracked files.",
+      "verify_code": "from click.testing import CliRunner\nr = CliRunner(env={'A': '1', 'B': None, 'C': '3'})\ndefault_env = r.make_env({'C': None, 'D': '4'})\nassert default_env == {'A': '1', 'B': None, 'C': None, 'D': '4'}\nstripped = r.make_env({'C': None, 'D': '4'}, strip_none=True)\nassert stripped == {'A': '1', 'D': '4'}\n",
+      "reference_patch": "--- a/src/click/testing.py\n+++ b/src/click/testing.py\n@@ -196,12 +196,17 @@\n         return cli.name or \"root\"\n \n     def make_env(\n-        self, overrides: t.Optional[t.Mapping[str, t.Optional[str]]] = None\n+        self,\n+        overrides: t.Optional[t.Mapping[str, t.Optional[str]]] = None,\n+        *,\n+        strip_none: bool = False,\n     ) -> t.Mapping[str, t.Optional[str]]:\n         \"\"\"Returns the environment overrides for invoking a script.\"\"\"\n         rv = dict(self.env)\n         if overrides:\n             rv.update(overrides)\n+        if strip_none:\n+            rv = {k: v for k, v in rv.items() if v is not None}\n         return rv\n \n     @contextlib.contextmanager\n"
+    },
+    {
+      "id": "C06",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "MultiCommand"
+      ],
+      "allowed_paths": [
+        "src/click/core.py"
+      ],
+      "pytest_targets": [
+        "tests/test_commands.py",
+        "tests/test_formatting.py"
+      ],
+      "prompt": "Modify `MultiCommand.format_commands` in `src/click/core.py` to accept an optional keyword-only parameter `include_hidden: bool = False`:\n- When `include_hidden=False` (the default), continue skipping subcommands with `cmd.hidden` truthy.\n- When `include_hidden=True`, include hidden subcommands alongside visible subcommands in the formatted `Commands` section.\nModify ONLY `src/click/core.py` and leave no untracked files.",
+      "verify_code": "import click\n@click.group()\ndef cli(): pass\n@cli.command(help='visible cmd')\ndef pub(): pass\n@cli.command(hidden=True, help='secret cmd')\ndef sec(): pass\nwith click.Context(cli) as ctx:\n    fmt1 = ctx.make_formatter()\n    cli.format_commands(ctx, fmt1)\n    out1 = fmt1.getvalue()\n    assert 'pub' in out1 and 'sec' not in out1\n    fmt2 = ctx.make_formatter()\n    cli.format_commands(ctx, fmt2, include_hidden=True)\n    out2 = fmt2.getvalue()\n    assert 'pub' in out2 and 'sec' in out2 and 'secret cmd' in out2\n",
+      "reference_patch": "--- a/src/click/core.py\n+++ b/src/click/core.py\n@@ -1617,7 +1617,13 @@\n \n         return decorator\n \n-    def format_commands(self, ctx: Context, formatter: HelpFormatter) -> None:\n+    def format_commands(\n+        self,\n+        ctx: Context,\n+        formatter: HelpFormatter,\n+        *,\n+        include_hidden: bool = False,\n+    ) -> None:\n         \"\"\"Extra format methods for multi methods that adds all the commands\n         after the options.\n         \"\"\"\n@@ -1627,7 +1633,7 @@\n             # What is this, the tool lied about a command.  Ignore it\n             if cmd is None:\n                 continue\n-            if cmd.hidden:\n+            if cmd.hidden and not include_hidden:\n                 continue\n \n             commands.append((subcommand, cmd))\n"
+    },
+    {
+      "id": "C07",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "Parameter"
+      ],
+      "allowed_paths": [
+        "src/click/core.py"
+      ],
+      "pytest_targets": [
+        "tests/test_options.py"
+      ],
+      "prompt": "Modify `Parameter.get_error_hint` in `src/click/core.py` to accept an optional keyword-only parameter `include_secondary: bool = False`:\n- When `include_secondary=False` (the default), preserve existing behavior (`self.opts or [self.human_readable_name]`).\n- When `include_secondary=True`, include `self.secondary_opts` after `self.opts` (falling back to `[self.human_readable_name]` if both are empty), formatted with the same `' / '` single-quoted join.\nModify ONLY `src/click/core.py` and leave no untracked files.",
+      "verify_code": "import click\nopt = click.Option(['--shout/--no-shout', '-s/-S'])\ncmd = click.Command('demo', params=[opt])\nwith click.Context(cmd) as ctx:\n    assert opt.get_error_hint(ctx) == \"'--shout' / '-s'\"\n    assert opt.get_error_hint(ctx, include_secondary=True) == \"'--shout' / '-s' / '--no-shout' / '-S'\"\nopt2 = click.Option(['--foo'])\nopt2.opts = []\nwith click.Context(click.Command('demo2', params=[opt2])) as ctx2:\n    assert opt2.get_error_hint(ctx2, include_secondary=True) == \"'foo'\"\n",
+      "reference_patch": "--- a/src/click/core.py\n+++ b/src/click/core.py\n@@ -2418,11 +2418,12 @@\n     def get_usage_pieces(self, ctx: Context) -> t.List[str]:\n         return []\n \n-    def get_error_hint(self, ctx: Context) -> str:\n+    def get_error_hint(self, ctx: Context, *, include_secondary: bool = False) -> str:\n         \"\"\"Get a stringified version of the param for use in error messages to\n         indicate which param caused the error.\n         \"\"\"\n-        hint_list = self.opts or [self.human_readable_name]\n+        opts = [*self.opts, *self.secondary_opts] if include_secondary else list(self.opts)\n+        hint_list = opts or [self.human_readable_name]\n         return \" / \".join(f\"'{x}'\" for x in hint_list)\n \n     def shell_complete(self, ctx: Context, incomplete: str) -> t.List[\"CompletionItem\"]:\n"
+    },
+    {
+      "id": "C08",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "ProgressBar"
+      ],
+      "allowed_paths": [
+        "src/click/_termui_impl.py"
+      ],
+      "pytest_targets": [
+        "tests/test_termui.py"
+      ],
+      "prompt": "Modify `ProgressBar.format_pct` in `src/click/_termui_impl.py` to accept an optional keyword-only parameter `decimals: int = 0`:\n- Raise `ValueError` if `decimals < 0`.\n- When `decimals == 0` (the default), return the exact existing string `f\"{int(self.pct * 100): 4}%\"[1:]`.\n- When `decimals > 0`, return `self.pct * 100` formatted with `decimals` fixed decimal places followed by `%` (for example `\"37.5%\"` when `pct` is `0.375` and `decimals=1`).\nModify ONLY `src/click/_termui_impl.py` and leave no untracked files.",
+      "verify_code": "import io\nfrom click._termui_impl import ProgressBar\nbar = ProgressBar(None, length=8, file=io.StringIO())\nbar.pos = 3\nassert bar.format_pct() == ' 37%'\nassert bar.format_pct(decimals=1) == '37.5%'\nassert bar.format_pct(decimals=2) == '37.50%'\ntry:\n    bar.format_pct(decimals=-1)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError('expected ValueError for negative decimals')\n",
+      "reference_patch": "--- a/src/click/_termui_impl.py\n+++ b/src/click/_termui_impl.py\n@@ -178,8 +178,12 @@\n             pos += f\"/{self.length}\"\n         return pos\n \n-    def format_pct(self) -> str:\n-        return f\"{int(self.pct * 100): 4}%\"[1:]\n+    def format_pct(self, *, decimals: int = 0) -> str:\n+        if decimals < 0:\n+            raise ValueError(\"decimals must be >= 0\")\n+        if decimals == 0:\n+            return f\"{int(self.pct * 100): 4}%\"[1:]\n+        return f\"{self.pct * 100:.{decimals}f}%\"\n \n     def format_bar(self) -> str:\n         if self.length is not None:\n"
+    },
+    {
+      "id": "T09",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "RuntimePolicy"
+      ],
+      "prompt": "Inspect the `RuntimePolicy` dataclass in `brainspace/runtime_policy.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `min_budget_s`: minimum allowed integer for `headroom_time_budget_seconds` when not `None`\n- `max_budget_s`: maximum allowed integer for `headroom_time_budget_seconds` when not `None`\n- `v6_instruction_error`: exact `ValueError` message raised when `request_policy.version == \"request-policy-v6\"` and `instruction != \"none\"`\n- `omitted_default_fields`: sorted 3-element list of field names deleted by `RuntimePolicy.to_dict()` when they match their default values",
+      "expected": {
+        "min_budget_s": 1,
+        "max_budget_s": 60,
+        "v6_instruction_error": "v6_rejects_instruction_guidance",
+        "omitted_default_fields": [
+          "headroom_root_reference_style",
+          "headroom_strategy",
+          "headroom_structure_guard"
+        ]
+      }
+    },
+    {
+      "id": "T10",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "NativeBridge"
+      ],
+      "prompt": "Inspect the `NativeBridge` class in `brainspace/native_runtime.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 6 keys:\n- `queue_maxsize`: integer `maxsize` of `self._queue` in `NativeBridge.__init__`\n- `waiter_timeout_s`: integer timeout in seconds passed to `future.result(...)` in `NativeBridge._dispatch`\n- `connect_status`: HTTP status code integer sent by `Handler.do_CONNECT`\n- `connect_error`: exact error message string returned in `Handler.do_CONNECT`\n- `exit_settle_deadline_s`: integer deadline duration in seconds added to `time.monotonic()` in `NativeBridge.__exit__`\n- `exit_unsettled_error`: exact `RuntimeError` message raised in `NativeBridge.__exit__` if `_active_handlers` does not drain before the deadline",
+      "expected": {
+        "queue_maxsize": 32,
+        "waiter_timeout_s": 180,
+        "connect_status": 403,
+        "connect_error": "external_proxy_disabled",
+        "exit_settle_deadline_s": 20,
+        "exit_unsettled_error": "native_http_handlers_not_settled"
+      }
+    },
+    {
+      "id": "T11",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [],
+      "prompt": "Inspect `_solve_submodular_knapsack` in `brainspace/repo_brief.py` and `bet_passes` in `brainspace/certification.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `phase1_role_order`: 3-element list of role strings in the exact iteration order used by Phase 1 of `_solve_submodular_knapsack`\n- `phase1_max_per_file`: integer `max_per_file` passed to `pick_best` during Phase 1 and Phase 2a\n- `phase2b_max_per_file`: integer value of `MAX_HUBS_PER_FILE` passed as `max_per_file` in Phase 2b\n- `negative_bet_factor_error`: exact `ValueError` message raised in `bet_passes` when `factor < 0`",
+      "expected": {
+        "phase1_role_order": [
+          "hub",
+          "recall",
+          "entry"
+        ],
+        "phase1_max_per_file": 1,
+        "phase2b_max_per_file": 2,
+        "negative_bet_factor_error": "bet factor is negative; a run exceeds token_cap"
+      }
+    },
+    {
+      "id": "T12",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "edit",
+      "target_containers": [
+        "RuntimePolicy"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_runtime_policy.py"
+      ],
+      "prompt": "Add a method `with_instruction(self, instruction: str) -> RuntimePolicy` to `RuntimePolicy` in `token-master-plugin/skills/token-master/brainspace/runtime_policy.py` that returns a new `RuntimePolicy` copy with `instruction` updated (running `RuntimePolicy` validation so invalid combinations raise `ValueError`). Do NOT add any new dataclass fields or an `enabled` attribute. Modify ONLY `token-master-plugin/skills/token-master/brainspace/runtime_policy.py` and leave no untracked files.",
+      "verify_code": "from brainspace.runtime_policy import RuntimePolicy\nfrom brainspace.request_policy import RequestPolicy\nbase = RuntimePolicy()\np2 = base.with_instruction('ponytail')\nassert isinstance(p2, RuntimePolicy) and p2.instruction == 'ponytail' and base.instruction == 'none'\nassert not hasattr(p2, 'enabled')\nv6 = RuntimePolicy(backend='local', require_nonexpanding_input=True, request_policy=RequestPolicy(version='request-policy-v6', enabled=True))\ntry:\n    v6.with_instruction('ponytail')\nexcept ValueError as exc:\n    assert 'v6_rejects_instruction_guidance' in str(exc)\nelse:\n    raise AssertionError('expected ValueError for v6 + ponytail')\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/runtime_policy.py\n+++ b/token-master-plugin/skills/token-master/brainspace/runtime_policy.py\n@@ -183,6 +183,9 @@\n     def policy_id(self) -> str:\n         return VERSION + \":\" + hashlib.sha256(self.to_json().encode(\"utf-8\")).hexdigest()\n \n+    def with_instruction(self, instruction: str) -> RuntimePolicy:\n+        return replace(self, instruction=instruction)\n+\n \n ControllerPolicy: TypeAlias = RequestPolicy | RuntimePolicy\n \n"
+    },
+    {
+      "id": "C09",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "HelpFormatter"
+      ],
+      "prompt": "Inspect the `HelpFormatter` class in `src/click/formatting.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `default_max_width`: integer value assigned to `max_width` in `HelpFormatter.__init__` when `max_width is None`\n- `min_auto_width`: integer minimum width floor applied in `max(min(...), ...)` when deriving `width` from terminal columns\n- `default_col_max`: default integer value of `col_max` on `HelpFormatter.write_dl`\n- `default_col_spacing`: default integer value of `col_spacing` on `HelpFormatter.write_dl`\n- `dl_column_error`: exact `TypeError` message raised in `HelpFormatter.write_dl` when `len(widths) != 2`",
+      "expected": {
+        "default_max_width": 80,
+        "min_auto_width": 50,
+        "default_col_max": 30,
+        "default_col_spacing": 2,
+        "dl_column_error": "Expected two columns for definition list"
+      }
+    },
+    {
+      "id": "C10",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "ShellComplete",
+        "Choice"
+      ],
+      "prompt": "Inspect `ShellComplete` (`src/click/shell_completion.py`) and `Choice` (`src/click/types.py`). Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `source_var_keys`: sorted 3-element list of dictionary keys returned by `ShellComplete.source_vars()`\n- `required_arg_brackets`: 2-character string (`\"{}\"` or `\"[]\"`) showing the bracket pair `Choice.get_metavar` uses when `param.required and param.param_type_name == \"argument\"`\n- `convert_norm_method`: exact `str` method name (`\"casefold\"` or `\"lower\"`) called by `Choice.convert` when `not self.case_sensitive`\n- `shell_complete_norm_method`: exact `str` method name (`\"casefold\"` or `\"lower\"`) called by `Choice.shell_complete` when `not self.case_sensitive`",
+      "expected": {
+        "source_var_keys": [
+          "complete_func",
+          "complete_var",
+          "prog_name"
+        ],
+        "required_arg_brackets": "{}",
+        "convert_norm_method": "casefold",
+        "shell_complete_norm_method": "lower"
+      }
+    },
+    {
+      "id": "C11",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "LazyFile"
+      ],
+      "prompt": "Inspect `LazyFile` and `format_filename` in `src/click/utils.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `default_errors`: default string value of the `errors` parameter on `LazyFile.__init__`\n- `dash_opens_immediately`: boolean indicating whether `LazyFile(\"-\")` calls `open_stream` immediately inside `__init__`\n- `open_exception_class`: exact Click exception class name raised by `LazyFile.open()` when `open_stream` raises `OSError`\n- `str_surrogate_error_handler`: exact error-handler string passed to `filename.encode(\"utf-8\", ...)` for non-`bytes` filenames in `format_filename`",
+      "expected": {
+        "default_errors": "strict",
+        "dash_opens_immediately": true,
+        "open_exception_class": "FileError",
+        "str_surrogate_error_handler": "surrogateescape"
+      }
+    },
+    {
+      "id": "C12",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "edit",
+      "target_containers": [
+        "LazyFile"
+      ],
+      "allowed_paths": [
+        "src/click/utils.py"
+      ],
+      "pytest_targets": [
+        "tests/test_utils.py",
+        "-k",
+        "not echo_via_pager"
+      ],
+      "prompt": "Add a boolean `@property` named `is_open` to `LazyFile` in `src/click/utils.py` that returns `True` if `self._f is not None` and `False` otherwise, without triggering `self.open()` via `__getattr__`. Modify ONLY `src/click/utils.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom click.utils import LazyFile\nwith tempfile.TemporaryDirectory() as td:\n    fp = Path(td) / 'out.txt'\n    lf = LazyFile(str(fp), 'w')\n    assert lf.is_open is False\n    assert not fp.exists()\n    lf.open()\n    assert lf.is_open is True\n    lf.close()\n",
+      "reference_patch": "--- a/src/click/utils.py\n+++ b/src/click/utils.py\n@@ -136,6 +136,10 @@\n                 open(filename, mode).close()\n             self._f = None\n             self.should_close = True\n+\n+    @property\n+    def is_open(self) -> bool:\n+        return self._f is not None\n \n     def __getattr__(self, name: str) -> t.Any:\n         return getattr(self.open(), name)\n"
+    }
+  ]
+}

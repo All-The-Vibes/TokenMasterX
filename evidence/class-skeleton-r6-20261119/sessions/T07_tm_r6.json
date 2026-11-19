@@ -1,0 +1,214 @@
+{
+  "task_id": "T07",
+  "arm": "tm_r6",
+  "session_id": "1f3bfc11-c464-456d-be74-bcd0e3632002",
+  "returncode": 0,
+  "wall_seconds": 31.203,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/native_runtime.py"
+    ]
+  },
+  "final_answer": "Updated `NativeRuntime.http_summary` with keyword-only `include_waiter_timeouts: bool = False`. Default output remains unchanged; opting in counts current `\"waiter_timeout\"` states under `_http_lock`.\n\nOnly the specified file changed; no untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_t4dk8rtA6zpG2KD9uUZ3PppJ",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py::NativeRuntime.http_summary"
+      }
+    },
+    {
+      "call_id": "call_a1gHIrh7EmnwJhQMcBJzqjvB",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check existing worktree changes"
+      }
+    },
+    {
+      "call_id": "call_nXIsL3AlnT1AW90sE5QwwdrD",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py::NativeRuntime.http_summary"
+      }
+    },
+    {
+      "call_id": "custom_call_sMeUSUb9KnxcSSKDmtfHy24S",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_DDZJrQFs3JW497sP25ENwffW",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport pathlib\nimport subprocess\nimport threading\nfrom types import SimpleNamespace\n\npath = pathlib.Path(r'token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py')\nsource = path.read_text(encoding='utf-8')\nbaseline = subprocess.check_output(['git', 'show', 'HEAD:token-master-plugin/skills/token-master/brainspace/native_runtime.py'], text=True, encoding='utf-8')\ndef method(text):\n    tree = ast.parse(text)\n    cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'NativeRuntime')\n    fn = next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == 'http_summary')\n    namespace = {}\n    exec(compile(ast.Module(body=[fn], type_ignores=[]), str(path), 'exec'), namespace)\n    return namespace['http_summary']\nold, new = method(baseline), method(source)\nlock = threading.Lock()\nclass Row(dict):\n    def __getitem__(self, key):\n        assert lock.locked()\n        return super().__getitem__(key)\nobj = SimpleNamespace(_http_lock=lock, _http_records={}, _http_total=4, _http_primary=3, _http_control=1, _http_overflow=0, _http_journal_complete=True)\nfor states in [[], ['waiter_timeout', 'complete', 'waiter_timeout', 'pending']]:\n    obj._http_records = {i: Row(state=state, dispatched=True, rejected_before_dispatch=False, operation_error=False, route='/control/recover', handled=True) for i, state in enumerate(states)}\n    expected = old(obj)\n    assert new(obj) == expected\n    assert new(obj, include_waiter_timeouts=False) == expected\n    assert new(obj, include_waiter_timeouts=True) == dict(expected, waiter_timeouts=states.count('waiter_timeout'))\nobj._http_records[0]['state'] = 'complete'\nassert new(obj, include_waiter_timeouts=True)['waiter_timeouts'] == 1\ntry:\n    new(obj, True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused checks passed')\n'@ | python -B -; if ($LASTEXITCODE -eq 0) { git --no-pager diff --check; git --no-pager status --short }",
+        "description": "Verify summary compatibility, timeout counting, locking and file scope"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_a1gHIrh7EmnwJhQMcBJzqjvB",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check existing worktree changes"
+      },
+      "success": true,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_t4dk8rtA6zpG2KD9uUZ3PppJ",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py::NativeRuntime.http_summary"
+      },
+      "success": true,
+      "tokens": 247,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_nXIsL3AlnT1AW90sE5QwwdrD",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py::NativeRuntime.http_summary"
+      },
+      "success": true,
+      "tokens": 69,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_sMeUSUb9KnxcSSKDmtfHy24S",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 49,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_DDZJrQFs3JW497sP25ENwffW",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport pathlib\nimport subprocess\nimport threading\nfrom types import SimpleNamespace\n\npath = pathlib.Path(r'token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py')\nsource = path.read_text(encoding='utf-8')\nbaseline = subprocess.check_output(['git', 'show', 'HEAD:token-master-plugin/skills/token-master/brainspace/native_runtime.py'], text=True, encoding='utf-8')\ndef method(text):\n    tree = ast.parse(text)\n    cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'NativeRuntime')\n    fn = next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == 'http_summary')\n    namespace = {}\n    exec(compile(ast.Module(body=[fn], type_ignores=[]), str(path), 'exec'), namespace)\n    return namespace['http_summary']\nold, new = method(baseline), method(source)\nlock = threading.Lock()\nclass Row(dict):\n    def __getitem__(self, key):\n        assert lock.locked()\n        return super().__getitem__(key)\nobj = SimpleNamespace(_http_lock=lock, _http_records={}, _http_total=4, _http_primary=3, _http_control=1, _http_overflow=0, _http_journal_complete=True)\nfor states in [[], ['waiter_timeout', 'complete', 'waiter_timeout', 'pending']]:\n    obj._http_records = {i: Row(state=state, dispatched=True, rejected_before_dispatch=False, operation_error=False, route='/control/recover', handled=True) for i, state in enumerate(states)}\n    expected = old(obj)\n    assert new(obj) == expected\n    assert new(obj, include_waiter_timeouts=False) == expected\n    assert new(obj, include_waiter_timeouts=True) == dict(expected, waiter_timeouts=states.count('waiter_timeout'))\nobj._http_records[0]['state'] = 'complete'\nassert new(obj, include_waiter_timeouts=True)['waiter_timeouts'] == 1\ntry:\n    new(obj, True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused checks passed')\n'@ | python -B -; if ($LASTEXITCODE -eq 0) { git --no-pager diff --check; git --no-pager status --short }",
+        "description": "Verify summary compatibility, timeout counting, locking and file scope"
+      },
+      "success": true,
+      "tokens": 32,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 31,
+      "session_id": "1f3bfc11-c464-456d-be74-bcd0e3632002",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7130,
+      "uncached_input_tokens": 3,
+      "output_tokens": 121,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3615,
+      "total_nano_aiu": 5477950000,
+      "recharged_nano_aiu": 5477950000,
+      "cold_nano_aiu": 9516750000,
+      "created_at": "2026-11-19T07:38:38.406Z"
+    },
+    {
+      "row_id": 32,
+      "session_id": "1f3bfc11-c464-456d-be74-bcd0e3632002",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7620,
+      "uncached_input_tokens": 3,
+      "output_tokens": 151,
+      "cache_read_tokens": 7127,
+      "cache_write_tokens": 490,
+      "total_nano_aiu": 2083200000,
+      "recharged_nano_aiu": 2083200000,
+      "cold_nano_aiu": 2083200000,
+      "created_at": "2026-11-19T07:38:46.988Z"
+    },
+    {
+      "row_id": 33,
+      "session_id": "1f3bfc11-c464-456d-be74-bcd0e3632002",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7831,
+      "uncached_input_tokens": 3,
+      "output_tokens": 608,
+      "cache_read_tokens": 7617,
+      "cache_write_tokens": 211,
+      "total_nano_aiu": 4068450000,
+      "recharged_nano_aiu": 4068450000,
+      "cold_nano_aiu": 4068450000,
+      "created_at": "2026-11-19T07:38:55.586Z"
+    },
+    {
+      "row_id": 34,
+      "session_id": "1f3bfc11-c464-456d-be74-bcd0e3632002",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8483,
+      "uncached_input_tokens": 3,
+      "output_tokens": 57,
+      "cache_read_tokens": 7828,
+      "cache_write_tokens": 652,
+      "total_nano_aiu": 1885800000,
+      "recharged_nano_aiu": 1885800000,
+      "cold_nano_aiu": 1885800000,
+      "created_at": "2026-11-19T07:38:58.796Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "63caec9c204687a0",
+    "at": "2026-11-19T07:38:30.182Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-20261119\\lanes\\l3\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 29624,
+    "saved_usd": 0.043251,
+    "lean_usd": 0.029624,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

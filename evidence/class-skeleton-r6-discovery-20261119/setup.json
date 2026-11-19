@@ -1,0 +1,96 @@
+{
+  "prepared_at": "2026-11-19T08:36:38.024Z",
+  "study_id": "class-skeleton-r6-discovery-20261119",
+  "certification_round": 2,
+  "protocol_sha256": "942d7cb6558e75b7921783ddd303b9ab456d995a45101f3bf9b483c916e5be29",
+  "tasks_sha256": "fddfd9f7368e19f88fb36a9b8972132366f06fd278c7023167cc3bfc55d2f952",
+  "briefs_sha256": "28fa13cc125f2d42adb47eb75641b2d725aa8e0c43290264d0d31ad0348f89a8",
+  "copilot_cli_version": "GitHub Copilot CLI 1.0.112.\nRun 'copilot update' to check for updates.",
+  "copilot_exe": "<USERPROFILE>\\AppData\\Local\\Microsoft\\WinGet\\Packages\\GitHub.Copilot_Microsoft.Winget.Source_8wekyb3d8bbwe\\copilot.exe",
+  "python_exe": "C:\\tm-lanes\\tm-runtime\\Scripts\\python.exe",
+  "tiktoken_sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "low",
+  "arms": [
+    "stock",
+    "tm_v1",
+    "tm_r6"
+  ],
+  "lane_names": {
+    "stock": "l1",
+    "tm_v1": "l2",
+    "tm_r6": "l3"
+  },
+  "lanes_dir": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119",
+  "arm_install_meta": {
+    "stock": {
+      "mode": "stock_true_off"
+    },
+    "tm_v1": {
+      "class_skeleton": "v1",
+      "mcp_nav_tail_args": [
+        "--class-skeleton",
+        "v1"
+      ],
+      "host": "copilot",
+      "configuration_clients": [
+        "cli"
+      ],
+      "mcp": "model-invoked",
+      "hook_configuration_supported": true,
+      "hook_launch_form": "exec-argv",
+      "hook_output_contract": {
+        "capability_id": "copilot-posttooluse-2026-10-09",
+        "host": "copilot",
+        "event": "postToolUse",
+        "replacement_field": "modifiedResult.textResultForLlm",
+        "documented_min_version": null,
+        "documented_replacement_cap": null,
+        "runtime_verified": false,
+        "requires_explicit_opt_in": true,
+        "qualified_tool_family": "pure successful view text; conservative JSON only"
+      },
+      "transparent_replacement": false,
+      "runtime_verified": false,
+      "contract_review_date": "2026-10-09",
+      "note": "MCP by default; native view-text hook requires --copilot-output-hook. Registration is not proof of host acceptance or token savings.",
+      "hook_installed": true,
+      "repo_brief_hook_installed": true,
+      "mcp_installed": false,
+      "tokenomics_skill": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l2\\home\\copilot\\skills\\tokenomics\\SKILL.md"
+    },
+    "tm_r6": {
+      "class_skeleton": "r6",
+      "mcp_nav_tail_args": [
+        "--class-skeleton",
+        "r6"
+      ],
+      "host": "copilot",
+      "configuration_clients": [
+        "cli"
+      ],
+      "mcp": "model-invoked",
+      "hook_configuration_supported": true,
+      "hook_launch_form": "exec-argv",
+      "hook_output_contract": {
+        "capability_id": "copilot-posttooluse-2026-10-09",
+        "host": "copilot",
+        "event": "postToolUse",
+        "replacement_field": "modifiedResult.textResultForLlm",
+        "documented_min_version": null,
+        "documented_replacement_cap": null,
+        "runtime_verified": false,
+        "requires_explicit_opt_in": true,
+        "qualified_tool_family": "pure successful view text; conservative JSON only"
+      },
+      "transparent_replacement": false,
+      "runtime_verified": false,
+      "contract_review_date": "2026-10-09",
+      "note": "MCP by default; native view-text hook requires --copilot-output-hook. Registration is not proof of host acceptance or token savings.",
+      "hook_installed": true,
+      "repo_brief_hook_installed": true,
+      "mcp_installed": false,
+      "tokenomics_skill": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l3\\home\\copilot\\skills\\tokenomics\\SKILL.md"
+    }
+  }
+}

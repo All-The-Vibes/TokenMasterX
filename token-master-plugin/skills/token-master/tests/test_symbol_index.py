@@ -323,12 +323,20 @@ def test_every_result_stays_inside_the_budget(tmp_path: Path):
             ("echo", "locate", {"query": "x" * 5000}))}
         for key, text in results.items():
             assert tokens.count_tokens(text) < 3000, (key, tokens.count_tokens(text))  # v6 cuts "other" results above
-        assert "Members (read_symbol one" in results["class"] and "[Shown 5-" in results["class"]
+        assert tokens.count_tokens(results["class"]) <= symbol_index.BUDGET
+        assert "class skeleton):" in results["class"] and "more members from line" in results["class"]
         assert results["file"].startswith("[big.py is ~") and "\n5-1204 class Big ~" in results["file"]
         assert results["range"].endswith("for the rest.]") and "more not shown" in results["hits"]
         assert "more lines not shown" in results["callers"] and results["emoji"].endswith("[line cut]")
     finally:
         index.close()
+    v1_index = SymbolIndex(tmp_path, class_skeleton="v1")
+    try:
+        v1_class = dispatch(v1_index, "read_symbol", {"target": "Big"})
+        assert tokens.count_tokens(v1_class) <= symbol_index.BUDGET
+        assert "Members (read_symbol one" in v1_class and "[Shown 5-" in v1_class
+    finally:
+        v1_index.close()
 
 
 def test_edits_are_indexed_on_the_next_call(tmp_path: Path):
@@ -705,3 +713,112 @@ def test_rust_files_are_indexed_once_the_grammar_is_installed(tmp_path: Path, mo
 def test_tool_definitions_stay_small():
     # They ride on every request; the graph tools shipped before v7 cost 1,165 tokens per call (PRS-2).
     assert tokens.estimate(json.dumps(symbol_index.TOOL_SPECS)) < 400
+
+
+def test_r6_class_skeleton_projects_clean_signatures_state_and_overloads(tmp_path: Path, monkeypatch):
+    filler = "\n".join(f'        "padding line {i} " * 6,' for i in range(180))
+    (tmp_path / "svc.py").write_text(
+        "import sys\nimport typing as t\n\n\n"
+        "def normalize(raw: str) -> str:\n    return raw.strip()\n\n\n"
+        "if sys.platform == 'win32':\n"
+        "    def poll_key() -> str:\n        return 'w'\n"
+        "    def _win_helper() -> None:\n        return None\n"
+        "else:\n"
+        "    def poll_key() -> str:\n        return 'u'\n\n\n"
+        "class Small:\n    def ping(self) -> str:\n        return 'ok'\n\n\n"
+        "class Service(  # inline base comment\n    object\n):\n"
+        '    """Primary service container summary.\n\n    Extended details omitted from condensed header.\n    """\n\n'
+        "    DEFAULT_LIMIT: int = 50\n\n"
+        "    def __init__(\n"
+        "        self,\n"
+        "        name: str,  #: inline parameter doc comment\n"
+        "        limit: int = DEFAULT_LIMIT,\n"
+        "    ) -> None:\n"
+        "        self.name = normalize(name)\n"
+        "        self.limit = limit\n"
+        "        self._items: list[str] = []\n\n"
+        "    @property\n"
+        "    def count(self) -> int:\n"
+        "        return len(self._items)\n\n"
+        "    @count.setter\n"
+        "    def count(self, value: int) -> None:\n"
+        "        self.limit = value\n\n"
+        "    @t.overload\n"
+        "    def invoke(__self, fn: t.Callable[..., int]) -> int: ...\n\n"
+        "    @t.overload\n"
+        "    def invoke(__self, fn: str) -> str: ...\n\n"
+        "    def invoke(__self, fn: t.Any) -> t.Any:\n"
+        "        __self._items.append('x')\n"
+        "        return __self._finish(fn)\n\n"
+        "    def _finish(self, payload: t.Any) -> t.Any:\n"
+        "        data = [\n"
+        f"{filler}\n"
+        "        ]\n"
+        "        return (payload, len(data), normalize('ok'))\n",
+        encoding="utf-8",
+    )
+    index = SymbolIndex(tmp_path)
+    try:
+        skel = dispatch(index, "read_symbol", {"target": "Service"})
+        assert symbol_index._count(skel) <= symbol_index.BUDGET
+        assert "svc.py::Service (" in skel and "class skeleton):" in skel
+        assert "inline base comment" not in skel and "inline parameter doc comment" not in skel
+        assert "Doc (" in skel and "Primary service container summary." in skel
+        assert "Extended details omitted" not in skel
+        assert "Attrs: " in skel and "DEFAULT_LIMIT: int = 50" in skel
+        assert "State (__init__ " in skel and "name:" in skel and "limit:" in skel and "_items:" in skel
+        assert "(+setter " in skel and "| @property def count(self) -> int:" in skel
+        assert "(+2 overloads, impl " in skel and "| def invoke(__self, fn: t.Any) -> t.Any:  -> self._finish" in skel
+        assert ".append" not in skel  # stdlib list noise filtered from call edges
+        assert dispatch(index, "read_symbol", {"target": "Small"}).splitlines()[0] == "svc.py::Small (19-21):"
+        for target in ("Service.invoke", "svc.py::Service.invoke"):
+            inv = dispatch(index, "read_symbol", {"target": target})
+            assert inv.startswith("svc.py::Service.invoke (") and "return __self._finish(fn)" in inv
+        ambig = dispatch(index, "read_symbol", {"target": "svc.py::poll_key"})
+        assert "svc.py:10-11 (function poll_key)" in ambig and "svc.py:15-16 (function poll_key)" in ambig
+    finally:
+        index.close()
+
+    monkeypatch.setenv("TOKENMASTER_CLASS_SKELETON", "v1")
+    v1_index = SymbolIndex(tmp_path)
+    try:
+        v1_out = dispatch(v1_index, "read_symbol", {"target": "Service"})
+        assert "Members (read_symbol one" in v1_out and "class skeleton):" not in v1_out
+    finally:
+        v1_index.close()
+
+    monkeypatch.setenv("TOKENMASTER_CLASS_SKELETON", "bogus")
+    with pytest.raises(ValueError, match="class_skeleton"):
+        SymbolIndex(tmp_path)
+
+
+def test_rust_oversized_trait_and_mod_render_container_skeletons(tmp_path: Path):
+    if symbol_index._rust_parser() is None:
+        pytest.skip("tree-sitter-rust not installed")
+    (tmp_path / "src").mkdir()
+    trait_fns = "\n".join(
+        f"    fn handle_{i}(&mut self, input_value: usize, extra_flag: bool) -> Result<usize, String> {{\n"
+        f"        Ok(input_value + {i} + usize::from(extra_flag))\n    }}\n"
+        for i in range(90)
+    )
+    mod_fns = "\n".join(
+        f"    pub fn step_{i}(seed: usize) -> usize {{\n        seed.wrapping_add({i})\n    }}\n"
+        for i in range(110)
+    )
+    (tmp_path / "src/lib.rs").write_text(
+        f"pub trait BigTrait {{\n{trait_fns}}}\n\npub mod big_mod {{\n{mod_fns}}}\n",
+        encoding="utf-8",
+    )
+    index = SymbolIndex(tmp_path)
+    try:
+        trait_out = dispatch(index, "read_symbol", {"target": "BigTrait"})
+        mod_out = dispatch(index, "read_symbol", {"target": "big_mod"})
+        assert symbol_index._count(trait_out) <= symbol_index.BUDGET
+        assert symbol_index._count(mod_out) <= symbol_index.BUDGET
+        assert "trait skeleton):" in trait_out and "fn handle_0(&mut self, input_value: usize" in trait_out
+        assert "mod skeleton):" in mod_out and "pub fn step_0(seed: usize) -> usize" in mod_out
+        member = dispatch(index, "read_symbol", {"target": "BigTrait::handle_0"})
+        assert member.startswith("src/lib.rs::BigTrait.handle_0 (2-4):")
+    finally:
+        index.close()
+

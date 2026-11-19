@@ -1,0 +1,231 @@
+{
+  "task_id": "T12",
+  "arm": "tm_v1",
+  "session_id": "d949152c-d9ef-4843-942b-4c2b7d51e57b",
+  "returncode": 0,
+  "wall_seconds": 28.062,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/runtime_policy.py"
+    ]
+  },
+  "final_answer": "Added `RuntimePolicy.with_instruction()` using `dataclasses.replace`, returning a new validated copy and raising `ValueError` for invalid combinations.\n\nOnly `runtime_policy.py` changed. No fields, `enabled` attribute, or untracked files were added.",
+  "tool_starts": [
+    {
+      "call_id": "call_GShOP3GuRFnoXfBr21GrshJc",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py::RuntimePolicy"
+      }
+    },
+    {
+      "call_id": "call_lShoVmuQtW4sXFYx1UH5b1ML",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check initial working tree status"
+      }
+    },
+    {
+      "call_id": "call_DUKv3aUJNzAu0wNnA5AWZaA1",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py:1-45"
+      }
+    },
+    {
+      "call_id": "custom_call_u899d5ggnRWNoCWUvpVk1vSe",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_Je71NBn7ZEl1h5MDPJ8pqklI",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport sys\nfrom dataclasses import fields\nsys.dont_write_bytecode = True\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.runtime_policy import RuntimePolicy\n\noriginal = RuntimePolicy()\nupdated = original.with_instruction('ponytail')\nassert updated is not original\nassert original.instruction == 'none'\nassert updated.instruction == 'ponytail'\nassert all(getattr(original, f.name) == getattr(updated, f.name) for f in fields(original) if f.name != 'instruction')\nassert not hasattr(updated, 'enabled')\nassert original.with_instruction('none') is not original\nfor policy, instruction in [(original, 'invalid'), (original, None), (RuntimePolicy(instruction='ponytail', require_nonexpanding_input=True), 'none')]:\n    try:\n        policy.with_instruction(instruction)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError('Invalid instruction combination accepted')\nprint('Instruction copy and validation checks passed')\n'@ | python -B -\nif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\ngit --no-pager diff --check && git --no-pager diff --stat && git --no-pager status --short",
+        "description": "Verify instruction copies, validation, and single-file change",
+        "initial_wait": 120
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_lShoVmuQtW4sXFYx1UH5b1ML",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check initial working tree status"
+      },
+      "success": true,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_GShOP3GuRFnoXfBr21GrshJc",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py::RuntimePolicy"
+      },
+      "success": true,
+      "tokens": 1922,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_DUKv3aUJNzAu0wNnA5AWZaA1",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py:1-45"
+      },
+      "success": true,
+      "tokens": 594,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_u899d5ggnRWNoCWUvpVk1vSe",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 49,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_Je71NBn7ZEl1h5MDPJ8pqklI",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport sys\nfrom dataclasses import fields\nsys.dont_write_bytecode = True\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.runtime_policy import RuntimePolicy\n\noriginal = RuntimePolicy()\nupdated = original.with_instruction('ponytail')\nassert updated is not original\nassert original.instruction == 'none'\nassert updated.instruction == 'ponytail'\nassert all(getattr(original, f.name) == getattr(updated, f.name) for f in fields(original) if f.name != 'instruction')\nassert not hasattr(updated, 'enabled')\nassert original.with_instruction('none') is not original\nfor policy, instruction in [(original, 'invalid'), (original, None), (RuntimePolicy(instruction='ponytail', require_nonexpanding_input=True), 'none')]:\n    try:\n        policy.with_instruction(instruction)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError('Invalid instruction combination accepted')\nprint('Instruction copy and validation checks passed')\n'@ | python -B -\nif ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\ngit --no-pager diff --check && git --no-pager diff --stat && git --no-pager status --short",
+        "description": "Verify instruction copies, validation, and single-file change",
+        "initial_wait": 120
+      },
+      "success": true,
+      "tokens": 64,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 75,
+      "session_id": "d949152c-d9ef-4843-942b-4c2b7d51e57b",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7102,
+      "uncached_input_tokens": 3,
+      "output_tokens": 84,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3587,
+      "total_nano_aiu": 5257950000,
+      "recharged_nano_aiu": 5257950000,
+      "cold_nano_aiu": 9296750000,
+      "created_at": "2026-11-19T07:47:40.378Z"
+    },
+    {
+      "row_id": 76,
+      "session_id": "d949152c-d9ef-4843-942b-4c2b7d51e57b",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9177,
+      "uncached_input_tokens": 3,
+      "output_tokens": 39,
+      "cache_read_tokens": 7099,
+      "cache_write_tokens": 2075,
+      "total_nano_aiu": 3501650000,
+      "recharged_nano_aiu": 3501650000,
+      "cold_nano_aiu": 3501650000,
+      "created_at": "2026-11-19T07:47:47.790Z"
+    },
+    {
+      "row_id": 77,
+      "session_id": "d949152c-d9ef-4843-942b-4c2b7d51e57b",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9832,
+      "uncached_input_tokens": 3,
+      "output_tokens": 87,
+      "cache_read_tokens": 9174,
+      "cache_write_tokens": 655,
+      "total_nano_aiu": 2174150000,
+      "recharged_nano_aiu": 2174150000,
+      "cold_nano_aiu": 2174150000,
+      "created_at": "2026-11-19T07:47:50.854Z"
+    },
+    {
+      "row_id": 78,
+      "session_id": "d949152c-d9ef-4843-942b-4c2b7d51e57b",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9979,
+      "uncached_input_tokens": 3,
+      "output_tokens": 322,
+      "cache_read_tokens": 9829,
+      "cache_write_tokens": 147,
+      "total_nano_aiu": 2779650000,
+      "recharged_nano_aiu": 2779650000,
+      "cold_nano_aiu": 2779650000,
+      "created_at": "2026-11-19T07:47:55.182Z"
+    },
+    {
+      "row_id": 79,
+      "session_id": "d949152c-d9ef-4843-942b-4c2b7d51e57b",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10377,
+      "uncached_input_tokens": 3,
+      "output_tokens": 55,
+      "cache_read_tokens": 9976,
+      "cache_write_tokens": 398,
+      "total_nano_aiu": 1773100000,
+      "recharged_nano_aiu": 1773100000,
+      "cold_nano_aiu": 1773100000,
+      "created_at": "2026-11-19T07:47:58.454Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "67d75cc94dc3d205",
+    "at": "2026-11-19T07:47:33.003Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-20261119\\lanes\\l2\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 37030,
+    "saved_usd": 0.050658,
+    "lean_usd": 0.03703,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

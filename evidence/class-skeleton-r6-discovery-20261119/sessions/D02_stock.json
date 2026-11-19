@@ -1,0 +1,128 @@
+{
+  "task_id": "D02",
+  "arm": "stock",
+  "session_id": "aadcdd5c-040d-4bac-a5e1-96d0e101b2e5",
+  "returncode": 0,
+  "wall_seconds": 21.907,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "frozen_error": "runtime_configuration_is_frozen",
+    "frozen_field_count": 23,
+    "public_recovery_method": "recover",
+    "accepted_recovery_tools": [
+      "headroom_retrieve",
+      "retrieve_original"
+    ],
+    "unsupported_recovery_error": "unsupported_recovery_namespace"
+  },
+  "final_answer": "{\"frozen_error\":\"runtime_configuration_is_frozen\",\"frozen_field_count\":23,\"public_recovery_method\":\"recover\",\"accepted_recovery_tools\":[\"headroom_retrieve\",\"retrieve_original\"],\"unsupported_recovery_error\":\"unsupported_recovery_namespace\"}",
+  "tool_starts": [
+    {
+      "call_id": "call_8Ms22l0AXtCDMRCfcZUdNYib",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class RuntimeSession|frozen|recovery|__setattr__",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\runtime.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "call_id": "call_KVqeN8XVaVFpcOwZgB6k1ItO",
+      "name": "powershell",
+      "arguments": {
+        "command": "$p = 'token-master-plugin\\skills\\token-master\\brainspace\\runtime.py'; $lines = Get-Content $p; $lines[102..155]; $lines[880..935]",
+        "description": "Read freeze guard and public recovery dispatch"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_8Ms22l0AXtCDMRCfcZUdNYib",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class RuntimeSession|frozen|recovery|__setattr__",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\runtime.py",
+        "output_mode": "content",
+        "-n": true
+      },
+      "success": true,
+      "tokens": 603,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_KVqeN8XVaVFpcOwZgB6k1ItO",
+      "name": "powershell",
+      "arguments": {
+        "command": "$p = 'token-master-plugin\\skills\\token-master\\brainspace\\runtime.py'; $lines = Get-Content $p; $lines[102..155]; $lines[880..935]",
+        "description": "Read freeze guard and public recovery dispatch"
+      },
+      "success": true,
+      "tokens": 1250,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 4,
+      "session_id": "aadcdd5c-040d-4bac-a5e1-96d0e101b2e5",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14628,
+      "uncached_input_tokens": 3,
+      "output_tokens": 58,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4858,
+      "total_nano_aiu": 7342200000,
+      "recharged_nano_aiu": 7342200000,
+      "cold_nano_aiu": 18574250000,
+      "created_at": "2026-11-19T08:37:30.157Z"
+    },
+    {
+      "row_id": 5,
+      "session_id": "aadcdd5c-040d-4bac-a5e1-96d0e101b2e5",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 15313,
+      "uncached_input_tokens": 3,
+      "output_tokens": 70,
+      "cache_read_tokens": 14625,
+      "cache_write_tokens": 685,
+      "total_nano_aiu": 2671750000,
+      "recharged_nano_aiu": 2671750000,
+      "cold_nano_aiu": 2671750000,
+      "created_at": "2026-11-19T08:37:34.038Z"
+    },
+    {
+      "row_id": 6,
+      "session_id": "aadcdd5c-040d-4bac-a5e1-96d0e101b2e5",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 16660,
+      "uncached_input_tokens": 3,
+      "output_tokens": 79,
+      "cache_read_tokens": 15310,
+      "cache_write_tokens": 1347,
+      "total_nano_aiu": 3612750000,
+      "recharged_nano_aiu": 3612750000,
+      "cold_nano_aiu": 3612750000,
+      "created_at": "2026-11-19T08:37:41.189Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

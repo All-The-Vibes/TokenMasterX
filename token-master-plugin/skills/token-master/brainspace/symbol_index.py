@@ -58,6 +58,21 @@ MAX_LOOSE = 25  # obj.name() calls on objects of unknown type listed per name be
 MAX_TITLE = 80  # characters kept from a heading or JSON key
 MAX_ECHO = 100  # characters of a caller-supplied argument repeated in a result
 CALLABLE = ("function", "method", "class")
+CONTAINER_KINDS = ("class", "trait", "mod")
+CLASS_READ_MODES = ("r6", "v1")
+_CLASS_MODE_ALIASES = {"r6": "r6", "skeleton": "r6", "1": "r6", "true": "r6", "on": "r6", "": "r6",
+                       "v1": "v1", "truncate": "v1", "0": "v1", "false": "v1", "off": "v1"}
+_SIG_DECORATORS = frozenset({"property", "classmethod", "staticmethod", "abstractmethod",
+                             "contextmanager", "asynccontextmanager", "cached_property", "overload"})
+_NOISE_CALLEES = frozenset({
+    "len", "str", "int", "float", "bool", "bytes", "list", "dict", "set", "tuple", "frozenset",
+    "isinstance", "issubclass", "getattr", "setattr", "hasattr", "delattr", "callable", "vars",
+    "type", "object", "super", "property", "classmethod", "staticmethod", "overload", "cast",
+    "min", "max", "sum", "abs", "round", "sorted", "reversed", "enumerate", "zip", "range",
+    "any", "all", "map", "filter", "next", "iter", "repr", "ord", "chr", "hex", "id", "hash",
+    "print", "open", "Path", "Optional", "Union", "Any", "Dict", "List", "Tuple", "Set",
+})
+_EXCEPTION_CALLEE = re.compile(r"^[A-Z]\w*(?:Error|Exception|Warning|Exit|Abort)$")
 _COLUMNS = ("id", "path", "start", "end", "line", "name", "qualname", "kind", "tokens", "signature", "trait")
 
 _SCHEMA = """
@@ -157,6 +172,216 @@ def _signature(lines: list[str], start: int) -> str:
     return re.sub(r"\s+", " ", " ".join(parts))[:200]
 
 
+def _resolve_class_read_mode(mode: bool | str | None = None) -> str:
+    if isinstance(mode, bool):
+        return "r6" if mode else "v1"
+    source = mode if mode is not None else os.environ.get("TOKENMASTER_CLASS_SKELETON", "r6")
+    raw = str(source).strip().lower()
+    resolved = _CLASS_MODE_ALIASES.get(raw)
+    if resolved is None:
+        raise ValueError(
+            f"Unsupported class_skeleton / TOKENMASTER_CLASS_SKELETON mode {source!r}; expected one of {CLASS_READ_MODES}"
+        )
+    return resolved
+
+
+def _strip_py_comment(line: str) -> str:
+    """Strip a trailing `# ...` comment outside quotes on one source line."""
+    quote: str | None = None
+    i = 0
+    while i < len(line):
+        ch = line[i]
+        if quote is not None:
+            if ch == "\\":
+                i += 2
+                continue
+            if line.startswith(quote, i):
+                i += len(quote)
+                quote = None
+                continue
+        elif ch == "#":
+            return line[:i].rstrip()
+        elif line.startswith(("'''", '"""'), i):
+            quote = line[i:i + 3]
+            i += 3
+            continue
+        elif ch in ("'", '"'):
+            quote = ch
+        i += 1
+    return line.rstrip()
+
+
+def _header_chunks(lines: list[str], start_line: int, limit_line: int) -> list[str]:
+    """Source lines of a Python `class` or `def` header up to its closing `:` at bracket depth 0."""
+    chunks: list[str] = []
+    depth = 0
+    for idx in range(start_line - 1, min(len(lines), limit_line)):
+        cleaned = _strip_py_comment(lines[idx]).strip()
+        if not cleaned:
+            continue
+        quote: str | None = None
+        colon_at: int | None = None
+        i = 0
+        while i < len(cleaned):
+            ch = cleaned[i]
+            if quote is not None:
+                if ch == "\\":
+                    i += 2
+                    continue
+                if cleaned.startswith(quote, i):
+                    i += len(quote)
+                    quote = None
+                    continue
+            elif cleaned.startswith(("'''", '"""'), i):
+                quote = cleaned[i:i + 3]
+                i += 3
+                continue
+            elif ch in ("'", '"'):
+                quote = ch
+            elif ch in "([{":
+                depth += 1
+            elif ch in ")]}":
+                depth = max(0, depth - 1)
+            elif ch == ":" and depth == 0:
+                colon_at = i
+            i += 1
+        if colon_at is not None and depth == 0:
+            chunks.append(cleaned[:colon_at + 1])
+            break
+        chunks.append(cleaned)
+    return chunks
+
+
+def _py_callable_sig(lines: list[str], fn: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
+    limit = fn.body[0].lineno if fn.body else (fn.end_lineno or fn.lineno)
+    chunks = _header_chunks(lines, fn.lineno, max(fn.lineno, limit))
+    sig = re.sub(r"\s+", " ", " ".join(chunks))
+    sig = sig.replace("( ", "(").replace(" )", ")").replace(" ,", ",")
+    decs: list[str] = []
+    for dec in fn.decorator_list:
+        raw = ast.unparse(dec) if hasattr(ast, "unparse") else ""
+        short = raw.rsplit(".", 1)[-1]
+        if short in _SIG_DECORATORS:
+            decs.append("@" + short)
+        elif raw.endswith((".setter", ".deleter")):
+            decs.append("@" + ".".join(raw.rsplit(".", 2)[-2:]))
+    full = (" ".join(decs) + " " + sig).strip() if decs else sig
+    return full if len(full) <= 220 else full[:217] + "..."
+
+
+def _py_class_meta(text: str, qualname: str, start: int, end: int) -> dict[str, Any] | None:
+    """AST summary of a Python class: header lines, condensed docstring, class attrs, __init__ state, methods."""
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError, RecursionError):
+        return None
+    lines = text.splitlines()
+    target_name = qualname.rsplit(".", 1)[-1]
+    cls_node: ast.ClassDef | None = None
+
+    def locate_cls(node, prefix: str) -> None:
+        nonlocal cls_node
+        if cls_node is not None:
+            return
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, ast.ClassDef):
+                q = f"{prefix}.{child.name}" if prefix else child.name
+                c_start = min([d.lineno for d in child.decorator_list] + [child.lineno])
+                c_end = child.end_lineno or child.lineno
+                if q == qualname and c_start == start and c_end == end:
+                    cls_node = child
+                    return
+                locate_cls(child, q)
+            elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                q = f"{prefix}.{child.name}" if prefix else child.name
+                locate_cls(child, q)
+            elif isinstance(child, _NESTED):
+                locate_cls(child, prefix)
+
+    locate_cls(tree, "")
+    if cls_node is None:
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef) and node.name == target_name:
+                c_start = min([d.lineno for d in node.decorator_list] + [node.lineno])
+                if c_start == start and (node.end_lineno or node.lineno) == end:
+                    cls_node = node
+                    break
+    if cls_node is None:
+        return None
+
+    body_first = cls_node.body[0].lineno if cls_node.body else (cls_node.end_lineno or cls_node.lineno)
+    head_end = min(len(lines), max(cls_node.lineno, body_first - 1 if body_first > cls_node.lineno else cls_node.lineno))
+    head_lines: list[str] = []
+    for n in range(start, head_end + 1):
+        cleaned = _strip_py_comment(lines[n - 1]).strip()
+        if cleaned:
+            head_lines.append(f"  {n}. {cleaned[:200]}")
+        if n >= cls_node.lineno and cleaned.endswith(":"):
+            break
+
+    doc_info: tuple[int, int, str] | None = None
+    if (cls_node.body and isinstance(cls_node.body[0], ast.Expr)
+            and isinstance(getattr(cls_node.body[0], "value", None), ast.Constant)
+            and isinstance(cls_node.body[0].value.value, str)):
+        doc_stmt = cls_node.body[0]
+        doc_raw = doc_stmt.value.value.strip()
+        if doc_raw:
+            first_para = re.sub(r"\s+", " ", doc_raw.split("\n\n")[0]).strip()
+            if len(first_para) > 220:
+                first_para = first_para[:217] + "..."
+            doc_info = (doc_stmt.lineno, doc_stmt.end_lineno or doc_stmt.lineno, first_para)
+
+    cls_attrs: list[str] = []
+    init_attrs: list[str] = []
+    init_span: str | None = None
+    fn_map: dict[tuple[int, int], ast.FunctionDef | ast.AsyncFunctionDef] = {}
+
+    def walk_class_suite(stmts: list[ast.stmt]) -> None:
+        nonlocal init_span
+        for stmt in stmts:
+            if isinstance(stmt, (ast.Assign, ast.AnnAssign)):
+                end_ln = stmt.end_lineno or stmt.lineno
+                raw_stmt = re.sub(r"\s+", " ", " ".join(
+                    _strip_py_comment(ln).strip() for ln in lines[stmt.lineno - 1:end_ln]
+                )).strip()
+                if raw_stmt:
+                    if len(raw_stmt) > 90:
+                        raw_stmt = raw_stmt[:87] + "..."
+                    cls_attrs.append(f"{stmt.lineno}:{raw_stmt}")
+            elif isinstance(stmt, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                fn_end = stmt.end_lineno or stmt.lineno
+                fn_map[(stmt.lineno, fn_end)] = stmt
+                if stmt.name in ("__init__", "__post_init__", "__new__") and init_span is None:
+                    init_span = f"{stmt.name} {stmt.lineno}-{fn_end}"
+                    seen_fields: set[str] = set()
+                    for sub in ast.walk(stmt):
+                        if isinstance(sub, (ast.Assign, ast.AnnAssign)):
+                            targets = sub.targets if isinstance(sub, ast.Assign) else [sub.target]
+                            for tgt in targets:
+                                if (isinstance(tgt, ast.Attribute) and isinstance(tgt.value, ast.Name)
+                                        and tgt.value.id in ("self", "__self") and tgt.attr not in seen_fields):
+                                    seen_fields.add(tgt.attr)
+                                    init_attrs.append(f"{tgt.attr}:{sub.lineno}")
+            elif isinstance(stmt, _NESTED):
+                for attr_name in ("body", "orelse", "finalbody"):
+                    sub_suite = getattr(stmt, attr_name, None)
+                    if isinstance(sub_suite, list):
+                        walk_class_suite(sub_suite)
+                for handler in getattr(stmt, "handlers", ()):
+                    if isinstance(getattr(handler, "body", None), list):
+                        walk_class_suite(handler.body)
+
+    walk_class_suite(cls_node.body)
+    return {
+        "head_lines": head_lines[:6],
+        "doc": doc_info,
+        "cls_attrs": cls_attrs,
+        "init_span": init_span,
+        "init_attrs": init_attrs,
+        "fn_map": fn_map,
+    }
+
+
 def _symbol(name, qualname, kind, start, end, line, signature="", calls=(), trait="") -> dict[str, Any]:
     """trait: for a Rust method, the trait it belongs to (Trait in `impl Trait for Type`, or the declaring trait)."""
     return {"name": name, "qualname": qualname, "kind": kind, "start": start, "end": end, "line": line,
@@ -206,7 +431,7 @@ class _Calls(ast.NodeVisitor):
             head, dot, rest = receiver.partition(".")
             if head in self.aliases:
                 receiver = self.aliases[head] + (dot + rest if dot else "")
-            found = (func.attr, "self" if receiver in ("self", "cls") else "attr", receiver)
+            found = (func.attr, "self" if receiver in ("self", "cls", "__self") else "attr", receiver)
         else:
             found = None
         if found:
@@ -512,8 +737,10 @@ class _Site(NamedTuple):
 
 
 class SymbolIndex:
-    def __init__(self, root: Path | str, database: Path | str | None = None):
+    def __init__(self, root: Path | str, database: Path | str | None = None, *,
+                 class_skeleton: bool | str | None = None):
         self.root = Path(root).resolve()
+        self.class_read_mode = _resolve_class_read_mode(class_skeleton)
         location = Path(database) if database else self.root / INDEX_PATH
         location.parent.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(str(location), check_same_thread=False)
@@ -761,13 +988,31 @@ class SymbolIndex:
             return f'Error: no symbol "{_echo(target)}". Use locate first; targets look like path::Name or path:10-40.'
         note = self._others_note(target, rows)
         if len(rows) > 1:
+            if self.class_read_mode == "r6" and len({(r["path"], r["qualname"]) for r in rows}) == 1:
+                rel, qual = rows[0]["path"], rows[0]["qualname"]
+                s_min, e_max = min(r["start"] for r in rows), max(r["end"] for r in rows)
+                intervening = self.db.execute(
+                    "SELECT 1 FROM symbols WHERE path = ? AND kind != 'module' AND start >= ? AND end <= ? "
+                    "AND qualname != ? AND qualname NOT LIKE ? ESCAPE '\\'",
+                    (rel, s_min, e_max, qual, _like(qual) + ".%"),
+                ).fetchone()
+                if not intervening:
+                    return self._lines(rel, s_min, e_max, f"{rel}::{qual}", tail=(note,) if note else ())
+            pair_counts: dict[tuple[str, str], int] = defaultdict(int)
+            for r in rows:
+                pair_counts[(r["path"], r["qualname"])] += 1
             header = f'"{_echo(target)}" matches {len(rows)} symbols; read one of:'
-            options = [f"  {r['path']}::{r['qualname']} ({r['start']}-{r['end']})" for r in rows]
+            options = [
+                (f"  {r['path']}:{r['start']}-{r['end']} ({r['kind']} {r['qualname']})"
+                 if self.class_read_mode == "r6" and pair_counts[(r["path"], r["qualname"])] > 1
+                 else f"  {r['path']}::{r['qualname']} ({r['start']}-{r['end']})")
+                for r in rows
+            ]
             return _assemble([header], options, lambda shown: [
                 *([f"  [{len(options) - shown} more]"] if shown < len(options) else []), *([note] if note else [])])
         row = rows[0]
         return self._lines(row["path"], row["start"], row["end"], f"{row['path']}::{row['qualname']}",
-                           tail=(note,) if note else ())
+                           tail=(note,) if note else (), symbol_row=row)
 
     def _not_one_file(self, value: str, files: list[str]) -> str:
         if not files:
@@ -775,17 +1020,133 @@ class SymbolIndex:
         header = f'"{_echo(value)}" matches {len(files)} files; use one:'
         return _assemble([header], files, lambda shown: [f"[{len(files) - shown} more]"] if shown < len(files) else [])
 
+    def _container_skeleton(self, row: sqlite3.Row, text: str, lines: list[str], total: int,
+                            tail: tuple[str, ...] = ()) -> str | None:
+        rel, start, end, qualname, kind = row["path"], row["start"], row["end"], row["qualname"], row["kind"]
+        is_py = rel.lower().endswith(CODE_SUFFIXES) and kind == "class"
+        py_meta = _py_class_meta(text, qualname, start, end) if is_py else None
+        fn_map = py_meta["fn_map"] if py_meta is not None else {}
+
+        prefix = qualname + "."
+        raw_members = [
+            r for r in self.db.execute(
+                f"SELECT {', '.join(_COLUMNS)} FROM symbols WHERE path = ? AND start > ? AND end <= ? "
+                "AND kind != 'module' ORDER BY start",
+                (rel, start, end),
+            ).fetchall()
+            if r["qualname"].startswith(prefix) and "." not in r["qualname"][len(prefix):]
+            and not (py_meta is not None and r["kind"] == "constant")
+        ]
+        if not raw_members and (py_meta is None or not (py_meta["cls_attrs"] or py_meta["init_attrs"] or py_meta["doc"])):
+            return None
+
+        header_lines = [f"{rel}::{qualname} ({start}-{end}, {kind}, ~{total} tokens; {kind} skeleton):"]
+        if py_meta is not None:
+            header_lines.extend(py_meta["head_lines"])
+            if py_meta["doc"] is not None:
+                d_start, d_end, d_summary = py_meta["doc"]
+                header_lines.append(f"  Doc ({d_start}-{d_end}): {d_summary}")
+            if py_meta["cls_attrs"]:
+                attrs = py_meta["cls_attrs"]
+                shown_a = ", ".join(attrs[:10]) + (f", ... (+{len(attrs) - 10})" if len(attrs) > 10 else "")
+                header_lines.append(f"  Attrs: {shown_a}")
+            if py_meta["init_attrs"] and py_meta["init_span"]:
+                ia = py_meta["init_attrs"]
+                shown_i = ", ".join(ia[:18]) + (f", ... (+{len(ia) - 18})" if len(ia) > 18 else "")
+                header_lines.append(f"  State ({py_meta['init_span']}): {shown_i}")
+        else:
+            if row["signature"]:
+                header_lines.append(f"  {row['line']}. {row['signature']}")
+
+        groups: list[list[sqlite3.Row]] = []
+        for member in raw_members:
+            if (groups and groups[-1][-1]["qualname"] == member["qualname"]
+                    and groups[-1][-1]["kind"] == member["kind"]
+                    and member["start"] - groups[-1][-1]["end"] <= 5):
+                groups[-1].append(member)
+            else:
+                groups.append([member])
+
+        indexed_names = {
+            r[0] for r in self.db.execute("SELECT DISTINCT name, path FROM symbols WHERE kind != 'module'")
+            if not _is_test(r[1])
+        }
+        member_names = {m["name"] for m in raw_members}
+
+        if groups:
+            sep = "::" if rel.lower().endswith(RUST_SUFFIXES) else "."
+            header_lines.append(
+                f"  Members ({len(groups)}; read_symbol {rel}::{qualname}{sep}<name> or {rel}:start-end):"
+            )
+
+        entries: list[str] = []
+        for grp in groups:
+            g_start, g_end = grp[0]["start"], grp[-1]["end"]
+            g_tokens = sum(m["tokens"] for m in grp)
+            first_fn = fn_map.get((grp[0]["line"], grp[0]["end"]))
+            last_fn = fn_map.get((grp[-1]["line"], grp[-1]["end"]))
+            first_sig = _py_callable_sig(lines, first_fn) if first_fn is not None else (grp[0]["signature"] or grp[0]["name"])
+            last_sig = _py_callable_sig(lines, last_fn) if last_fn is not None else (grp[-1]["signature"] or grp[-1]["name"])
+
+            note_tag = ""
+            if len(grp) > 1:
+                if "@property" in first_sig and (".setter " in last_sig or ".deleter " in last_sig):
+                    primary, sig = grp[0], first_sig
+                    note_tag = f" (+setter {grp[-1]['start']}-{grp[-1]['end']})"
+                elif "@overload" in first_sig:
+                    primary, sig = grp[-1], last_sig
+                    note_tag = f" (+{len(grp) - 1} overloads, impl {primary['start']}-{primary['end']})"
+                else:
+                    primary, sig = grp[-1], last_sig
+                    note_tag = f" (+{len(grp) - 1} defs)"
+            else:
+                primary, sig = grp[0], last_sig
+
+            self_calls: list[str] = []
+            ext_calls: list[str] = []
+            for m in grp:
+                for callee, form, receiver in self.db.execute(
+                    "SELECT callee, form, receiver FROM calls WHERE caller = ? ORDER BY line", (m["id"],)
+                ):
+                    if form == "self" or (receiver == "__self" and callee in member_names):
+                        if callee != primary["name"] and callee not in self_calls:
+                            self_calls.append(callee)
+                    elif form in ("bare", "path") and callee not in _NOISE_CALLEES and not callee.startswith("?"):
+                        if (callee in indexed_names or _EXCEPTION_CALLEE.match(callee)) and callee not in ext_calls:
+                            ext_calls.append(callee)
+            call_items = [*(f"self.{c}" for c in self_calls[:5]), *ext_calls[:3]]
+            call_suffix = f"  -> {', '.join(call_items)}" if call_items else ""
+            trait_tag = f" [impl {primary['trait']}]" if primary["trait"] and kind != "trait" else ""
+            entries.append(
+                f"    {g_start}-{g_end} {primary['kind']} {primary['name']} ~{g_tokens}{note_tag}{trait_tag} | {sig}{call_suffix}"
+            )
+
+        sep = "::" if rel.lower().endswith(RUST_SUFFIXES) else "."
+
+        def footer(shown: int) -> list[str]:
+            more = (
+                [f"  [{len(entries) - shown} more members from line {groups[shown][0]['start']}; "
+                 f"read {rel}:{groups[shown][0]['start']}-{end}.]"]
+                if shown < len(entries) else []
+            )
+            guide = [f"[Read {rel}::{qualname}{sep}<member> for full member source, or {rel}:start-end for exact lines.]"]
+            return [*more, *guide, *tail]
+
+        return _assemble(header_lines, entries, footer, BUDGET)
+
     def _lines(self, rel: str, start: int, end: int, label: str, whole_file: bool = False,
-               tail: tuple[str, ...] = ()) -> str:
+               tail: tuple[str, ...] = (), symbol_row: sqlite3.Row | None = None) -> str:
         full = self._inside(rel)
         if full is None or not full.is_file():
             return f'Error: no file "{_echo(rel)}".'
+        raw_text: str | None = None
         if full.stat().st_size > MAX_FILE_BYTES:  # read only what was asked for, never all of a huge file
             end = min(end, start + 999)
             with full.open(encoding="utf-8", errors="replace") as handle:
                 lines = [line.rstrip("\n") for line in itertools.islice(handle, end)]
         else:
-            lines = full.read_text(encoding="utf-8", errors="replace").splitlines()
+            raw_text = full.read_text(encoding="utf-8", errors="replace")
+            lines = raw_text.splitlines()
         start, end = max(1, start), min(len(lines), end)
         if start > end:
             return f'Error: "{_echo(rel)}" has {len(lines)} lines.'
@@ -799,6 +1160,11 @@ class SymbolIndex:
         if whole_file and self.db.execute("SELECT 1 FROM symbols WHERE path = ? AND kind != 'module'",
                                           (rel,)).fetchone():
             return self._outline(rel, lead=(f"[{rel} is ~{total} tokens; its outline follows. Read a symbol or a range.]",))
+        if (symbol_row is not None and not whole_file and self.class_read_mode == "r6"
+                and symbol_row["kind"] in CONTAINER_KINDS and raw_text is not None):
+            skeleton = self._container_skeleton(symbol_row, raw_text, lines, total, tail=tail)
+            if skeleton is not None:
+                return skeleton
         header = f"{label} ({start}-{end}) is ~{total} tokens; first lines:"
         members = [f"  {r['start']}-{r['end']} {r['kind']} {r['qualname']} ~{r['tokens']}" for r in self.db.execute(
             "SELECT start, end, kind, qualname, tokens FROM symbols WHERE path = ? AND start > ? AND end <= ? "

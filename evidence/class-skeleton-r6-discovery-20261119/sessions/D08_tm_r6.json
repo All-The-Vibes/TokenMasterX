@@ -1,0 +1,301 @@
+{
+  "task_id": "D08",
+  "arm": "tm_r6",
+  "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+  "returncode": 0,
+  "wall_seconds": 35.828,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/native_events.py"
+    ]
+  },
+  "final_answer": "Updated `NativeEventCollector.summary()` with keyword-only `include_claimed_calls: bool = False`. Default output is unchanged; opting in adds an integer count of truthy claimed bindings under `self._condition`.\n\nOnly `native_events.py` changed; no untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_xEa4VyHeGRR022mJkBjYYpKo",
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py::NativeEventCollector"
+      }
+    },
+    {
+      "call_id": "call_8H2SOp9jl94MA90bWgI7LTgA",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check existing worktree changes"
+      }
+    },
+    {
+      "call_id": "call_kLhgq6LHP66Ea6ArQyVzigWL",
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py"
+      }
+    },
+    {
+      "call_id": "call_VKOYg8Oe9xvicTPTKw9k2But",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py::NativeEventCollector.summary"
+      }
+    },
+    {
+      "call_id": "call_NQr9jqfz8ov0nFSguLpW6lBI",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py::NativeEventCollector.summary"
+      }
+    },
+    {
+      "call_id": "call_4ikKVwbf9hnS5TbtacK9IAtm",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py:210-251"
+      }
+    },
+    {
+      "call_id": "custom_call_20SYbuSsMkADlWq11J2pLfGp",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_LBrvFyMYjJDqjoCDmhy8mTBn",
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; @'\nimport sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path('token-master-plugin') / 'skills' / 'token-master'))\nfrom brainspace.native_events import NativeEventCollector, _Binding, DEFAULT_SOURCE_CONTRACT, RANGED_SOURCE_CONTRACT\nfor contract in (DEFAULT_SOURCE_CONTRACT, RANGED_SOURCE_CONTRACT):\n    collector = NativeEventCollector(workspace=Path.cwd(), expected_model='test', source_contract=contract)\n    assert collector.summary(include_claimed_calls=True)['claimed_calls'] == 0\n    with collector._condition:\n        collector._calls.update(a=_Binding(claimed=True), b=_Binding(), c=_Binding(claimed=True))\n    baseline = collector.summary()\n    assert 'claimed_calls' not in baseline\n    assert collector.summary(include_claimed_calls=False) == baseline\n    expanded = collector.summary(include_claimed_calls=True)\n    assert type(expanded['claimed_calls']) is int\n    assert expanded.pop('claimed_calls') == 2\n    assert expanded == baseline\n    try:\n        collector.summary(True)\n    except TypeError:\n        pass\n    else:\n        raise AssertionError('parameter must be keyword-only')\nprint('Focused snapshot checks passed')\n'@ | python -B -; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git --no-pager diff --check; git --no-pager diff --stat; git --no-pager status --short",
+        "description": "Verify opt-in count, unchanged default, and single-file worktree scope"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_8H2SOp9jl94MA90bWgI7LTgA",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check existing worktree changes"
+      },
+      "success": true,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_xEa4VyHeGRR022mJkBjYYpKo",
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py::NativeEventCollector"
+      },
+      "success": true,
+      "tokens": 65,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_kLhgq6LHP66Ea6ArQyVzigWL",
+      "name": "tokenmaster-nav-locate",
+      "arguments": {
+        "query": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py"
+      },
+      "success": true,
+      "tokens": 808,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_VKOYg8Oe9xvicTPTKw9k2But",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py::NativeEventCollector.summary"
+      },
+      "success": true,
+      "tokens": 374,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_NQr9jqfz8ov0nFSguLpW6lBI",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py::NativeEventCollector.summary"
+      },
+      "success": true,
+      "tokens": 192,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_4ikKVwbf9hnS5TbtacK9IAtm",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\native_events.py:210-251"
+      },
+      "success": true,
+      "tokens": 523,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_20SYbuSsMkADlWq11J2pLfGp",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 51,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_LBrvFyMYjJDqjoCDmhy8mTBn",
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; @'\nimport sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path('token-master-plugin') / 'skills' / 'token-master'))\nfrom brainspace.native_events import NativeEventCollector, _Binding, DEFAULT_SOURCE_CONTRACT, RANGED_SOURCE_CONTRACT\nfor contract in (DEFAULT_SOURCE_CONTRACT, RANGED_SOURCE_CONTRACT):\n    collector = NativeEventCollector(workspace=Path.cwd(), expected_model='test', source_contract=contract)\n    assert collector.summary(include_claimed_calls=True)['claimed_calls'] == 0\n    with collector._condition:\n        collector._calls.update(a=_Binding(claimed=True), b=_Binding(), c=_Binding(claimed=True))\n    baseline = collector.summary()\n    assert 'claimed_calls' not in baseline\n    assert collector.summary(include_claimed_calls=False) == baseline\n    expanded = collector.summary(include_claimed_calls=True)\n    assert type(expanded['claimed_calls']) is int\n    assert expanded.pop('claimed_calls') == 2\n    assert expanded == baseline\n    try:\n        collector.summary(True)\n    except TypeError:\n        pass\n    else:\n        raise AssertionError('parameter must be keyword-only')\nprint('Focused snapshot checks passed')\n'@ | python -B -; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git --no-pager diff --check; git --no-pager diff --stat; git --no-pager status --short",
+        "description": "Verify opt-in count, unchanged default, and single-file worktree scope"
+      },
+      "success": true,
+      "tokens": 67,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 45,
+      "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7173,
+      "uncached_input_tokens": 3,
+      "output_tokens": 85,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3658,
+      "total_nano_aiu": 5351700000,
+      "recharged_nano_aiu": 5351700000,
+      "cold_nano_aiu": 9390500000,
+      "created_at": "2026-11-19T08:42:37.000Z"
+    },
+    {
+      "row_id": 46,
+      "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7361,
+      "uncached_input_tokens": 3,
+      "output_tokens": 35,
+      "cache_read_tokens": 7170,
+      "cache_write_tokens": 188,
+      "total_nano_aiu": 1130000000,
+      "recharged_nano_aiu": 1130000000,
+      "cold_nano_aiu": 1130000000,
+      "created_at": "2026-11-19T08:42:41.477Z"
+    },
+    {
+      "row_id": 47,
+      "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8222,
+      "uncached_input_tokens": 3,
+      "output_tokens": 126,
+      "cache_read_tokens": 7358,
+      "cache_write_tokens": 861,
+      "total_nano_aiu": 2445050000,
+      "recharged_nano_aiu": 2445050000,
+      "cold_nano_aiu": 2445050000,
+      "created_at": "2026-11-19T08:42:45.855Z"
+    },
+    {
+      "row_id": 48,
+      "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9474,
+      "uncached_input_tokens": 3,
+      "output_tokens": 121,
+      "cache_read_tokens": 8219,
+      "cache_write_tokens": 1252,
+      "total_nano_aiu": 2994900000,
+      "recharged_nano_aiu": 2994900000,
+      "cold_nano_aiu": 2994900000,
+      "created_at": "2026-11-19T08:42:51.032Z"
+    },
+    {
+      "row_id": 49,
+      "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9657,
+      "uncached_input_tokens": 3,
+      "output_tokens": 366,
+      "cache_read_tokens": 9471,
+      "cache_write_tokens": 183,
+      "total_nano_aiu": 3008850000,
+      "recharged_nano_aiu": 3008850000,
+      "cold_nano_aiu": 3008850000,
+      "created_at": "2026-11-19T08:42:57.065Z"
+    },
+    {
+      "row_id": 50,
+      "session_id": "039eccff-3950-48a8-8bb4-ed483bab7153",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10103,
+      "uncached_input_tokens": 3,
+      "output_tokens": 60,
+      "cache_read_tokens": 9654,
+      "cache_write_tokens": 446,
+      "total_nano_aiu": 1825900000,
+      "recharged_nano_aiu": 1825900000,
+      "cold_nano_aiu": 1825900000,
+      "created_at": "2026-11-19T08:43:01.645Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "1aecaecfdab2e52d",
+    "at": "2026-11-19T08:42:28.315Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l3\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 44436,
+    "saved_usd": 0.058063,
+    "lean_usd": 0.044436,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

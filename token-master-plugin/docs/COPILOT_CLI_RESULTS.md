@@ -1,6 +1,16 @@
-# Copilot CLI results (October 18 to November 18, 2026)
+# Copilot CLI results (October 18 to November 19, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
+
+- **Two sequential pre-registered 3-arm R6 skeletal class projection studies on Copilot CLI `1.0.112` (November 19,
+  2026):** 150 sessions across Round 1 ($k = 1$, $\alpha_1 = 0.0304$, `24` paired tasks × `3` arms = `72` sessions,
+  `evidence/class-skeleton-r6-20261119/`) and Confirmation Round 2 ($k = 2$, $\alpha_2 = 0.0076$, `26` paired tasks × `3`
+  arms = `78` sessions with mechanical `forbidden_prompt_identifiers` anti-leakage enforcement,
+  `evidence/class-skeleton-r6-discovery-20261119/`), comparing stock Copilot CLI (`stock`), TokenMaster `--lean` + R1
+  repo brief + legacy linear-truncating `read_symbol` (`tm_v1`, `--class-skeleton v1`), and TokenMaster `--lean` + R1
+  repo brief + skeletal class projection & `@overload` 1-step resolution (`tm_r6`, `--class-skeleton r6`) under default
+  GitHub routing across this repository (`dcd73c4a`) and `pallets/click` `8.1.8` (`934813e4`) (`gpt-6-astra`, reasoning
+  `low`). Both protocols were hashed before any session.
 
 - **Pre-registered 3-arm R1 submodular repo-brief & recall synthesis study on Copilot CLI `1.0.112` (November 18,
   2026):** 72 sessions (`24` paired tasks × `3` arms: `tm_lean`, `tm_v1_recall` using PR-#36 fixed-slot
@@ -53,6 +63,49 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
+
+### Pre-registered 3-arm R6 skeletal class projection studies — Round 1 & Confirmation Round 2 (Copilot CLI `1.0.112`, November 19, 2026)
+
+- **150 live sessions across two sequential pre-registered rounds (`150/150` passed, `0` harms across all arms;
+  `gpt-6-astra`, default GitHub routing, identical R1 `brief.md` and `±0.3–0.8`-token Call-1 prompt parity between `tm_v1`
+  and `tm_r6` across this repository `@ dcd73c4a` and `pallets/click` `8.1.8 @ 934813e4`):**
+  - **Round 1 ($k = 1$, $\alpha_1 = 0.03039636$, `24` paired tasks × `3` arms = `72` sessions,
+    `evidence/class-skeleton-r6-20261119/`):** all three arms passed **24/24** (`72/72`). Pooled (`N = 24`), `tm_r6` cut
+    raw tokens **`−56.3%` vs `stock`** (`71,324 → 31,137`, 95% CI `−62.6%` to `−50.4%`, `24W/0T/0L`, Holm $p < 10^{-6}$)
+    and passed **both** PR `#35` exact integer certification gates against `stock` (`harm_passes = True`, `max-bet-v1`
+    wealth **`1.006521 >= 1.0`**, `gate_certified = True`), whereas `tm_v1` (`32,110` mean tokens) fell short on
+    `max-bet-v1` (`wealth = 0.921135 < 1.0`, `gate_certified = False`). Head-to-head `tm_r6` vs `tm_v1` was `−4.6%` on
+    oversized classes (`35,472 → 33,836`, $p = 0.464$) and `−3.0%` pooled ($p = 0.708$) because `12/16` Round 1 prompts
+    explicitly named target methods (`Class.method`), letting `gpt-6-astra` jump straight to `read_symbol("path::Class.method")`
+    without reading the container class; on the `4/16` mechanism-exposed tasks (`T02`, `C01`, `C02`, `C03`), `tm_r6` cut
+    raw tokens **`−18.7%` vs `tm_v1`** (`25,684 → 20,880`) vs **`−1.5%`** (`38,735 → 38,155`) on bypassed tasks.
+  - **Confirmation Round 2 ($k = 2$, $\alpha_2 = 0.00759909$, cumulative $\alpha_1 + \alpha_2 = 0.0380 < 0.05$, `26`
+    paired tasks × `3` arms = `78` sessions, `evidence/class-skeleton-r6-discovery-20261119/`):** mechanical word-boundary
+    `forbidden_prompt_identifiers` guards verified `0` target-method names in all `18` oversized-class prompts (`10`
+    `Bucket A` naturalistic class-discovery traces, `8` `Bucket B` behavioral edits, `8` `Bucket C` small-symbol negative
+    controls), raising container-skeleton / `@overload` exposure from `25%` (`4/16`) to **`83.3%` (`15/18`; `13/18`
+    direct class skeletons)**. All three arms passed **26/26** (`78/78`).
+  - **Pre-registered Round 2 hypotheses (`H1..H4`, Holm-Bonferroni adjusted) & cost decomposition:**
+    - **`H1` (`N = 18` oversized `tool_result_tokens`, `tm_r6` vs `tm_v1`) passed Holm significance:** `3,559 → 2,385`
+      (**`−33.0%`**, 95% CI `−42.0%` to `−20.2%`, `15W/0T/3L`, raw Wilcoxon $p = 0.001579$, **Holm $p = 0.004737$**);
+      `read_symbol` payload tokens fell **`−39.8%`** (`3,240 → 1,950`, `16W/1T/1L`, $p = 0.000381$; `−33.5%` pooled
+      across `N = 26`, `17W/8T/1L`, $p = 0.000252$), eliminating truncated linear reads (`0.94 → 0.00` per task) and
+      duplicate-name ambiguity errors (`0.06 → 0.00`).
+    - **`H4` (`N = 26` pooled `total_tokens`, `tm_r6` vs `stock`) passed Holm significance:** `73,428 → 38,219`
+      (**`−48.0%`**, 95% CI `−52.8%` to `−43.0%`, `25W/0T/1L`, **Holm $p < 10^{-6}$**), with `harm_passes = True` (`0`
+      harms vs limit `<= 0` at $\alpha_2$).
+    - **Naturalistic class-discovery (`Bucket A`, `N = 10`) billed cost vs raw cached-prefix tokens:** on `Bucket A`,
+      `tm_r6` cut `read_symbol` tokens **`−43.6%`** (`4,374 → 2,468`, `10W/0T/0L`, exact Wilcoxon $p = 0.001953$), cut
+      **as-run billed USD cost on `10/10` (`100%`) tasks (`$0.1405 → $0.1154`, `−17.8%`, `10W/0T/0L`, $p = 0.001953$;
+      cold-repriced `−11.9%`, $p = 0.001953$)**, and cut pooled billed USD cost **`−6.2%` across all `N = 26` tasks
+      (`$0.1450 → $0.1361`, `17W/1T/8L`, $p = 0.0296$)**. However, on `3/10` trace tasks (`D04`, `D05`, `K05`), following
+      the `~966–1,080`-token skeleton with a second surgical `Class.method` call (`3 → 4` API calls) added ~`11k` cheap
+      *cached* prefix tokens to raw `input + output` even while lowering billed USD cost (`$0.1614 → $0.1373`, `$0.1595 →
+      $0.1310`, `$0.1490 → $0.1206`), leaving raw `total_tokens` at `−9.4%` on `Bucket A` (`31,442 → 28,497`, $p = 0.131$)
+      and leaving **`H2` (`−2.5%` on `A+B`, Holm $p = 0.504`)** and **`H3` (`−2.3%` pooled, Holm $p = 0.504`)**
+      nonsignificant once `6–9`-call `Bucket B` edit/`pytest` variance (`+1.8%`, `4W/0T/4L`) was pooled in.
+    - **Small-symbol parity (`Bucket C`, `N = 8`):** below `max_lines = 120`, `read_symbol` tokens tied identically on
+      `7/8` tasks (`1W/7T/0L`, $p = 1.0000`), confirming zero small-symbol overhead.
 
 ### Pre-registered 3-arm R1 submodular repo-brief & recall synthesis study (Copilot CLI `1.0.112`, November 18, 2026)
 

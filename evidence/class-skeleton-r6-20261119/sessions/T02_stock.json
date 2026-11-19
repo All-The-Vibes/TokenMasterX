@@ -1,0 +1,128 @@
+{
+  "task_id": "T02",
+  "arm": "stock",
+  "session_id": "c0423325-994e-465a-a159-2838c6b485c0",
+  "returncode": 0,
+  "wall_seconds": 16.203,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "frozen_error": "runtime_configuration_is_frozen",
+    "frozen_field_count": 23,
+    "default_intent": "conservative",
+    "recover_tools": [
+      "headroom_retrieve",
+      "retrieve_original"
+    ],
+    "unsupported_recover_error": "unsupported_recovery_namespace"
+  },
+  "final_answer": "{\"frozen_error\":\"runtime_configuration_is_frozen\",\"frozen_field_count\":23,\"default_intent\":\"conservative\",\"recover_tools\":[\"headroom_retrieve\",\"retrieve_original\"],\"unsupported_recover_error\":\"unsupported_recovery_namespace\"}",
+  "tool_starts": [
+    {
+      "call_id": "call_k67BB7PcqGBEagayC7czBP9c",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/runtime.py"
+      }
+    },
+    {
+      "call_id": "call_byXnWA0KU3iehSRoo4iDxekA",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class RuntimeSession|_FROZEN_FIELDS|def __setattr__|def invoke|def recover",
+        "glob": "**/runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-A": 65
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_k67BB7PcqGBEagayC7czBP9c",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/runtime.py"
+      },
+      "success": true,
+      "tokens": 30,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_byXnWA0KU3iehSRoo4iDxekA",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class RuntimeSession|_FROZEN_FIELDS|def __setattr__|def invoke|def recover",
+        "glob": "**/runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-A": 65
+      },
+      "success": true,
+      "tokens": 4547,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 5,
+      "session_id": "c0423325-994e-465a-a159-2838c6b485c0",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14605,
+      "uncached_input_tokens": 3,
+      "output_tokens": 20,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4835,
+      "total_nano_aiu": 7123450000,
+      "recharged_nano_aiu": 7123450000,
+      "cold_nano_aiu": 18355500000,
+      "created_at": "2026-11-19T07:34:19.106Z"
+    },
+    {
+      "row_id": 6,
+      "session_id": "c0423325-994e-465a-a159-2838c6b485c0",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14665,
+      "uncached_input_tokens": 3,
+      "output_tokens": 60,
+      "cache_read_tokens": 14602,
+      "cache_write_tokens": 60,
+      "total_nano_aiu": 1838200000,
+      "recharged_nano_aiu": 1838200000,
+      "cold_nano_aiu": 1838200000,
+      "created_at": "2026-11-19T07:34:22.723Z"
+    },
+    {
+      "row_id": 7,
+      "session_id": "c0423325-994e-465a-a159-2838c6b485c0",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 19326,
+      "uncached_input_tokens": 3,
+      "output_tokens": 77,
+      "cache_read_tokens": 14662,
+      "cache_write_tokens": 4661,
+      "total_nano_aiu": 7680450000,
+      "recharged_nano_aiu": 7680450000,
+      "cold_nano_aiu": 7680450000,
+      "created_at": "2026-11-19T07:34:26.077Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

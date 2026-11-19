@@ -1,0 +1,117 @@
+{
+  "task_id": "K11",
+  "arm": "stock",
+  "session_id": "59fe35de-d5c3-4cab-a0b5-27f9a1d6e770",
+  "returncode": 0,
+  "wall_seconds": 11.156,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "source_var_keys": [
+      "complete_func",
+      "complete_var",
+      "prog_name"
+    ],
+    "required_arg_brackets": "{}",
+    "convert_norm_method": "casefold",
+    "shell_complete_norm_method": "lower"
+  },
+  "final_answer": "{\"source_var_keys\":[\"complete_func\",\"complete_var\",\"prog_name\"],\"required_arg_brackets\":\"{}\",\"convert_norm_method\":\"casefold\",\"shell_complete_norm_method\":\"lower\"}",
+  "tool_starts": [
+    {
+      "call_id": "call_cVlI3PJoxXD7Y9Xb3f5zcZFO",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def source_vars",
+        "paths": "src\\click\\shell_completion.py",
+        "output_mode": "content",
+        "-A": 26
+      }
+    },
+    {
+      "call_id": "call_iSdfJ6SglipE7OmklbgSWO4C",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class Choice",
+        "paths": "src\\click\\types.py",
+        "output_mode": "content",
+        "-A": 210
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_iSdfJ6SglipE7OmklbgSWO4C",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class Choice",
+        "paths": "src\\click\\types.py",
+        "output_mode": "content",
+        "-A": 210
+      },
+      "success": true,
+      "tokens": 3083,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_cVlI3PJoxXD7Y9Xb3f5zcZFO",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def source_vars",
+        "paths": "src\\click\\shell_completion.py",
+        "output_mode": "content",
+        "-A": 26
+      },
+      "success": true,
+      "tokens": 420,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 105,
+      "session_id": "59fe35de-d5c3-4cab-a0b5-27f9a1d6e770",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14621,
+      "uncached_input_tokens": 3,
+      "output_tokens": 90,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4851,
+      "total_nano_aiu": 7493450000,
+      "recharged_nano_aiu": 7493450000,
+      "cold_nano_aiu": 18725500000,
+      "created_at": "2026-11-19T08:52:14.936Z"
+    },
+    {
+      "row_id": 106,
+      "session_id": "59fe35de-d5c3-4cab-a0b5-27f9a1d6e770",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18268,
+      "uncached_input_tokens": 3,
+      "output_tokens": 40,
+      "cache_read_tokens": 14618,
+      "cache_write_tokens": 3647,
+      "total_nano_aiu": 6223550000,
+      "recharged_nano_aiu": 6223550000,
+      "cold_nano_aiu": 6223550000,
+      "created_at": "2026-11-19T08:52:16.972Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

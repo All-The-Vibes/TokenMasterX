@@ -7,6 +7,7 @@ call graph (.token-master/graph.json, built by setup.py). Every result stays und
 """
 from __future__ import annotations
 
+import argparse
 import sys
 import threading
 from pathlib import Path
@@ -19,9 +20,10 @@ SERVER_NAME = "tokenmaster-nav"
 DESCRIPTIONS = {spec["name"]: spec["description"] for spec in symbol_index.TOOL_SPECS}
 
 
-def make_server(root: Path):
+def make_server(root: Path, *, class_skeleton: bool | str | None = None):
     from mcp.server.fastmcp import FastMCP
 
+    mode = symbol_index._resolve_class_read_mode(class_skeleton)
     server = FastMCP(SERVER_NAME)
     lock = threading.Lock()
     state: dict[str, symbol_index.SymbolIndex] = {}
@@ -29,7 +31,7 @@ def make_server(root: Path):
     def run(name: str, arguments: dict) -> str:
         with lock:  # one SQLite connection, built on first use so host startup never waits
             if "index" not in state:
-                state["index"] = symbol_index.SymbolIndex(root)
+                state["index"] = symbol_index.SymbolIndex(root, class_skeleton=mode)
             result = symbol_index.dispatch(state["index"], name, arguments)
             repo_brief.record_recall(state["index"], name, arguments, result)
             return result
@@ -50,4 +52,7 @@ def make_server(root: Path):
 
 
 if __name__ == "__main__":
-    make_server(Path.cwd()).run()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--class-skeleton", choices=symbol_index.CLASS_READ_MODES, default=None)
+    ns = parser.parse_args()
+    make_server(Path.cwd(), class_skeleton=ns.class_skeleton).run()
