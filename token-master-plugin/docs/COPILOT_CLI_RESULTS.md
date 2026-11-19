@@ -1,7 +1,15 @@
-# Copilot CLI results (October 18 to November 17, 2026)
+# Copilot CLI results (October 18 to November 18, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
 
+- **Pre-registered 3-arm R1 submodular repo-brief & recall synthesis study on Copilot CLI `1.0.112` (November 18,
+  2026):** 72 sessions (`24` paired tasks × `3` arms: `tm_lean`, `tm_v1_recall` using PR-#36 fixed-slot
+  `--brief-algorithm v1`, and `tm_r1_recall` using submodular marginal graph-coverage `--brief-algorithm r1`, both
+  synthesized from the exact identical multi-session `recall.jsonl` and `<= 320`-token cap) under default GitHub
+  routing across this repository (`204d388b`) and `pallets/click` `8.1.8` (`934813e4`) (`gpt-6-astra`, reasoning `low`,
+  16 trace + 8 edit tasks stratified into 8 warm crowd-out recovery, 8 noisy multi-session recall filtering, and 8
+  `@root=`-folding + direct-symbol controls). The protocol was hashed before any session
+  (`evidence/repo-brief-r1-20261118/`).
 - **Pre-registered 4-arm Pillar 5 repo-brief & cross-session recall study on Copilot CLI `1.0.112` (November 17, 2026):**
   96 sessions (`24` paired tasks × `4` arms: `stock`, `tm_lean`, `tm_brief` with cold `.token-master/brief.md`, and
   `tm_recall` with prior-session `Recall:` targets refreshed via `setup.py --refresh-brief`) under default GitHub
@@ -45,6 +53,42 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
+
+### Pre-registered 3-arm R1 submodular repo-brief & recall synthesis study (Copilot CLI `1.0.112`, November 18, 2026)
+
+- **24 paired tasks (`T01`–`T12` on this repository + `C01`–`C12` on `pallets/click` `8.1.8`; `Bucket A` warm crowd-out
+  recovery, `Bucket B` noisy multi-session recall filtering, `Bucket C` `@root=` path-folding & direct-symbol controls;
+  16 trace + 8 `pytest`-verified edits), 72 sessions (`gpt-6-astra`, default GitHub routing,
+  `evidence/repo-brief-r1-20261118/`):** all three arms passed **24/24** (`72/72` sessions; `0` harms against `tm_lean`
+  and `tm_v1_recall`, passing `brainspace.certification.harm_passes` at `quality_margin = 0.20`, $\alpha_1 = 0.0304$).
+  - **Structural coverage under realistic multi-session `recall.jsonl` (`<= 320` tokens):** from identical 8-symbol,
+    20-query `recall.jsonl` logs, fixed-slot `v1` collapsed to **5 distinct modules and 0 entrypoints** (`312t`) on this
+    repository and **7 distinct modules** (`293t`) on Click, stalling at **`−3.9%` raw tokens vs `tm_lean` (`862,683 →
+    828,943`, Wilcoxon $p = 0.900$)** and **`+0.04%` billed cost (`$2.73 → $2.73`)**. R1 (`BRIEF_SCHEMA = 2`, exact-integer
+    monotone submodular marginal graph-coverage solver with `FLOOR_HUB = FLOOR_RECALL = FLOOR_ENTRY = 3`, strict
+    1-anchor-per-module Phase 2a, recency + low-in-degree island VoI recall filtering, core-vs-auxiliary layout, and
+    lossless `@root=<prefix>/` folding) expanded coverage to **10 distinct modules and 3 entrypoints in fewer tokens
+    (`304t`)** here and **11 of 16 core modules (`68.8%`, `309t`)** on Click.
+  - **`tm_r1_recall` vs `tm_v1_recall` (same `recall.jsonl`, same `<= 320t` budget):** raw tokens `828,943` →
+    **`734,142` (−11.4%; 95% CI −20.5% to −3.7%; `−3,950` tokens/session; lower on 14 of 24 tasks; raw Wilcoxon $p =
+    0.0680$)**, as-run billed cost `$2.73` → **`$2.54` (−7.0%; 95% CI −12.2% to −2.7%; Wilcoxon $p = 0.0417$)**,
+    cold-repriced cost `$3.70` → **`$3.51` (−5.1%, Wilcoxon $p = 0.0433$)**, model calls `99` → **`88` (−11.1%,
+    $p = 0.0469$, 7 lower / 16 ties / 1 higher)**, and orientation calls `42` → **`26` (−38.1%, Wilcoxon $p = 0.0078$,
+    8 lower / 16 ties / 0 higher)**, raising Turn-1 direct `read_symbol`/`impact` jumps from **`58.3%` (`14/24`) to
+    `79.2%` (`19/24`)** (`8.3%` on `tm_lean`). Token reductions held across both repositories (`−14.6%` here, `−8.5%` on
+    Click) and all three buckets (`−14.6%` on `Bucket A`, `−10.1%` with 95% CI `−22.3%` to `−2.2%` on `Bucket B`, and
+    `−7.6%` on `Bucket C` with `100%` edit pass safety on `@root=`-folded targets including `−25.2%` on `C09`).
+  - **`tm_r1_recall` vs `tm_lean`:** raw tokens `862,683` → **`734,142` (−14.9%; 95% CI −26.2% to −4.2%; raw Wilcoxon
+    $p = 0.0526$)**, billed cost `$2.73` → **`$2.54` (−6.9%, Wilcoxon $p = 0.0491$)**, model calls `108` → **`88`
+    (−18.5%, $p = 0.0015$)**, and orientation calls `64` → **`26` (−59.4%, $p = 8.0 \times 10^{-6}$, 18 lower / 6 ties /
+    0 higher)**—recovering the full ~15% Pillar 5 win in multi-session recall regimes where `v1` stalled.
+  - **Honest limits & certification power:** on 10 of 24 tasks where `r1` and `v1` followed identical 2–3-call tool
+    trajectories, deterministic brief-length deltas (`+16` tokens on Click vs `−8` tokens here) created `+2` to `+45`
+    token differences that count against rank-sum symmetry, leaving two-sided Wilcoxon $p = 0.0680$ (`Holm p = 0.2106`)
+    conservative at $n = 24$ even though bootstrap 95% CIs exclude zero across tokens, cost, calls, and orientation. Under
+    PR `#35`'s worst-case `max-bet-v1` bounded-token e-process (`token_cap = 200,000`, `minimum_token_reduction = 1,000`),
+    `bet_minimum_samples = 235` tasks are needed before a ~`4k–5k` mean token saving can pass `bet_passes` (`False` at
+    $n = 24$).
 
 ### Pre-registered 4-arm Pillar 5 repo-brief & cross-session recall study (Copilot CLI `1.0.112`, November 17, 2026)
 

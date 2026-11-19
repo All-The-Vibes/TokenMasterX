@@ -118,6 +118,25 @@ Django pilot was never replicated
      6 of 8 tasks), but multi-call edit variance left $n = 8$ nonsignificant ($p = 0.3828$); and under the strict
      320-token cap on this repository, adding four `Recall:` lines displaced the `Entry:` lines, so `tm_brief`
      beat `tm_recall` on entrypoint tasks (`Bucket A`: −29.8% vs −19.8% against `tm_lean`).
+   - **R1 submodular knapsack brief synthesis (`BRIEF_SCHEMA = 2`, default `--brief-algorithm r1`, `--brief-algorithm v1`
+     retained for A/B baselines):** replaces fixed-slot `Recall -> Hub -> Entry` concatenation with an exact-integer
+     monotone submodular marginal graph-coverage solver under partition-matroid role floors (`FLOOR_HUB = FLOOR_RECALL
+     = FLOOR_ENTRY = 3`, strict 1-anchor-per-module Phase 2a before Phase 2b residual slack fill), recency + low-in-degree
+     island VoI recall filtering (`load_recall_scores`), core-vs-auxiliary layout separation, and lossless `@root=<prefix>/`
+     path folding (`fold_brief_path` / `unfold_brief_path`). Under identical multi-session `recall.jsonl` logs and the
+     same 320-token cap (`evidence/repo-brief-r1-20261118/`, 72 live Copilot CLI `1.0.112` `gpt-6-astra` sessions across
+     24 paired tasks on this repository and Click 8.1.8), fixed-slot `v1` collapsed to 5 modules / 0 entrypoints here
+     (`312t`) and 7 modules on Click (`293t`), stalling at −3.9% raw tokens vs `tm_lean` ($p = 0.90$); R1 expanded
+     coverage to 10 modules / 3 entrypoints in fewer tokens (`304t`) and 11 of 16 core Click modules (`309t`), passed
+     24/24 (`72/72` across all arms, `harm_passes = True` at `quality_margin = 0.20`), raised Turn-1 direct symbol jumps
+     from 58.3% to 79.2% (`8.3%` on `tm_lean`), cut orientation calls 38.1% vs `v1` (`1.75 -> 1.08`, Wilcoxon $p = 0.0078$;
+     −59.4% vs `tm_lean`, $p = 8.0 \times 10^{-6}$), cut model calls 11.1% vs `v1` ($p = 0.0469$; −18.5% vs `tm_lean`,
+     $p = 0.0015$), cut billed cost 7.0% vs `v1` (`$2.73 -> $2.54`, $p = 0.0417$; −6.9% vs `tm_lean`, $p = 0.0491$), and
+     cut raw tokens 11.4% vs `v1` (`828,943 -> 734,142`, 95% CI −20.5% to −3.7%, raw Wilcoxon $p = 0.0680$) and 14.9%
+     vs `tm_lean` (`862,683 -> 734,142`, 95% CI −26.2% to −4.2%, $p = 0.0526$). Honest limit: 10 near-tied tasks whose
+     rank signs reflect deterministic 8–16-token brief-length differences leave two-sided Wilcoxon $p = 0.0680$ / Holm
+     $p = 0.2106$ conservative at $n = 24$, and `max-bet-v1` under `token_cap = 200,000` (`minimum_token_reduction =
+     1,000`) needs $n \ge 235$ tasks (`bet_minimum_samples`) to certify ~4k–5k mean token savings.
 
 ## Principles
 

@@ -53,8 +53,10 @@ at every launch.
 tools: `locate` (a symbol or a file's outline), `read_symbol` (one symbol, file or
 line range) and `impact` (callers). It builds `.token-master/graph.json` with
 graphify, prebuilds `.token-master/symbols.sqlite`, and writes `.token-master/brief.md`
-(`<= 320` tokens; `--no-brief` skips it, and `setup.py <repo> --refresh-brief` refreshes it
-with verified symbol lookups recorded in `.token-master/recall.jsonl`); all are gitignored.
+(`<= 320` tokens via the default `--brief-algorithm r1` submodular graph-coverage solver;
+`--no-brief` skips it, `--brief-algorithm v1` writes the legacy fixed-slot brief, and
+`setup.py <repo> --refresh-brief` refreshes it with verified symbol lookups recorded in
+`.token-master/recall.jsonl`); all are gitignored.
 It also gitignores graphify's own output folder, `graphify-out/`, so searches skip it. Graph
 servers installed by earlier versions (`graphify-nav`, `codegraph`) are removed
 when TokenMaster owns them.

@@ -137,6 +137,8 @@ def main() -> int:
     parser.add_argument("--python", default=sys.executable)
     parser.add_argument("--brief", action=argparse.BooleanOptionalAction, default=True,
                         help="write .token-master/brief.md alongside the symbol index (default: on)")
+    parser.add_argument("--brief-algorithm", choices=("r1", "v1"), default=None,
+                        help="brief synthesis algorithm (default: r1 submodular knapsack; v1 for legacy baseline)")
     parser.add_argument("--refresh-brief", action="store_true",
                         help="rebuild .token-master/brief.md from the existing index and recall.jsonl without re-running graphify")
     parser.add_argument("--uninstall", action="store_true")
@@ -150,9 +152,10 @@ def main() -> int:
         if not tm_dir.is_dir():
             return _fail(f"no .token-master/ index found at {repo}; run setup.py first")
         from brainspace.repo_brief import write_brief
-        meta = write_brief(repo, include_recall=True)
+        meta = write_brief(repo, include_recall=True, algorithm=args.brief_algorithm)
         print(f"[token-master] refreshed brief: {repo / '.token-master' / 'brief.md'} "
-              f"({meta['tokens']} tokens, {meta['hub_count']} hubs, {meta['recall_count']} recall)")
+              f"({meta['tokens']} tokens, {meta['hub_count']} hubs, {meta['entrypoint_count']} entrypoints, "
+              f"{meta['recall_count']} recall, algo={meta['algorithm']})")
         return 0
     host = _resolve_host(args.host)
     home = _host_home(host)
@@ -244,7 +247,7 @@ def main() -> int:
     try:
         symbols = index.db.execute("SELECT count(*) FROM symbols WHERE kind != 'module'").fetchone()[0]
         if args.brief:
-            brief_meta = write_brief(repo, index=index, include_recall=True)
+            brief_meta = write_brief(repo, index=index, include_recall=True, algorithm=args.brief_algorithm)
     finally:
         index.close()
 

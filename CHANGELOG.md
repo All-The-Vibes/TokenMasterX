@@ -9,6 +9,22 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- R1 submodular knapsack & marginal graph-coverage brief synthesis (`BRIEF_SCHEMA = 2` in `brainspace/repo_brief.py`,
+  default `--brief-algorithm r1` with `--brief-algorithm v1` retained in `setup.py` for exact A/B baselines) and
+  pre-registered 72-session 3-arm live study on Copilot CLI `1.0.112` (`evidence/repo-brief-r1-20261118/`, `gpt-6-astra`
+  across 24 paired tasks on this repository and `pallets/click` `8.1.8` built from identical multi-session `recall.jsonl`
+  logs and the same `<= 320`-token cap): exact-integer monotone submodular marginal graph-coverage maximization under
+  partition-matroid role floors (`FLOOR_HUB = FLOOR_RECALL = FLOOR_ENTRY = 3`, strict 1-anchor-per-module Phase 2a +
+  Phase 2b slack fill), recency + low-in-degree island VoI recall filtering, core-vs-auxiliary layout separation, and
+  lossless `@root=<prefix>/` path folding expanded warm brief coverage from `5 → 10` distinct modules (`0 → 3`
+  entrypoints, `312t → 304t`) on this repository and `7 → 11` of `16` core modules (`293t → 309t`) on Click. All 3 arms
+  passed `24/24` (`72/72` live sessions, `0` harms, `certification.harm_passes = True` at `quality_margin = 0.20`);
+  against `tm_v1_recall`, `tm_r1_recall` raised Turn-1 direct `read_symbol`/`impact` jumps from `58.3%` to `79.2%`
+  (`8.3%` on `tm_lean`), cut orientation calls `38.1%` (`1.75 → 1.08`, Wilcoxon $p = 0.0078$; `−59.4%` vs `tm_lean`,
+  $p = 8.0 \times 10^{-6}$), cut model calls `11.1%` ($p = 0.0469$; `−18.5%` vs `tm_lean`, $p = 0.0015$), cut billed
+  cost `7.0%` (`$2.73 → $2.54`, $p = 0.0417$; `−6.9%` vs `tm_lean`, $p = 0.0491$), and cut raw tokens `11.4%` (`828,943
+  → 734,142`, 95% CI `−20.5%` to `−3.7%`, raw Wilcoxon $p = 0.0680$) and `14.9%` vs `tm_lean` (`862,683 → 734,142`, 95%
+  CI `−26.2%` to `−4.2%`, where fixed-slot `v1` stalled at `−3.9%`, $p = 0.90$).
 - Pre-registered 96-session 4-arm Pillar 5 repo-brief & cross-session recall study on Copilot CLI `1.0.112` under
   default GitHub routing (`evidence/repo-brief-20261117/`, `gpt-6-astra` across 24 paired tasks on this repository and
   `pallets/click` `8.1.8` spanning cold architecture, cross-session recall, and direct-symbol negative controls): all 4

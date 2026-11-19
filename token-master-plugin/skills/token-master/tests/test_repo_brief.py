@@ -484,3 +484,247 @@ def test_brainspace_setup_copilot_repo_brief_default_on_opt_out_and_guards(tmp_p
     )
     assert brainspace_setup_mod.main() == 1
 
+
+def test_r1_submodular_monotonicity_diminishing_returns_and_order_invariance():
+    """Exhaustively verify F(empty)=0, monotonicity, order-invariance, and submodularity."""
+    import random
+    from collections import Counter
+
+    rng = random.Random(20261118)
+    universe: list[repo_brief.BriefCandidate] = []
+    for i in range(14):
+        mod = f"pkg/mod_{i % 5}.py"
+        parent = "pkg" if i % 3 else "pkg/sub"
+        in_files = [f"pkg/caller_{j}.py" for j in range(rng.randint(0, 4)) if rng.random() < 0.6]
+        out_files = [f"pkg/callee_{j}.py" for j in range(rng.randint(0, 3)) if rng.random() < 0.5]
+        hops = [rng.randint(1, 12) for _ in range(rng.randint(1, 4))]
+        atoms = [
+            (("sym", ("hub", i)), (100 + 25 * i,)),
+            (("mod", mod), repo_brief._MOD_INC_CORE),
+            (("dir", parent), repo_brief._DIR_INC),
+            *[(("in_file", f), repo_brief._IN_FILE_INC) for f in sorted(set(in_files))],
+            *[(("out_file", f), repo_brief._OUT_FILE_INC) for f in sorted(set(out_files))],
+            *[(("hop", h), repo_brief._HOP_INC) for h in sorted(set(hops))],
+        ]
+        universe.append(
+            repo_brief.BriefCandidate(
+                role=("hub", "recall", "entry")[i % 3],
+                sid=i,
+                path=mod,
+                qualname=f"Sym{i}",
+                start=1,
+                end=10,
+                sym_tokens=80,
+                in_degree=len(in_files),
+                raw_hits=2,
+                recency_score=8,
+                is_aux=False,
+                line=f"Hub: {mod}::Sym{i} (1-10, ~80t)",
+                line_tokens=10 + (i % 5),
+                atoms=tuple(atoms),
+            )
+        )
+
+    assert repo_brief.submodular_value(()) == 0
+
+    for _trial in range(300):
+        k_a = rng.randint(0, 6)
+        subset_a = rng.sample(universe, k_a)
+        remaining = [c for c in universe if c not in subset_a]
+        extra = rng.sample(remaining, rng.randint(0, min(4, len(remaining))))
+        subset_b = [*subset_a, *extra]
+        probes = [c for c in universe if c not in subset_b]
+        if not probes:
+            continue
+        e = rng.choice(probes)
+
+        # Order invariance of F(S).
+        shuffled_b = list(subset_b)
+        rng.shuffle(shuffled_b)
+        val_a = repo_brief.submodular_value(subset_a)
+        val_b = repo_brief.submodular_value(subset_b)
+        assert val_b == repo_brief.submodular_value(shuffled_b)
+
+        # Monotonicity: A <= B => F(A) <= F(B).
+        assert val_a <= val_b
+
+        # Exact consistency between marginal_gain and submodular_value difference.
+        counts_a: Counter = Counter()
+        for c in subset_a:
+            repo_brief._apply_candidate_atoms(c, counts_a)
+        counts_b: Counter = Counter()
+        for c in subset_b:
+            repo_brief._apply_candidate_atoms(c, counts_b)
+
+        gain_a = repo_brief.marginal_gain(e, counts_a)
+        gain_b = repo_brief.marginal_gain(e, counts_b)
+        assert gain_a == repo_brief.submodular_value([*subset_a, e]) - val_a
+        assert gain_b == repo_brief.submodular_value([*subset_b, e]) - val_b
+        assert gain_a >= 0 and gain_b >= 0
+
+        # Submodularity (diminishing returns): A <= B => gain(e | A) >= gain(e | B).
+        assert gain_a >= gain_b
+
+
+def test_r1_fold_unfold_bijection_and_collision_safe_read_symbol(tmp_path):
+    """Verify syntactic fold/unfold bijection and 1-step SymbolIndex callability under suffix collisions."""
+    repo = tmp_path / "deep_repo"
+    core = repo / "packages" / " nested " .strip() / "engine" / "src"
+    (core / "sub").mkdir(parents=True)
+    (repo / "examples").mkdir(parents=True)
+
+    # `termui.py` collides with `examples/termui.py`; `unique_mod.py` does not.
+    (core / "termui.py").write_text(
+        "def render_banner(msg: str) -> str:\n    return f'[{msg}]'\n",
+        encoding="utf-8",
+    )
+    (repo / "examples" / "termui.py").write_text(
+        "def demo() -> str:\n    return 'demo'\n",
+        encoding="utf-8",
+    )
+    for idx_num in range(8):
+        (core / "sub" / f"worker_{idx_num}.py").write_text(
+            "from ..termui import render_banner\n\n"
+            f"def run_worker_{idx_num}(x: str) -> str:\n"
+            "    return render_banner(x)\n",
+            encoding="utf-8",
+        )
+    for hub_num in range(6):
+        (core / f"service_{hub_num}.py").write_text(
+            f"def shared_op_{hub_num}(payload: str) -> str:\n"
+            f"    return payload.strip() + ':{hub_num}'\n",
+            encoding="utf-8",
+        )
+    (core / "orchestrator.py").write_text(
+        "\n".join(f"from .service_{h} import shared_op_{h}" for h in range(6))
+        + "\n\ndef fanout(p: str) -> str:\n    return "
+        + " + ".join(f"shared_op_{h}(p)" for h in range(6))
+        + "\n",
+        encoding="utf-8",
+    )
+    (core / "cli.py").write_text(
+        "from .sub.worker_0 import run_worker_0\n"
+        "from .orchestrator import fanout\n"
+        + "\n".join(f"from .service_{h} import shared_op_{h}" for h in range(6))
+        + "\n\ndef main() -> int:\n"
+        "    return len(run_worker_0('a') + fanout('b') + "
+        + " + ".join(f"shared_op_{h}('c')" for h in range(6))
+        + ")\n",
+        encoding="utf-8",
+    )
+
+    idx = symbol_index.SymbolIndex(repo)
+    try:
+        idx.refresh()
+        prefix = "packages/nested/engine/src"
+        # Pure syntactic round-trip across unique, colliding, and out-of-prefix paths.
+        cases = [
+            (f"{prefix}/sub/worker_0.py", True, "sub/worker_0.py"),
+            (f"{prefix}/termui.py", False, f"/{prefix}/termui.py"),
+            ("examples/termui.py", False, "/examples/termui.py"),
+        ]
+        for full_p, is_uniq, expected_rendered in cases:
+            folded = repo_brief.fold_brief_path(prefix, full_p, is_uniq)
+            assert folded == expected_rendered
+            assert repo_brief.unfold_brief_path(prefix, folded) == full_p
+            assert repo_brief.fold_brief_path("", full_p, is_uniq) == full_p
+            assert repo_brief.unfold_brief_path("", full_p) == full_p
+
+        # Tight enough budget that `@root=` prefix factoring strictly increases packed F(S).
+        text, meta = repo_brief.build_brief(repo, index=idx, budget=190, algorithm="r1")
+        assert meta["algorithm"] == "r1"
+        assert meta["root_prefix"] == prefix
+        assert f"(@root={prefix}/)" in text
+        # Colliding `termui.py` MUST be escaped with leading `/` so `read_symbol` is unambiguous!
+        assert f"Hub: /{prefix}/termui.py::render_banner" in text
+
+        for line in text.splitlines()[2:]:
+            _role, rest = line.split(": ", 1)
+            target = rest.split(" (", 1)[0]
+            rendered_p, _qual = target.split("::", 1)
+            unfolded = repo_brief.unfold_brief_path(meta["root_prefix"], rendered_p)
+            out = idx.read(target)
+            assert "def " in out and not out.startswith(("[no match", "[ambiguous", "Error:"))
+            assert any(r["path"] == unfolded for r in idx._find(target))
+    finally:
+        idx.close()
+
+
+def test_r1_prevents_warm_recall_from_starving_entrypoints_and_filters_stale_hub_noise(tmp_path):
+    """Under heavy multi-session recall, v1 starves Entry: to 0 while R1 preserves Entry:/Hub: floors and recency."""
+    repo = tmp_path / "app_repo"
+    pkg = repo / "packages" / "service" / "runtime"
+    pkg.mkdir(parents=True)
+    (repo / ".token-master").mkdir(parents=True)
+
+    # 4 hub modules + 5 isolated island modules + 3 CLI entrypoints under a deep prefix.
+    for h in range(4):
+        (pkg / f"hub_{h}.py").write_text(
+            f"def core_hub_{h}(val: str) -> str:\n    return val.strip() + '{h}'\n\n"
+            f"def second_in_hub_{h}(val: str) -> str:\n    return core_hub_{h}(val)\n",
+            encoding="utf-8",
+        )
+    for m in range(6):
+        imports = "\n".join(f"from .hub_{h} import core_hub_{h}, second_in_hub_{h}" for h in range(4))
+        calls = " + ".join(f"core_hub_{h}(x) + second_in_hub_{h}(x)" for h in range(4))
+        (pkg / f"consumer_{m}.py").write_text(
+            f"{imports}\n\ndef process_{m}(x: str) -> str:\n    return {calls}\n",
+            encoding="utf-8",
+        )
+    for isl in range(5):
+        (pkg / f"island_{isl}.py").write_text(
+            f"class IsolatedSubsystem{isl}:\n"
+            "    def compute_metric(self, data: list[int]) -> int:\n"
+            f"        return sum(data) + {isl} * 17\n",
+            encoding="utf-8",
+        )
+    for ent in range(3):
+        (pkg / f"cli_{ent}.py").write_text(
+            f"from .consumer_{ent} import process_{ent}\n"
+            f"from .hub_{ent} import core_hub_{ent}\n\n"
+            "def main() -> int:\n"
+            f"    return len(process_{ent}(core_hub_{ent}('go')))\n",
+            encoding="utf-8",
+        )
+
+    idx = symbol_index.SymbolIndex(repo)
+    try:
+        idx.refresh()
+        # Older noisy lookups: 3 hits each on top hubs + stale island_0/island_1.
+        stale_targets = [
+            f"packages/service/runtime/hub_0.py::core_hub_0",
+            f"packages/service/runtime/hub_1.py::core_hub_1",
+            f"packages/service/runtime/island_0.py::IsolatedSubsystem0",
+            f"packages/service/runtime/island_1.py::IsolatedSubsystem1",
+        ]
+        for target in stale_targets:
+            for _ in range(3):
+                repo_brief.record_recall(idx, "read_symbol", {"target": target}, idx.read(target))
+
+        # Recent active session lookups (latest 6 events): 2 hits each on island_2, island_3, island_4!
+        recent_targets = [
+            f"packages/service/runtime/island_2.py::IsolatedSubsystem2",
+            f"packages/service/runtime/island_3.py::IsolatedSubsystem3",
+            f"packages/service/runtime/island_4.py::IsolatedSubsystem4",
+        ]
+        for target in recent_targets:
+            for _ in range(2):
+                repo_brief.record_recall(idx, "read_symbol", {"target": target}, idx.read(target))
+
+        v1_text, v1_meta = repo_brief.build_brief(repo, index=idx, budget=285, algorithm="v1")
+        r1_text, r1_meta = repo_brief.build_brief(repo, index=idx, budget=285, algorithm="r1")
+
+        # v1 chops from the tail under tight warm budget -> 0 Entry: lines survive, stale 3-hit islands dominate!
+        assert v1_meta["entrypoint_count"] == 0
+        assert "Entry: " not in v1_text
+
+        # R1 preserves all 3 role floors (Recall, Hub, Entry) AND surfaces the 3 recent islands!
+        assert r1_meta["entrypoint_count"] == 3
+        assert r1_meta["hub_count"] >= 3
+        assert r1_meta["recall_count"] >= 3
+        for recent_cls in ("IsolatedSubsystem2", "IsolatedSubsystem3", "IsolatedSubsystem4"):
+            assert recent_cls in r1_text
+    finally:
+        idx.close()
+
+
