@@ -1,0 +1,113 @@
+{
+  "task_id": "D10",
+  "arm": "tm_r6",
+  "session_id": "20b6df37-52cb-4970-99f2-a49b41df8acc",
+  "returncode": 0,
+  "wall_seconds": 14.141,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "min_budget_s": 1,
+    "max_budget_s": 60,
+    "v6_instruction_error": "v6_rejects_instruction_guidance",
+    "omitted_default_fields": [
+      "headroom_root_reference_style",
+      "headroom_strategy",
+      "headroom_structure_guard"
+    ]
+  },
+  "final_answer": "{\"min_budget_s\":1,\"max_budget_s\":60,\"v6_instruction_error\":\"v6_rejects_instruction_guidance\",\"omitted_default_fields\":[\"headroom_root_reference_style\",\"headroom_strategy\",\"headroom_structure_guard\"]}",
+  "tool_starts": [
+    {
+      "call_id": "call_MAXZMMhDmVd62N9tM7hVDLJu",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py::RuntimePolicy"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_MAXZMMhDmVd62N9tM7hVDLJu",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py::RuntimePolicy"
+      },
+      "success": true,
+      "tokens": 1922,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 90,
+      "session_id": "20b6df37-52cb-4970-99f2-a49b41df8acc",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7143,
+      "uncached_input_tokens": 3,
+      "output_tokens": 38,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3628,
+      "total_nano_aiu": 5079200000,
+      "recharged_nano_aiu": 5079200000,
+      "cold_nano_aiu": 9118000000,
+      "created_at": "2026-11-19T08:50:33.405Z"
+    },
+    {
+      "row_id": 91,
+      "session_id": "20b6df37-52cb-4970-99f2-a49b41df8acc",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9148,
+      "uncached_input_tokens": 3,
+      "output_tokens": 52,
+      "cache_read_tokens": 7140,
+      "cache_write_tokens": 2005,
+      "total_nano_aiu": 3483250000,
+      "recharged_nano_aiu": 3483250000,
+      "cold_nano_aiu": 3483250000,
+      "created_at": "2026-11-19T08:50:37.467Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "343db383218f3e6e",
+    "at": "2026-11-19T08:50:25.955Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l3\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 14812,
+    "saved_usd": 0.028439,
+    "lean_usd": 0.014812,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

@@ -1,0 +1,639 @@
+{
+  "study_id": "class-skeleton-r6-discovery-20261119",
+  "certification_round": 2,
+  "title": "R6 Skeletal Class Projection Confirmation Round 2 (Naturalistic Class-Discovery & Behavioral Edit Tasks)",
+  "repositories": {
+    "tokenmasterx": {
+      "name": "All-The-Vibes/TokenMasterX",
+      "commit": "dcd73c4aa32a85f0423a2a99adf9934b86b4a609",
+      "pythonpath": "token-master-plugin/skills/token-master"
+    },
+    "click": {
+      "name": "pallets/click",
+      "commit": "934813e4d421071a1b3db3973c02fe2721359a6e",
+      "pythonpath": "src"
+    }
+  },
+  "tasks": [
+    {
+      "id": "D01",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "CCR"
+      ],
+      "forbidden_prompt_identifiers": [
+        "stats",
+        "gc_report",
+        "migrate_legacy",
+        "explicit_gc_idle_age"
+      ],
+      "prompt": "Inspect the `CCR` class in `token-master-plugin/skills/token-master/brainspace/ccr.py` to understand how it reports scoped cache metrics, performs TTL/size garbage collection, and imports legacy SHA-256 rows. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `metrics_method`: exact zero-argument method name on `CCR` that returns scoped cache metrics without inspecting unscoped legacy records\n- `gc_method`: exact method name on `CCR` that evicts expired or over-quota unpinned entries and returns a dictionary report\n- `legacy_import_method`: exact method name on `CCR` that explicitly imports legacy SHA-256 records into `ccr_v2`\n- `ttl_policy`: exact string value of `\"ttl_policy\"` returned by that scoped metrics method\n- `eviction_reasons`: sorted 2-element list of reason strings inserted into `ccr_evictions` during garbage collection",
+      "expected": {
+        "metrics_method": "stats",
+        "gc_method": "gc_report",
+        "legacy_import_method": "migrate_legacy",
+        "ttl_policy": "explicit_gc_idle_age",
+        "eviction_reasons": [
+          "evicted",
+          "expired"
+        ]
+      }
+    },
+    {
+      "id": "D02",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "RuntimeSession"
+      ],
+      "forbidden_prompt_identifiers": [
+        "__setattr__",
+        "_FROZEN_FIELDS",
+        "recover",
+        "_recover_content",
+        "recovery_tools",
+        "retrieve_original",
+        "headroom_retrieve"
+      ],
+      "prompt": "Inspect the `RuntimeSession` class in `token-master-plugin/skills/token-master/brainspace/runtime.py` to trace its post-initialization configuration freeze guard and its public recovery-tool dispatch contract. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `frozen_error`: exact `AttributeError` message raised when mutating an already-initialized frozen configuration attribute on `RuntimeSession`\n- `frozen_field_count`: integer number of attribute names listed in `RuntimeSession`'s frozen-fields set\n- `public_recovery_method`: exact public instance method name on `RuntimeSession` that executes a recovery tool request given `(name, arguments, ...)`\n- `accepted_recovery_tools`: sorted 2-element list of recovery tool name strings accepted by that method\n- `unsupported_recovery_error`: exact `ValueError` message raised when an unsupported recovery tool name is requested",
+      "expected": {
+        "frozen_error": "runtime_configuration_is_frozen",
+        "frozen_field_count": 23,
+        "public_recovery_method": "recover",
+        "accepted_recovery_tools": [
+          "headroom_retrieve",
+          "retrieve_original"
+        ],
+        "unsupported_recovery_error": "unsupported_recovery_namespace"
+      }
+    },
+    {
+      "id": "D03",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "Optimizer"
+      ],
+      "forbidden_prompt_identifiers": [
+        "seal_learning_run",
+        "learning_inventory",
+        "export_learning",
+        "incomplete_learning_inventory",
+        "ledger_measurement_mismatch"
+      ],
+      "prompt": "Inspect the `Optimizer` class in `token-master-plugin/skills/token-master/brainspace/optimizer.py` to see how predeclared learning runs are sealed, inventoried, and exported to a `TokenLedger`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `seal_method`: exact method name on `Optimizer` that validates completeness and marks a predeclared learning `run_id` as `'sealed'`\n- `inventory_method`: exact zero-argument method name on `Optimizer` that returns `{\"runs\": ..., \"traces\": ..., ...}` for accepted complete learning traces\n- `export_method`: exact method name on `Optimizer` that records accepted learning traces and seals completed runs on a `TokenLedger`\n- `incomplete_error`: exact error string passed to `_require(...)` when sealing a learning run whose recorded tasks are incomplete or do not match the expected task IDs\n- `measurement_mismatch_error`: exact error string passed to `_require(...)` when exporting to a `TokenLedger` with a mismatched `measurement`",
+      "expected": {
+        "seal_method": "seal_learning_run",
+        "inventory_method": "learning_inventory",
+        "export_method": "export_learning",
+        "incomplete_error": "incomplete_learning_inventory",
+        "measurement_mismatch_error": "ledger_measurement_mismatch"
+      }
+    },
+    {
+      "id": "D04",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "NativeEventCollector",
+        "NativeRuntime"
+      ],
+      "forbidden_prompt_identifiers": [
+        "claim_pending_call",
+        "summary",
+        "recover",
+        "note_http_state",
+        "http_summary"
+      ],
+      "prompt": "Inspect `NativeEventCollector` (`brainspace/native_events.py`) and `NativeRuntime` (`brainspace/native_runtime.py`) to trace how pending native recovery calls are claimed and how HTTP state errors are classified. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `claim_method`: exact method name on `NativeEventCollector` that atomically reserves one registered `'pending'` call for recovery dispatch\n- `collector_scope`: exact `\"scope\"` string returned by `NativeEventCollector`'s zero-argument metadata-coverage snapshot method\n- `non_unique_recovery_error`: exact error string passed to `_require(...)` in `NativeRuntime` when matching issued pending recovery calls yields `len(matches) != 1`\n- `not_pending_recovery_error`: exact error string passed to `_require(...)` in `NativeRuntime` when claiming the pending recovery call returns `False`\n- `http_error_states`: sorted 3-element list of HTTP `state` strings in `NativeRuntime` that mark a request as `rejected_before_dispatch` or `operation_error`",
+      "expected": {
+        "claim_method": "claim_pending_call",
+        "collector_scope": "native-executor-observed-only",
+        "non_unique_recovery_error": "native_recovery_call_not_unique",
+        "not_pending_recovery_error": "native_recovery_not_pending",
+        "http_error_states": [
+          "cancelled",
+          "rejected",
+          "waiter_timeout"
+        ]
+      }
+    },
+    {
+      "id": "D05",
+      "repo": "tokenmasterx",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "CertificationRegistry",
+        "ReadonlyGatewayHost"
+      ],
+      "forbidden_prompt_identifiers": [
+        "budget",
+        "start_round",
+        "certify",
+        "check",
+        "drive",
+        "bound_artifacts",
+        "unchanged_workspace"
+      ],
+      "prompt": "Inspect `CertificationRegistry` (`brainspace/certification.py`) and `ReadonlyGatewayHost` (`brainspace/readonly_learning_host.py`). Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `alpha_summary_method`: exact zero-argument method name on `CertificationRegistry` that summarizes total, allocated, remaining, and next-round alpha\n- `alpha_summary_keys`: sorted list of the 6 dictionary keys returned by that alpha-summary method\n- `max_gated_samples`: integer maximum `sample_size` allowed when opening a round in `CertificationRegistry` whose gate is not `STRICT_GATE`\n- `oracle_verify_method`: exact method name on `ReadonlyGatewayHost` implementing the independent private oracle verification of `(task_id, artifacts, prepared)`\n- `oracle_check_keys`: sorted list of the 4 boolean keys in the `checks` dictionary initialized inside that private oracle method",
+      "expected": {
+        "alpha_summary_method": "budget",
+        "alpha_summary_keys": [
+          "allocated_alpha",
+          "alpha",
+          "next_round_alpha",
+          "registry_id",
+          "remaining_alpha",
+          "rounds"
+        ],
+        "max_gated_samples": 4000,
+        "oracle_verify_method": "check",
+        "oracle_check_keys": [
+          "answered",
+          "bound_artifacts",
+          "exact_answer",
+          "unchanged_workspace"
+        ]
+      }
+    },
+    {
+      "id": "K01",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "Context"
+      ],
+      "forbidden_prompt_identifiers": [
+        "lookup_default",
+        "invoke",
+        "forward",
+        "get_parameter_source",
+        "set_parameter_source",
+        "_make_sub_context",
+        "_parameter_source"
+      ],
+      "prompt": "Inspect Click's `Context` class in `src/click/core.py` to understand how it looks up values in `default_map`, dispatches `Command` or callable callbacks, and tracks where parameter values came from. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `default_lookup_method`: exact method name on `Context` that looks up a parameter's default in `default_map`\n- `callback_dispatch_method`: exact `@overload`ed method name on `Context` that executes another `Command` or callable callback with explicit `*args, **kwargs`\n- `param_source_getter`: exact method name on `Context` that returns the `ParameterSource` recorded for a parameter name\n- `sub_context_helper`: exact private helper method name on `Context` called when dispatching a `Command` object to construct its child `Context`\n- `parameter_source_attr`: exact private dictionary attribute name on `Context` read by that `ParameterSource` getter",
+      "expected": {
+        "default_lookup_method": "lookup_default",
+        "callback_dispatch_method": "invoke",
+        "param_source_getter": "get_parameter_source",
+        "sub_context_helper": "_make_sub_context",
+        "parameter_source_attr": "_parameter_source"
+      }
+    },
+    {
+      "id": "K02",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "BaseCommand",
+        "MultiCommand"
+      ],
+      "forbidden_prompt_identifiers": [
+        "main",
+        "resolve_command",
+        "format_commands",
+        "PacifyFlushWrapper"
+      ],
+      "prompt": "Inspect `BaseCommand` and `MultiCommand` in `src/click/core.py` to trace standalone CLI entry-point execution, broken-pipe stream handling, and subcommand lookup. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `entrypoint_method`: exact `@overload`ed entry-point method name on `BaseCommand` that parses CLI arguments, runs the command, and handles standalone exit codes\n- `subcommand_resolver_method`: exact method name on `MultiCommand` that resolves `(cmd_name, cmd, remaining_args)` from `args`\n- `epipe_wrapper_class`: exact wrapper class name applied to `sys.stdout` and `sys.stderr` on `errno.EPIPE` inside `BaseCommand`'s standalone entry-point method\n- `abort_exit_code`: integer exit code passed to `sys.exit(...)` when `Abort` is caught in standalone mode\n- `unknown_cmd_template`: exact unformatted template string passed to `_(\"...\")` inside `ctx.fail(...)` when `MultiCommand` cannot find a subcommand",
+      "expected": {
+        "entrypoint_method": "main",
+        "subcommand_resolver_method": "resolve_command",
+        "epipe_wrapper_class": "PacifyFlushWrapper",
+        "abort_exit_code": 1,
+        "unknown_cmd_template": "No such command {name!r}."
+      }
+    },
+    {
+      "id": "K03",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "Parameter",
+        "Option"
+      ],
+      "forbidden_prompt_identifiers": [
+        "get_default",
+        "get_error_hint",
+        "to_info_dict",
+        "_parse_decls",
+        "consume_value",
+        "resolve_envvar_value",
+        "_flag_needs_value"
+      ],
+      "prompt": "Inspect `Parameter` and `Option` in `src/click/core.py` to understand how default values are computed, how parameter error hints are formatted, how slash-prefixed option declarations are parsed, and how optional flag values are consumed. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `default_getter_method`: exact `@overload`ed method name defined on `Parameter` (and overridden on `Option`) that retrieves the parameter's default value for a `Context`\n- `error_hint_method`: exact method name on `Parameter` that formats single-quoted option strings joined by `' / '` for error messages\n- `non_bool_flag_default_attr`: exact attribute name returned from the matching `Option` in `ctx.command.params` when `self.is_flag and not self.is_bool_flag` inside `Option`'s overridden default getter\n- `slash_prefix_split_char`: exact 1-character `split_char` string used when `Option` parses declaration strings starting with `\"/\"`\n- `flag_sentinel_name`: exact module-level sentinel variable name compared via `is` when `Option` consumes a value from parser state",
+      "expected": {
+        "default_getter_method": "get_default",
+        "error_hint_method": "get_error_hint",
+        "non_bool_flag_default_attr": "flag_value",
+        "slash_prefix_split_char": ";",
+        "flag_sentinel_name": "_flag_needs_value"
+      }
+    },
+    {
+      "id": "K04",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "OptionParser"
+      ],
+      "forbidden_prompt_identifiers": [
+        "parse_args",
+        "_process_opts",
+        "_match_long_opt",
+        "_match_short_opt",
+        "_get_value_from_state",
+        "_process_args_for_options"
+      ],
+      "prompt": "Inspect `OptionParser` in `src/click/parser.py` to trace how command-line arguments are parsed into `(opts, largs, order)`, how long and short options are matched, and how option values are popped from `ParsingState`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `public_parse_method`: exact public method name on `OptionParser` that parses `args` and returns `(state.opts, state.largs, state.order)`\n- `long_opt_matcher`: exact private method name on `OptionParser` that matches a normalized long option and suggests close matches via `difflib.get_close_matches`\n- `short_opt_matcher`: exact private method name on `OptionParser` that iterates single-character flags in a short option cluster\n- `state_value_reader`: exact private method name on `OptionParser` that pops `nargs` values from `state.rargs` or returns `_flag_needs_value`\n- `no_value_error_template`: exact unformatted template string passed to `_(\"...\")` in `BadOptionUsage` when an explicit `=` value is given to a long option that does not take a value",
+      "expected": {
+        "public_parse_method": "parse_args",
+        "long_opt_matcher": "_match_long_opt",
+        "short_opt_matcher": "_match_short_opt",
+        "state_value_reader": "_get_value_from_state",
+        "no_value_error_template": "Option {name!r} does not take a value."
+      }
+    },
+    {
+      "id": "K05",
+      "repo": "click",
+      "bucket": "A_oversized_class_trace",
+      "kind": "trace",
+      "target_containers": [
+        "CliRunner",
+        "ProgressBar"
+      ],
+      "forbidden_prompt_identifiers": [
+        "get_default_prog_name",
+        "isolated_filesystem",
+        "isolation",
+        "make_env",
+        "finish",
+        "format_pct",
+        "make_step"
+      ],
+      "prompt": "Inspect `CliRunner` (`src/click/testing.py`) and `ProgressBar` (`src/click/_termui_impl.py`). Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `prog_name_method`: exact method name on `CliRunner` that computes the default program name for a `BaseCommand`\n- `default_prog_name_fallback`: exact fallback string returned by that method when `cli.name` is falsy\n- `temp_fs_method`: exact context-manager method name on `CliRunner` that switches into an empty temporary working directory\n- `completion_method`: exact zero-argument method name on `ProgressBar` that marks the bar complete when iteration ends\n- `completion_eta_known`: boolean value assigned to `self.eta_known` inside that completion method",
+      "expected": {
+        "prog_name_method": "get_default_prog_name",
+        "default_prog_name_fallback": "root",
+        "temp_fs_method": "isolated_filesystem",
+        "completion_method": "finish",
+        "completion_eta_known": false
+      }
+    },
+    {
+      "id": "D06",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "CCR"
+      ],
+      "forbidden_prompt_identifiers": [
+        "stats",
+        "gc_report",
+        "migrate_legacy"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/ccr.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_compact_root_reference.py"
+      ],
+      "prompt": "On the `CCR` class in `token-master-plugin/skills/token-master/brainspace/ccr.py`, update its zero-argument scoped cache-metrics summary method (the method returning `entries`, `original_bytes`, `stored_bytes`, `pinned_entries`, `active_sessions`, `ttl_policy`, and `quota_unit`) to accept an optional keyword-only parameter `include_evictions: bool = False`:\n- When `include_evictions=False` (the default), return the exact existing dictionary without an `\"evicted_records\"` key.\n- When `include_evictions=True`, query `SELECT COUNT(*) FROM ccr_evictions WHERE scope=?` for `self._scope_key` inside the existing connection block and include `\"evicted_records\": <int>` in the returned dictionary (and include `\"evicted_records\": 0` in the `_STORAGE_ERRORS` fallback dictionary when `include_evictions=True`).\nModify ONLY `token-master-plugin/skills/token-master/brainspace/ccr.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.ccr import CCR\nwith tempfile.TemporaryDirectory() as td:\n    db = Path(td) / 'ccr.sqlite'\n    c = CCR(db_path=db, workspace_root=Path(td), session_id='s1')\n    s0 = c.stats()\n    assert 'evicted_records' not in s0\n    assert c.stats(include_evictions=True)['evicted_records'] == 0\n    ref = c.stash('hello world ' * 50, source='a.txt', kind='fragment')\n    c.release_session()\n    rep = c.gc_report(max_bytes=0)\n    assert rep['evicted'] == 1\n    assert 'evicted_records' not in c.stats()\n    assert c.stats(include_evictions=True)['evicted_records'] == 1\n    sub = Path(td) / 'sub'\n    sub.mkdir(exist_ok=True)\n    other = CCR(db_path=db, workspace_root=sub, session_id='s2')\n    assert other.stats(include_evictions=True)['evicted_records'] == 0\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/ccr.py\n+++ b/token-master-plugin/skills/token-master/brainspace/ccr.py\n@@ -505,7 +505,7 @@\n         except (*_STORAGE_ERRORS, ValueError):\n             return 0\n \n-    def stats(self) -> dict:\n+    def stats(self, *, include_evictions: bool = False) -> dict:\n         \"\"\"Scoped statistics; do not inspect or expose unscoped legacy records.\"\"\"\n         try:\n             with self._connect() as conn:\n@@ -518,15 +518,25 @@\n                     \"SELECT COUNT(DISTINCT hash), COUNT(DISTINCT session) FROM ccr_leases WHERE scope=?\",\n                     (self._scope_key,),\n                 ).fetchone()\n-            return dict(entries=entries, original_bytes=orig, stored_bytes=stored,\n-                        compression_ratio=round(orig / stored, 2) if stored else None,\n-                        total_retrievals=hits, db_path=str(self._db_path), scope=self._scope_key,\n-                        shared=self.shared, pinned_entries=pins, active_sessions=sessions,\n-                        legacy_migration=\"explicit_full_digest_import_only\",\n-                        last_gc=self.last_gc, ttl_policy=\"explicit_gc_idle_age\",\n-                        quota_unit=\"compressed_content_bytes\")\n+                evicted = conn.execute(\n+                    \"SELECT COUNT(*) FROM ccr_evictions WHERE scope=?\",\n+                    (self._scope_key,),\n+                ).fetchone()[0] if include_evictions else None\n+            out = dict(entries=entries, original_bytes=orig, stored_bytes=stored,\n+                       compression_ratio=round(orig / stored, 2) if stored else None,\n+                       total_retrievals=hits, db_path=str(self._db_path), scope=self._scope_key,\n+                       shared=self.shared, pinned_entries=pins, active_sessions=sessions,\n+                       legacy_migration=\"explicit_full_digest_import_only\",\n+                       last_gc=self.last_gc, ttl_policy=\"explicit_gc_idle_age\",\n+                       quota_unit=\"compressed_content_bytes\")\n+            if include_evictions:\n+                out[\"evicted_records\"] = int(evicted)\n+            return out\n         except _STORAGE_ERRORS:\n-            return dict(entries=0, db_path=str(self._db_path), error=\"unreadable\", last_gc=self.last_gc)\n+            err = dict(entries=0, db_path=str(self._db_path), error=\"unreadable\", last_gc=self.last_gc)\n+            if include_evictions:\n+                err[\"evicted_records\"] = 0\n+            return err\n \n     def gc(self, max_bytes: int = 500 * 1024 * 1024, *, ttl_seconds=None) -> int:\n         \"\"\"Compatibility count API; see last_gc or gc_report for success/failure.\"\"\"\n"
+    },
+    {
+      "id": "D07",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "CertificationRegistry"
+      ],
+      "forbidden_prompt_identifiers": [
+        "budget",
+        "start_round",
+        "certify",
+        "submit",
+        "reserve_tasks"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/certification.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_certification.py"
+      ],
+      "prompt": "On `CertificationRegistry` in `token-master-plugin/skills/token-master/brainspace/certification.py`, update its zero-argument alpha-allocation summary method (the method returning `registry_id`, `alpha`, `rounds`, `allocated_alpha`, `remaining_alpha`, and `next_round_alpha`) to accept an optional keyword-only parameter `include_open_rounds: bool = False`:\n- When `include_open_rounds=False` (the default), return the exact existing dictionary without an `\"open_rounds\"` key.\n- When `include_open_rounds=True`, include `\"open_rounds\": <int>` counting rows in `rounds` with `state='open'` inside the same transaction.\nModify ONLY `token-master-plugin/skills/token-master/brainspace/certification.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.certification import CertificationRegistry, ComparisonSpec, PairedObservation, VerifiedOutcome\nfrom brainspace.token_ledger import CallRecord, MeasurementIdentity, TaskTrace\nwith tempfile.TemporaryDirectory() as td:\n    meas = MeasurementIdentity('ref', '1', 'vocab-1', 'full', '1', 'full-model-text')\n    reg = CertificationRegistry(Path(td) / 'cert.sqlite', alpha=0.05, trusted_oracle_id='oracle-v1')\n    spec = ComparisonSpec(candidate_id='cand', incumbent_id='inc', measurement=meas, oracle_id='oracle-v1', workload_id='w1', environment_id='e1', token_cap=100, minimum_token_reduction=10)\n    assert 'open_rounds' not in reg.budget()\n    assert reg.budget(include_open_rounds=True)['open_rounds'] == 0\n    k1 = reg.start_round(spec, sample_size=1)\n    k2 = reg.start_round(spec, sample_size=1)\n    assert reg.budget(include_open_rounds=True)['open_rounds'] == 2\n    def mk_trace(pol, tok):\n        c = CallRecord(call_id=f't1:{pol}', task_id='t1', attempt_id='a1', phase='learning', role='primary', model_id='m1', harness_id='h1', measurement_id=meas.identity, reference_input_tokens=tok, reference_output_tokens=0, completion_status='succeeded', coverage='complete_for_declared_boundary')\n        return TaskTrace(task_id='t1', policy_id=pol, measurement=meas, phase='learning', learning_run_id='r1', calls=(c,), expected_call_ids=(c.call_id,), coverage='complete_for_declared_boundary')\n    reg.reserve_tasks(k1, spec, ['t1'])\n    obs = PairedObservation(task_id='t1', incumbent=mk_trace('inc', 90), candidate=mk_trace('cand', 10), incumbent_outcome=VerifiedOutcome('t1', 'inc', 'oracle-v1', True, 'a' * 64), candidate_outcome=VerifiedOutcome('t1', 'cand', 'oracle-v1', True, 'b' * 64))\n    reg.submit(k1, spec, [obs])\n    reg.certify(k1, spec)\n    assert 'open_rounds' not in reg.budget()\n    b = reg.budget(include_open_rounds=True)\n    assert b['rounds'] == 2 and b['open_rounds'] == 1\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/certification.py\n+++ b/token-master-plugin/skills/token-master/brainspace/certification.py\n@@ -790,14 +790,19 @@\n                 db.execute(\"UPDATE rounds SET state='closed' WHERE k=?\", (k,))\n             return result\n \n-    def budget(self) -> dict:\n+    def budget(self, *, include_open_rounds: bool = False) -> dict:\n         \"\"\"Every started round spends its allocation, even if abandoned/incomplete.\"\"\"\n         with self._transaction() as db:\n             ks = [row[0] for row in db.execute(\"SELECT k FROM rounds ORDER BY k\")]\n             allocated = math.fsum(round_alpha(self._alpha, k) for k in ks)\n-            return dict(\n+            out = dict(\n                 registry_id=self._registry_id,\n                 alpha=self._alpha, rounds=len(ks), allocated_alpha=allocated,\n                 remaining_alpha=max(0.0, self._alpha - allocated),\n                 next_round_alpha=round_alpha(self._alpha, (max(ks) if ks else 0) + 1),\n             )\n+            if include_open_rounds:\n+                out[\"open_rounds\"] = int(\n+                    db.execute(\"SELECT COUNT(*) FROM rounds WHERE state='open'\").fetchone()[0]\n+                )\n+            return out\n"
+    },
+    {
+      "id": "D08",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "NativeEventCollector"
+      ],
+      "forbidden_prompt_identifiers": [
+        "summary",
+        "close",
+        "claim_pending_call",
+        "source_reads"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/native_events.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_native_runtime.py"
+      ],
+      "prompt": "On `NativeEventCollector` in `token-master-plugin/skills/token-master/brainspace/native_events.py`, update its zero-argument metadata-coverage snapshot method (the method returning `scope`, `closed`, `events`, `bytes`, `counts`, `coverage_complete`, `diagnostics`, `ineligibility_notes`, and `calls`) to accept an optional keyword-only parameter `include_claimed_calls: bool = False`:\n- When `include_claimed_calls=False` (the default), return the exact existing dictionary without a `\"claimed_calls\"` key.\n- When `include_claimed_calls=True`, include `\"claimed_calls\": <int>` counting registered bindings in `self._calls.values()` with `binding.claimed` truthy under `self._condition`.\nModify ONLY `token-master-plugin/skills/token-master/brainspace/native_events.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.native_events import NativeEventCollector\nwith tempfile.TemporaryDirectory() as td:\n    ws = Path(td) / 'ws'\n    ws.mkdir()\n    col = NativeEventCollector(workspace=ws, expected_model='m1')\n    assert 'claimed_calls' not in col.summary()\n    assert col.summary(include_claimed_calls=True)['claimed_calls'] == 0\n    col.register_expected_calls([\n        {'id': 'c1', 'type': 'function', 'function': {'name': 'retrieve_original', 'arguments': '{\"offset\":0,\"ref\":\"r1\"}'}},\n        {'id': 'c2', 'type': 'function', 'function': {'name': 'retrieve_original', 'arguments': '{\"offset\":1,\"ref\":\"r1\"}'}},\n    ], model='m1')\n    col.observe({'type': 'tool.execution_start', 'data': {'toolCallId': 'c1', 'model': 'm1', 'turnId': 't1', 'toolName': 'retrieve_original', 'arguments': {'ref': 'r1', 'offset': 0}}})\n    assert col.claim_pending_call('c1') is True\n    assert 'claimed_calls' not in col.summary()\n    assert col.summary(include_claimed_calls=True)['claimed_calls'] == 1\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/native_events.py\n+++ b/token-master-plugin/skills/token-master/brainspace/native_events.py\n@@ -668,7 +668,7 @@\n             except (ValueError, TypeError, KeyError, RecursionError, OverflowError):\n                 return ()\n \n-    def summary(self):\n+    def summary(self, *, include_claimed_calls: bool = False):\n         \"\"\"Metadata-only native executor coverage; never an execution certificate.\"\"\"\n         with self._condition:\n             counts = {status: 0 for status in (\"pending\", \"success\", \"failure\", \"unknown\", \"poisoned\")}\n@@ -692,6 +692,8 @@\n             if self.source_contract == RANGED_SOURCE_CONTRACT:\n                 result.update(source_contract=self.source_contract,\n                               source_scope=\"exact-observed-tool-result-not-full-file\")\n+            if include_claimed_calls:\n+                result[\"claimed_calls\"] = sum(bool(binding.claimed) for binding in self._calls.values())\n             return result\n \n     def close(self):\n"
+    },
+    {
+      "id": "D09",
+      "repo": "tokenmasterx",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "Optimizer"
+      ],
+      "forbidden_prompt_identifiers": [
+        "learning_inventory",
+        "seal_learning_run",
+        "export_learning",
+        "status",
+        "hill_climb"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/optimizer.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_optimizer.py"
+      ],
+      "prompt": "On `Optimizer` in `token-master-plugin/skills/token-master/brainspace/optimizer.py`, update its zero-argument method that returns accepted complete learning traces and run descriptors (`{\"runs\": [...], \"traces\": [...], ...}`) to accept an optional keyword-only parameter `sealed_only: bool = False`:\n- When `sealed_only=False` (the default), return the exact existing dictionary unchanged.\n- When `sealed_only=True`, filter `\"runs\"` to keep only run dicts where `r[\"state\"] == \"sealed\"`, and filter `\"traces\"` to keep only `TaskTrace` items whose `learning_run_id` belongs to those sealed `\"run_id\"` values (leaving the failed-evaluation keys unchanged).\nModify ONLY `token-master-plugin/skills/token-master/brainspace/optimizer.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom brainspace.optimizer import BaselineValidation, Optimizer, OptimizerConfig, reference_measurement\nfrom brainspace.request_policy import RequestPolicy\nfrom brainspace.token_ledger import COMPLETE, TaskTrace\nwith tempfile.TemporaryDirectory() as td:\n    cfg = OptimizerConfig(measurement=reference_measurement(), oracle_id='o1', workload_id='w1', model_id='m1', environment_id='e1', token_cap=100, minimum_token_reduction=1, alpha=0.05, max_candidates=6, max_calls=2000, calls_per_pair=2)\n    opt = Optimizer(Path(td) / 'opt.sqlite', config=cfg, evaluator=lambda *a: None)\n    opt.initialize(RequestPolicy(enabled=True), validator=lambda pol, reg, res: BaselineValidation(pol.policy_id, reg.identity, reg.oracle_id, True, 'a' * 64, TaskTrace(res.task_id, pol.policy_id, reg.measurement, 'learning', (), (), COMPLETE, res.learning_run_id)), validation_call_limit=0)\n    cand = opt.propose()[0]\n    opt.freeze(cand.policy_id, sample_size=2)\n    full = opt.learning_inventory()\n    assert len(full['runs']) == 2 and len(full['traces']) == 1\n    sealed = opt.learning_inventory(sealed_only=True)\n    assert len(sealed['runs']) == 1 and sealed['runs'][0]['state'] == 'sealed'\n    assert len(sealed['traces']) == 1 and sealed['traces'][0].learning_run_id == sealed['runs'][0]['run_id']\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/optimizer.py\n+++ b/token-master-plugin/skills/token-master/brainspace/optimizer.py\n@@ -1663,7 +1663,7 @@\n             ledger.seal_learning_run(run_id, expected)\n             db.execute(\"UPDATE opt_learning_runs SET state='sealed' WHERE run_id=?\", (run_id,))\n \n-    def learning_inventory(self):\n+    def learning_inventory(self, *, sealed_only: bool = False):\n         \"\"\"Accepted combined traces plus separate rejected-attempt diagnostics.\n \n         ``known_partial_reference_tokens`` is a known subtotal, not total usage.\n@@ -1678,12 +1678,17 @@\n                 trace = self._trace(row[\"records_json\"])\n                 self._check_trace_ownership(db, row[\"event_id\"], trace)\n                 traces.append(trace)\n+            runs = [{\n+                \"run_id\": r[\"run_id\"], \"kind\": r[\"kind\"], \"state\": r[\"state\"],\n+                \"expected_task_ids\": json.loads(r[\"expected_tasks_json\"])\n+                    if r[\"expected_tasks_json\"] is not None else None,\n+            } for r in db.execute(\"SELECT * FROM opt_learning_runs ORDER BY run_id\")]\n+            if sealed_only:\n+                runs = [r for r in runs if r[\"state\"] == \"sealed\"]\n+                sealed_ids = {r[\"run_id\"] for r in runs}\n+                traces = [t for t in traces if t.learning_run_id in sealed_ids]\n             return {\n-                \"runs\": [{\n-                    \"run_id\": r[\"run_id\"], \"kind\": r[\"kind\"], \"state\": r[\"state\"],\n-                    \"expected_task_ids\": json.loads(r[\"expected_tasks_json\"])\n-                        if r[\"expected_tasks_json\"] is not None else None,\n-                } for r in db.execute(\"SELECT * FROM opt_learning_runs ORDER BY run_id\")],\n+                \"runs\": runs,\n                 \"traces\": traces,\n                 **self._failed_evaluations(db),\n             }\n"
+    },
+    {
+      "id": "K06",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "CliRunner"
+      ],
+      "forbidden_prompt_identifiers": [
+        "make_env",
+        "isolation",
+        "invoke",
+        "isolated_filesystem"
+      ],
+      "allowed_paths": [
+        "src/click/testing.py"
+      ],
+      "pytest_targets": [
+        "tests/test_testing.py"
+      ],
+      "prompt": "On `CliRunner` in `src/click/testing.py`, update its helper method that builds the merged environment-overrides dictionary from `self.env` and an optional `overrides` mapping to accept an optional keyword-only parameter `strip_none: bool = False`:\n- When `strip_none=False` (the default), preserve existing behavior (retaining keys mapped to `None` after merging `self.env` and `overrides`).\n- When `strip_none=True`, omit any key whose merged value is `None` from the returned dictionary.\nModify ONLY `src/click/testing.py` and leave no untracked files.",
+      "verify_code": "from click.testing import CliRunner\nr = CliRunner(env={'A': '1', 'B': None, 'C': '3'})\ndefault_env = r.make_env({'C': None, 'D': '4'})\nassert default_env == {'A': '1', 'B': None, 'C': None, 'D': '4'}\nstripped = r.make_env({'C': None, 'D': '4'}, strip_none=True)\nassert stripped == {'A': '1', 'D': '4'}\n",
+      "reference_patch": "--- a/src/click/testing.py\n+++ b/src/click/testing.py\n@@ -196,12 +196,17 @@\n         return cli.name or \"root\"\n \n     def make_env(\n-        self, overrides: t.Optional[t.Mapping[str, t.Optional[str]]] = None\n+        self,\n+        overrides: t.Optional[t.Mapping[str, t.Optional[str]]] = None,\n+        *,\n+        strip_none: bool = False,\n     ) -> t.Mapping[str, t.Optional[str]]:\n         \"\"\"Returns the environment overrides for invoking a script.\"\"\"\n         rv = dict(self.env)\n         if overrides:\n             rv.update(overrides)\n+        if strip_none:\n+            rv = {k: v for k, v in rv.items() if v is not None}\n         return rv\n \n     @contextlib.contextmanager\n"
+    },
+    {
+      "id": "K07",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "MultiCommand"
+      ],
+      "forbidden_prompt_identifiers": [
+        "format_commands",
+        "list_commands",
+        "get_command",
+        "resolve_command",
+        "format_help"
+      ],
+      "allowed_paths": [
+        "src/click/core.py"
+      ],
+      "pytest_targets": [
+        "tests/test_commands.py",
+        "tests/test_formatting.py"
+      ],
+      "prompt": "On `MultiCommand` in `src/click/core.py`, update its help-formatting method that writes the `Commands` definition-list section into a `HelpFormatter` to accept an optional keyword-only parameter `include_hidden: bool = False`:\n- When `include_hidden=False` (the default), continue skipping subcommands whose `.hidden` attribute is truthy.\n- When `include_hidden=True`, include hidden subcommands alongside visible subcommands in the formatted `Commands` section.\nModify ONLY `src/click/core.py` and leave no untracked files.",
+      "verify_code": "import click\n@click.group()\ndef cli(): pass\n@cli.command(help='visible cmd')\ndef pub(): pass\n@cli.command(hidden=True, help='secret cmd')\ndef sec(): pass\nwith click.Context(cli) as ctx:\n    fmt1 = ctx.make_formatter()\n    cli.format_commands(ctx, fmt1)\n    out1 = fmt1.getvalue()\n    assert 'pub' in out1 and 'sec' not in out1\n    fmt2 = ctx.make_formatter()\n    cli.format_commands(ctx, fmt2, include_hidden=True)\n    out2 = fmt2.getvalue()\n    assert 'pub' in out2 and 'sec' in out2 and 'secret cmd' in out2\n",
+      "reference_patch": "--- a/src/click/core.py\n+++ b/src/click/core.py\n@@ -1617,7 +1617,13 @@\n \n         return decorator\n \n-    def format_commands(self, ctx: Context, formatter: HelpFormatter) -> None:\n+    def format_commands(\n+        self,\n+        ctx: Context,\n+        formatter: HelpFormatter,\n+        *,\n+        include_hidden: bool = False,\n+    ) -> None:\n         \"\"\"Extra format methods for multi methods that adds all the commands\n         after the options.\n         \"\"\"\n@@ -1627,7 +1633,7 @@\n             # What is this, the tool lied about a command.  Ignore it\n             if cmd is None:\n                 continue\n-            if cmd.hidden:\n+            if cmd.hidden and not include_hidden:\n                 continue\n \n             commands.append((subcommand, cmd))\n"
+    },
+    {
+      "id": "K08",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "Parameter"
+      ],
+      "forbidden_prompt_identifiers": [
+        "get_error_hint",
+        "get_default",
+        "to_info_dict",
+        "human_readable_name"
+      ],
+      "allowed_paths": [
+        "src/click/core.py"
+      ],
+      "pytest_targets": [
+        "tests/test_options.py"
+      ],
+      "prompt": "On `Parameter` in `src/click/core.py`, update its method that returns a single-quoted `' / '`-joined string of parameter option names for error messages to accept an optional keyword-only parameter `include_secondary: bool = False`:\n- When `include_secondary=False` (the default), preserve existing behavior (primary option strings, falling back to the parameter's human-readable name when empty).\n- When `include_secondary=True`, append `self.secondary_opts` after `self.opts` (still falling back to the parameter's human-readable name if both are empty), formatted with the same `' / '` single-quoted join.\nModify ONLY `src/click/core.py` and leave no untracked files.",
+      "verify_code": "import click\nopt = click.Option(['--shout/--no-shout', '-s/-S'])\ncmd = click.Command('demo', params=[opt])\nwith click.Context(cmd) as ctx:\n    assert opt.get_error_hint(ctx) == \"'--shout' / '-s'\"\n    assert opt.get_error_hint(ctx, include_secondary=True) == \"'--shout' / '-s' / '--no-shout' / '-S'\"\nopt2 = click.Option(['--foo'])\nopt2.opts = []\nwith click.Context(click.Command('demo2', params=[opt2])) as ctx2:\n    assert opt2.get_error_hint(ctx2, include_secondary=True) == \"'foo'\"\n",
+      "reference_patch": "--- a/src/click/core.py\n+++ b/src/click/core.py\n@@ -2418,11 +2418,12 @@\n     def get_usage_pieces(self, ctx: Context) -> t.List[str]:\n         return []\n \n-    def get_error_hint(self, ctx: Context) -> str:\n+    def get_error_hint(self, ctx: Context, *, include_secondary: bool = False) -> str:\n         \"\"\"Get a stringified version of the param for use in error messages to\n         indicate which param caused the error.\n         \"\"\"\n-        hint_list = self.opts or [self.human_readable_name]\n+        opts = [*self.opts, *self.secondary_opts] if include_secondary else list(self.opts)\n+        hint_list = opts or [self.human_readable_name]\n         return \" / \".join(f\"'{x}'\" for x in hint_list)\n \n     def shell_complete(self, ctx: Context, incomplete: str) -> t.List[\"CompletionItem\"]:\n"
+    },
+    {
+      "id": "K09",
+      "repo": "click",
+      "bucket": "B_oversized_class_edit",
+      "kind": "edit",
+      "target_containers": [
+        "ProgressBar"
+      ],
+      "forbidden_prompt_identifiers": [
+        "format_pct",
+        "format_eta",
+        "format_pos",
+        "format_progress_line",
+        "render_progress"
+      ],
+      "allowed_paths": [
+        "src/click/_termui_impl.py"
+      ],
+      "pytest_targets": [
+        "tests/test_termui.py"
+      ],
+      "prompt": "On `ProgressBar` in `src/click/_termui_impl.py`, update its zero-argument percentage-formatting method (which formats `self.pct` as an integer percentage string ending in `'%'`) to accept an optional keyword-only parameter `decimals: int = 0`:\n- Raise `ValueError` if `decimals < 0`.\n- When `decimals == 0` (the default), return the exact existing string unchanged.\n- When `decimals > 0`, return `self.pct * 100` formatted with `decimals` fixed decimal places followed by `'%'` (for example `\"37.5%\"` when `pct` is `0.375` and `decimals=1`).\nModify ONLY `src/click/_termui_impl.py` and leave no untracked files.",
+      "verify_code": "import io\nfrom click._termui_impl import ProgressBar\nbar = ProgressBar(None, length=8, file=io.StringIO())\nbar.pos = 3\nassert bar.format_pct() == ' 37%'\nassert bar.format_pct(decimals=1) == '37.5%'\nassert bar.format_pct(decimals=2) == '37.50%'\ntry:\n    bar.format_pct(decimals=-1)\nexcept ValueError:\n    pass\nelse:\n    raise AssertionError('expected ValueError for negative decimals')\n",
+      "reference_patch": "--- a/src/click/_termui_impl.py\n+++ b/src/click/_termui_impl.py\n@@ -178,8 +178,12 @@\n             pos += f\"/{self.length}\"\n         return pos\n \n-    def format_pct(self) -> str:\n-        return f\"{int(self.pct * 100): 4}%\"[1:]\n+    def format_pct(self, *, decimals: int = 0) -> str:\n+        if decimals < 0:\n+            raise ValueError(\"decimals must be >= 0\")\n+        if decimals == 0:\n+            return f\"{int(self.pct * 100): 4}%\"[1:]\n+        return f\"{self.pct * 100:.{decimals}f}%\"\n \n     def format_bar(self) -> str:\n         if self.length is not None:\n"
+    },
+    {
+      "id": "D10",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "RuntimePolicy"
+      ],
+      "prompt": "Inspect the `RuntimePolicy` dataclass in `brainspace/runtime_policy.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `min_budget_s`: minimum allowed integer for `headroom_time_budget_seconds` when not `None`\n- `max_budget_s`: maximum allowed integer for `headroom_time_budget_seconds` when not `None`\n- `v6_instruction_error`: exact `ValueError` message raised when `request_policy.version == \"request-policy-v6\"` and `instruction != \"none\"`\n- `omitted_default_fields`: sorted 3-element list of field names deleted by `RuntimePolicy.to_dict()` when they match their default values",
+      "expected": {
+        "min_budget_s": 1,
+        "max_budget_s": 60,
+        "v6_instruction_error": "v6_rejects_instruction_guidance",
+        "omitted_default_fields": [
+          "headroom_root_reference_style",
+          "headroom_strategy",
+          "headroom_structure_guard"
+        ]
+      }
+    },
+    {
+      "id": "D11",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "NativeBridge"
+      ],
+      "prompt": "Inspect the `NativeBridge` class in `brainspace/native_runtime.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 6 keys:\n- `queue_maxsize`: integer `maxsize` of `self._queue` in `NativeBridge.__init__`\n- `waiter_timeout_s`: integer timeout in seconds passed to `future.result(...)` in `NativeBridge._dispatch`\n- `connect_status`: HTTP status code integer sent by `Handler.do_CONNECT`\n- `connect_error`: exact error message string returned in `Handler.do_CONNECT`\n- `exit_settle_deadline_s`: integer deadline duration in seconds added to `time.monotonic()` in `NativeBridge.__exit__`\n- `exit_unsettled_error`: exact `RuntimeError` message raised in `NativeBridge.__exit__` if `_active_handlers` does not drain before the deadline",
+      "expected": {
+        "queue_maxsize": 32,
+        "waiter_timeout_s": 180,
+        "connect_status": 403,
+        "connect_error": "external_proxy_disabled",
+        "exit_settle_deadline_s": 20,
+        "exit_unsettled_error": "native_http_handlers_not_settled"
+      }
+    },
+    {
+      "id": "D12",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [],
+      "prompt": "Inspect `_solve_submodular_knapsack` in `brainspace/repo_brief.py` and `bet_passes` in `brainspace/certification.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `phase1_role_order`: 3-element list of role strings in the exact iteration order used by Phase 1 of `_solve_submodular_knapsack`\n- `phase1_max_per_file`: integer `max_per_file` passed to `pick_best` during Phase 1 and Phase 2a\n- `phase2b_max_per_file`: integer value of `MAX_HUBS_PER_FILE` passed as `max_per_file` in Phase 2b\n- `negative_bet_factor_error`: exact `ValueError` message raised in `bet_passes` when `factor < 0`",
+      "expected": {
+        "phase1_role_order": [
+          "hub",
+          "recall",
+          "entry"
+        ],
+        "phase1_max_per_file": 1,
+        "phase2b_max_per_file": 2,
+        "negative_bet_factor_error": "bet factor is negative; a run exceeds token_cap"
+      }
+    },
+    {
+      "id": "D13",
+      "repo": "tokenmasterx",
+      "bucket": "C_small_symbol_control",
+      "kind": "edit",
+      "target_containers": [
+        "RuntimePolicy"
+      ],
+      "allowed_paths": [
+        "token-master-plugin/skills/token-master/brainspace/runtime_policy.py"
+      ],
+      "pytest_targets": [
+        "token-master-plugin/skills/token-master/tests/test_runtime_policy.py"
+      ],
+      "prompt": "Add a method `with_instruction(self, instruction: str) -> RuntimePolicy` to `RuntimePolicy` in `token-master-plugin/skills/token-master/brainspace/runtime_policy.py` that returns a new `RuntimePolicy` copy with `instruction` updated (running `RuntimePolicy` validation so invalid combinations raise `ValueError`). Do NOT add any new dataclass fields or an `enabled` attribute. Modify ONLY `token-master-plugin/skills/token-master/brainspace/runtime_policy.py` and leave no untracked files.",
+      "verify_code": "from brainspace.runtime_policy import RuntimePolicy\nfrom brainspace.request_policy import RequestPolicy\nbase = RuntimePolicy()\np2 = base.with_instruction('ponytail')\nassert isinstance(p2, RuntimePolicy) and p2.instruction == 'ponytail' and base.instruction == 'none'\nassert not hasattr(p2, 'enabled')\nv6 = RuntimePolicy(backend='local', require_nonexpanding_input=True, request_policy=RequestPolicy(version='request-policy-v6', enabled=True))\ntry:\n    v6.with_instruction('ponytail')\nexcept ValueError as exc:\n    assert 'v6_rejects_instruction_guidance' in str(exc)\nelse:\n    raise AssertionError('expected ValueError for v6 + ponytail')\n",
+      "reference_patch": "--- a/token-master-plugin/skills/token-master/brainspace/runtime_policy.py\n+++ b/token-master-plugin/skills/token-master/brainspace/runtime_policy.py\n@@ -183,6 +183,9 @@\n     def policy_id(self) -> str:\n         return VERSION + \":\" + hashlib.sha256(self.to_json().encode(\"utf-8\")).hexdigest()\n \n+    def with_instruction(self, instruction: str) -> RuntimePolicy:\n+        return replace(self, instruction=instruction)\n+\n \n ControllerPolicy: TypeAlias = RequestPolicy | RuntimePolicy\n \n"
+    },
+    {
+      "id": "K10",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "HelpFormatter"
+      ],
+      "prompt": "Inspect the `HelpFormatter` class in `src/click/formatting.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 5 keys:\n- `default_max_width`: integer value assigned to `max_width` in `HelpFormatter.__init__` when `max_width is None`\n- `min_auto_width`: integer minimum width floor applied in `max(min(...), ...)` when deriving `width` from terminal columns\n- `default_col_max`: default integer value of `col_max` on `HelpFormatter.write_dl`\n- `default_col_spacing`: default integer value of `col_spacing` on `HelpFormatter.write_dl`\n- `dl_column_error`: exact `TypeError` message raised in `HelpFormatter.write_dl` when `len(widths) != 2`",
+      "expected": {
+        "default_max_width": 80,
+        "min_auto_width": 50,
+        "default_col_max": 30,
+        "default_col_spacing": 2,
+        "dl_column_error": "Expected two columns for definition list"
+      }
+    },
+    {
+      "id": "K11",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "ShellComplete",
+        "Choice"
+      ],
+      "prompt": "Inspect `ShellComplete` (`src/click/shell_completion.py`) and `Choice` (`src/click/types.py`). Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `source_var_keys`: sorted 3-element list of dictionary keys returned by `ShellComplete.source_vars()`\n- `required_arg_brackets`: 2-character string (`\"{}\"` or `\"[]\"`) showing the bracket pair `Choice.get_metavar` uses when `param.required and param.param_type_name == \"argument\"`\n- `convert_norm_method`: exact `str` method name (`\"casefold\"` or `\"lower\"`) called by `Choice.convert` when `not self.case_sensitive`\n- `shell_complete_norm_method`: exact `str` method name (`\"casefold\"` or `\"lower\"`) called by `Choice.shell_complete` when `not self.case_sensitive`",
+      "expected": {
+        "source_var_keys": [
+          "complete_func",
+          "complete_var",
+          "prog_name"
+        ],
+        "required_arg_brackets": "{}",
+        "convert_norm_method": "casefold",
+        "shell_complete_norm_method": "lower"
+      }
+    },
+    {
+      "id": "K12",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "trace",
+      "target_containers": [
+        "LazyFile"
+      ],
+      "prompt": "Inspect `LazyFile` and `format_filename` in `src/click/utils.py`. Do NOT modify any files. Reply with ONLY a single JSON object containing these exact 4 keys:\n- `default_errors`: default string value of the `errors` parameter on `LazyFile.__init__`\n- `dash_opens_immediately`: boolean indicating whether `LazyFile(\"-\")` calls `open_stream` immediately inside `__init__`\n- `open_exception_class`: exact Click exception class name raised by `LazyFile.open()` when `open_stream` raises `OSError`\n- `str_surrogate_error_handler`: exact error-handler string passed to `filename.encode(\"utf-8\", ...)` for non-`bytes` filenames in `format_filename`",
+      "expected": {
+        "default_errors": "strict",
+        "dash_opens_immediately": true,
+        "open_exception_class": "FileError",
+        "str_surrogate_error_handler": "surrogateescape"
+      }
+    },
+    {
+      "id": "K13",
+      "repo": "click",
+      "bucket": "C_small_symbol_control",
+      "kind": "edit",
+      "target_containers": [
+        "LazyFile"
+      ],
+      "allowed_paths": [
+        "src/click/utils.py"
+      ],
+      "pytest_targets": [
+        "tests/test_utils.py",
+        "-k",
+        "not echo_via_pager"
+      ],
+      "prompt": "Add a boolean `@property` named `is_open` to `LazyFile` in `src/click/utils.py` that returns `True` if `self._f is not None` and `False` otherwise, without triggering `self.open()` via `__getattr__`. Modify ONLY `src/click/utils.py` and leave no untracked files.",
+      "verify_code": "from pathlib import Path\nimport tempfile\nfrom click.utils import LazyFile\nwith tempfile.TemporaryDirectory() as td:\n    fp = Path(td) / 'out.txt'\n    lf = LazyFile(str(fp), 'w')\n    assert lf.is_open is False\n    assert not fp.exists()\n    lf.open()\n    assert lf.is_open is True\n    lf.close()\n",
+      "reference_patch": "--- a/src/click/utils.py\n+++ b/src/click/utils.py\n@@ -136,6 +136,10 @@\n                 open(filename, mode).close()\n             self._f = None\n             self.should_close = True\n+\n+    @property\n+    def is_open(self) -> bool:\n+        return self._f is not None\n \n     def __getattr__(self, name: str) -> t.Any:\n         return getattr(self.open(), name)\n"
+    }
+  ]
+}

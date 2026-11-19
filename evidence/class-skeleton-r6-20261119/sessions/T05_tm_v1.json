@@ -1,0 +1,216 @@
+{
+  "task_id": "T05",
+  "arm": "tm_v1",
+  "session_id": "50aeb8d7-724e-4496-9c6c-3d5d94fa2c74",
+  "returncode": 0,
+  "wall_seconds": 37.953,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/ccr.py"
+    ]
+  },
+  "final_answer": "Updated `CCR.stats` with keyword-only `include_evictions=False`. Default dictionaries remain unchanged; opting in returns the scoped eviction count, or `0` on storage errors.\n\nOnly `ccr.py` changed; no untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_t9ptS5l0PZ9iCnIT42gwXAur",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      }
+    },
+    {
+      "call_id": "call_n2qnYGmGMyCUBQWk3BCjGyg8",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      }
+    },
+    {
+      "call_id": "call_uZTa9XU9AAQm2cdns9Gfxt3v",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check working tree changes"
+      }
+    },
+    {
+      "call_id": "custom_call_BY5zXEdFRvvFMIq2tfW0BeiG",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_ROSBzD8U0BHiqx5WiHaYbilx",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport sqlite3\nfrom pathlib import Path\nfrom unittest.mock import MagicMock\n\npath = Path(r'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py')\ntree = ast.parse(path.read_text(encoding='utf-8'))\ncls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'CCR')\nmethod = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'stats')\nnamespace = {'_STORAGE_ERRORS': (sqlite3.Error,)}\nexec(compile(ast.Module(body=[method], type_ignores=[]), str(path), 'exec'), namespace)\nstats = namespace['stats']\nstore = MagicMock()\nstore._scope_key = 'test-scope'\nstore._db_path = Path('test.db')\nstore.shared = False\nstore.last_gc = None\nconn = store._connect.return_value.__enter__.return_value\nconn.execute.return_value.fetchone.side_effect = [(2, 100, 50, 3), (1, 1)]\ndefault = stats(store)\nassert 'evicted_records' not in default\nassert conn.execute.call_count == 2\nconn.reset_mock()\nconn.execute.return_value.fetchone.side_effect = [(2, 100, 50, 3), (1, 1), (7,)]\nassert stats(store, include_evictions=True) == {**default, 'evicted_records': 7}\nconn.execute.assert_called_with('SELECT COUNT(*) FROM ccr_evictions WHERE scope=?', ('test-scope',))\nstore._connect.side_effect = sqlite3.OperationalError('unreadable')\nfallback = stats(store)\nassert 'evicted_records' not in fallback\nassert stats(store, include_evictions=True) == {**fallback, 'evicted_records': 0}\ntry:\n    stats(store, True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused stats checks passed')\n'@ | python -B -\nif ($LASTEXITCODE -eq 0) { python -B -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py }\ngit --no-pager diff --check; git --no-pager status --short",
+        "description": "Verify stats behavior, recovery tests, and single-file working tree",
+        "initial_wait": 120
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_uZTa9XU9AAQm2cdns9Gfxt3v",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check working tree changes"
+      },
+      "success": true,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_t9ptS5l0PZ9iCnIT42gwXAur",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      },
+      "success": true,
+      "tokens": 356,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_n2qnYGmGMyCUBQWk3BCjGyg8",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      },
+      "success": true,
+      "tokens": 999,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_BY5zXEdFRvvFMIq2tfW0BeiG",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 49,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_ROSBzD8U0BHiqx5WiHaYbilx",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport sqlite3\nfrom pathlib import Path\nfrom unittest.mock import MagicMock\n\npath = Path(r'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py')\ntree = ast.parse(path.read_text(encoding='utf-8'))\ncls = next(n for n in tree.body if isinstance(n, ast.ClassDef) and n.name == 'CCR')\nmethod = next(n for n in cls.body if isinstance(n, ast.FunctionDef) and n.name == 'stats')\nnamespace = {'_STORAGE_ERRORS': (sqlite3.Error,)}\nexec(compile(ast.Module(body=[method], type_ignores=[]), str(path), 'exec'), namespace)\nstats = namespace['stats']\nstore = MagicMock()\nstore._scope_key = 'test-scope'\nstore._db_path = Path('test.db')\nstore.shared = False\nstore.last_gc = None\nconn = store._connect.return_value.__enter__.return_value\nconn.execute.return_value.fetchone.side_effect = [(2, 100, 50, 3), (1, 1)]\ndefault = stats(store)\nassert 'evicted_records' not in default\nassert conn.execute.call_count == 2\nconn.reset_mock()\nconn.execute.return_value.fetchone.side_effect = [(2, 100, 50, 3), (1, 1), (7,)]\nassert stats(store, include_evictions=True) == {**default, 'evicted_records': 7}\nconn.execute.assert_called_with('SELECT COUNT(*) FROM ccr_evictions WHERE scope=?', ('test-scope',))\nstore._connect.side_effect = sqlite3.OperationalError('unreadable')\nfallback = stats(store)\nassert 'evicted_records' not in fallback\nassert stats(store, include_evictions=True) == {**fallback, 'evicted_records': 0}\ntry:\n    stats(store, True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused stats checks passed')\n'@ | python -B -\nif ($LASTEXITCODE -eq 0) { python -B -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py }\ngit --no-pager diff --check; git --no-pager status --short",
+        "description": "Verify stats behavior, recovery tests, and single-file working tree",
+        "initial_wait": 120
+      },
+      "success": true,
+      "tokens": 50,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 23,
+      "session_id": "50aeb8d7-724e-4496-9c6c-3d5d94fa2c74",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7171,
+      "uncached_input_tokens": 3,
+      "output_tokens": 116,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3656,
+      "total_nano_aiu": 5504200000,
+      "recharged_nano_aiu": 5504200000,
+      "cold_nano_aiu": 9543000000,
+      "created_at": "2026-11-19T07:36:47.560Z"
+    },
+    {
+      "row_id": 24,
+      "session_id": "50aeb8d7-724e-4496-9c6c-3d5d94fa2c74",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8710,
+      "uncached_input_tokens": 3,
+      "output_tokens": 280,
+      "cache_read_tokens": 7168,
+      "cache_write_tokens": 1539,
+      "total_nano_aiu": 4043550000,
+      "recharged_nano_aiu": 4043550000,
+      "cold_nano_aiu": 4043550000,
+      "created_at": "2026-11-19T07:36:54.690Z"
+    },
+    {
+      "row_id": 25,
+      "session_id": "50aeb8d7-724e-4496-9c6c-3d5d94fa2c74",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9050,
+      "uncached_input_tokens": 3,
+      "output_tokens": 582,
+      "cache_read_tokens": 8707,
+      "cache_write_tokens": 340,
+      "total_nano_aiu": 4208700000,
+      "recharged_nano_aiu": 4208700000,
+      "cold_nano_aiu": 4208700000,
+      "created_at": "2026-11-19T07:37:02.515Z"
+    },
+    {
+      "row_id": 26,
+      "session_id": "50aeb8d7-724e-4496-9c6c-3d5d94fa2c74",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9695,
+      "uncached_input_tokens": 3,
+      "output_tokens": 53,
+      "cache_read_tokens": 9047,
+      "cache_write_tokens": 645,
+      "total_nano_aiu": 1978950000,
+      "recharged_nano_aiu": 1978950000,
+      "cold_nano_aiu": 1978950000,
+      "created_at": "2026-11-19T07:37:14.656Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "992a894d6c1a36f7",
+    "at": "2026-11-19T07:36:39.055Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-20261119\\lanes\\l2\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 29624,
+    "saved_usd": 0.043251,
+    "lean_usd": 0.029624,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

@@ -88,6 +88,28 @@ Django pilot was never replicated
      Django symbols; `impact` returned 8,401. Copilot's search tool shortens long results, and
      the models in Copilot CLI itself searched with narrower patterns, so this is lookup output, not
      session cost.
+   - **R6 skeletal class projection & `@overload` 1-step resolution (`brainspace/symbol_index.py`, default
+     `--class-skeleton r6`, `--class-skeleton v1` retained for A/B baselines):** when `read_symbol` targets a container
+     symbol (`class`, `interface`, `struct`, `enum`, `trait`, `impl`) exceeding `max_lines = 120`, instead of returning a
+     top-heavy `2,400`-token prefix that silently truncates bottom-half methods, `r6` projects class header + attributes
+     + full `__init__`/`__new__`/`__post_init__` (`<= 80` lines) + one-line member signatures with exact `Lstart-end`
+     spans and a drill-down hint (`read_symbol("<path>::<Class>.<method>")`), resolves contiguous `@overload` stubs +
+     implementation in one call, and lists `path:start-end` spans on duplicate names. Across two sequential pre-registered
+     3-arm live studies on Copilot CLI `1.0.112` (`gpt-6-astra`, `150` sessions total across this repository and Click
+     8.1.8, `150/150` passed), Round 1 ($k = 1$, $\alpha_1 = 0.0304$, `evidence/class-skeleton-r6-20261119/`, `72`
+     sessions) certified `tm_r6` against `stock` on **both** PR `#35` exact integer gates (`−56.3%` raw tokens, `71,324
+     -> 31,137`, `0` harms, `max-bet-v1` wealth `1.0065 >= 1.0`, whereas `tm_v1` reached `0.9211 < 1.0`), and diagnosed
+     that method-named prompts bypassed container reads on `12/16` oversized tasks (`−18.7%` vs `tm_v1` on the `4`
+     exposed tasks vs `−1.5%` on bypassed tasks). Confirmation Round 2 ($k = 2$, $\alpha_2 = 0.0076$,
+     `evidence/class-skeleton-r6-discovery-20261119/`, `78` sessions on `26` naturalistic zero-method-leakage prompts)
+     raised mechanism exposure to `15/18` (`83.3%`) oversized tasks, passed `H1` (`−33.0%` tool-result tokens vs `tm_v1`,
+     `3,559 -> 2,385`, `15W/0T/3L`, Holm $p = 0.0047$; `−39.8%` `read_symbol` tokens, $p = 0.00038$) and `H4` (`−48.0%`
+     raw tokens vs `stock`, `73,428 -> 38,219`, Holm $p < 10^{-6}$), and cut billed cost **`−17.8%` on `10/10`
+     naturalistic class-discovery traces (`$0.1405 -> $0.1154`, exact Wilcoxon $p = 0.00195$; `−6.2%` pooled across
+     `N = 26`, $p = 0.0296$)**. Honest limit: when `tm_r6` reads a compact class skeleton and then makes one surgical
+     `Class.method` call (`3 -> 4` API calls on `3/10` trace tasks), that extra *cached*-prefix call reduces billed USD
+     cost while adding ~`11k` cached prefix tokens to raw `input + output`, attenuating raw `total_tokens` vs `tm_v1` to
+     `−9.4%` on discovery traces (`31,442 -> 28,497`, $p = 0.131$) and `−2.5%` across `Buckets A + B` (Holm $p = 0.504$).
 4. **Pay once per tool result (v6).** Shape each tool result once, deterministically,
    when it enters the conversation.
    - Search output and path lists are folded losslessly.

@@ -668,8 +668,12 @@ def _nav_repo(root: Path) -> None:
     (root / "pkg").mkdir()
     functions = [f"def handler_{i}_with_a_rather_long_descriptive_name(argument_one, argument_two, third=None):\n"
                  f"    return target_function(argument_one) + {i}\n" for i in range(400)]
-    (root / "pkg/big.py").write_text("def target_function(value):\n    return value\n\n\n" + "\n".join(functions),
-                                     encoding="utf-8")
+    methods = [f"    def op_{i}_with_detailed_parameters(self, first_arg: int, second_arg: str = 'x') -> int:\n"
+               f"        return target_function(first_arg) + {i}\n" for i in range(400)]
+    (root / "pkg/big.py").write_text(
+        "def target_function(value):\n    return value\n\n\n" + "\n".join(functions)
+        + "\n\nclass BigContainer:\n" + "\n".join(methods),
+        encoding="utf-8")
     for i in range(700):
         (root / f"d{i}").mkdir()
         (root / f"d{i}/util.py").write_text(f"def helper_{i}():\n    return {i}\n", encoding="utf-8")
@@ -680,21 +684,50 @@ def nav_results(tmp_path_factory):
     root = tmp_path_factory.mktemp("nav")
     _nav_repo(root)
     index = symbol_index.SymbolIndex(root)
+    v1_index = symbol_index.SymbolIndex(root, class_skeleton="v1")
     try:
         return {"locate": index.locate("handler"), "outline": index.locate("pkg/big.py"),
                 "not_one_file": index.locate("util.py"), "read": index.read("pkg/big.py"),
+                "read_class_r6": index.read("BigContainer"), "read_class_v1": v1_index.read("BigContainer"),
                 "range": index.read("pkg/big.py:1-800"), "impact": index.impact("target_function")}
     finally:
         index.close()
+        v1_index.close()
 
 
 def test_navigation_results_within_budget(nav_results):
     """NavCap.assemble_le, on every tool: each result, footer and newlines included, costs at most BUDGET. The
     not_one_file result cost 2,401 under cl100k before results were measured whole."""
     assert "files; use one:" in nav_results["not_one_file"] and "more]" in nav_results["not_one_file"]
+    assert "class skeleton):" in nav_results["read_class_r6"]
+    assert "Members (read_symbol one" in nav_results["read_class_v1"]
     assert nav_results["impact"].count(chr(10)) > 50
     for name, text in nav_results.items():
         assert symbol_index._count(text) <= symbol_index.BUDGET, name
+
+
+def test_container_skeleton_within_budget_under_fallback(tmp_path, fallback_counter):
+    """NavCap.assemble_le holds for R6 container skeletons under fallback ceil(chars/4) as well as cl100k_base."""
+    long_sig = ", ".join(f"param_{k}: int = {k}" for k in range(40))
+    methods = "\n".join(
+        f"    def action_{i}(self, {long_sig}) -> tuple[int, ...]:\n        return ({i},)\n"
+        for i in range(120)
+    )
+    (tmp_path / "huge_cls.py").write_text(
+        'class HugeService:\n    """' + ("Summary words " * 80) + '"""\n'
+        + "\n".join(f"    ATTR_{k} = {k}" for k in range(30)) + "\n"
+        + "    def __init__(self) -> None:\n"
+        + "\n".join(f"        self.field_{k} = {k}" for k in range(30)) + "\n"
+        + methods,
+        encoding="utf-8",
+    )
+    index = symbol_index.SymbolIndex(tmp_path)
+    try:
+        out = index.read("HugeService")
+        assert "class skeleton):" in out
+        assert fallback_counter(out) <= symbol_index.BUDGET
+    finally:
+        index.close()
 
 
 def test_uncut_read_within_budget(tmp_path, fallback_counter):

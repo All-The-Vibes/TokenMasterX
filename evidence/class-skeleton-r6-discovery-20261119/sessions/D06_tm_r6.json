@@ -1,0 +1,250 @@
+{
+  "task_id": "D06",
+  "arm": "tm_r6",
+  "session_id": "981eed2f-77a9-4596-8bb8-94b95b9647f1",
+  "returncode": 0,
+  "wall_seconds": 32.547,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/ccr.py"
+    ]
+  },
+  "final_answer": "Updated `CCR.stats()` with keyword-only `include_evictions: bool = False`. Default dictionaries remain unchanged; opting in adds the scoped eviction count, or `0` on storage errors.\n\nOnly `ccr.py` changed; no untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_FPqJO46ybbWSZ0ZRPOQIgfVK",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR"
+      }
+    },
+    {
+      "call_id": "call_nay6CKW94lCSCvJvaDewDhWY",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      }
+    },
+    {
+      "call_id": "call_zNe2l7TFMgf6eiC2v8BXdele",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      }
+    },
+    {
+      "call_id": "call_3Ou4lP0RzAbCLSraEfMC2Ejy",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check initial worktree status"
+      }
+    },
+    {
+      "call_id": "custom_call_1pZoZyDnH39uu4PZ5Ks73zrv",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_6e2O6YoWX7bNl9pyMcj2MsI4",
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; python -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py; @'\nimport sys\nfrom contextlib import contextmanager\nfrom unittest.mock import MagicMock\nimport sqlite3\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.ccr import CCR\nstore = CCR()\nconn = MagicMock()\n@contextmanager\ndef connect():\n    yield conn\nstore._connect = connect\nconn.execute.return_value.fetchone.side_effect = [(2, 20, 10, 3), (1, 1)]\nbase = store.stats()\nassert 'evicted_records' not in base\nassert conn.execute.call_count == 2\nconn.reset_mock()\nconn.execute.return_value.fetchone.side_effect = [(2, 20, 10, 3), (1, 1), (7,)]\nassert store.stats(include_evictions=True) == dict(base, evicted_records=7)\nconn.execute.assert_called_with('SELECT COUNT(*) FROM ccr_evictions WHERE scope=?', (store._scope_key,))\nconn.execute.side_effect = sqlite3.OperationalError('unreadable')\nfallback = store.stats()\nassert 'evicted_records' not in fallback\nassert store.stats(include_evictions=True) == dict(fallback, evicted_records=0)\ntry:\n    store.stats(True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused stats checks passed')\n'@ | python -; git --no-pager diff --check; git --no-pager status --short",
+        "description": "Run recovery tests and focused optional eviction metrics checks",
+        "initial_wait": 120
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_FPqJO46ybbWSZ0ZRPOQIgfVK",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR"
+      },
+      "success": true,
+      "tokens": 966,
+      "is_class_skeleton": true,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_3Ou4lP0RzAbCLSraEfMC2Ejy",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check initial worktree status"
+      },
+      "success": true,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_zNe2l7TFMgf6eiC2v8BXdele",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      },
+      "success": true,
+      "tokens": 999,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_nay6CKW94lCSCvJvaDewDhWY",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      },
+      "success": true,
+      "tokens": 356,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_1pZoZyDnH39uu4PZ5Ks73zrv",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 51,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_6e2O6YoWX7bNl9pyMcj2MsI4",
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; python -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py; @'\nimport sys\nfrom contextlib import contextmanager\nfrom unittest.mock import MagicMock\nimport sqlite3\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.ccr import CCR\nstore = CCR()\nconn = MagicMock()\n@contextmanager\ndef connect():\n    yield conn\nstore._connect = connect\nconn.execute.return_value.fetchone.side_effect = [(2, 20, 10, 3), (1, 1)]\nbase = store.stats()\nassert 'evicted_records' not in base\nassert conn.execute.call_count == 2\nconn.reset_mock()\nconn.execute.return_value.fetchone.side_effect = [(2, 20, 10, 3), (1, 1), (7,)]\nassert store.stats(include_evictions=True) == dict(base, evicted_records=7)\nconn.execute.assert_called_with('SELECT COUNT(*) FROM ccr_evictions WHERE scope=?', (store._scope_key,))\nconn.execute.side_effect = sqlite3.OperationalError('unreadable')\nfallback = store.stats()\nassert 'evicted_records' not in fallback\nassert store.stats(include_evictions=True) == dict(fallback, evicted_records=0)\ntry:\n    store.stats(True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused stats checks passed')\n'@ | python -; git --no-pager diff --check; git --no-pager status --short",
+        "description": "Run recovery tests and focused optional eviction metrics checks",
+        "initial_wait": 120
+      },
+      "success": true,
+      "tokens": 50,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 34,
+      "session_id": "981eed2f-77a9-4596-8bb8-94b95b9647f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7216,
+      "uncached_input_tokens": 3,
+      "output_tokens": 37,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3701,
+      "total_nano_aiu": 5165450000,
+      "recharged_nano_aiu": 5165450000,
+      "cold_nano_aiu": 9204250000,
+      "created_at": "2026-11-19T08:40:13.866Z"
+    },
+    {
+      "row_id": 35,
+      "session_id": "981eed2f-77a9-4596-8bb8-94b95b9647f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8243,
+      "uncached_input_tokens": 3,
+      "output_tokens": 117,
+      "cache_read_tokens": 7213,
+      "cache_write_tokens": 1027,
+      "total_nano_aiu": 2593050000,
+      "recharged_nano_aiu": 2593050000,
+      "cold_nano_aiu": 2593050000,
+      "created_at": "2026-11-19T08:40:18.771Z"
+    },
+    {
+      "row_id": 36,
+      "session_id": "981eed2f-77a9-4596-8bb8-94b95b9647f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9783,
+      "uncached_input_tokens": 3,
+      "output_tokens": 321,
+      "cache_read_tokens": 8240,
+      "cache_write_tokens": 1540,
+      "total_nano_aiu": 4357000000,
+      "recharged_nano_aiu": 4357000000,
+      "cold_nano_aiu": 4357000000,
+      "created_at": "2026-11-19T08:40:24.681Z"
+    },
+    {
+      "row_id": 37,
+      "session_id": "981eed2f-77a9-4596-8bb8-94b95b9647f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10166,
+      "uncached_input_tokens": 3,
+      "output_tokens": 415,
+      "cache_read_tokens": 9780,
+      "cache_write_tokens": 383,
+      "total_nano_aiu": 3534750000,
+      "recharged_nano_aiu": 3534750000,
+      "cold_nano_aiu": 3534750000,
+      "created_at": "2026-11-19T08:40:31.329Z"
+    },
+    {
+      "row_id": 38,
+      "session_id": "981eed2f-77a9-4596-8bb8-94b95b9647f1",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10644,
+      "uncached_input_tokens": 3,
+      "output_tokens": 56,
+      "cache_read_tokens": 10163,
+      "cache_write_tokens": 478,
+      "total_nano_aiu": 1896800000,
+      "recharged_nano_aiu": 1896800000,
+      "cold_nano_aiu": 1896800000,
+      "created_at": "2026-11-19T08:40:38.532Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "b7e3d1af39f9054f",
+    "at": "2026-11-19T08:40:08.381Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l3\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 37030,
+    "saved_usd": 0.050658,
+    "lean_usd": 0.03703,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

@@ -1,0 +1,118 @@
+{
+  "task_id": "K05",
+  "arm": "stock",
+  "session_id": "5f4557be-64bc-4ab3-bbe9-3aafa23d355c",
+  "returncode": 0,
+  "wall_seconds": 11.375,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "prog_name_method": "get_default_prog_name",
+    "default_prog_name_fallback": "root",
+    "temp_fs_method": "isolated_filesystem",
+    "completion_method": "finish",
+    "completion_eta_known": false
+  },
+  "final_answer": "{\"prog_name_method\":\"get_default_prog_name\",\"default_prog_name_fallback\":\"root\",\"temp_fs_method\":\"isolated_filesystem\",\"completion_method\":\"finish\",\"completion_eta_known\":false}",
+  "tool_starts": [
+    {
+      "call_id": "call_aHi9N5y5qJSfUz6aGC1Lyb8n",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def .*prog|cli.name|def isolated_filesystem",
+        "paths": "src\\click\\testing.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 8
+      }
+    },
+    {
+      "call_id": "call_b1PcC2M6ZIEwMyw9mQyVEZXQ",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def finish|eta_known|self.finish",
+        "paths": "src\\click\\_termui_impl.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_b1PcC2M6ZIEwMyw9mQyVEZXQ",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def finish|eta_known|self.finish",
+        "paths": "src\\click\\_termui_impl.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      },
+      "success": true,
+      "tokens": 1464,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_aHi9N5y5qJSfUz6aGC1Lyb8n",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def .*prog|cli.name|def isolated_filesystem",
+        "paths": "src\\click\\testing.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 8
+      },
+      "success": true,
+      "tokens": 520,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 32,
+      "session_id": "5f4557be-64bc-4ab3-bbe9-3aafa23d355c",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14601,
+      "uncached_input_tokens": 3,
+      "output_tokens": 116,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4831,
+      "total_nano_aiu": 7598450000,
+      "recharged_nano_aiu": 7598450000,
+      "cold_nano_aiu": 18830500000,
+      "created_at": "2026-11-19T08:40:00.894Z"
+    },
+    {
+      "row_id": 33,
+      "session_id": "5f4557be-64bc-4ab3-bbe9-3aafa23d355c",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 16732,
+      "uncached_input_tokens": 3,
+      "output_tokens": 42,
+      "cache_read_tokens": 14598,
+      "cache_write_tokens": 2131,
+      "total_nano_aiu": 4336550000,
+      "recharged_nano_aiu": 4336550000,
+      "cold_nano_aiu": 4336550000,
+      "created_at": "2026-11-19T08:40:03.502Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

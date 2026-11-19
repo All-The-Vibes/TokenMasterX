@@ -1,0 +1,226 @@
+{
+  "task_id": "D12",
+  "arm": "stock",
+  "session_id": "9165a295-8f0f-4d0e-b725-1f8c12813dc4",
+  "returncode": 0,
+  "wall_seconds": 17.141,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "phase1_role_order": [
+      "hub",
+      "recall",
+      "entry"
+    ],
+    "phase1_max_per_file": 1,
+    "phase2b_max_per_file": 2,
+    "negative_bet_factor_error": "bet factor is negative; a run exceeds token_cap"
+  },
+  "final_answer": "{\"phase1_role_order\":[\"hub\",\"recall\",\"entry\"],\"phase1_max_per_file\":1,\"phase2b_max_per_file\":2,\"negative_bet_factor_error\":\"bet factor is negative; a run exceeds token_cap\"}",
+  "tool_starts": [
+    {
+      "call_id": "call_cG8PV5QuwFJrdlmcWxsiiRWa",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def _solve_submodular_knapsack|Phase 1|Phase 2|MAX_HUBS_PER_FILE|max_per_file|for role",
+        "paths": "brainspace\\repo_brief.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 5
+      }
+    },
+    {
+      "call_id": "call_2HX5z6Ay026yI2stXN913Z55",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def bet_passes|factor < 0",
+        "paths": "brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 18
+      }
+    },
+    {
+      "call_id": "call_GRDvV5bBeetbrQCRHo9znaEP",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name; Get-ChildItem -Recurse -File -Filter repo_brief.py | Select-Object -ExpandProperty FullName; Get-ChildItem -Recurse -File -Filter certification.py | Select-Object -ExpandProperty FullName",
+        "description": "Locate requested Python files"
+      }
+    },
+    {
+      "call_id": "call_hlnKCh89zH4SMzNUQxRutH1Z",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def _solve_submodular_knapsack|Phase 1|Phase 2|MAX_HUBS_PER_FILE|max_per_file|for role",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\repo_brief.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 5
+      }
+    },
+    {
+      "call_id": "call_U5kfUEK7oUtgD709eGn59z3v",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def bet_passes|factor < 0",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 18
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_2HX5z6Ay026yI2stXN913Z55",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def bet_passes|factor < 0",
+        "paths": "brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 18
+      },
+      "success": false,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_cG8PV5QuwFJrdlmcWxsiiRWa",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def _solve_submodular_knapsack|Phase 1|Phase 2|MAX_HUBS_PER_FILE|max_per_file|for role",
+        "paths": "brainspace\\repo_brief.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 5
+      },
+      "success": false,
+      "tokens": 15,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_GRDvV5bBeetbrQCRHo9znaEP",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name; Get-ChildItem -Recurse -File -Filter repo_brief.py | Select-Object -ExpandProperty FullName; Get-ChildItem -Recurse -File -Filter certification.py | Select-Object -ExpandProperty FullName",
+        "description": "Locate requested Python files"
+      },
+      "success": true,
+      "tokens": 178,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_hlnKCh89zH4SMzNUQxRutH1Z",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def _solve_submodular_knapsack|Phase 1|Phase 2|MAX_HUBS_PER_FILE|max_per_file|for role",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\repo_brief.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 5
+      },
+      "success": true,
+      "tokens": 1336,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_U5kfUEK7oUtgD709eGn59z3v",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def bet_passes|factor < 0",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 18
+      },
+      "success": true,
+      "tokens": 843,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 95,
+      "session_id": "9165a295-8f0f-4d0e-b725-1f8c12813dc4",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14620,
+      "uncached_input_tokens": 3,
+      "output_tokens": 133,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4850,
+      "total_nano_aiu": 7707200000,
+      "recharged_nano_aiu": 7707200000,
+      "cold_nano_aiu": 18939250000,
+      "created_at": "2026-11-19T08:51:04.171Z"
+    },
+    {
+      "row_id": 96,
+      "session_id": "9165a295-8f0f-4d0e-b725-1f8c12813dc4",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14802,
+      "uncached_input_tokens": 3,
+      "output_tokens": 83,
+      "cache_read_tokens": 14617,
+      "cache_write_tokens": 182,
+      "total_nano_aiu": 2107200000,
+      "recharged_nano_aiu": 2107200000,
+      "cold_nano_aiu": 2107200000,
+      "created_at": "2026-11-19T08:51:07.551Z"
+    },
+    {
+      "row_id": 97,
+      "session_id": "9165a295-8f0f-4d0e-b725-1f8c12813dc4",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 15076,
+      "uncached_input_tokens": 3,
+      "output_tokens": 151,
+      "cache_read_tokens": 14799,
+      "cache_write_tokens": 274,
+      "total_nano_aiu": 2580400000,
+      "recharged_nano_aiu": 2580400000,
+      "cold_nano_aiu": 2580400000,
+      "created_at": "2026-11-19T08:51:11.921Z"
+    },
+    {
+      "row_id": 98,
+      "session_id": "9165a295-8f0f-4d0e-b725-1f8c12813dc4",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 17438,
+      "uncached_input_tokens": 3,
+      "output_tokens": 52,
+      "cache_read_tokens": 15073,
+      "cache_write_tokens": 2362,
+      "total_nano_aiu": 4722800000,
+      "recharged_nano_aiu": 4722800000,
+      "cold_nano_aiu": 4722800000,
+      "created_at": "2026-11-19T08:51:13.937Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

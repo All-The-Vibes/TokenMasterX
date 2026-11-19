@@ -1,0 +1,149 @@
+{
+  "task_id": "D13",
+  "arm": "stock",
+  "session_id": "18f21b96-4990-4170-b51b-8f3441ecaff9",
+  "returncode": 0,
+  "wall_seconds": 23.781,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/runtime_policy.py"
+    ]
+  },
+  "final_answer": "Added `RuntimePolicy.with_instruction()` using `dataclasses.replace`, returning a new validated copy and raising `ValueError` for invalid combinations.\n\nOnly the requested file changed. No fields, `enabled` attribute, or untracked files were added.",
+  "tool_starts": [
+    {
+      "call_id": "call_7ztXlIUkWGr16dmg5mp342Xq",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short; Get-Content token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py",
+        "description": "Inspect policy implementation and worktree"
+      }
+    },
+    {
+      "call_id": "custom_call_aLSXYTIImi8rAEgRXt454Hbj",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_BRipWBsFjyuJ4xGymEpABo3J",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport sys\nfrom dataclasses import fields\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.runtime_policy import RuntimePolicy\n\noriginal = RuntimePolicy()\nupdated = original.with_instruction('ponytail')\nassert updated is not original\nassert original.instruction == 'none'\nassert updated.instruction == 'ponytail'\nassert all(getattr(original, f.name) == getattr(updated, f.name)\n           for f in fields(original) if f.name != 'instruction')\nassert original.with_instruction('none') is not original\nassert updated.with_instruction('none') == original\nassert not hasattr(updated, 'enabled')\nfor policy, instruction in [(original, 'invalid'), (original, None),\n                            (RuntimePolicy(instruction='ponytail', require_nonexpanding_input=True), 'none')]:\n    try:\n        policy.with_instruction(instruction)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError('Expected validation failure')\nprint('Focused policy checks passed')\n'@ | python -B -; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git --no-pager diff --check; git --no-pager status --short",
+        "description": "Verify copy semantics, validation, and change scope"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_7ztXlIUkWGr16dmg5mp342Xq",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short; Get-Content token-master-plugin\\skills\\token-master\\brainspace\\runtime_policy.py",
+        "description": "Inspect policy implementation and worktree"
+      },
+      "success": true,
+      "tokens": 3664,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_aLSXYTIImi8rAEgRXt454Hbj",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 51,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_BRipWBsFjyuJ4xGymEpABo3J",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport sys\nfrom dataclasses import fields\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.runtime_policy import RuntimePolicy\n\noriginal = RuntimePolicy()\nupdated = original.with_instruction('ponytail')\nassert updated is not original\nassert original.instruction == 'none'\nassert updated.instruction == 'ponytail'\nassert all(getattr(original, f.name) == getattr(updated, f.name)\n           for f in fields(original) if f.name != 'instruction')\nassert original.with_instruction('none') is not original\nassert updated.with_instruction('none') == original\nassert not hasattr(updated, 'enabled')\nfor policy, instruction in [(original, 'invalid'), (original, None),\n                            (RuntimePolicy(instruction='ponytail', require_nonexpanding_input=True), 'none')]:\n    try:\n        policy.with_instruction(instruction)\n    except ValueError:\n        pass\n    else:\n        raise AssertionError('Expected validation failure')\nprint('Focused policy checks passed')\n'@ | python -B -; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }; git --no-pager diff --check; git --no-pager status --short",
+        "description": "Verify copy semantics, validation, and change scope"
+      },
+      "success": true,
+      "tokens": 33,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 99,
+      "session_id": "18f21b96-4990-4170-b51b-8f3441ecaff9",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14541,
+      "uncached_input_tokens": 3,
+      "output_tokens": 54,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4771,
+      "total_nano_aiu": 7213450000,
+      "recharged_nano_aiu": 7213450000,
+      "cold_nano_aiu": 18445500000,
+      "created_at": "2026-11-19T08:51:26.327Z"
+    },
+    {
+      "row_id": 100,
+      "session_id": "18f21b96-4990-4170-b51b-8f3441ecaff9",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18314,
+      "uncached_input_tokens": 3,
+      "output_tokens": 87,
+      "cache_read_tokens": 14538,
+      "cache_write_tokens": 3773,
+      "total_nano_aiu": 6608050000,
+      "recharged_nano_aiu": 6608050000,
+      "cold_nano_aiu": 6608050000,
+      "created_at": "2026-11-19T08:51:31.225Z"
+    },
+    {
+      "row_id": 101,
+      "session_id": "18f21b96-4990-4170-b51b-8f3441ecaff9",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18463,
+      "uncached_input_tokens": 3,
+      "output_tokens": 308,
+      "cache_read_tokens": 18311,
+      "cache_write_tokens": 149,
+      "total_nano_aiu": 3560350000,
+      "recharged_nano_aiu": 3560350000,
+      "cold_nano_aiu": 3560350000,
+      "created_at": "2026-11-19T08:51:36.294Z"
+    },
+    {
+      "row_id": 102,
+      "session_id": "18f21b96-4990-4170-b51b-8f3441ecaff9",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18816,
+      "uncached_input_tokens": 3,
+      "output_tokens": 53,
+      "cache_read_tokens": 18460,
+      "cache_write_tokens": 353,
+      "total_nano_aiu": 2555250000,
+      "recharged_nano_aiu": 2555250000,
+      "cold_nano_aiu": 2555250000,
+      "created_at": "2026-11-19T08:51:40.940Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

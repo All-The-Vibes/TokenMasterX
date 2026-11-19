@@ -1,0 +1,149 @@
+{
+  "task_id": "T05",
+  "arm": "stock",
+  "session_id": "bc96f9f4-383d-45fe-9cde-3c5a09281ef8",
+  "returncode": 0,
+  "wall_seconds": 34.266,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/ccr.py"
+    ]
+  },
+  "final_answer": "Updated `CCR.stats` with keyword-only `include_evictions: bool = False`. Default dictionaries remain unchanged; opting in adds the scoped eviction count, or `0` on storage errors.\n\nOnly `ccr.py` was modified; no untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_CcV5EN2gWeXrFxxeIVcUiCQo",
+      "name": "powershell",
+      "arguments": {
+        "command": "git status --short; Select-String -Path 'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py' -Pattern 'def stats' -Context 8,100",
+        "description": "Inspect worktree and CCR stats implementation"
+      }
+    },
+    {
+      "call_id": "custom_call_kgox3E6u95yxb5mRXBmcmedc",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_xmIml7eQGKbbtC4Nk7vmXyF9",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport pathlib\nimport sqlite3\nimport subprocess\nfrom types import SimpleNamespace\n\npath = pathlib.Path(r'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py')\nsource = path.read_text(encoding='utf-8')\ncompile(source, str(path), 'exec')\noriginal = subprocess.check_output(['git', 'show', 'HEAD:token-master-plugin/skills/token-master/brainspace/ccr.py'], text=True)\ndef load_stats(text):\n    tree = ast.parse(text)\n    cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'CCR')\n    method = next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == 'stats')\n    namespace = {'_STORAGE_ERRORS': (sqlite3.Error, OSError)}\n    exec(compile(ast.Module(body=[method], type_ignores=[]), '<stats>', 'exec'), namespace)\n    return namespace['stats']\nold, new = load_stats(original), load_stats(source)\nconn = sqlite3.connect(':memory:')\nconn.executescript('''\nCREATE TABLE ccr_v2(scope, orig_bytes, blob, hits);\nCREATE TABLE ccr_leases(scope, hash, session);\nCREATE TABLE ccr_evictions(scope, hash, reason);\nINSERT INTO ccr_v2 VALUES ('own', 20, 'abc', 2);\nINSERT INTO ccr_evictions VALUES ('own', 'a', 'evicted'), ('own', 'b', 'expired'), ('other', 'c', 'evicted');\n''')\nobj = SimpleNamespace(_connect=lambda: conn, _scope_key='own', _db_path='test', shared=False, last_gc=None)\nqueries = []\nconn.set_trace_callback(queries.append)\nassert new(obj) == old(obj) == new(obj, include_evictions=False)\nassert not any('ccr_evictions' in query for query in queries)\nassert new(obj, include_evictions=True) == dict(old(obj), evicted_records=2)\nobj._scope_key = 'empty'\nassert new(obj, include_evictions=True)['evicted_records'] == 0\nconn.execute('DROP TABLE ccr_evictions')\nassert 'error' not in new(obj)\nassert new(obj, include_evictions=True) == dict(entries=0, db_path='test', error='unreadable', last_gc=None, evicted_records=0)\ndef fail():\n    raise sqlite3.OperationalError('unreadable')\nobj._connect = fail\nassert new(obj) == old(obj)\nassert new(obj, include_evictions=True) == dict(old(obj), evicted_records=0)\ntry:\n    new(obj, True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nconn.close()\nprint('Focused stats checks passed')\n'@ | python -B -; git diff --check; git status --short",
+        "description": "Verify opt-in stats behavior and scoped count without creating files"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_CcV5EN2gWeXrFxxeIVcUiCQo",
+      "name": "powershell",
+      "arguments": {
+        "command": "git status --short; Select-String -Path 'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py' -Pattern 'def stats' -Context 8,100",
+        "description": "Inspect worktree and CCR stats implementation"
+      },
+      "success": true,
+      "tokens": 3416,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_kgox3E6u95yxb5mRXBmcmedc",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 49,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_xmIml7eQGKbbtC4Nk7vmXyF9",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport pathlib\nimport sqlite3\nimport subprocess\nfrom types import SimpleNamespace\n\npath = pathlib.Path(r'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py')\nsource = path.read_text(encoding='utf-8')\ncompile(source, str(path), 'exec')\noriginal = subprocess.check_output(['git', 'show', 'HEAD:token-master-plugin/skills/token-master/brainspace/ccr.py'], text=True)\ndef load_stats(text):\n    tree = ast.parse(text)\n    cls = next(node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == 'CCR')\n    method = next(node for node in cls.body if isinstance(node, ast.FunctionDef) and node.name == 'stats')\n    namespace = {'_STORAGE_ERRORS': (sqlite3.Error, OSError)}\n    exec(compile(ast.Module(body=[method], type_ignores=[]), '<stats>', 'exec'), namespace)\n    return namespace['stats']\nold, new = load_stats(original), load_stats(source)\nconn = sqlite3.connect(':memory:')\nconn.executescript('''\nCREATE TABLE ccr_v2(scope, orig_bytes, blob, hits);\nCREATE TABLE ccr_leases(scope, hash, session);\nCREATE TABLE ccr_evictions(scope, hash, reason);\nINSERT INTO ccr_v2 VALUES ('own', 20, 'abc', 2);\nINSERT INTO ccr_evictions VALUES ('own', 'a', 'evicted'), ('own', 'b', 'expired'), ('other', 'c', 'evicted');\n''')\nobj = SimpleNamespace(_connect=lambda: conn, _scope_key='own', _db_path='test', shared=False, last_gc=None)\nqueries = []\nconn.set_trace_callback(queries.append)\nassert new(obj) == old(obj) == new(obj, include_evictions=False)\nassert not any('ccr_evictions' in query for query in queries)\nassert new(obj, include_evictions=True) == dict(old(obj), evicted_records=2)\nobj._scope_key = 'empty'\nassert new(obj, include_evictions=True)['evicted_records'] == 0\nconn.execute('DROP TABLE ccr_evictions')\nassert 'error' not in new(obj)\nassert new(obj, include_evictions=True) == dict(entries=0, db_path='test', error='unreadable', last_gc=None, evicted_records=0)\ndef fail():\n    raise sqlite3.OperationalError('unreadable')\nobj._connect = fail\nassert new(obj) == old(obj)\nassert new(obj, include_evictions=True) == dict(old(obj), evicted_records=0)\ntry:\n    new(obj, True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nconn.close()\nprint('Focused stats checks passed')\n'@ | python -B -; git diff --check; git status --short",
+        "description": "Verify opt-in stats behavior and scoped count without creating files"
+      },
+      "success": true,
+      "tokens": 33,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 26,
+      "session_id": "bc96f9f4-383d-45fe-9cde-3c5a09281ef8",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14601,
+      "uncached_input_tokens": 3,
+      "output_tokens": 67,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4831,
+      "total_nano_aiu": 7353450000,
+      "recharged_nano_aiu": 7353450000,
+      "cold_nano_aiu": 18585500000,
+      "created_at": "2026-11-19T07:36:45.917Z"
+    },
+    {
+      "row_id": 27,
+      "session_id": "bc96f9f4-383d-45fe-9cde-3c5a09281ef8",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18110,
+      "uncached_input_tokens": 3,
+      "output_tokens": 349,
+      "cache_read_tokens": 14598,
+      "cache_write_tokens": 3509,
+      "total_nano_aiu": 7594050000,
+      "recharged_nano_aiu": 7594050000,
+      "cold_nano_aiu": 7594050000,
+      "created_at": "2026-11-19T07:36:52.230Z"
+    },
+    {
+      "row_id": 28,
+      "session_id": "bc96f9f4-383d-45fe-9cde-3c5a09281ef8",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18519,
+      "uncached_input_tokens": 3,
+      "output_tokens": 717,
+      "cache_read_tokens": 18107,
+      "cache_write_tokens": 409,
+      "total_nano_aiu": 5909950000,
+      "recharged_nano_aiu": 5909950000,
+      "cold_nano_aiu": 5909950000,
+      "created_at": "2026-11-19T07:37:05.494Z"
+    },
+    {
+      "row_id": 29,
+      "session_id": "bc96f9f4-383d-45fe-9cde-3c5a09281ef8",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 19282,
+      "uncached_input_tokens": 3,
+      "output_tokens": 57,
+      "cache_read_tokens": 18516,
+      "cache_write_tokens": 763,
+      "total_nano_aiu": 3093350000,
+      "recharged_nano_aiu": 3093350000,
+      "cold_nano_aiu": 3093350000,
+      "created_at": "2026-11-19T07:37:09.811Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

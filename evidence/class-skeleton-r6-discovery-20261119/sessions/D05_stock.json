@@ -1,0 +1,326 @@
+{
+  "task_id": "D05",
+  "arm": "stock",
+  "session_id": "55373180-c824-47d6-9978-61474b147c52",
+  "returncode": 0,
+  "wall_seconds": 27.0,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "alpha_summary_method": "budget",
+    "alpha_summary_keys": [
+      "allocated_alpha",
+      "alpha",
+      "next_round_alpha",
+      "registry_id",
+      "remaining_alpha",
+      "rounds"
+    ],
+    "max_gated_samples": 4000,
+    "oracle_verify_method": "check",
+    "oracle_check_keys": [
+      "answered",
+      "bound_artifacts",
+      "exact_answer",
+      "unchanged_workspace"
+    ]
+  },
+  "final_answer": "{\"alpha_summary_method\":\"budget\",\"alpha_summary_keys\":[\"allocated_alpha\",\"alpha\",\"next_round_alpha\",\"registry_id\",\"remaining_alpha\",\"rounds\"],\"max_gated_samples\":4000,\"oracle_verify_method\":\"check\",\"oracle_check_keys\":[\"answered\",\"bound_artifacts\",\"exact_answer\",\"unchanged_workspace\"]}",
+  "tool_starts": [
+    {
+      "call_id": "call_KZ8PugvqVRJfvpNABtgbytDr",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |sample_size|STRICT_GATE|checks\\s*=",
+        "paths": "brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "call_id": "call_YSJvurnejTDzedFbHCYa7Jm0",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |checks\\s*=|oracle",
+        "paths": "brainspace\\readonly_learning_host.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "call_id": "call_wdaOiHP6USgXSEltnbtkIqUw",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name",
+        "description": "Locate repository files"
+      }
+    },
+    {
+      "call_id": "call_BfaxsSrOtZKTCQGeC15lc6Pi",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/*{certification,readonly_learning_host}.py"
+      }
+    },
+    {
+      "call_id": "call_ytrgIz5K7Iv0yJX8dU8rQXZk",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |sample_size|STRICT_GATE|next_round",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "call_id": "call_GK9rScNIgl5pV4dLI2FGRSPk",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |checks\\s*=|oracle",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\readonly_learning_host.py",
+        "output_mode": "content",
+        "-n": true
+      }
+    },
+    {
+      "call_id": "call_f0np7thgtxp9oX5VvmtaFiEW",
+      "name": "rg",
+      "arguments": {
+        "pattern": "MAX_GATE_SAMPLES|def budget",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+        "output_mode": "content",
+        "-A": 14
+      }
+    },
+    {
+      "call_id": "call_D9JWfHYbPYdvw9Iok9BbD0Bh",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def check\\(",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\readonly_learning_host.py",
+        "output_mode": "content",
+        "-A": 20
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_KZ8PugvqVRJfvpNABtgbytDr",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |sample_size|STRICT_GATE|checks\\s*=",
+        "paths": "brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true
+      },
+      "success": false,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_YSJvurnejTDzedFbHCYa7Jm0",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |checks\\s*=|oracle",
+        "paths": "brainspace\\readonly_learning_host.py",
+        "output_mode": "content",
+        "-n": true
+      },
+      "success": false,
+      "tokens": 15,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_wdaOiHP6USgXSEltnbtkIqUw",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name",
+        "description": "Locate repository files"
+      },
+      "success": true,
+      "tokens": 85,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_BfaxsSrOtZKTCQGeC15lc6Pi",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/*{certification,readonly_learning_host}.py"
+      },
+      "success": true,
+      "tokens": 70,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_GK9rScNIgl5pV4dLI2FGRSPk",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |checks\\s*=|oracle",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\readonly_learning_host.py",
+        "output_mode": "content",
+        "-n": true
+      },
+      "success": true,
+      "tokens": 525,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_ytrgIz5K7Iv0yJX8dU8rQXZk",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |sample_size|STRICT_GATE|next_round",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+        "output_mode": "content",
+        "-n": true
+      },
+      "success": true,
+      "tokens": 1265,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_f0np7thgtxp9oX5VvmtaFiEW",
+      "name": "rg",
+      "arguments": {
+        "pattern": "MAX_GATE_SAMPLES|def budget",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+        "output_mode": "content",
+        "-A": 14
+      },
+      "success": true,
+      "tokens": 1969,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_D9JWfHYbPYdvw9Iok9BbD0Bh",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def check\\(",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\readonly_learning_host.py",
+        "output_mode": "content",
+        "-A": 20
+      },
+      "success": true,
+      "tokens": 615,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 15,
+      "session_id": "55373180-c824-47d6-9978-61474b147c52",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14616,
+      "uncached_input_tokens": 3,
+      "output_tokens": 106,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4846,
+      "total_nano_aiu": 7567200000,
+      "recharged_nano_aiu": 7567200000,
+      "cold_nano_aiu": 18799250000,
+      "created_at": "2026-11-19T08:38:34.845Z"
+    },
+    {
+      "row_id": 16,
+      "session_id": "55373180-c824-47d6-9978-61474b147c52",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14771,
+      "uncached_input_tokens": 3,
+      "output_tokens": 34,
+      "cache_read_tokens": 14613,
+      "cache_write_tokens": 155,
+      "total_nano_aiu": 1828050000,
+      "recharged_nano_aiu": 1828050000,
+      "cold_nano_aiu": 1828050000,
+      "created_at": "2026-11-19T08:38:37.375Z"
+    },
+    {
+      "row_id": 17,
+      "session_id": "55373180-c824-47d6-9978-61474b147c52",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14903,
+      "uncached_input_tokens": 3,
+      "output_tokens": 27,
+      "cache_read_tokens": 14768,
+      "cache_write_tokens": 132,
+      "total_nano_aiu": 1779800000,
+      "recharged_nano_aiu": 1779800000,
+      "cold_nano_aiu": 1779800000,
+      "created_at": "2026-11-19T08:38:42.499Z"
+    },
+    {
+      "row_id": 18,
+      "session_id": "55373180-c824-47d6-9978-61474b147c52",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 15010,
+      "uncached_input_tokens": 3,
+      "output_tokens": 121,
+      "cache_read_tokens": 14900,
+      "cache_write_tokens": 107,
+      "total_nano_aiu": 2231750000,
+      "recharged_nano_aiu": 2231750000,
+      "cold_nano_aiu": 2231750000,
+      "created_at": "2026-11-19T08:38:46.265Z"
+    },
+    {
+      "row_id": 19,
+      "session_id": "55373180-c824-47d6-9978-61474b147c52",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 16951,
+      "uncached_input_tokens": 3,
+      "output_tokens": 113,
+      "cache_read_tokens": 15007,
+      "cache_write_tokens": 1941,
+      "total_nano_aiu": 4494950000,
+      "recharged_nano_aiu": 4494950000,
+      "cold_nano_aiu": 4494950000,
+      "created_at": "2026-11-19T08:38:49.696Z"
+    },
+    {
+      "row_id": 20,
+      "session_id": "55373180-c824-47d6-9978-61474b147c52",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 19677,
+      "uncached_input_tokens": 3,
+      "output_tokens": 66,
+      "cache_read_tokens": 16948,
+      "cache_write_tokens": 2726,
+      "total_nano_aiu": 5435300000,
+      "recharged_nano_aiu": 5435300000,
+      "cold_nano_aiu": 5435300000,
+      "created_at": "2026-11-19T08:38:51.801Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

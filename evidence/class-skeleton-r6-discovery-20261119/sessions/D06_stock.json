@@ -1,0 +1,245 @@
+{
+  "task_id": "D06",
+  "arm": "stock",
+  "session_id": "46044cb3-6bf6-4694-9654-cdcb00811824",
+  "returncode": 0,
+  "wall_seconds": 30.266,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/ccr.py"
+    ]
+  },
+  "final_answer": "Updated `CCR.stats()` with keyword-only `include_evictions: bool = False`. Default dictionaries remain unchanged; opting in adds the scoped eviction count, or `0` on storage errors.\n\nOnly `ccr.py` was modified. No untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_9u5aV7q8NnSwSbMcqCOJ5P8A",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |active_sessions|quota_unit|_STORAGE_ERRORS",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "output_mode": "content",
+        "-n": true,
+        "head_limit": 180
+      }
+    },
+    {
+      "call_id": "call_DgC1agJkg6pfQfq8B62o41i6",
+      "name": "powershell",
+      "arguments": {
+        "command": "git status --short; Get-ChildItem -Name",
+        "description": "Check worktree and repository layout"
+      }
+    },
+    {
+      "call_id": "call_a3F8ktq7c4IF1Lf1FgOe53tX",
+      "name": "view",
+      "arguments": {
+        "path": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l1\\repos\\tokenmasterx\\token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "view_range": [
+          493,
+          585
+        ]
+      }
+    },
+    {
+      "call_id": "call_cct3jNB63X4kCtaFZslwjmYR",
+      "name": "view",
+      "arguments": {
+        "path": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l1\\repos\\tokenmasterx\\token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "view_range": [
+          115,
+          184
+        ]
+      }
+    },
+    {
+      "call_id": "custom_call_lZlZH2ofTLTkJbIoNqUMmwny",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_QV1zyjriU9OV71PrQ6PUJ8NH",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport sqlite3\nfrom pathlib import Path\nfrom unittest.mock import patch\n\npath = Path(r'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py')\nsource = path.read_text(encoding='utf-8')\nmodule = ast.parse(source)\nmethod = next(n for c in module.body if isinstance(c, ast.ClassDef) and c.name == 'CCR' for n in c.body if isinstance(n, ast.FunctionDef) and n.name == 'stats')\nnamespace = {'_STORAGE_ERRORS': (sqlite3.Error, OSError)}\nexec(compile(ast.Module(body=[method], type_ignores=[]), str(path), 'exec'), namespace)\nclass Store:\n    stats = namespace['stats']\n    _scope_key = 'selected'\n    _db_path = Path('unused.db')\n    shared = False\n    last_gc = None\n    def _connect(self):\n        return conn\nconn = sqlite3.connect(':memory:')\nconn.executescript('CREATE TABLE ccr_v2(scope, orig_bytes, blob, hits); CREATE TABLE ccr_leases(scope, hash, session); CREATE TABLE ccr_evictions(scope, hash, reason);')\nconn.executemany('INSERT INTO ccr_evictions VALUES (?, ?, ?)', [('selected', 'a', 'evicted'), ('selected', 'b', 'expired'), ('other', 'c', 'evicted')])\nstore = Store()\nqueries = []\nconn.set_trace_callback(queries.append)\nbase = store.stats()\nassert store.stats(include_evictions=False) == base\nassert not any('ccr_evictions' in query for query in queries)\nassert store.stats(include_evictions=True) == dict(base, evicted_records=2)\nstore._scope_key = 'empty'\nassert store.stats(include_evictions=True)['evicted_records'] == 0\ntry:\n    store.stats(True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nfor error in (sqlite3.OperationalError, OSError):\n    with patch.object(Store, '_connect', side_effect=error('unreadable')):\n        fallback = store.stats()\n        assert fallback == dict(entries=0, db_path='unused.db', error='unreadable', last_gc=None)\n        assert store.stats(include_evictions=True) == dict(fallback, evicted_records=0)\nconn.close()\nprint('Focused stats checks passed')\n'@ | python -B -; git diff --check; git status --short",
+        "description": "Verify scoped counts, unchanged defaults, fallback, and clean file scope"
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_9u5aV7q8NnSwSbMcqCOJ5P8A",
+      "name": "rg",
+      "arguments": {
+        "pattern": "def |active_sessions|quota_unit|_STORAGE_ERRORS",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "output_mode": "content",
+        "-n": true,
+        "head_limit": 180
+      },
+      "success": true,
+      "tokens": 702,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_a3F8ktq7c4IF1Lf1FgOe53tX",
+      "name": "view",
+      "arguments": {
+        "path": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l1\\repos\\tokenmasterx\\token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "view_range": [
+          493,
+          585
+        ]
+      },
+      "success": true,
+      "tokens": 1089,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_cct3jNB63X4kCtaFZslwjmYR",
+      "name": "view",
+      "arguments": {
+        "path": "C:\\tm-lanes\\class-skeleton-r6-discovery-20261119\\lanes\\l1\\repos\\tokenmasterx\\token-master-plugin\\skills\\token-master\\brainspace\\ccr.py",
+        "view_range": [
+          115,
+          184
+        ]
+      },
+      "success": true,
+      "tokens": 678,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_DgC1agJkg6pfQfq8B62o41i6",
+      "name": "powershell",
+      "arguments": {
+        "command": "git status --short; Get-ChildItem -Name",
+        "description": "Check worktree and repository layout"
+      },
+      "success": true,
+      "tokens": 52,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_lZlZH2ofTLTkJbIoNqUMmwny",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 51,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_QV1zyjriU9OV71PrQ6PUJ8NH",
+      "name": "powershell",
+      "arguments": {
+        "command": "@'\nimport ast\nimport sqlite3\nfrom pathlib import Path\nfrom unittest.mock import patch\n\npath = Path(r'token-master-plugin\\skills\\token-master\\brainspace\\ccr.py')\nsource = path.read_text(encoding='utf-8')\nmodule = ast.parse(source)\nmethod = next(n for c in module.body if isinstance(c, ast.ClassDef) and c.name == 'CCR' for n in c.body if isinstance(n, ast.FunctionDef) and n.name == 'stats')\nnamespace = {'_STORAGE_ERRORS': (sqlite3.Error, OSError)}\nexec(compile(ast.Module(body=[method], type_ignores=[]), str(path), 'exec'), namespace)\nclass Store:\n    stats = namespace['stats']\n    _scope_key = 'selected'\n    _db_path = Path('unused.db')\n    shared = False\n    last_gc = None\n    def _connect(self):\n        return conn\nconn = sqlite3.connect(':memory:')\nconn.executescript('CREATE TABLE ccr_v2(scope, orig_bytes, blob, hits); CREATE TABLE ccr_leases(scope, hash, session); CREATE TABLE ccr_evictions(scope, hash, reason);')\nconn.executemany('INSERT INTO ccr_evictions VALUES (?, ?, ?)', [('selected', 'a', 'evicted'), ('selected', 'b', 'expired'), ('other', 'c', 'evicted')])\nstore = Store()\nqueries = []\nconn.set_trace_callback(queries.append)\nbase = store.stats()\nassert store.stats(include_evictions=False) == base\nassert not any('ccr_evictions' in query for query in queries)\nassert store.stats(include_evictions=True) == dict(base, evicted_records=2)\nstore._scope_key = 'empty'\nassert store.stats(include_evictions=True)['evicted_records'] == 0\ntry:\n    store.stats(True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nfor error in (sqlite3.OperationalError, OSError):\n    with patch.object(Store, '_connect', side_effect=error('unreadable')):\n        fallback = store.stats()\n        assert fallback == dict(entries=0, db_path='unused.db', error='unreadable', last_gc=None)\n        assert store.stats(include_evictions=True) == dict(fallback, evicted_records=0)\nconn.close()\nprint('Focused stats checks passed')\n'@ | python -B -; git diff --check; git status --short",
+        "description": "Verify scoped counts, unchanged defaults, fallback, and clean file scope"
+      },
+      "success": true,
+      "tokens": 33,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 34,
+      "session_id": "46044cb3-6bf6-4694-9654-cdcb00811824",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14643,
+      "uncached_input_tokens": 3,
+      "output_tokens": 62,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4873,
+      "total_nano_aiu": 7380950000,
+      "recharged_nano_aiu": 7380950000,
+      "cold_nano_aiu": 18613000000,
+      "created_at": "2026-11-19T08:40:15.319Z"
+    },
+    {
+      "row_id": 35,
+      "session_id": "46044cb3-6bf6-4694-9654-cdcb00811824",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 15433,
+      "uncached_input_tokens": 3,
+      "output_tokens": 183,
+      "cache_read_tokens": 14640,
+      "cache_write_tokens": 790,
+      "total_nano_aiu": 3369500000,
+      "recharged_nano_aiu": 3369500000,
+      "cold_nano_aiu": 3369500000,
+      "created_at": "2026-11-19T08:40:18.941Z"
+    },
+    {
+      "row_id": 36,
+      "session_id": "46044cb3-6bf6-4694-9654-cdcb00811824",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 17478,
+      "uncached_input_tokens": 3,
+      "output_tokens": 328,
+      "cache_read_tokens": 15430,
+      "cache_write_tokens": 2045,
+      "total_nano_aiu": 5742250000,
+      "recharged_nano_aiu": 5742250000,
+      "cold_nano_aiu": 5742250000,
+      "created_at": "2026-11-19T08:40:24.304Z"
+    },
+    {
+      "row_id": 37,
+      "session_id": "46044cb3-6bf6-4694-9654-cdcb00811824",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 17868,
+      "uncached_input_tokens": 3,
+      "output_tokens": 600,
+      "cache_read_tokens": 17475,
+      "cache_write_tokens": 390,
+      "total_nano_aiu": 5238000000,
+      "recharged_nano_aiu": 5238000000,
+      "cold_nano_aiu": 5238000000,
+      "created_at": "2026-11-19T08:40:32.888Z"
+    },
+    {
+      "row_id": 38,
+      "session_id": "46044cb3-6bf6-4694-9654-cdcb00811824",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 18514,
+      "uncached_input_tokens": 3,
+      "output_tokens": 57,
+      "cache_read_tokens": 17865,
+      "cache_write_tokens": 646,
+      "total_nano_aiu": 2882000000,
+      "recharged_nano_aiu": 2882000000,
+      "cold_nano_aiu": 2882000000,
+      "created_at": "2026-11-19T08:40:36.124Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

@@ -52,3 +52,37 @@ def test_installed_navigation_server_answers_over_stdio(tmp_path):
 
     asyncio.run(asyncio.wait_for(exercise(), timeout=60))
     assert (repo / ".token-master" / "symbols.sqlite").is_file()
+
+
+def test_navigation_server_class_skeleton_flag_switches_modes_over_stdio(tmp_path):
+    from mcp import ClientSession, StdioServerParameters
+    from mcp.client.stdio import stdio_client
+
+    install = tmp_path / "nav_install"
+    for rel in ("navigation_mcp.py", *_nav_modules()):
+        (install / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(SKILL / rel, install / rel)
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    methods = "".join(f"    def step_{i}(self, x: int) -> int:\n        return x + {i}\n\n" for i in range(180))
+    (repo / "big.py").write_text("class BigSvc:\n" + methods, encoding="utf-8")
+
+    async def read_in_mode(extra_args: list[str]) -> str:
+        server = StdioServerParameters(
+            command=sys.executable,
+            args=["-X", "utf8", str(install / "navigation_mcp.py"), *extra_args],
+            cwd=str(repo),
+            env={"PYTHONUTF8": "1"},
+        )
+        async with stdio_client(server) as streams:
+            async with ClientSession(*streams) as session:
+                await session.initialize()
+                res = await session.call_tool("read_symbol", {"target": "BigSvc"})
+                assert not res.isError
+                return res.content[0].text
+
+    r6_text = asyncio.run(asyncio.wait_for(read_in_mode([]), timeout=60))
+    v1_text = asyncio.run(asyncio.wait_for(read_in_mode(["--class-skeleton", "v1"]), timeout=60))
+    assert "class skeleton):" in r6_text
+    assert "Members (read_symbol one" in v1_text and "class skeleton):" not in v1_text
+

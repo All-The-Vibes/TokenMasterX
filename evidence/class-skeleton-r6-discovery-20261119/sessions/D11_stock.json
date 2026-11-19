@@ -1,0 +1,204 @@
+{
+  "task_id": "D11",
+  "arm": "stock",
+  "session_id": "5d5cc26e-2460-496a-a402-ccc0c7463dfb",
+  "returncode": 0,
+  "wall_seconds": 17.625,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "queue_maxsize": 32,
+    "waiter_timeout_s": 180,
+    "connect_status": 403,
+    "connect_error": "external_proxy_disabled",
+    "exit_settle_deadline_s": 20,
+    "exit_unsettled_error": "native_http_handlers_not_settled"
+  },
+  "final_answer": "{\"queue_maxsize\":32,\"waiter_timeout_s\":180,\"connect_status\":403,\"connect_error\":\"external_proxy_disabled\",\"exit_settle_deadline_s\":20,\"exit_unsettled_error\":\"native_http_handlers_not_settled\"}",
+  "tool_starts": [
+    {
+      "call_id": "call_TNW1SSim46t6JURxBaYIcaT5",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class NativeBridge|self\\._queue|future.result|do_CONNECT|monotonic|RuntimeError|CONNECT",
+        "paths": "brainspace\\native_runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      }
+    },
+    {
+      "call_id": "call_Be3HYVjKS0xvwQRXiATPfwlb",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name",
+        "description": "Locate repository files"
+      }
+    },
+    {
+      "call_id": "call_TU44ue0WsQvToVk3l5jz1IiE",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/native_runtime.py"
+      }
+    },
+    {
+      "call_id": "call_kZUffppkUjiPqJLNy3EGH627",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class NativeBridge|self\\._queue|future.result|do_CONNECT|monotonic|RuntimeError|CONNECT",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 7
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_TNW1SSim46t6JURxBaYIcaT5",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class NativeBridge|self\\._queue|future.result|do_CONNECT|monotonic|RuntimeError|CONNECT",
+        "paths": "brainspace\\native_runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 6
+      },
+      "success": false,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_Be3HYVjKS0xvwQRXiATPfwlb",
+      "name": "powershell",
+      "arguments": {
+        "command": "Get-Location; Get-ChildItem -Name",
+        "description": "Locate repository files"
+      },
+      "success": true,
+      "tokens": 85,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_TU44ue0WsQvToVk3l5jz1IiE",
+      "name": "glob",
+      "arguments": {
+        "pattern": "**/native_runtime.py"
+      },
+      "success": true,
+      "tokens": 16,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_kZUffppkUjiPqJLNy3EGH627",
+      "name": "rg",
+      "arguments": {
+        "pattern": "class NativeBridge|self\\._queue|future.result|do_CONNECT|monotonic|RuntimeError|CONNECT",
+        "paths": "token-master-plugin\\skills\\token-master\\brainspace\\native_runtime.py",
+        "output_mode": "content",
+        "-n": true,
+        "-C": 7
+      },
+      "success": true,
+      "tokens": 1505,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 90,
+      "session_id": "5d5cc26e-2460-496a-a402-ccc0c7463dfb",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14617,
+      "uncached_input_tokens": 3,
+      "output_tokens": 64,
+      "cache_read_tokens": 9767,
+      "cache_write_tokens": 4847,
+      "total_nano_aiu": 7358450000,
+      "recharged_nano_aiu": 7358450000,
+      "cold_nano_aiu": 18590500000,
+      "created_at": "2026-11-19T08:50:46.003Z"
+    },
+    {
+      "row_id": 91,
+      "session_id": "5d5cc26e-2460-496a-a402-ccc0c7463dfb",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14706,
+      "uncached_input_tokens": 3,
+      "output_tokens": 34,
+      "cache_read_tokens": 14614,
+      "cache_write_tokens": 89,
+      "total_nano_aiu": 1745650000,
+      "recharged_nano_aiu": 1745650000,
+      "cold_nano_aiu": 1745650000,
+      "created_at": "2026-11-19T08:50:48.059Z"
+    },
+    {
+      "row_id": 92,
+      "session_id": "5d5cc26e-2460-496a-a402-ccc0c7463dfb",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14838,
+      "uncached_input_tokens": 3,
+      "output_tokens": 21,
+      "cache_read_tokens": 14703,
+      "cache_write_tokens": 132,
+      "total_nano_aiu": 1743300000,
+      "recharged_nano_aiu": 1743300000,
+      "cold_nano_aiu": 1743300000,
+      "created_at": "2026-11-19T08:50:51.075Z"
+    },
+    {
+      "row_id": 93,
+      "session_id": "5d5cc26e-2460-496a-a402-ccc0c7463dfb",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 14885,
+      "uncached_input_tokens": 3,
+      "output_tokens": 73,
+      "cache_read_tokens": 14835,
+      "cache_write_tokens": 47,
+      "total_nano_aiu": 1910250000,
+      "recharged_nano_aiu": 1910250000,
+      "cold_nano_aiu": 1910250000,
+      "created_at": "2026-11-19T08:50:53.646Z"
+    },
+    {
+      "row_id": 94,
+      "session_id": "5d5cc26e-2460-496a-a402-ccc0c7463dfb",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 16481,
+      "uncached_input_tokens": 3,
+      "output_tokens": 53,
+      "cache_read_tokens": 14882,
+      "cache_write_tokens": 1596,
+      "total_nano_aiu": 3751200000,
+      "recharged_nano_aiu": 3751200000,
+      "cold_nano_aiu": 3751200000,
+      "created_at": "2026-11-19T08:50:55.885Z"
+    }
+  ],
+  "launch": null,
+  "tokenomics": {
+    "tm": false,
+    "per_call_fixed_saved": 0,
+    "fixed_saved": 0,
+    "saved_usd": 0.0,
+    "lean_usd": 0.0,
+    "first_usd": 0.0,
+    "brief_tokens_recorded": 0
+  },
+  "stderr_tail": []
+}

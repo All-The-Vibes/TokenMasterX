@@ -139,6 +139,8 @@ def main() -> int:
                         help="write .token-master/brief.md alongside the symbol index (default: on)")
     parser.add_argument("--brief-algorithm", choices=("r1", "v1"), default=None,
                         help="brief synthesis algorithm (default: r1 submodular knapsack; v1 for legacy baseline)")
+    parser.add_argument("--class-skeleton", choices=("r6", "v1"), default=None,
+                        help="oversized container read_symbol mode (default: r6 skeletal projection; v1 for truncated linear baseline)")
     parser.add_argument("--refresh-brief", action="store_true",
                         help="rebuild .token-master/brief.md from the existing index and recall.jsonl without re-running graphify")
     parser.add_argument("--uninstall", action="store_true")
@@ -281,7 +283,8 @@ def main() -> int:
                   f"{SKILL_DIR.parents[1] / 'requirements-runtime.txt'} into it, as the README's runtime step "
                   "does, before you restart.")
 
-    entry = runtime_entry(python, str(nav_target))
+    extra_args = ("--class-skeleton", args.class_skeleton) if args.class_skeleton else ()
+    entry = runtime_entry(python, str(nav_target), extra=extra_args)
     agent_path = None
     if host != "codex":
         template = (SKILL_DIR / f"agent.template.{host}.md").read_text(encoding="utf-8")

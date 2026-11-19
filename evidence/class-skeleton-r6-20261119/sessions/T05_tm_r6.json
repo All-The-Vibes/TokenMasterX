@@ -1,0 +1,269 @@
+{
+  "task_id": "T05",
+  "arm": "tm_r6",
+  "session_id": "9dc44e59-507d-4dbf-b851-ce45ca509954",
+  "returncode": 0,
+  "wall_seconds": 43.031,
+  "passed": true,
+  "grade_reason": "ok",
+  "grade_detail": {
+    "touched": [
+      "token-master-plugin/skills/token-master/brainspace/ccr.py"
+    ]
+  },
+  "final_answer": "Updated only `ccr.py`: `CCR.stats` now accepts keyword-only `include_evictions=False`. Default output is unchanged; opting in adds the scoped eviction count, or `0` on storage errors. No untracked files remain.",
+  "tool_starts": [
+    {
+      "call_id": "call_Ywlmhq2SZFZSG1thPKYDGayt",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      }
+    },
+    {
+      "call_id": "call_wXF7WtIK1SzIumKi017MLt9l",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      }
+    },
+    {
+      "call_id": "call_neaFMvkkNNwvfUJt0is2oSxP",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check initial working tree"
+      }
+    },
+    {
+      "call_id": "custom_call_l5RcKnJQAWnH20tsmewHUHKt",
+      "name": "apply_patch",
+      "arguments": {}
+    },
+    {
+      "call_id": "call_VHSnVqrbmPaFW2WWduiH3Z9e",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py:1-45"
+      }
+    },
+    {
+      "call_id": "call_ZRxpomaU2gsaibbjLeb1lDiB",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py:1-45"
+      }
+    },
+    {
+      "call_id": "call_8QvQqwHXG625JVvMDhKBTqCy",
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; @'\nimport sys, sqlite3\nfrom unittest.mock import MagicMock, patch\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.ccr import CCR\nstore = CCR.__new__(CCR)\nstore._scope_key = 'test-scope'\nstore._db_path = 'test.sqlite'\nstore.shared = False\nstore.last_gc = None\nfor include in (False, True):\n    conn = MagicMock()\n    conn.execute.return_value.fetchone.side_effect = [(2, 20, 10, 3), (1, 1), (7,)]\n    with patch.object(store, '_connect') as connect:\n        connect.return_value.__enter__.return_value = conn\n        result = store.stats(include_evictions=include)\n    assert ('evicted_records' in result) == include\n    assert conn.execute.call_count == (3 if include else 2)\n    if include:\n        assert result.pop('evicted_records') == 7\n        conn.execute.assert_called_with('SELECT COUNT(*) FROM ccr_evictions WHERE scope=?', ('test-scope',))\n        assert result == baseline\n    else:\n        baseline = result\n    with patch.object(store, '_connect', side_effect=sqlite3.OperationalError('unreadable')):\n        result = store.stats(include_evictions=include)\n    assert result == dict(entries=0, db_path='test.sqlite', error='unreadable', last_gc=None, **({'evicted_records': 0} if include else {}))\nwith patch.object(store, '_connect', side_effect=sqlite3.OperationalError('unreadable')):\n    assert 'evicted_records' not in store.stats()\ntry:\n    store.stats(True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused stats checks passed')\n'@ | python -B -; if ($LASTEXITCODE -eq 0) { python -B -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py }; if ($LASTEXITCODE -eq 0) { git --no-pager diff --check; git --no-pager status --short --untracked-files=all }",
+        "description": "Verify stats behavior and existing recovery tests without creating files",
+        "initial_wait": 120
+      }
+    }
+  ],
+  "tool_completions": [
+    {
+      "call_id": "call_neaFMvkkNNwvfUJt0is2oSxP",
+      "name": "powershell",
+      "arguments": {
+        "command": "git --no-pager status --short",
+        "description": "Check initial working tree"
+      },
+      "success": true,
+      "tokens": 14,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_Ywlmhq2SZFZSG1thPKYDGayt",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      },
+      "success": true,
+      "tokens": 356,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_wXF7WtIK1SzIumKi017MLt9l",
+      "name": "tokenmaster-nav-impact",
+      "arguments": {
+        "symbol": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py::CCR.stats"
+      },
+      "success": true,
+      "tokens": 999,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "custom_call_l5RcKnJQAWnH20tsmewHUHKt",
+      "name": "apply_patch",
+      "arguments": {},
+      "success": true,
+      "tokens": 49,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_VHSnVqrbmPaFW2WWduiH3Z9e",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py:1-45"
+      },
+      "success": true,
+      "tokens": 494,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_ZRxpomaU2gsaibbjLeb1lDiB",
+      "name": "tokenmaster-nav-read_symbol",
+      "arguments": {
+        "target": "token-master-plugin\\skills\\token-master\\brainspace\\ccr.py:1-45"
+      },
+      "success": true,
+      "tokens": 664,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    },
+    {
+      "call_id": "call_8QvQqwHXG625JVvMDhKBTqCy",
+      "name": "powershell",
+      "arguments": {
+        "command": "$env:PYTHONDONTWRITEBYTECODE='1'; @'\nimport sys, sqlite3\nfrom unittest.mock import MagicMock, patch\nsys.path.insert(0, r'token-master-plugin\\skills\\token-master')\nfrom brainspace.ccr import CCR\nstore = CCR.__new__(CCR)\nstore._scope_key = 'test-scope'\nstore._db_path = 'test.sqlite'\nstore.shared = False\nstore.last_gc = None\nfor include in (False, True):\n    conn = MagicMock()\n    conn.execute.return_value.fetchone.side_effect = [(2, 20, 10, 3), (1, 1), (7,)]\n    with patch.object(store, '_connect') as connect:\n        connect.return_value.__enter__.return_value = conn\n        result = store.stats(include_evictions=include)\n    assert ('evicted_records' in result) == include\n    assert conn.execute.call_count == (3 if include else 2)\n    if include:\n        assert result.pop('evicted_records') == 7\n        conn.execute.assert_called_with('SELECT COUNT(*) FROM ccr_evictions WHERE scope=?', ('test-scope',))\n        assert result == baseline\n    else:\n        baseline = result\n    with patch.object(store, '_connect', side_effect=sqlite3.OperationalError('unreadable')):\n        result = store.stats(include_evictions=include)\n    assert result == dict(entries=0, db_path='test.sqlite', error='unreadable', last_gc=None, **({'evicted_records': 0} if include else {}))\nwith patch.object(store, '_connect', side_effect=sqlite3.OperationalError('unreadable')):\n    assert 'evicted_records' not in store.stats()\ntry:\n    store.stats(True)\nexcept TypeError:\n    pass\nelse:\n    raise AssertionError('parameter must be keyword-only')\nprint('Focused stats checks passed')\n'@ | python -B -; if ($LASTEXITCODE -eq 0) { python -B -m pytest -q -p no:cacheprovider token-master-plugin\\skills\\token-master\\brainspace\\tests\\test_recovery_contract.py }; if ($LASTEXITCODE -eq 0) { git --no-pager diff --check; git --no-pager status --short --untracked-files=all }",
+        "description": "Verify stats behavior and existing recovery tests without creating files",
+        "initial_wait": 120
+      },
+      "success": true,
+      "tokens": 50,
+      "is_class_skeleton": false,
+      "is_truncated": false,
+      "is_ambiguous": false
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 21,
+      "session_id": "9dc44e59-507d-4dbf-b851-ce45ca509954",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 7155,
+      "uncached_input_tokens": 3,
+      "output_tokens": 116,
+      "cache_read_tokens": 3512,
+      "cache_write_tokens": 3640,
+      "total_nano_aiu": 5484200000,
+      "recharged_nano_aiu": 5484200000,
+      "cold_nano_aiu": 9523000000,
+      "created_at": "2026-11-19T07:36:47.525Z"
+    },
+    {
+      "row_id": 22,
+      "session_id": "9dc44e59-507d-4dbf-b851-ce45ca509954",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 8694,
+      "uncached_input_tokens": 3,
+      "output_tokens": 335,
+      "cache_read_tokens": 7152,
+      "cache_write_tokens": 1539,
+      "total_nano_aiu": 4316950000,
+      "recharged_nano_aiu": 4316950000,
+      "cold_nano_aiu": 4316950000,
+      "created_at": "2026-11-19T07:36:55.285Z"
+    },
+    {
+      "row_id": 23,
+      "session_id": "9dc44e59-507d-4dbf-b851-ce45ca509954",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 9089,
+      "uncached_input_tokens": 3,
+      "output_tokens": 114,
+      "cache_read_tokens": 8691,
+      "cache_write_tokens": 395,
+      "total_nano_aiu": 1935850000,
+      "recharged_nano_aiu": 1935850000,
+      "cold_nano_aiu": 1935850000,
+      "created_at": "2026-11-19T07:36:58.677Z"
+    },
+    {
+      "row_id": 24,
+      "session_id": "9dc44e59-507d-4dbf-b851-ce45ca509954",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 10395,
+      "uncached_input_tokens": 3,
+      "output_tokens": 597,
+      "cache_read_tokens": 9086,
+      "cache_write_tokens": 1306,
+      "total_nano_aiu": 5529100000,
+      "recharged_nano_aiu": 5529100000,
+      "cold_nano_aiu": 5529100000,
+      "created_at": "2026-11-19T07:37:10.064Z"
+    },
+    {
+      "row_id": 25,
+      "session_id": "9dc44e59-507d-4dbf-b851-ce45ca509954",
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "input_tokens": 11055,
+      "uncached_input_tokens": 3,
+      "output_tokens": 52,
+      "cache_read_tokens": 10392,
+      "cache_write_tokens": 660,
+      "total_nano_aiu": 2127200000,
+      "recharged_nano_aiu": 2127200000,
+      "cold_nano_aiu": 2127200000,
+      "created_at": "2026-11-19T07:37:19.614Z"
+    }
+  ],
+  "launch": {
+    "event": "start",
+    "id": "513874e7c963eba2",
+    "at": "2026-11-19T07:36:39.063Z",
+    "cwd": "C:\\tm-lanes\\class-skeleton-r6-20261119\\lanes\\l3\\repos\\tokenmasterx",
+    "lean": true,
+    "excluded": [
+      "session_store_sql",
+      "task",
+      "read_agent",
+      "write_agent",
+      "list_agents",
+      "skill",
+      "sql",
+      "read_powershell",
+      "stop_powershell",
+      "list_powershell",
+      "fetch_copilot_cli_documentation",
+      "run_dynamic_workflow",
+      "dynamic_workflows_manage"
+    ],
+    "session": null,
+    "bridge": false,
+    "nav": true,
+    "brief": 296
+  },
+  "tokenomics": {
+    "tm": true,
+    "per_call_fixed_saved": 7406,
+    "fixed_saved": 37030,
+    "saved_usd": 0.050658,
+    "lean_usd": 0.03703,
+    "first_usd": 0.013628,
+    "brief_tokens_recorded": 296
+  },
+  "stderr_tail": [
+    "[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set on"
+  ]
+}

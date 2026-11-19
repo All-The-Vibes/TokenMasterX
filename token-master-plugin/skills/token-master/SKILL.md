@@ -51,7 +51,9 @@ at every launch.
 
 `setup.py` installs one MCP server, `tokenmaster-nav` (`navigation_mcp.py`), with three
 tools: `locate` (a symbol or a file's outline), `read_symbol` (one symbol, file or
-line range) and `impact` (callers). It builds `.token-master/graph.json` with
+line range; oversized classes render a signature + member-map skeleton via default
+`--class-skeleton r6`, `--class-skeleton v1` retains legacy linear truncation, and
+contiguous `@overload` stubs + implementation resolve in one call) and `impact` (callers). It builds `.token-master/graph.json` with
 graphify, prebuilds `.token-master/symbols.sqlite`, and writes `.token-master/brief.md`
 (`<= 320` tokens via the default `--brief-algorithm r1` submodular graph-coverage solver;
 `--no-brief` skips it, `--brief-algorithm v1` writes the legacy fixed-slot brief, and
