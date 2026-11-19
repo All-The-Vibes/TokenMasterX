@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/native_transport.py b/token-master-plugin/skills/token-master/brainspace/native_transport.py
+index 3901713..9bc1b13 100644
+--- a/token-master-plugin/skills/token-master/brainspace/native_transport.py
++++ b/token-master-plugin/skills/token-master/brainspace/native_transport.py
+@@ -25,6 +25,10 @@ _SESSION_FOLDER = re.compile(r"^Session folder: (.*session-state.*)$", re.MULTIL
+ SESSION_FOLDER_MOVED = "Session folder: stated in the first user message"
+ 
+ 
++def is_allowed_native_field(field: str) -> bool:
++    return isinstance(field, str) and field in _FIELDS
++
++
+ def _json(value):
+     return json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True,
+                       separators=(",", ":"))

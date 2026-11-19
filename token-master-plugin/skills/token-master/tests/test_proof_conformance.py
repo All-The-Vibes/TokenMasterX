@@ -75,6 +75,7 @@ def no_installed_assets(tmp_path, monkeypatch):
     (tmp_path / ".git").mkdir()  # a repository root: Copilot CLI's skill folders above it are not read
     monkeypatch.setenv("TOKENMASTER_KEEP_TOOLS", "")
     monkeypatch.delenv("TOKENMASTER_MD1_ENDPOINT", raising=False)  # MD-1 routing is opt-in
+    monkeypatch.delenv("TOKENMASTER_ROUTER", raising=False)
     monkeypatch.delenv("TOKENMASTER_RESUME_ESCALATE", raising=False)  # resume escalation is opt-in
 
 

@@ -54,9 +54,25 @@ Django pilot was never replicated
    default: without `--lean`, the launcher sends every built-in tool.
    - Unless the prompt, a flag or `TOKENMASTER_KEEP_TOOLS` keeps them, their definitions and the system-prompt text
      about them leave every call. The prompt rules are keyword patterns and miss some phrasings.
-     With `TOKENMASTER_MD1_ENDPOINT` set, the launcher also asks the user's own Microsoft-Decision-1
-     (MD-1) deployment which families a `-p` or `-i` prompt needs and keeps those too; MD-1 never
-     drops a family.
+     With `TOKENMASTER_MD1_ENDPOINT` set (`--router md1`), the launcher asks the user's own Microsoft-Decision-1
+     (MD-1) deployment which families a `-p` or `-i` prompt needs; with `--router r2` (`TOKENMASTER_ROUTER=r2`),
+     `brainspace/local_router.py` runs a zero-network `24.7 KB` `int16` linear classifier distilled from MD-1 (`1.000`
+     recall on `CASES` and `HELD_OUT` at `0.060 ms` standalone median), paired with `--resume-escalate r2`
+     (`TOKENMASTER_RESUME_ESCALATE=r2`) for symmetric discourse-deixis filtering and 2-stage warm-cache Bayes
+     escalation on resumed sessions (`--resume` / `--continue`). Across two sequential pre-registered live studies on
+     Copilot CLI `1.0.112` (`gpt-6-astra`, `160` 3-turn sessions / `480` CLI launches across
+     `evidence/r2-stateful-routing-20261120/` and `evidence/r2-stateful-routing-confirm-20261120/`), `tm_r2` cut
+     cold-normalized session USD **`37.87%` vs `stock`** (`$0.4161 -> $0.2585`, Holm $p = 2.79 \times 10^{-9}$; raw
+     tokens `−50.11%`, passing `Bet.lean`'s exact integer `max-bet-v1` gate with wealth `1.0162 >= 1.0` where cloud
+     `tm_md1_v1` reached `0.4995 < 1.0`), ran **`25.1x` faster** than cloud `MD-1` (`36.5 ms` vs `914.5 ms` live
+     launcher median, zero network, Holm $p = 1.86 \times 10^{-9}$), recalled `7/8` (`87.5%`) mid-session escalations
+     where default `tm_locked` recalled `0/8` (Round 1 Holm $p = 0.03125$), eliminated all `6` unneeded mid-session
+     tool-list mutations seen on `tm_md1_v1`, and cut resumed Turn 2+3 billed USD **`24.97%` vs `tm_md1_v1`** (`$0.1852
+     -> $0.1390`, Holm $p = 0.0122$; `−46.2%` on intra-session deixis workflows). Honest limit: on `2/32` Round 2 tasks
+     (`C21`, `C24`) phrasing cross-session recall as `"past sessions in \`session_store_sql\`"` / `"prior history"`
+     inside long JSON-schema prompts, `tm_r2` missed `session_store_sql` (`harm_count = 2` vs `Gate.lean` limit `1` at
+     $\alpha_2 = 0.0076$, `decision = "not_certified"`), so `--router auto` and `--resume-escalate off` remain the
+     defaults.
    - In a probe on Copilot CLI 1.0.78-3, the `gpt-6-astra` system prompt fell from 7,216 to
      5,117 tokens.
    - Most of the Copilot CLI saving came with this change. In the November 1 runs on Copilot CLI

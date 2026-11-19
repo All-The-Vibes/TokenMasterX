@@ -1,0 +1,24 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/ponytail.py b/token-master-plugin/skills/token-master/brainspace/ponytail.py
+index b315406..b29179f 100644
+--- a/token-master-plugin/skills/token-master/brainspace/ponytail.py
++++ b/token-master-plugin/skills/token-master/brainspace/ponytail.py
+@@ -13,7 +13,7 @@ import os
+ from pathlib import Path
+ import stat
+ 
+-__all__ = ["PonytailInstructions", "load_ponytail_export"]
++__all__ = ["PonytailInstructions", "load_ponytail_export", "is_within_export_limit"]
+ 
+ # Production pins are deliberately independent of the evaluation package.
+ PINNED_SOURCE_COMMIT = "c982cd411abb53323c4baa1baa3c2f020b8d0b08"
+@@ -24,6 +24,10 @@ _REQUIRED_EXPORT_FIELDS = frozenset(
+ )
+ 
+ 
++def is_within_export_limit(size_bytes: int) -> bool:
++    return type(size_bytes) is int and 0 <= size_bytes <= MAX_EXPORT_BYTES
++
++
+ @dataclass(frozen=True, slots=True)
+ class PonytailInstructions:
+     """Validated exact UTF-8 instructions with content-bound, stable identity.

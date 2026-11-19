@@ -56,6 +56,14 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
 from brainspace import tokens  # noqa: E402
+from brainspace.local_router import (  # noqa: E402
+    CacheState,
+    apply_discourse_deixis,
+    bayes_escalation_threshold,
+    is_intra_session_deixis,
+    r2_local_scores,
+    session_cache_state,
+)
 from brainspace.native_transport import (  # noqa: E402
     _SESSION_FOLDER, SESSION_FOLDER_MOVED, _replace_span, stable_session_prefix)
 from brainspace.v6_shaping import shape_tool_result, tool_kind  # noqa: E402
@@ -254,6 +262,13 @@ def md1_families(prompt: str) -> set[str]:
             if (chance := _probability(raw)) is not None and chance >= threshold}
 
 
+def r2_families(prompt: str) -> set[str]:
+    """The families whose zero-network local R2 probability reaches TOKENMASTER_MD1_THRESHOLD."""
+    threshold = _md1_threshold()
+    return {family for family, raw in r2_local_scores(prompt).items()
+            if (chance := _probability(raw)) is not None and chance >= threshold}
+
+
 def _flag_values(command: list[str], *flags: str) -> list[str]:
     """The values of these flags in a Copilot CLI command: "-p text", "--prompt text" or "--prompt=text"."""
     rest, values = command[1:], []
@@ -319,11 +334,43 @@ def _installed_names(subfolder: str, command: list[str] = ()) -> set[str]:
     return {name for name in names if name}
 
 
+def _router_mode(router: str | None = None) -> str:
+    raw = (router if router is not None else os.environ.get("TOKENMASTER_ROUTER", "")).strip().lower()
+    return raw if raw in ("regex", "r2", "md1") else "auto"
+
+
+def _resume_escalate_mode(mode: str | None = None) -> str:
+    raw = (mode if mode is not None else os.environ.get("TOKENMASTER_RESUME_ESCALATE", "")).strip().lower()
+    if raw == "v1":
+        return "v1"
+    if raw in ("1", "true", "yes", "on", "r2"):
+        return "r2"
+    return "off"
+
+
 def _resume_escalate() -> bool:
-    return os.environ.get("TOKENMASTER_RESUME_ESCALATE", "").strip().lower() in ("1", "true", "yes", "on")
+    return _resume_escalate_mode() != "off"
 
 
-def select_excluded_tools(command: list[str], *, resume_keeps_history: bool = True) -> tuple[str, ...]:
+def _prompt_scores(raw_prompt_text: str, prompt_text: str, *, router: str | None = None) -> dict[str, float]:
+    mode = _router_mode(router)
+    if mode == "regex":
+        return {}
+    if mode == "r2":
+        return r2_local_scores(raw_prompt_text)
+    if mode == "md1":
+        return md1_scores(prompt_text) or r2_local_scores(raw_prompt_text)
+    return md1_scores(prompt_text)  # auto: empty unless TOKENMASTER_MD1_ENDPOINT answers
+
+
+def select_excluded_tools(
+    command: list[str],
+    *,
+    resume_keeps_history: bool = True,
+    router: str | None = None,
+    cache_state: CacheState | None = None,
+    resumed: bool = False,
+) -> tuple[str, ...]:
     """Prune auxiliary tool families not needed by the command's flags, prompt, installed assets, or env."""
     keep: set[str] = set()
     env_keep = os.environ.get("TOKENMASTER_KEEP_TOOLS", "")
@@ -340,23 +387,33 @@ def select_excluded_tools(command: list[str], *, resume_keeps_history: bool = Tr
             keep.update(CAPABILITY_GROUPS["sql"][0])
         if resume_keeps_history and (head in ("--resume", "--continue") or arg[:2] == "-r"):  # -r, -r ID, -rID
             keep.update(CAPABILITY_GROUPS["session_history"][0])
-    prompts = [prompt.lower() for prompt in _flag_values(command, "-p", "--prompt", "-i", "--interactive")]
+    raw_prompts = _flag_values(command, "-p", "--prompt", "-i", "--interactive")
+    prompts = [prompt.lower() for prompt in raw_prompts]
     commands = {match.group(1) for prompt in prompts if (match := re.match(r"\s*/([a-z][\w-]*)(?=\s|$)", prompt))}
     if commands & set(_AGENT_COMMANDS):
         keep.update(CAPABILITY_GROUPS["agents"][0])
     if "fleet" in commands:
         keep.update(CAPABILITY_GROUPS["sql"][0])
+    raw_prompt_text = "\n".join(raw_prompts)
     prompt_text = "\n".join(prompts)
     named_text = _NEGATED.sub(" ", " ".join(prompt_text.split()))  # skill and agent names only; other families as is
     if prompt_text.strip():
-        scores = md1_scores(prompt_text)  # opt-in; empty unless TOKENMASTER_MD1_ENDPOINT answers
+        scores = _prompt_scores(raw_prompt_text, prompt_text, router=router)
+        if resumed:
+            scores = apply_discourse_deixis(scores, raw_prompt_text, is_resumed=True)
         threshold = _md1_threshold()
         for family, (tools, pattern) in CAPABILITY_GROUPS.items():
+            fam_threshold = (
+                bayes_escalation_threshold(threshold, cache_state, family)
+                if cache_state is not None
+                else threshold
+            )
             if (chance := _probability(scores.get(family))) is not None:
-                if chance >= threshold:
+                if chance >= fam_threshold:
                     keep.update(tools)
             elif pattern.search(named_text if family == "skills" else prompt_text):
-                keep.update(tools)
+                if not (resumed and family == "session_history" and is_intra_session_deixis(raw_prompt_text)):
+                    keep.update(tools)
         named = _NAMED.findall(named_text)
         wanted = {match.group(1) for match in _SLASH.finditer(named_text)} | {n for verb, n in named if verb != "ask"}
         if wanted:
@@ -484,7 +541,13 @@ def recorded_brief(session: str | None) -> int | None:
     return int(mine[-1].get("brief", 0) or 0) if mine else None
 
 
-def lean_command(command: list[str], session: str | None = None) -> list[str]:
+def lean_command(
+    command: list[str],
+    session: str | None = None,
+    *,
+    router: str | None = None,
+    resume_escalate: str | None = None,
+) -> list[str]:
     """Copilot CLI sessions get dynamic --excluded-tools, unless the user already chose tools or runs a subcommand. A
     launch that resumes `session` gets the list the launcher last gave it, if one is recorded, less what
     TOKENMASTER_KEEP_TOOLS keeps: Copilot CLI resends the session's history with the new launch's tools, so another
@@ -494,14 +557,32 @@ def lean_command(command: list[str], session: str | None = None) -> list[str]:
     rest = command[1:]
     if (rest and not rest[0].startswith("-")) or any(arg.split("=")[0] in _TOOL_FLAGS for arg in rest):
         return command
-    excluded = recorded_tools(session) if session else None
+    mine = _matching_session_launches(session) if session else []
+    excluded = mine[-1]["excluded"] if mine else None
     if excluded is None:
-        excluded = select_excluded_tools(command)
-    elif _resume_escalate():
-        fresh = select_excluded_tools(command, resume_keeps_history=False)
-        excluded = [tool for tool in excluded if tool in fresh]
-    else:  # the routing of a launch with no prompt or flags: only LEAN_EXCLUDED_TOOLS, less TOKENMASTER_KEEP_TOOLS
-        excluded = [tool for tool in excluded if tool in select_excluded_tools(command[:1])]
+        excluded = select_excluded_tools(command, router=router)
+    else:
+        esc_mode = _resume_escalate_mode(resume_escalate)
+        if esc_mode == "v1":
+            fresh = select_excluded_tools(command, resume_keeps_history=False, router=router)
+            excluded = [tool for tool in excluded if tool in fresh]
+        elif esc_mode == "r2":
+            prior_resumes = sum(1 for launch in mine if launch.get("session") == session)
+            cstate = session_cache_state(
+                session,
+                copilot_home=launch_registry().parents[1],
+                prior_launches=1 + prior_resumes,
+            )
+            fresh = select_excluded_tools(
+                command,
+                resume_keeps_history=False,
+                router=router,
+                cache_state=cstate,
+                resumed=True,
+            )
+            excluded = [tool for tool in excluded if tool in fresh]
+        else:  # the routing of a launch with no prompt or flags: only LEAN_EXCLUDED_TOOLS, less TOKENMASTER_KEEP_TOOLS
+            excluded = [tool for tool in excluded if tool in select_excluded_tools(command[:1], router="regex")]
     return [*command, "--excluded-tools", *excluded] if excluded else command
 
 
@@ -573,7 +654,8 @@ def _brief_tokens(command: list[str], env: dict, session: str | None = None) -> 
         return 0
 
 
-def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool, session: str | None = None) -> int:
+def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: bool, session: str | None = None,
+                 router: str | None = None, router_ms: float | None = None) -> int:
     """run_child, plus a start and an end record (the folder Copilot CLI works in, lean tool set and the tools it
     excluded, the session it resumes, bridge, navigation tools; no prompt text)."""
     if Path(command[0]).stem.lower() != "copilot":
@@ -589,6 +671,10 @@ def run_recorded(parser, command: list[str], env: dict, *, lean: bool, bridge: b
     start_record = {"event": "start", "id": launch_id, "at": now(), "cwd": str(_working_folder(command)),
                     "lean": lean, "excluded": excluded, "session": session, "bridge": bridge,
                     "nav": _nav_installed(command)}
+    if router is not None:
+        start_record["router"] = router
+    if router_ms is not None:
+        start_record["router_ms"] = router_ms
     brief_tok = _brief_tokens(command, env, session=session)
     if brief_tok > 0:
         start_record["brief"] = brief_tok
@@ -914,13 +1000,22 @@ def main(argv=None) -> int:
                                "resume gets its session's recorded list (default: every built-in tool)")
     tool_set.add_argument("--all-tools", action="store_true",
                           help="every built-in tool, which is now the default; kept so existing commands still work")
+    parser.add_argument("--router", choices=("auto", "regex", "r2", "md1"), default=None,
+                        help="prompt capability router for --lean (default: TOKENMASTER_ROUTER or auto)")
+    parser.add_argument("--resume-escalate", choices=("off", "v1", "r2"), default=None,
+                        help="mid-session escalation policy on --resume/--continue (default: TOKENMASTER_RESUME_ESCALATE or off)")
     parser.add_argument("command", nargs=argparse.REMAINDER, help="-- copilot [args...]; omit to serve only")
     args = parser.parse_args(argv)
     command = args.command[1:] if args.command[:1] == ["--"] else args.command
     original = list(command)
     session = resumed_session(command) if command else None
+    router_used: str | None = None
+    router_ms: float | None = None
     if command and args.lean:
-        command = lean_command(command, session)
+        t0 = time.perf_counter()
+        command = lean_command(command, session, router=args.router, resume_escalate=args.resume_escalate)
+        router_ms = round((time.perf_counter() - t0) * 1000.0, 3)
+        router_used = _router_mode(args.router)
     lean = command != original
     lean_state = "on" if lean else "on, nothing to exclude" if args.lean else "off"
     if not args.upstream:
@@ -928,7 +1023,8 @@ def main(argv=None) -> int:
             parser.error("set --upstream or COPILOT_PROVIDER_BASE_URL to serve the bridge")
         print(f"[tokenmaster] no provider URL: Copilot CLI keeps its normal routing; lean tool set {lean_state}",
               file=sys.stderr)
-        return run_recorded(parser, command, dict(os.environ), lean=lean, bridge=False, session=session)
+        return run_recorded(parser, command, dict(os.environ), lean=lean, bridge=False, session=session,
+                            router=router_used, router_ms=router_ms)
     provider = os.environ.get("COPILOT_PROVIDER_TYPE") or "openai"
     if provider not in ("openai", "anthropic") or \
             (provider == "openai" and (os.environ.get("COPILOT_PROVIDER_WIRE_API") or "responses") != "responses"):
@@ -960,7 +1056,8 @@ def main(argv=None) -> int:
         env = {**os.environ, "COPILOT_PROVIDER_BASE_URL": bridge.url}
         if provider == "openai":
             env["COPILOT_PROVIDER_WIRE_API"] = "responses"
-        return run_recorded(parser, command, env, lean=lean, bridge=True, session=session)
+        return run_recorded(parser, command, env, lean=lean, bridge=True, session=session,
+                            router=router_used, router_ms=router_ms)
 
 
 if __name__ == "__main__":

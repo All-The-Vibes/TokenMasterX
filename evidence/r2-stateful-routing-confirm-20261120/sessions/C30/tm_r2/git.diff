@@ -1,0 +1,17 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/document_structure.py b/token-master-plugin/skills/token-master/brainspace/document_structure.py
+index 5542d1e..410fa8c 100644
+--- a/token-master-plugin/skills/token-master/brainspace/document_structure.py
++++ b/token-master-plugin/skills/token-master/brainspace/document_structure.py
+@@ -69,6 +69,12 @@ _BULLET_LIKE = re.compile(r"[-+*](?:[ \t]|$)")
+ _DELIMITER = re.compile(r":?-{3,}:?")
+ 
+ 
++def is_within_structure_bounds(text: str) -> bool:
++    """Check only string type, character count and LF-delimited line count."""
++    return (isinstance(text, str) and len(text) <= _MAX_CHARS
++            and text.count("\n") + 1 <= _MAX_LINES)
++
++
+ @dataclass(frozen=True, slots=True)
+ class DocumentStructureSpan:
+     """End-exclusive Python code-point positions over the supplied observed text."""

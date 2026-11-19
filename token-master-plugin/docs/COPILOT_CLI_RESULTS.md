@@ -1,6 +1,18 @@
-# Copilot CLI results (October 18 to November 19, 2026)
+# Copilot CLI results (October 18 to November 20, 2026)
 
 These runs used GitHub Copilot CLI and GitHub's Copilot API:
+
+- **Two sequential pre-registered R2 zero-network local router & warm-cache Bayes escalation studies on Copilot CLI
+  `1.0.112` (November 20, 2026):** 160 multi-turn sessions (`480` CLI launches across `start` → `--resume <id>` →
+  `--continue`) across Round 1 ($k = 1$, $\alpha_1 = 0.0304$, `16` paired 3-turn workflows × `4` arms = `64` sessions /
+  `192` launches: `stock`, `tm_locked`, `tm_md1_v1`, `tm_r2`, `evidence/r2-stateful-routing-20261120/`) and Confirmation
+  Round 2 ($k = 2$, $\alpha_2 = 0.0076$, `32` fresh 3-turn workflows × `3` arms = `96` sessions / `288` launches with
+  `max_jaccard = 0.533 < 0.55` vs all `113` prior prompts: `stock`, `tm_md1_v1`, `tm_r2`,
+  `evidence/r2-stateful-routing-confirm-20261120/`), comparing stock Copilot CLI, default resume tool-list locking
+  (`tm_locked`), live Azure Foundry `MD-1` + monotonic resume escalation (`tm_md1_v1`, `--router md1 --resume-escalate v1`),
+  and the zero-network distilled `int16` local router + symmetric discourse deixis + 2-stage warm-cache Bayes escalation
+  (`tm_r2`, `--router r2 --resume-escalate r2`) under default GitHub routing on this repository (`a9275d8d`,
+  `gpt-6-astra`, reasoning `low`). Both protocols and the R2 router weights were hashed before their sessions.
 
 - **Two sequential pre-registered 3-arm R6 skeletal class projection studies on Copilot CLI `1.0.112` (November 19,
   2026):** 150 sessions across Round 1 ($k = 1$, $\alpha_1 = 0.0304$, `24` paired tasks × `3` arms = `72` sessions,
@@ -63,6 +75,66 @@ These runs used GitHub Copilot CLI and GitHub's Copilot API:
   fixed prompt of about 3,600 tokens ([PRS4_RESULTS.md](PRS4_RESULTS.md)).
 
 ## Summary
+
+### Pre-registered R2 zero-network local router & warm-cache Bayes escalation studies — Round 1 & Confirmation Round 2 (Copilot CLI `1.0.112`, November 20, 2026)
+
+- **160 live multi-turn sessions (`480` CLI launches across `start` → `--resume <id>` → `--continue`, `0` aborts,
+  `160/160` single-session continuity, `100%` offline verification across all `144` `tm_r2` launches; `gpt-6-astra`,
+  reasoning `low`, default GitHub routing on this repository `@ a9275d8d`):**
+  - **Mechanism (`brainspace/local_router.py`, `brainspace/local_router_weights.py`, `--router r2 --resume-escalate r2`):**
+    distills `Microsoft-Decision-1` (`MD-1`) into a `24.7 KB` zlib-compressed `int16` multi-label 7-family classifier
+    (`4,096` signed FNV-1a unigram/bigram/char-4-gram buckets + explicit lookalike interactions, `0.060 ms` standalone
+    median, `1.000` recall on both `29/29` `CASES` and `13/13` `HELD_OUT` in `evals/md1_routing_eval.py --local-only`),
+    paired with symmetric pragmatic discourse deixis (suppressing intra-session `"Turn 1"` / `"that response"` false
+    positives on `session_store_sql` while boosting non-quoted cross-session phrases such as `"earlier sessions"`) and a
+    2-stage warm-cache Bayes escalation rule that compares expected capability-miss loss against the actual cached-prefix
+    rewrite cost read from Copilot CLI's `<COPILOT_HOME>/session-store.db` (`turns` + `session_files`).
+  - **Round 1 ($k = 1$, $\alpha_1 = 0.03039636$, `16` workflows × `4` arms = `64` sessions / `192` launches,
+    `evidence/r2-stateful-routing-20261120/`):** `tm_r2` passed all `3` primary hypothesis tests (`H1`–`H3`) after
+    Holm-Bonferroni correction: **`−37.43%` cold-normalized session USD vs `stock`** (`$0.4600 → $0.2879`, 95% CI
+    `−43.04%` to `−31.92%`, raw tokens **`−50.44%`** `137,216 → 68,006`, Holm $p = 0.000122$), **`22.6x` faster live
+    launcher routing vs cloud `MD-1`** (`42.58 ms` vs `960.32 ms` median including SQLite warm-cache lookup, zero network,
+    Holm $p = 0.000122$), and **`87.5%` (`7/8`) mid-session capability recall vs `0.0%` (`0/8`) on default `tm_locked`**
+    (`3/8` workflow pass on `tm_locked` across escalation Buckets `B + C`, Holm $p = 0.03125$), with **`0` unneeded
+    mid-session tool mutations vs `6` on `tm_md1_v1`** (`58.84%` vs `48.09%` resumed first-call prompt-cache hit rate,
+    `−26.87%` Turn 2+3 billed USD, $p = 0.1167$ at $N = 16$). Formal Round 1 closed as `not_certified` (`harm_count = 1`
+    on `S12` where a long schema tail diluted Turn-3 cross-session recall `0.433 < 0.619`, plus over-wide `token_cap =
+    500,000` at $N = 16$). After Round 1, symmetric non-quoted `_CROSS_SESSION_DEIXIS` (`CROSS_SESSION_LOGIT_SHIFT = 3.0`)
+    was added and `local_router.py` (`0d31ba26701ed627...`) was frozen prior to authoring Round 2.
+  - **Confirmation Round 2 ($k = 2$, $\alpha_2 = 0.00759909$, cumulative $\alpha_1 + \alpha_2 = 0.0380 < 0.05$, `32` fresh
+    workflows × `3` arms = `96` sessions / `288` launches across `8` stable coding, `8` intra-session escalation + deixis,
+    `8` dynamically seeded cross-session recall, and `8` warm-cache lookalikes,
+    `evidence/r2-stateful-routing-confirm-20261120/`):** **3 of 4 pre-registered hypotheses passed family-wise
+    Holm-Bonferroni significance ($\alpha = 0.05$):**
+    - **`H1` (`tm_r2` vs `stock` cold-normalized USD, `N = 32`) passed Holm significance:** `$0.4161 → $0.2585`
+      (**`−37.87%`**, 95% CI `−40.91%` to `−33.91%`, `31W/0T/1L`, raw Wilcoxon $p = 9.31 \times 10^{-10}$, **Holm $p =
+      2.79 \times 10^{-9}$**); raw tokens fell **`−50.11%`** (`122,465 → 61,103`).
+    - **`H2` (`tm_r2` vs `tm_md1_v1` live launcher routing latency, `96` launches/arm) passed Holm significance:**
+      **`36.49 ms` median** (`70.43 ms` p90, zero network) vs **`914.47 ms` median** (`1,121.91 ms` p90) on cloud Azure
+      Foundry `MD-1` — a **`25.1x` live subprocess speedup** (raw $p = 4.66 \times 10^{-10}$, **Holm $p = 1.86 \times
+      10^{-9}$**).
+    - **`H4` (`tm_r2` vs `tm_md1_v1` resumed Turn 2+3 billed USD, `N = 32`) passed Holm significance:** `$0.1852 →
+      $0.1390` (**`−24.97%`**, 95% CI `−38.16%` to `−9.04%`, raw Wilcoxon $p = 0.006085$, **Holm $p = 0.012170$**). On
+      `Bucket B` (`B_escalation_and_intra_deixis`, where Turn 2 unlocks a capability and Turn 3 follows up with anaphoric
+      intra-session deixis), stateless `tm_md1_v1` (`--resume-escalate v1`) mutated tools a second time on `4/8` workflows
+      (`41.56%` resumed first-call cache hit rate, `$0.2742` Turn 2+3 billed USD — exceeding `stock`'s `$0.1498`), whereas
+      `tm_r2` (`--resume-escalate r2`) recorded **`0` unneeded mid-session mutations across all `32` workflows vs `6` on
+      `tm_md1_v1`**, cutting `Bucket B` Turn 2+3 billed USD **`−46.2%`** (`$0.2742 → $0.1475`).
+    - **`H3` (`tm_r2` vs `tm_md1_v1` resumed first-call prompt-cache hit rate, `N = 32`):** rose from **`58.22%` to
+      `65.19%`** pooled (`41.56% → 59.83%` on `Bucket B`, `56.56% → 66.00%` on `Bucket C`, `63.40% → 67.29%` on
+      `Bucket D`), with `15/32` zero-mutation ties on stable coding and lookalikes leaving pooled two-sided Wilcoxon at
+      $p = 0.1838$.
+  - **Honest limits & shared two-round `Gate.lean` + `Bet.lean` certification:** in the shared two-round registry
+    (`token_cap = 300,000`, `minimum_token_reduction = 2,500`, `quality_margin = 0.25`, `verified_replay = True`),
+    `tm_r2` **passed the exact integer `max-bet-v1` token gate against `stock` (`wealth = 1.0162 >= 1.0`,
+    `mean_token_saving = 61,362.2` tokens, `max_observed_tokens = 296,422 <= 300,000`)**, whereas `tm_md1_v1` failed
+    `max-bet-v1` (`wealth = 0.4995 < 1.0`) due to mid-session cache-break re-prefills. However, `tm_r2` passed `26/32`
+    (`81.2%`) workflows vs `tm_md1_v1` `27/32` (`84.4%`) and `stock` `28/32` (`87.5%`): `tm_r2` beat `tm_md1_v1` on `C17`
+    (`PASS` vs `FAIL`), tied all arms on `4` model-side carry-forward failures (`C10`, `C12`, `C23`, `C25`), and missed
+    `session_store_sql` on `C21` and `C24` (`harm_count = 2` vs `harm_limit = 1` at $\alpha_2 = 0.0076$, where Turn 3
+    phrased recall as `"past sessions in \`session_store_sql\`"` / `"prior history"` inside a long JSON-schema prompt), so
+    the overall registry decision remains **`not_certified`** (`--router auto` and `--resume-escalate off` remain the
+    conservative defaults; `--router r2 --resume-escalate r2` is opt-in).
 
 ### Pre-registered 3-arm R6 skeletal class projection studies — Round 1 & Confirmation Round 2 (Copilot CLI `1.0.112`, November 19, 2026)
 

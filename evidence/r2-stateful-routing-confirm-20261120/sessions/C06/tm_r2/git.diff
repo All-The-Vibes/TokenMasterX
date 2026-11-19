@@ -1,0 +1,12 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/host_output.py b/token-master-plugin/skills/token-master/brainspace/host_output.py
+index 1dc61a4..77cac51 100644
+--- a/token-master-plugin/skills/token-master/brainspace/host_output.py
++++ b/token-master-plugin/skills/token-master/brainspace/host_output.py
+@@ -171,3 +171,7 @@ def transform_output(
+         return envelope
+     except Exception:
+         return None
++
++
++def is_recognized_posttooluse_contract(name: str) -> bool:
++    return isinstance(name, str) and name in (CLAUDE_CONTRACT, COPILOT_CONTRACT)

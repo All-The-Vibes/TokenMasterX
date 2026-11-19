@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/certification.py b/token-master-plugin/skills/token-master/brainspace/certification.py
+index f56a749..ba3bb9b 100644
+--- a/token-master-plugin/skills/token-master/brainspace/certification.py
++++ b/token-master-plugin/skills/token-master/brainspace/certification.py
+@@ -115,6 +115,10 @@ _BET_LIMIT = (
+ )
+ 
+ 
++def is_supported_token_test(name: str) -> bool:
++    return isinstance(name, str) and name in TOKEN_TESTS
++
++
+ def _positive_sqlite_integer(value: int, name: str) -> None:
+     _integer(value, name, 1)
+     if value > _MAX_SQLITE_INT:

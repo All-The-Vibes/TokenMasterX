@@ -1,0 +1,586 @@
+[
+  {
+    "id": "S01",
+    "bucket": "A_stable_coding",
+    "kind": "edit",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/brainspace/v6_shaping.py"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/v6_shaping.py b/token-master-plugin/skills/token-master/brainspace/v6_shaping.py\nindex 18cffaf..6491e6e 100644\n--- a/token-master-plugin/skills/token-master/brainspace/v6_shaping.py\n+++ b/token-master-plugin/skills/token-master/brainspace/v6_shaping.py\n@@ -327,3 +327,10 @@ def plan_v6_request(\n     return RequestPlan(candidate, wire, \"transformed\", \"cache_native_shaping_v6\", policy.policy_id,\n                        changed_message_indices=tuple(changed), tokens_before=before_tokens,\n                        tokens_after=after_tokens, wire_bytes_before=before_bytes, wire_bytes_after=after_bytes)\n+\n+def budget_for_kind(kind: str) -> int:\n+    if kind == \"search\":\n+        return SEARCH_BUDGET\n+    if kind == \"read\":\n+        return READ_BUDGET\n+    return OTHER_BUDGET\n",
+    "check": [
+      "import sys; sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "from brainspace import v6_shaping",
+      "assert v6_shaping.budget_for_kind('search') == 1500",
+      "assert v6_shaping.budget_for_kind('read') == 4000",
+      "assert v6_shaping.budget_for_kind('other') == 3000",
+      "assert v6_shaping.budget_for_kind('unknown') == 3000",
+      "assert v6_shaping.budget_for_kind(v6_shaping.tool_kind('rg')) == 1500",
+      "assert v6_shaping.budget_for_kind(v6_shaping.tool_kind('view')) == 4000"
+    ],
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/v6_shaping.py` without editing any files yet, and report `SEARCH_BUDGET`, `READ_BUDGET`, `OTHER_BUDGET`, and how `tool_kind` maps tool names."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Add a pure helper `budget_for_kind(kind: str) -> int` in `token-master-plugin/skills/token-master/brainspace/v6_shaping.py` that returns `SEARCH_BUDGET` for `'search'`, `READ_BUDGET` for `'read'`, and `OTHER_BUDGET` for any other string, leaving all existing functions unchanged."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Verify with Python that `budget_for_kind(tool_kind('rg')) == 1500`, `budget_for_kind(tool_kind('view')) == 4000`, and `budget_for_kind('unknown') == 3000`, and make sure only `v6_shaping.py` is modified."
+      }
+    ]
+  },
+  {
+    "id": "S02",
+    "bucket": "A_stable_coding",
+    "kind": "edit",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/brainspace/repo_brief.py"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/repo_brief.py b/token-master-plugin/skills/token-master/brainspace/repo_brief.py\nindex 4a88a37..fdd69df 100644\n--- a/token-master-plugin/skills/token-master/brainspace/repo_brief.py\n+++ b/token-master-plugin/skills/token-master/brainspace/repo_brief.py\n@@ -1256,3 +1256,6 @@ def write_brief(\n         brief_path.unlink()\n     _atomic_write_bytes(meta_path, (json.dumps(meta, indent=2, ensure_ascii=False) + \"\\n\").encode(\"utf-8\"))\n     return meta\n+\n+def role_floor_sum() -> int:\n+    return FLOOR_HUB + FLOOR_ENTRY + FLOOR_RECALL\n",
+    "check": [
+      "import sys; sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "from brainspace import repo_brief",
+      "assert repo_brief.role_floor_sum() == 9",
+      "assert repo_brief.BRIEF_BUDGET == 320",
+      "assert repo_brief.ALGORITHMS == ('r1', 'v1')"
+    ],
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Read `token-master-plugin/skills/token-master/brainspace/repo_brief.py` without modifying any files, and note the integer constants `BRIEF_BUDGET`, `FLOOR_HUB`, `FLOOR_ENTRY`, and `FLOOR_RECALL`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Add a pure helper `role_floor_sum() -> int` to `token-master-plugin/skills/token-master/brainspace/repo_brief.py` returning `FLOOR_HUB + FLOOR_ENTRY + FLOOR_RECALL`, without altering existing functions or constants."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Run a quick Python check confirming `repo_brief.role_floor_sum() == 9` and ensure only `token-master-plugin/skills/token-master/brainspace/repo_brief.py` is modified in git."
+      }
+    ]
+  },
+  {
+    "id": "S03",
+    "bucket": "A_stable_coding",
+    "kind": "investigate",
+    "expected": {
+      "symbol_budget": 2400,
+      "brief_budget": 320,
+      "budget_ratio_int": 7,
+      "class_modes": [
+        "r6",
+        "v1"
+      ],
+      "brief_algorithms": [
+        "r1",
+        "v1"
+      ]
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/symbol_index.py` without editing anything and note `BUDGET`, `SCHEMA_VERSION`, and `CLASS_READ_MODES`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Now inspect `token-master-plugin/skills/token-master/brainspace/repo_brief.py` without editing anything and note `BRIEF_BUDGET` and `ALGORITHMS`."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Reply with ONLY a JSON object containing `symbol_budget` (int), `brief_budget` (int), `budget_ratio_int` (`BUDGET // BRIEF_BUDGET` as int), `class_modes` (list of strings in order), and `brief_algorithms` (list of strings in order)."
+      }
+    ]
+  },
+  {
+    "id": "S04",
+    "bucket": "A_stable_coding",
+    "kind": "investigate",
+    "expected": {
+      "strict_gate": "strict-gate-v1",
+      "max_gate_samples": 4000,
+      "token_tests": [
+        "hoeffding-v1",
+        "max-bet-v1"
+      ],
+      "transport_version": "native-responses-transport-v2",
+      "field_count": 19
+    },
+    "unordered_keys": [
+      "token_tests"
+    ],
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/certification.py` without changing any files and record `STRICT_GATE`, `MAX_GATE_SAMPLES`, and `TOKEN_TESTS`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Next inspect `token-master-plugin/skills/token-master/brainspace/native_transport.py` without editing files and record `VERSION` and the exact count of strings in `_FIELDS`."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Return ONLY a JSON object with keys `strict_gate` (str), `max_gate_samples` (int), `token_tests` (list of strings), `transport_version` (str), and `field_count` (int)."
+      }
+    ]
+  },
+  {
+    "id": "S05",
+    "bucket": "B_escalation_and_intra_deixis",
+    "kind": "investigate",
+    "escalated_turn": 2,
+    "target_tools": [
+      "task"
+    ],
+    "expected": {
+      "cli_version": "1.0.112",
+      "lean_weights_sum": 8061,
+      "read_budget": 4000,
+      "max_hits": 25
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/tokenomics.py` without modifying any files and compute `CLI_VERSION` and the exact integer sum of all values in `LEAN_WEIGHTS`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [
+          "agents"
+        ],
+        "prompt": "Spin up two separate helper workers in parallel: have one inspect `token-master-plugin/skills/token-master/brainspace/v6_shaping.py` for `READ_BUDGET`, and have the other inspect `token-master-plugin/skills/token-master/brainspace/symbol_index.py` for `MAX_HITS`, then gather both integer results."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Combine the exact values you recorded in Turn 1 and Turn 2 into ONLY a single JSON object with keys `cli_version` (str), `lean_weights_sum` (int), `read_budget` (int), and `max_hits` (int)."
+      }
+    ]
+  },
+  {
+    "id": "S06",
+    "bucket": "B_escalation_and_intra_deixis",
+    "kind": "investigate",
+    "escalated_turn": 2,
+    "target_tools": [
+      "read_powershell",
+      "stop_powershell"
+    ],
+    "check_ports_closed": true,
+    "expected": {
+      "max_brief_bytes": 8192,
+      "max_hubs": 10,
+      "probe_ok": true,
+      "probe_code": 204
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Read `token-master-plugin/skills/token-master/brainspace/repo_brief.py` without changing files and note `MAX_BRIEF_BYTES` and `MAX_HUBS`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [
+          "background_shell"
+        ],
+        "prompt": "Start a short-lived local Python HTTP listener asynchronously on an ephemeral `127.0.0.1` port that prints `READY:<port>` and serves JSON `{\"probe_ok\": true, \"probe_code\": 204}`, read its output to obtain the port, fetch that JSON once, and shut the listener down cleanly so the port is closed."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Using the numbers you just recorded in Turn 1 and Turn 2, reply with ONLY a JSON object having keys `max_brief_bytes` (int), `max_hubs` (int), `probe_ok` (bool), and `probe_code` (int)."
+      }
+    ]
+  },
+  {
+    "id": "S07",
+    "bucket": "B_escalation_and_intra_deixis",
+    "kind": "investigate",
+    "escalated_turn": 2,
+    "target_tools": [
+      "fetch_copilot_cli_documentation"
+    ],
+    "expected": {
+      "lean_excluded_count": 13,
+      "both_resume_flags_documented": true
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py` without editing files and count how many tool names appear in `LEAN_EXCLUDED_TOOLS`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [
+          "copilot_docs"
+        ],
+        "prompt": "Consult the built-in Copilot CLI reference manual to verify whether both `--continue` and `--resume` are documented flags for continuing an existing CLI conversation."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Combine what you found in the first turn and second turn into ONLY a JSON object with keys `lean_excluded_count` (int) and `both_resume_flags_documented` (bool)."
+      }
+    ]
+  },
+  {
+    "id": "S08",
+    "bucket": "B_escalation_and_intra_deixis",
+    "kind": "investigate",
+    "escalated_turn": 2,
+    "target_tools": [
+      "sql"
+    ],
+    "expected": {
+      "task_weight": 988,
+      "sql_weight": 674,
+      "ge_600_count": 3,
+      "ge_600_sum": 3281
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/tokenomics.py` without editing files and read the exact integer weights in `LEAN_WEIGHTS` for `'task'`, `'sql'`, `'skill'`, and `'session_store_sql'`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [
+          "sql"
+        ],
+        "prompt": "Create a temporary table `tool_costs(name TEXT, weight INT)` in the built-in SQLite scratchpad database, insert those four rows, and query `SELECT COUNT(*), SUM(weight) FROM tool_costs WHERE weight >= 600`."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Merge the exact counts you computed in Turn 1 and Turn 2 into ONLY a JSON object with keys `task_weight` (int), `sql_weight` (int), `ge_600_count` (int), and `ge_600_sum` (int)."
+      }
+    ]
+  },
+  {
+    "id": "S09",
+    "bucket": "C_cross_session_recall",
+    "kind": "investigate",
+    "fixture": "seeded_session_history",
+    "escalated_turn": 3,
+    "target_tools": [
+      "session_store_sql"
+    ],
+    "expected": {
+      "search_budget": 1500,
+      "other_budget": 3000,
+      "burst_cap": 48,
+      "burst_header": "X-TokenMaster-Burst"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/v6_shaping.py` without modifying any files and record `SEARCH_BUDGET`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Also record `OTHER_BUDGET` from `token-master-plugin/skills/token-master/brainspace/v6_shaping.py` without modifying any files."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [
+          "session_history"
+        ],
+        "prompt": "Search our older chat from Monday in session history (do not access external `.db` files via shell) to recover the agreed integer `burst_cap` and `X-TokenMaster-*` header name, then combine them with Turn 1 and Turn 2 into ONLY a JSON object with keys `search_budget` (int), `other_budget` (int), `burst_cap` (int), and `burst_header` (str)."
+      }
+    ]
+  },
+  {
+    "id": "S10",
+    "bucket": "C_cross_session_recall",
+    "kind": "investigate",
+    "fixture": "seeded_session_history",
+    "escalated_turn": 3,
+    "target_tools": [
+      "session_store_sql"
+    ],
+    "expected": {
+      "max_areas": 6,
+      "max_recall": 5,
+      "fallback_port": 19420,
+      "retry_limit": 3
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/repo_brief.py` without editing files and record `MAX_AREAS`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "From `token-master-plugin/skills/token-master/brainspace/repo_brief.py`, also record `MAX_RECALL` without editing files."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [
+          "session_history"
+        ],
+        "prompt": "Look through my previous sessions using the built-in session history tool (do not read SQLite files via shell) to find the localhost fallback telemetry port and retry limit from Tuesday's sync, and output ONLY a JSON object combining them with Turn 1 and Turn 2: `max_areas` (int), `max_recall` (int), `fallback_port` (int), and `retry_limit` (int)."
+      }
+    ]
+  },
+  {
+    "id": "S11",
+    "bucket": "C_cross_session_recall",
+    "kind": "investigate",
+    "fixture": "seeded_session_history",
+    "escalated_turn": 2,
+    "target_tools": [
+      "session_store_sql"
+    ],
+    "expected": {
+      "max_gate_samples": 4000,
+      "canary_pct": 15,
+      "canary_region": "eastus2"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Read `token-master-plugin/skills/token-master/brainspace/certification.py` without editing files and note `MAX_GATE_SAMPLES`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [
+          "session_history"
+        ],
+        "prompt": "Check our past conversations in session history (without reading `.db` files from shell) to find the canary rollout percentage and Azure region we selected."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Combine the constant you noted in Turn 1 with the two values from Turn 2 into ONLY a JSON object with keys `max_gate_samples` (int), `canary_pct` (int), and `canary_region` (str)."
+      }
+    ]
+  },
+  {
+    "id": "S12",
+    "bucket": "C_cross_session_recall",
+    "kind": "investigate",
+    "fixture": "seeded_session_history",
+    "escalated_turn": 3,
+    "target_tools": [
+      "session_store_sql"
+    ],
+    "expected": {
+      "max_loose": 25,
+      "max_title": 80,
+      "retention_days": 14,
+      "compression": "zstd"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/symbol_index.py` without editing files and note `MAX_LOOSE`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Also record `MAX_TITLE` from `token-master-plugin/skills/token-master/brainspace/symbol_index.py` without modifying any files."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [
+          "session_history"
+        ],
+        "prompt": "Query earlier sessions in `session_store_sql` (do not touch `.db` files via shell) to find the agreed snapshot retention window in days and compression codec, and combine them with Turn 1 and Turn 2 into ONLY a JSON object with keys `max_loose` (int), `max_title` (int), `retention_days` (int), and `compression` (str)."
+      }
+    ]
+  },
+  {
+    "id": "S13",
+    "bucket": "D_warm_cache_lookalikes",
+    "kind": "edit",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/brainspace/native_transport.py"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/native_transport.py b/token-master-plugin/skills/token-master/brainspace/native_transport.py\nindex 3901713..598df42 100644\n--- a/token-master-plugin/skills/token-master/brainspace/native_transport.py\n+++ b/token-master-plugin/skills/token-master/brainspace/native_transport.py\n@@ -179,3 +179,6 @@ class NativeResponsesTransport:\n         self._used = True\n         self._admitted.clear()\n         return self._base._send_validated_wire(wire)\n+\n+def is_allowed_native_field(field: str) -> bool:\n+    return isinstance(field, str) and field in _FIELDS\n",
+    "check": [
+      "import sys; sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "from brainspace import native_transport",
+      "assert native_transport.is_allowed_native_field('prompt_cache_key') is True",
+      "assert native_transport.is_allowed_native_field('instructions') is True",
+      "assert native_transport.is_allowed_native_field('session_history') is False",
+      "assert native_transport.is_allowed_native_field('') is False"
+    ],
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace/native_transport.py` without editing files and check how `_FIELDS` and `stable_session_prefix` handle session cache fields."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Add a pure helper `is_allowed_native_field(field: str) -> bool` in `token-master-plugin/skills/token-master/brainspace/native_transport.py` that returns `True` iff `field` is a `str` present in `_FIELDS`, keeping session prefix cache behavior intact."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Verify with Python that `is_allowed_native_field('prompt_cache_key')` is `True` and `is_allowed_native_field('session_history')` is `False` from the previous turn's edit, leaving only `native_transport.py` modified."
+      }
+    ]
+  },
+  {
+    "id": "S14",
+    "bucket": "D_warm_cache_lookalikes",
+    "kind": "edit",
+    "allowed_paths": [
+      "token-master-plugin/skills/token-master/brainspace/certification.py"
+    ],
+    "reference_patch": "diff --git a/token-master-plugin/skills/token-master/brainspace/certification.py b/token-master-plugin/skills/token-master/brainspace/certification.py\nindex f56a749..af8a3a2 100644\n--- a/token-master-plugin/skills/token-master/brainspace/certification.py\n+++ b/token-master-plugin/skills/token-master/brainspace/certification.py\n@@ -801,3 +801,6 @@ class CertificationRegistry:\n                 remaining_alpha=max(0.0, self._alpha - allocated),\n                 next_round_alpha=round_alpha(self._alpha, (max(ks) if ks else 0) + 1),\n             )\n+\n+def is_supported_token_test(name: str) -> bool:\n+    return isinstance(name, str) and name in TOKEN_TESTS\n",
+    "check": [
+      "import sys; sys.path.insert(0, 'token-master-plugin/skills/token-master')",
+      "from brainspace import certification",
+      "assert certification.is_supported_token_test('max-bet-v1') is True",
+      "assert certification.is_supported_token_test('hoeffding-v1') is True",
+      "assert certification.is_supported_token_test('workflow-v1') is False"
+    ],
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Read `token-master-plugin/skills/token-master/brainspace/certification.py` without editing files and inspect `TOKEN_TESTS` and `GateComparisonSpec`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Add a pure helper `is_supported_token_test(name: str) -> bool` to `token-master-plugin/skills/token-master/brainspace/certification.py` returning `True` iff `name` is a `str` in `TOKEN_TESTS`, without changing existing classes or database tables."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Run a quick Python check for the helper you added in Turn 2 (`'max-bet-v1'` -> `True`, `'workflow-v1'` -> `False`), and ensure only `certification.py` is modified."
+      }
+    ]
+  },
+  {
+    "id": "S15",
+    "bucket": "D_warm_cache_lookalikes",
+    "kind": "investigate",
+    "expected": {
+      "max_body": 67108864,
+      "family_count": 7,
+      "moved_marker": "Session folder: stated in the first user message"
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py` without editing files and record `MAX_BODY`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "In `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py`, check how timeout settings and `CAPABILITY_GROUPS` are structured, and count how many capability families exist."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Check `SESSION_FOLDER_MOVED` in `token-master-plugin/skills/token-master/brainspace/native_transport.py`, then combine it with Turn 1 and Turn 2 into ONLY a JSON object with keys `max_body` (int), `family_count` (int), and `moved_marker` (str)."
+      }
+    ]
+  },
+  {
+    "id": "S16",
+    "bucket": "D_warm_cache_lookalikes",
+    "kind": "investigate",
+    "expected": {
+      "workflow_pair_sum": 2038,
+      "agent_rw_sum": 1255,
+      "warm_seconds": 300,
+      "startup_seconds": 120
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "mode": "start",
+        "needed_groups": [],
+        "prompt": "Inspect `token-master-plugin/skills/token-master/tokenomics.py` without editing files and read `LEAN_WEIGHTS['run_dynamic_workflow']` and `LEAN_WEIGHTS['dynamic_workflows_manage']`."
+      },
+      {
+        "turn": 2,
+        "mode": "resume",
+        "needed_groups": [],
+        "prompt": "Still in `token-master-plugin/skills/token-master/tokenomics.py`, read `LEAN_WEIGHTS['read_agent']`, `LEAN_WEIGHTS['write_agent']`, and `int(CACHE_WARM_WINDOW.total_seconds())`."
+      },
+      {
+        "turn": 3,
+        "mode": "continue",
+        "needed_groups": [],
+        "prompt": "Read `int(STARTUP.total_seconds())` in `token-master-plugin/skills/token-master/brainspace_copilot_bridge.py`, then combine it with the workflow and agent weights from Turn 1 and Turn 2 into ONLY a JSON object with keys `workflow_pair_sum` (int), `agent_rw_sum` (int), `warm_seconds` (int), and `startup_seconds` (int)."
+      }
+    ]
+  }
+]

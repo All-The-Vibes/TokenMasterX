@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/v6_shaping.py b/token-master-plugin/skills/token-master/brainspace/v6_shaping.py
+index 18cffaf..5bd0834 100644
+--- a/token-master-plugin/skills/token-master/brainspace/v6_shaping.py
++++ b/token-master-plugin/skills/token-master/brainspace/v6_shaping.py
+@@ -49,6 +49,10 @@ _HEADING = re.compile(r"^#{1,6}\s")
+ _DOC_SUFFIXES = (".md", ".markdown", ".rst")
+ 
+ 
++def budget_for_kind(kind: str) -> int:
++    return {"search": SEARCH_BUDGET, "read": READ_BUDGET}.get(kind, OTHER_BUDGET)
++
++
+ def tool_kind(name: str) -> str:
+     lowered = name.lower() if isinstance(name, str) else ""
+     if lowered in _SEARCH_TOOLS:

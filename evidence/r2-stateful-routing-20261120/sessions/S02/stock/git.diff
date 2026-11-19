@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/repo_brief.py b/token-master-plugin/skills/token-master/brainspace/repo_brief.py
+index 4a88a37..e4290c9 100644
+--- a/token-master-plugin/skills/token-master/brainspace/repo_brief.py
++++ b/token-master-plugin/skills/token-master/brainspace/repo_brief.py
+@@ -69,6 +69,10 @@ _BOILERPLATE_NAMES = frozenset({
+ _CODE_SUFFIXES = symbol_index.CODE_SUFFIXES + symbol_index.RUST_SUFFIXES
+ 
+ 
++def role_floor_sum() -> int:
++    return FLOOR_HUB + FLOOR_ENTRY + FLOOR_RECALL
++
++
+ def _is_code_file(path: str) -> bool:
+     return path.lower().endswith(_CODE_SUFFIXES)
+ 

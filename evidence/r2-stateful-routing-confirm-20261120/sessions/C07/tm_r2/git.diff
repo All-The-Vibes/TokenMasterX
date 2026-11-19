@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/protected_text.py b/token-master-plugin/skills/token-master/brainspace/protected_text.py
+index b18d9e0..0fc4997 100644
+--- a/token-master-plugin/skills/token-master/brainspace/protected_text.py
++++ b/token-master-plugin/skills/token-master/brainspace/protected_text.py
+@@ -23,6 +23,10 @@ _FENCE_LIKE = re.compile(r"[`~]{3,}")
+ _FENCE_LINE = re.compile(r" {0,3}(`{3,}|~{3,})(.*)")
+ 
+ 
++def has_exact_span_marker(text: str) -> bool:
++    return isinstance(text, str) and _EXACT.search(text) is not None
++
++
+ class _Block(NamedTuple):
+     start: int
+     end: int
