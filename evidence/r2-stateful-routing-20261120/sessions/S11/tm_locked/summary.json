@@ -1,0 +1,609 @@
+{
+  "recorded_at": "2026-11-19T20:28:07.262Z",
+  "task_id": "S11",
+  "bucket": "C_cross_session_recall",
+  "kind": "investigate",
+  "arm": "tm_locked",
+  "lane": "l2",
+  "passed": false,
+  "aborted": false,
+  "session_continuity_ok": true,
+  "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+  "session_ids": [
+    "514fab68-ac5a-4745-86ca-a5b62d6119d1"
+  ],
+  "turns_completed": 3,
+  "seconds": 28.669,
+  "call_count": 6,
+  "main_call_count": 6,
+  "subagent_calls": 0,
+  "input_tokens": 40278,
+  "uncached_input_tokens": 7137,
+  "output_tokens": 267,
+  "raw_tokens": 40545,
+  "cache_read_tokens": 33141,
+  "cache_write_tokens": 7119,
+  "billed_nano": 13565850000,
+  "recharged_nano": 13565850000,
+  "cold_nano": 17313700000,
+  "turn23_billed_nano": 8159850000,
+  "billed_usd": 0.135658,
+  "cold_usd": 0.173137,
+  "turn23_billed_usd": 0.081599,
+  "mean_resume_first_call_cache_hit_rate": 0.727435,
+  "resume_tool_mutations": 0,
+  "unneeded_tool_mutations": 0,
+  "all_turns_needed_recalled": false,
+  "escalated_turn_recalled": false,
+  "router_latencies_ms": [
+    6.565,
+    28.462,
+    18.518
+  ],
+  "mean_router_ms": 17.848,
+  "behavior": {
+    "called_tools": [
+      "rg",
+      "glob",
+      "view"
+    ],
+    "escalated_turn_called_tools": [
+      "glob",
+      "view"
+    ],
+    "target_tool_used": false,
+    "async_powershell_used": false,
+    "shell_workaround": false
+  },
+  "tokenomics": {
+    "tm_calls": 6,
+    "calls": 6,
+    "usd": 0.135658,
+    "tm_usd": 0.135658,
+    "saved_usd": 0.055154,
+    "lean_usd": 0.044436,
+    "first_usd": 0.010718,
+    "brief_usd": 0.0,
+    "saved_tokens": 44436,
+    "saved_tokens_pct": 52.3,
+    "saved_usd_pct": 28.9
+  },
+  "turns": [
+    {
+      "turn": 1,
+      "mode": "start",
+      "exit_code": 0,
+      "timed_out": false,
+      "seconds": 8.809,
+      "copilot_version": "1.0.114",
+      "session_ids": [
+        "514fab68-ac5a-4745-86ca-a5b62d6119d1"
+      ],
+      "launch_recorded": true,
+      "launch_session_field": null,
+      "router": "r2",
+      "router_ms": 6.565,
+      "excluded_tools": [
+        "session_store_sql",
+        "task",
+        "read_agent",
+        "write_agent",
+        "list_agents",
+        "skill",
+        "sql",
+        "read_powershell",
+        "stop_powershell",
+        "list_powershell",
+        "fetch_copilot_cli_documentation",
+        "run_dynamic_workflow",
+        "dynamic_workflows_manage"
+      ],
+      "kept_groups": [],
+      "needed_groups": [],
+      "needed_recalled": true,
+      "false_keep_tools": [],
+      "false_keep_tool_count": 0,
+      "tool_list_changed": false,
+      "unneeded_mutation": false,
+      "tool_count": 8,
+      "tool_tokens": 2293,
+      "tool_instructions_tokens": 1356,
+      "schema_plus_instr_tokens": 3649,
+      "call_count": 2,
+      "main_call_count": 2,
+      "subagent_calls": 0,
+      "first_main_input_tokens": 6319,
+      "first_main_cache_read_tokens": 3259,
+      "first_main_cache_write_tokens": 3057,
+      "first_main_cache_hit_rate": 0.515991,
+      "first_main_billed_usd": 0.043951,
+      "input_tokens": 12819,
+      "output_tokens": 79,
+      "raw_tokens": 12898,
+      "cache_read_tokens": 9575,
+      "cache_write_tokens": 3238,
+      "billed_nano": 5406000000,
+      "cold_nano": 9153850000,
+      "billed_usd": 0.05406,
+      "cold_usd": 0.091538,
+      "called_tools": [
+        "rg"
+      ],
+      "tool_starts": [
+        {
+          "name": "rg",
+          "arguments": {
+            "pattern": "MAX_GATE_SAMPLES",
+            "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+            "output_mode": "content",
+            "-n": true
+          }
+        }
+      ],
+      "llm_tool_requests": [
+        {
+          "name": "rg",
+          "arguments": {
+            "pattern": "MAX_GATE_SAMPLES",
+            "paths": "token-master-plugin\\skills\\token-master\\brainspace\\certification.py",
+            "output_mode": "content",
+            "-n": true
+          },
+          "model": "gpt-6-astra"
+        }
+      ],
+      "final_answer": "`MAX_GATE_SAMPLES = 4000` in `certification.py` (line 83). No files were edited.",
+      "session_errors": []
+    },
+    {
+      "turn": 2,
+      "mode": "resume",
+      "exit_code": 0,
+      "timed_out": false,
+      "seconds": 13.357,
+      "copilot_version": null,
+      "session_ids": [
+        "514fab68-ac5a-4745-86ca-a5b62d6119d1"
+      ],
+      "launch_recorded": true,
+      "launch_session_field": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "router": "r2",
+      "router_ms": 28.462,
+      "excluded_tools": [
+        "session_store_sql",
+        "task",
+        "read_agent",
+        "write_agent",
+        "list_agents",
+        "skill",
+        "sql",
+        "read_powershell",
+        "stop_powershell",
+        "list_powershell",
+        "fetch_copilot_cli_documentation",
+        "run_dynamic_workflow",
+        "dynamic_workflows_manage"
+      ],
+      "kept_groups": [],
+      "needed_groups": [
+        "session_history"
+      ],
+      "needed_recalled": false,
+      "false_keep_tools": [],
+      "false_keep_tool_count": 0,
+      "tool_list_changed": false,
+      "unneeded_mutation": false,
+      "tool_count": 8,
+      "tool_tokens": 2293,
+      "tool_instructions_tokens": 1356,
+      "schema_plus_instr_tokens": 3649,
+      "call_count": 3,
+      "main_call_count": 3,
+      "subagent_calls": 0,
+      "first_main_input_tokens": 6706,
+      "first_main_cache_read_tokens": 3259,
+      "first_main_cache_write_tokens": 3444,
+      "first_main_cache_hit_rate": 0.4862,
+      "first_main_billed_usd": 0.047339,
+      "input_tokens": 20434,
+      "output_tokens": 146,
+      "raw_tokens": 20580,
+      "cache_read_tokens": 16764,
+      "cache_write_tokens": 3661,
+      "billed_nano": 6991650000,
+      "cold_nano": 6991650000,
+      "billed_usd": 0.069917,
+      "cold_usd": 0.069917,
+      "called_tools": [
+        "glob",
+        "view"
+      ],
+      "tool_starts": [
+        {
+          "name": "glob",
+          "arguments": {
+            "pattern": "**/*session*"
+          }
+        },
+        {
+          "name": "view",
+          "arguments": {
+            "path": "C:\\tm-lanes\\r2-stateful-routing-20261120\\lanes\\l2\\home\\copilot\\session-state"
+          }
+        }
+      ],
+      "llm_tool_requests": [
+        {
+          "name": "glob",
+          "arguments": {
+            "pattern": "**/*session*"
+          },
+          "model": "gpt-6-astra"
+        },
+        {
+          "name": "view",
+          "arguments": {
+            "path": "C:\\tm-lanes\\r2-stateful-routing-20261120\\lanes\\l2\\home\\copilot\\session-state"
+          },
+          "model": "gpt-6-astra"
+        }
+      ],
+      "final_answer": "I couldn\u2019t access session history: permission was denied in this non-interactive session. The visible conversation contains neither the canary rollout percentage nor the Azure region, so I can\u2019t confirm them. No `.db` files were read.",
+      "session_errors": []
+    },
+    {
+      "turn": 3,
+      "mode": "continue",
+      "exit_code": 0,
+      "timed_out": false,
+      "seconds": 6.503,
+      "copilot_version": null,
+      "session_ids": [
+        "514fab68-ac5a-4745-86ca-a5b62d6119d1"
+      ],
+      "launch_recorded": true,
+      "launch_session_field": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "router": "r2",
+      "router_ms": 18.518,
+      "excluded_tools": [
+        "session_store_sql",
+        "task",
+        "read_agent",
+        "write_agent",
+        "list_agents",
+        "skill",
+        "sql",
+        "read_powershell",
+        "stop_powershell",
+        "list_powershell",
+        "fetch_copilot_cli_documentation",
+        "run_dynamic_workflow",
+        "dynamic_workflows_manage"
+      ],
+      "kept_groups": [],
+      "needed_groups": [],
+      "needed_recalled": true,
+      "false_keep_tools": [],
+      "false_keep_tool_count": 0,
+      "tool_list_changed": false,
+      "unneeded_mutation": false,
+      "tool_count": 8,
+      "tool_tokens": 2293,
+      "tool_instructions_tokens": 1356,
+      "schema_plus_instr_tokens": 3649,
+      "call_count": 1,
+      "main_call_count": 1,
+      "subagent_calls": 0,
+      "first_main_input_tokens": 7025,
+      "first_main_cache_read_tokens": 6802,
+      "first_main_cache_write_tokens": 220,
+      "first_main_cache_hit_rate": 0.96867,
+      "first_main_billed_usd": 0.011682,
+      "input_tokens": 7025,
+      "output_tokens": 42,
+      "raw_tokens": 7067,
+      "cache_read_tokens": 6802,
+      "cache_write_tokens": 220,
+      "billed_nano": 1168200000,
+      "cold_nano": 1168200000,
+      "billed_usd": 0.011682,
+      "cold_usd": 0.011682,
+      "called_tools": [],
+      "tool_starts": [],
+      "llm_tool_requests": [],
+      "final_answer": "{\"max_gate_samples\":4000,\"canary_pct\":null,\"canary_region\":null}",
+      "session_errors": []
+    }
+  ],
+  "calls": [
+    {
+      "row_id": 2,
+      "call_index": 0,
+      "turn": 1,
+      "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "agent_id": null,
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "api_endpoint": "ws:/responses",
+      "input_tokens": 6319,
+      "output_tokens": 49,
+      "cache_read_tokens": 3259,
+      "cache_write_tokens": 3057,
+      "total_nano_aiu": 4395150000,
+      "recharged_nano_aiu": 4395150000,
+      "cold_nano_aiu": 8143000000,
+      "token_details": [
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1000000000000,
+          "tokenCount": 3,
+          "tokenType": "input",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 100000000000,
+          "tokenCount": 3259,
+          "tokenType": "cache_read",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1250000000000,
+          "tokenCount": 3057,
+          "tokenType": "cache_write",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 5000000000000,
+          "tokenCount": 49,
+          "tokenType": "output",
+          "model": "gpt-6-astra"
+        }
+      ],
+      "created_at": "2026-11-19T20:27:44.656Z"
+    },
+    {
+      "row_id": 3,
+      "call_index": 1,
+      "turn": 1,
+      "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "agent_id": null,
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "api_endpoint": "ws:/responses",
+      "input_tokens": 6500,
+      "output_tokens": 30,
+      "cache_read_tokens": 6316,
+      "cache_write_tokens": 181,
+      "total_nano_aiu": 1010850000,
+      "recharged_nano_aiu": 1010850000,
+      "cold_nano_aiu": 1010850000,
+      "token_details": [
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1000000000000,
+          "tokenCount": 3,
+          "tokenType": "input",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 100000000000,
+          "tokenCount": 6316,
+          "tokenType": "cache_read",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1250000000000,
+          "tokenCount": 181,
+          "tokenType": "cache_write",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 5000000000000,
+          "tokenCount": 30,
+          "tokenType": "output",
+          "model": "gpt-6-astra"
+        }
+      ],
+      "created_at": "2026-11-19T20:27:46.349Z"
+    },
+    {
+      "row_id": 4,
+      "call_index": 2,
+      "turn": 2,
+      "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "agent_id": null,
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "api_endpoint": "ws:/responses",
+      "input_tokens": 6706,
+      "output_tokens": 20,
+      "cache_read_tokens": 3259,
+      "cache_write_tokens": 3444,
+      "total_nano_aiu": 4733900000,
+      "recharged_nano_aiu": 4733900000,
+      "cold_nano_aiu": 4733900000,
+      "token_details": [
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1000000000000,
+          "tokenCount": 3,
+          "tokenType": "input",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 100000000000,
+          "tokenCount": 3259,
+          "tokenType": "cache_read",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1250000000000,
+          "tokenCount": 3444,
+          "tokenType": "cache_write",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 5000000000000,
+          "tokenCount": 20,
+          "tokenType": "output",
+          "model": "gpt-6-astra"
+        }
+      ],
+      "created_at": "2026-11-19T20:27:53.790Z"
+    },
+    {
+      "row_id": 5,
+      "call_index": 3,
+      "turn": 2,
+      "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "agent_id": null,
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "api_endpoint": "ws:/responses",
+      "input_tokens": 6805,
+      "output_tokens": 75,
+      "cache_read_tokens": 6703,
+      "cache_write_tokens": 99,
+      "total_nano_aiu": 1172050000,
+      "recharged_nano_aiu": 1172050000,
+      "cold_nano_aiu": 1172050000,
+      "token_details": [
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1000000000000,
+          "tokenCount": 3,
+          "tokenType": "input",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 100000000000,
+          "tokenCount": 6703,
+          "tokenType": "cache_read",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1250000000000,
+          "tokenCount": 99,
+          "tokenType": "cache_write",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 5000000000000,
+          "tokenCount": 75,
+          "tokenType": "output",
+          "model": "gpt-6-astra"
+        }
+      ],
+      "created_at": "2026-11-19T20:27:57.145Z"
+    },
+    {
+      "row_id": 6,
+      "call_index": 4,
+      "turn": 2,
+      "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "agent_id": null,
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "api_endpoint": "ws:/responses",
+      "input_tokens": 6923,
+      "output_tokens": 51,
+      "cache_read_tokens": 6802,
+      "cache_write_tokens": 118,
+      "total_nano_aiu": 1085700000,
+      "recharged_nano_aiu": 1085700000,
+      "cold_nano_aiu": 1085700000,
+      "token_details": [
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1000000000000,
+          "tokenCount": 3,
+          "tokenType": "input",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 100000000000,
+          "tokenCount": 6802,
+          "tokenType": "cache_read",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1250000000000,
+          "tokenCount": 118,
+          "tokenType": "cache_write",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 5000000000000,
+          "tokenCount": 51,
+          "tokenType": "output",
+          "model": "gpt-6-astra"
+        }
+      ],
+      "created_at": "2026-11-19T20:27:59.215Z"
+    },
+    {
+      "row_id": 7,
+      "call_index": 5,
+      "turn": 3,
+      "session_id": "514fab68-ac5a-4745-86ca-a5b62d6119d1",
+      "agent_id": null,
+      "is_subagent": false,
+      "model": "gpt-6-astra",
+      "api_endpoint": "ws:/responses",
+      "input_tokens": 7025,
+      "output_tokens": 42,
+      "cache_read_tokens": 6802,
+      "cache_write_tokens": 220,
+      "total_nano_aiu": 1168200000,
+      "recharged_nano_aiu": 1168200000,
+      "cold_nano_aiu": 1168200000,
+      "token_details": [
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1000000000000,
+          "tokenCount": 3,
+          "tokenType": "input",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 100000000000,
+          "tokenCount": 6802,
+          "tokenType": "cache_read",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 1250000000000,
+          "tokenCount": 220,
+          "tokenType": "cache_write",
+          "model": "gpt-6-astra"
+        },
+        {
+          "batchSize": 1000000,
+          "costPerBatch": 5000000000000,
+          "tokenCount": 42,
+          "tokenType": "output",
+          "model": "gpt-6-astra"
+        }
+      ],
+      "created_at": "2026-11-19T20:28:05.383Z"
+    }
+  ],
+  "cumulative_spent_usd": 11.826402
+}

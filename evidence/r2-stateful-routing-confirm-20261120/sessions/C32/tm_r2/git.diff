@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/runtime_resources.py b/token-master-plugin/skills/token-master/brainspace/runtime_resources.py
+index 2144458..4851657 100644
+--- a/token-master-plugin/skills/token-master/brainspace/runtime_resources.py
++++ b/token-master-plugin/skills/token-master/brainspace/runtime_resources.py
+@@ -47,6 +47,10 @@ _RECEIPT_KEYS = {
+ }
+ 
+ 
++def is_pinned_resource_version(ver: str) -> bool:
++    return isinstance(ver, str) and ver == _VERSION
++
++
+ def _require(value: bool, reason: str) -> None:
+     if not value:
+         raise ValueError(reason)

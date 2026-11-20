@@ -30,10 +30,10 @@ OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 @pytest.fixture(autouse=True)
 def no_md1(monkeypatch):
-    """MD-1 routing and resume escalation are opt-in: no test enables them unless it sets the env var itself."""
+    """MD-1 routing, router overrides, and resume escalation are opt-in unless a test sets them."""
     for name in ("TOKENMASTER_MD1_ENDPOINT", "TOKENMASTER_MD1_API_KEY", "TOKENMASTER_MD1_THRESHOLD",
                  "TOKENMASTER_MD1_TIMEOUT", "TOKENMASTER_MD1_DEPLOYMENT", "TOKENMASTER_MD1_TENANT",
-                 "TOKENMASTER_RESUME_ESCALATE"):
+                 "TOKENMASTER_ROUTER", "TOKENMASTER_RESUME_ESCALATE", "TOKENMASTER_ESCALATE_MISS_COST"):
         monkeypatch.delenv(name, raising=False)
 
 

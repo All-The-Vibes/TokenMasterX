@@ -9,6 +9,28 @@ and the project aims to follow semantic versioning.
 
 ### Added
 
+- R2 zero-network distilled local capability router, symmetric pragmatic discourse deixis, and 2-stage warm-cache Bayes
+  resume escalation (`brainspace/local_router.py`, `brainspace/local_router_weights.py`, `--router {auto,regex,r2,md1}` /
+  `TOKENMASTER_ROUTER`, `--resume-escalate {off,v1,r2}` / `TOKENMASTER_RESUME_ESCALATE`, `router` + `router_ms` telemetry
+  in `brainspace_copilot_bridge.py`, and `--local-only` 3-way benchmark in `evals/md1_routing_eval.py`), evaluated across
+  two sequential pre-registered multi-turn live studies (`160` 3-turn sessions / `480` launches across `start` →
+  `--resume <id>` → `--continue`, `0` aborts, `100%` offline verification on `tm_r2`) on Copilot CLI `1.0.112`
+  (`gpt-6-astra`, this repository `@ a9275d8d`): a `24.7 KB` zlib-compressed `int16` 7-family classifier (`1.000` recall on
+  both `29/29` `CASES` and `13/13` `HELD_OUT` at `0.060 ms` standalone median) suppresses intra-session `"Turn 1"` / `"that
+  response"` false positives on `session_store_sql`, boosts non-quoted cross-session history markers, and weighs mid-session
+  capability-miss loss against actual cached-prefix rewrite cost from `<COPILOT_HOME>/session-store.db`. Round 1 ($k = 1$,
+  $\alpha_1 = 0.0304$, `evidence/r2-stateful-routing-20261120/`, `64` sessions / `192` launches across `4` arms) passed all
+  `3` primary Holm tests (`−37.43%` cold USD and `−50.44%` raw tokens vs `stock`, `22.6x` faster routing vs cloud `MD-1`,
+  and `7/8` mid-session capability recall vs `0/8` on default `tm_locked`). Confirmation Round 2 ($k = 2$, $\alpha_2 =
+  0.0076$, `evidence/r2-stateful-routing-confirm-20261120/`, `96` sessions / `288` launches across `32` fresh workflows,
+  `max_jaccard = 0.533 < 0.55`) passed `3/4` Holm-Bonferroni hypotheses (`H1`: `−37.87%` cold USD and `−50.11%` raw tokens
+  vs `stock`, Holm $p = 2.79 \times 10^{-9}$; `H2`: `36.49 ms` vs `914.47 ms` live launcher median, **`25.1x` faster**,
+  Holm $p = 1.86 \times 10^{-9}$; `H4`: **`−24.97%` resumed Turn 2+3 billed USD vs `tm_md1_v1`**, `$0.1852 → $0.1390`, Holm
+  $p = 0.0122$, `0` unneeded mid-session tool mutations vs `6`, `−46.2%` on intra-session deixis workflows) and passed
+  `Bet.lean`'s exact integer `max-bet-v1` token gate against `stock` (`wealth = 1.0162 >= 1.0` vs `0.4995` for `tm_md1_v1`),
+  while recording `harm_count = 2` vs `Gate.lean` limit `1` (`C21`, `C24`, `decision = "not_certified"`); `--router auto`
+  and `--resume-escalate off` remain the conservative defaults.
+
 - R6 skeletal class projection and `@overload` 1-step resolution in `read_symbol` (`brainspace/symbol_index.py`,
   `navigation_mcp.py`, and default `--class-skeleton r6` / `--class-skeleton v1` in `setup.py`, preserving `NavCap.lean`
   `OUTPUT_BUDGET = 2,400`), evaluated across two sequential pre-registered 3-arm live studies (`150` sessions, `150/150`

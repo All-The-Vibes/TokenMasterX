@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
+index a4af67a..702c988 100644
+--- a/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
++++ b/token-master-plugin/skills/token-master/brainspace/exact_reuse.py
+@@ -25,6 +25,10 @@ _SUFFIX = "]] Identical content remains visible in the earlier tool result in th
+ _TOOLS = ("read_file", "fetch_artifact")
+ 
+ 
++def is_supported_reuse_tool(tool_name: str) -> bool:
++    return isinstance(tool_name, str) and tool_name in _TOOLS
++
++
+ @dataclass(frozen=True)
+ class ExactReuse:
+     source_index: int

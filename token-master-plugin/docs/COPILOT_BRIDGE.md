@@ -47,7 +47,7 @@ The launcher appends a start record and an end record for each Copilot CLI launc
 `<COPILOT_HOME>/token-master/launches.jsonl`: time, the folder Copilot CLI works in (the `-C` folder when one is
 given), whether the lean tool set, the bridge and the navigation tools were on, the `cl100k_base` token count of any
 injected `.token-master/brief.md` (`brief`, inherited across `--resume` and `--continue`), the names of the tools that
-the lean tool set excluded, and the ID of the session the launch resumes. The records hold no prompt text. `/tokenomics` uses
+the lean tool set excluded, the active `--router` mode and routing latency (`router`, `router_ms`), and the ID of the session the launch resumes. The records hold no prompt text. `/tokenomics` uses
 them to tell TokenMaster sessions from stock sessions, and to credit only the tools a launch removed minus `nav` and `brief`. The launcher
 uses them to give a resumed session its tool list again ([Resumed sessions](#resumed-sessions)).
 
@@ -201,6 +201,30 @@ tools unconditionally.
   prompt outside its family needs a branch for every independent phrasing it covers, while MD-1 keeps
   one question per family.
 
+### Local R2 router (`--router r2`)
+
+When no Azure Foundry endpoint is available—or to avoid sending prompt text off-machine and waiting ~`0.9 s`
+for a network round-trip—pass `--router r2` before `--` (or set `TOKENMASTER_ROUTER=r2`; `--router
+{auto,regex,r2,md1}` defaults to `auto`, which uses `md1` when `TOKENMASTER_MD1_ENDPOINT` is set and `regex`
+otherwise).
+
+- `brainspace/local_router.py` and `brainspace/local_router_weights.py` (`24.7 KB` zlib-compressed `int16`
+  weights distilled from live `MD-1` across `4,096` signed FNV-1a unigram, bigram and char-4-gram buckets
+  plus explicit lookalike interaction terms) score all 7 tool families in pure Python stdlib with zero
+  network calls (`0.060 ms` standalone median; `36.5 ms` live launcher median including SQLite session-store
+  lookup vs `914.5 ms` on cloud `MD-1` — **`25.1x` faster** across 96 live launches in
+  `evidence/r2-stateful-routing-confirm-20261120/`).
+- Like MD-1, R2 replaces each scored family's keyword rule per family while preserving unconditional CLI
+  flags (`--agent`, `--fleet`, `--resume`, `--continue`), slash commands, installed skill/agent names, and
+  `TOKENMASTER_KEEP_TOOLS`, so `Routing.lean` holds unchanged. On `evals/md1_routing_eval.py --local-only`,
+  R2 recalls `29/29` (`1.000`, `0` false keeps) on `CASES` and `13/13` (`1.000`, `1` false keep, `9/9` clean
+  negatives) on `HELD_OUT`.
+- **Symmetric pragmatic discourse deixis (`apply_discourse_deixis`):** on resumed turns (`is_resumed=True`),
+  R2 suppresses intra-session anaphoric references (`"Turn 1"`, `"earlier in this session"`, `"that response"`)
+  from falsely unlocking `session_store_sql` unless paired with non-quoted cross-session history markers
+  (`"earlier sessions"`, `"last week"`, `"across sessions"`), which receive a positive logit boost even inside
+  long schema-heavy prompts.
+
 ## Resumed sessions
 
 A resumed session sends its whole history again, with the tool list of the new launch. In probes
@@ -272,6 +296,23 @@ after a tool-list mutation).
   at the cost of rewriting the prompt cache when tools unlock (`$4.86` cold-normalized total vs
   `$4.32` locked and `$6.57` stock; note also that follow-up prompts mentioning `"Turn 1"` or
   `"Turn 2"` can cause stateless MD-1 to unlock `session_store_sql`).
+- Passing `--resume-escalate r2` (or setting `TOKENMASTER_RESUME_ESCALATE=r2`; `--resume-escalate
+  {off,v1,r2}` defaults to `off`, with `1`/`true`/`yes`/`on` aliasing `v1`) upgrades monotonic resume
+  escalation to **2-stage warm-cache Bayes escalation**: the launcher estimates the session's cached
+  prefix (`static_prefix + brief + transcript + file_reads`) from `<COPILOT_HOME>/session-store.db` and
+  unlocks a newly scored family $f$ only when its calibrated posterior exceeds the prefix-aware Bayes
+  threshold $\tau_f(P_{\text{warm}}) = \frac{c_{\text{break}}(P_{\text{warm}}) + \Delta_f K_{\text{rem}}}{L_{\text{miss},f} + c_{\text{break}}(P_{\text{warm}}) + \Delta_f K_{\text{rem}}}$.
+  Across 160 live multi-turn sessions (`480` launches) in `evidence/r2-stateful-routing-20261120/` and
+  `evidence/r2-stateful-routing-confirm-20261120/` (`N = 32` fresh 3-turn workflows in Round 2), `--lean
+  --router r2 --resume-escalate r2` cut cold-normalized session USD **`37.87%` vs stock** (Holm $p = 2.79
+  \times 10^{-9}$, raw tokens `−50.11%`, `max-bet-v1` wealth `1.0162 >= 1.0`), eliminated all unneeded
+  mid-session tool mutations (`0` vs `6` on `--router md1 --resume-escalate v1`), and cut resumed Turn 2+3
+  billed USD **`24.97%` vs `--router md1 --resume-escalate v1`** (`$0.1852 → $0.1390`, Holm $p = 0.0122$;
+  `−46.2%` on intra-session escalation + deixis workflows). Honest limit: on `2/8` cross-session recall
+  workflows (`C21`, `C24`) phrased as `"past sessions in \`session_store_sql\`"` / `"prior history"` inside
+  long JSON-output prompts, `tm_r2` missed `session_store_sql` (`harm_count = 2` vs `Gate.lean` limit `1` at
+  $\alpha_2 = 0.0076$, `decision = "not_certified"`), so `--router auto` and `--resume-escalate off` remain
+  the defaults.
 - Without a recorded list, the launcher routes a `--lean` resume like any `--lean` launch, as before,
   and `--resume`, `-r` and `--continue` keep session history. That happens for:
   - a session started without the launcher, or with `--worktree`, which runs it in another folder;

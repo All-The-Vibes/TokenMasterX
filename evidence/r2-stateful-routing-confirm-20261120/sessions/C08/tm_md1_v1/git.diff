@@ -1,0 +1,15 @@
+diff --git a/token-master-plugin/skills/token-master/brainspace/token_ledger.py b/token-master-plugin/skills/token-master/brainspace/token_ledger.py
+index 1100fe1..d1ca1b1 100644
+--- a/token-master-plugin/skills/token-master/brainspace/token_ledger.py
++++ b/token-master-plugin/skills/token-master/brainspace/token_ledger.py
+@@ -39,6 +39,10 @@ _PHASES = ("deployment", "learning")
+ _ROLES = ("primary", "auxiliary", "verification", "recovery", "retry")
+ 
+ 
++def is_allowed_call_role(role: str) -> bool:
++    return isinstance(role, str) and role in _ROLES
++
++
+ def _text(value: str, name: str) -> None:
+     if not isinstance(value, str) or not value.strip():
+         raise ValueError(f"{name} must be a nonempty identity")

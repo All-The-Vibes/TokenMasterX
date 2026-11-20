@@ -119,37 +119,59 @@ def score(picks: list[set[str]], cases: list[tuple[str, set[str]]] = CASES) -> d
             "no_need_prompts_kept_nothing": f"{sum(not pick for pick in clean)}/{len(clean)}"}
 
 
-def run(cases: list[tuple[str, set[str]]], latencies: list[float]) -> tuple[dict, list[dict]]:
+def run(cases: list[tuple[str, set[str]]], latencies: list[float], r2_latencies: list[float],
+        *, include_md1: bool = True) -> tuple[dict, list[dict]]:
     rows = []
     for prompt, labels in cases:
-        start = time.perf_counter()
-        md1 = bridge.md1_families(prompt)
-        latencies.append((time.perf_counter() - start) * 1000)
-        rows.append({"prompt": prompt, "labels": sorted(labels), "regex": sorted(regex_families(prompt)),
-                     "md1": sorted(md1)})
-    picks = {name: [set(row[name]) for row in rows] for name in ("regex", "md1")}
-    picks["union"] = [a | b for a, b in zip(picks["regex"], picks["md1"])]
+        r2_start = time.perf_counter()
+        r2 = bridge.r2_families(prompt)
+        r2_latencies.append((time.perf_counter() - r2_start) * 1000)
+        row: dict = {"prompt": prompt, "labels": sorted(labels), "regex": sorted(regex_families(prompt)),
+                     "r2": sorted(r2)}
+        if include_md1:
+            start = time.perf_counter()
+            md1 = bridge.md1_families(prompt)
+            latencies.append((time.perf_counter() - start) * 1000)
+            row["md1"] = sorted(md1)
+        rows.append(row)
+    names = ("regex", "r2", "md1") if include_md1 else ("regex", "r2")
+    picks = {name: [set(row[name]) for row in rows] for name in names}
+    if include_md1:
+        picks["union"] = [a | b for a, b in zip(picks["regex"], picks["md1"])]
     for row in rows:
-        if set(row["md1"]) | set(row["regex"]) != set(row["labels"]):
-            print(f"  {row['prompt']!r}: needs {row['labels']}, regex {row['regex']}, md1 {row['md1']}")
+        compared = (set(row["md1"]) if include_md1 else set()) | set(row["r2"]) | set(row["regex"])
+        if compared != set(row["labels"]):
+            detail = f", md1 {row['md1']}" if include_md1 else ""
+            print(f"  {row['prompt']!r}: needs {row['labels']}, regex {row['regex']}, r2 {row['r2']}{detail}")
     return {name: score(value, cases) for name, value in picks.items()}, rows
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--out", type=Path)
+    parser.add_argument("--local-only", action="store_true",
+                        help="evaluate regex and local R2 router without calling TOKENMASTER_MD1_ENDPOINT")
     args = parser.parse_args()
-    if not os.environ.get("TOKENMASTER_MD1_ENDPOINT"):
-        parser.error("set TOKENMASTER_MD1_ENDPOINT")
-    bridge.md1_families("warm up")  # fetches and caches the token outside the timings
+    include_md1 = not args.local_only
+    if include_md1 and not os.environ.get("TOKENMASTER_MD1_ENDPOINT"):
+        parser.error("set TOKENMASTER_MD1_ENDPOINT or pass --local-only")
+    bridge.r2_families("warm up")  # loads and compiles the quantized local index outside the timings
+    if include_md1:
+        bridge.md1_families("warm up")  # fetches and caches the token outside the timings
     latencies: list[float] = []
+    r2_latencies: list[float] = []
     summary, results = {}, {}
     for name, cases in (("tuning", CASES), ("held_out", HELD_OUT)):
-        print(f"{name}: prompts where regex or MD-1 differ from the label")
-        summary[name], results[name] = run(cases, latencies)
-    latencies.sort()
-    summary["md1_latency_ms"] = {"calls": len(latencies), "median": round(statistics.median(latencies)),
-                                 "p90": round(latencies[int(len(latencies) * 0.9)]), "max": round(latencies[-1])}
+        print(f"{name}: prompts where regex, R2 or MD-1 differ from the label")
+        summary[name], results[name] = run(cases, latencies, r2_latencies, include_md1=include_md1)
+    r2_latencies.sort()
+    summary["r2_latency_ms"] = {"calls": len(r2_latencies), "median": round(statistics.median(r2_latencies), 3),
+                                "p90": round(r2_latencies[int(len(r2_latencies) * 0.9)], 3),
+                                "max": round(r2_latencies[-1], 3)}
+    if include_md1 and latencies:
+        latencies.sort()
+        summary["md1_latency_ms"] = {"calls": len(latencies), "median": round(statistics.median(latencies)),
+                                     "p90": round(latencies[int(len(latencies) * 0.9)]), "max": round(latencies[-1])}
     print(json.dumps(summary, indent=2))
     if args.out:
         args.out.write_text(json.dumps({"summary": summary, "cases": results}, indent=2) + "\n", encoding="utf-8")

@@ -128,9 +128,11 @@ none of the October 27 sessions called. A prompt given at launch with `-p` or `-
 one of these tool families keeps it, and a prompt that starts a skill also keeps the workflow and
 subagent tools. Prompts typed later in an interactive session keep nothing: before launching, set
 `TOKENMASTER_KEEP_TOOLS` to the families to keep, for example `agents,sql`, or leave out `--lean`.
-With `TOKENMASTER_MD1_ENDPOINT` set, `--lean` also sends the launch prompt to the user's own
-Microsoft-Decision-1 deployment to ask which families it needs; it only adds families and is off
-by default. The headline saving, about half the tokens, was measured with `--lean`. Without it,
+With `TOKENMASTER_MD1_ENDPOINT` set (or `--router md1`), `--lean` sends the launch prompt to the user's own
+Microsoft-Decision-1 deployment to ask which families it needs; with `--router r2` (or `TOKENMASTER_ROUTER=r2`),
+`--lean` instead runs the offline `24.7 KB` distilled local classifier (`0.060 ms` standalone, zero network calls),
+and `--resume-escalate r2` (`TOKENMASTER_RESUME_ESCALATE=r2`) enables warm-cache-aware mid-session capability
+escalation on `--resume` / `--continue`. Both routers are off by default (`--router auto`, `--resume-escalate off`). The headline saving, about half the tokens, was measured with `--lean`. Without it,
 with navigation and the `view` hook installed, a November 1 run used 19% fewer raw tokens than
 stock Copilot CLI (95% CI 9 to 29%). In bring-your-own-model mode, the
 launcher also runs a local bridge
